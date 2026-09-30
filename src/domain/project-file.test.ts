@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addNode, createProject } from "./project";
+import { addMaterial, addMember, addNode, addSection, createProject } from "./project";
 import { decodeProject, encodeProject } from "./project-file";
 
 describe("FrameMind project file", () => {
@@ -35,6 +35,17 @@ describe("FrameMind project file", () => {
     expect(() => decodeProject(malformed)).toThrow("节点 node_0001 的坐标无效");
   });
 
+  it("keeps T01 root fields required while allowing absent T02 collections", () => {
+    const t01Project = createProject("T01 compatibility");
+    const { materials: _materials, sections: _sections, members: _members, nextMaterialNumber: _nextMaterialNumber, nextSectionNumber: _nextSectionNumber, nextMemberNumber: _nextMemberNumber, ...t01File } = t01Project;
+
+    expect(decodeProject(JSON.stringify(t01File))).toMatchObject({ materials: [], sections: [], members: [] });
+    const { nodes: _nodes, ...missingNodes } = t01File;
+    expect(() => decodeProject(JSON.stringify(missingNodes))).toThrow("项目节点列表无效");
+    const { nextNodeNumber: _nextNodeNumber, ...missingNextNode } = t01File;
+    expect(() => decodeProject(JSON.stringify(missingNextNode))).toThrow("项目版本信息无效");
+  });
+
   it("rejects a next-node counter that would reuse an existing identity", () => {
     const project = addNode(createProject("Conflicting counter"), { x: 0, y: 0, z: 0 });
     const malformed = JSON.stringify({ ...project, nextNodeNumber: 1 });
@@ -51,6 +62,58 @@ describe("FrameMind project file", () => {
     const reopened = decodeProject(terminal);
     expect(() => addNode(reopened, { x: 0, y: 0, z: 0 })).toThrow(
       "项目编号状态无法安全递增",
+    );
+  });
+
+  it("round-trips custom materials, sections, members, and their stable references", () => {
+    let original = createProject("Single member");
+    original = addNode(original, { x: 0, y: 0, z: 0 });
+    original = addNode(original, { x: 2, y: 1, z: 3 });
+    original = addMaterial(original, { name: "Q355", elasticModulusGPa: 206, poissonRatio: 0.3, densityKgM3: 7850 });
+    original = addSection(original, { name: "Custom box", areaM2: 0.02, secondMomentYM4: 0.0002, secondMomentZM4: 0.0003, torsionalConstantM4: 0.0004 });
+    original = addMember(original, {
+      startNodeId: original.nodes[0].id,
+      endNodeId: original.nodes[1].id,
+      materialId: original.materials[0].id,
+      sectionId: original.sections[0].id,
+      rotationDegrees: 27,
+    });
+
+    expect(decodeProject(encodeProject(original))).toEqual(original);
+  });
+
+  it("rejects a saved member with a missing material reference", () => {
+    let project = createProject("Broken reference");
+    project = addNode(project, { x: 0, y: 0, z: 0 });
+    project = addNode(project, { x: 1, y: 0, z: 0 });
+    project = addMaterial(project, { name: "Steel", elasticModulusGPa: 200, poissonRatio: 0.3, densityKgM3: 7850 });
+    project = addSection(project, { name: "I", areaM2: 0.01, secondMomentYM4: 0.0001, secondMomentZM4: 0.0002, torsionalConstantM4: 0.00005 });
+    project = addMember(project, {
+      startNodeId: project.nodes[0].id,
+      endNodeId: project.nodes[1].id,
+      materialId: project.materials[0].id,
+      sectionId: project.sections[0].id,
+      rotationDegrees: 0,
+    });
+    const malformed = JSON.stringify({
+      ...project,
+      members: [{ ...project.members[0], materialId: "material_9999" }],
+    });
+
+    expect(() => decodeProject(malformed)).toThrow("杆件 M1 引用了不存在的材料 material_9999");
+  });
+
+  it("rejects malformed stable identities and display labels", () => {
+    const project = addMaterial(createProject("Bad identity"), { name: "Steel", elasticModulusGPa: 200, poissonRatio: 0.3, densityKgM3: 7850 });
+
+    expect(() => decodeProject(JSON.stringify({ ...project, materials: [{ ...project.materials[0], id: "steel" }] }))).toThrow(
+      "材料 M1 的稳定标识格式无效",
+    );
+    expect(() => decodeProject(JSON.stringify({ ...project, materials: [{ ...project.materials[0], label: "Steel 1" }] }))).toThrow(
+      "材料显示编号 Steel 1 格式无效",
+    );
+    expect(() => decodeProject(JSON.stringify({ ...project, materials: [{ ...project.materials[0], id: "material_00001" }] }))).toThrow(
+      "材料 M1 的稳定标识格式无效",
     );
   });
 });
