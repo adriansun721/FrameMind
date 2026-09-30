@@ -16,13 +16,55 @@ interface SceneViewportProps {
   onSelect(selection: SceneSelection): void;
 }
 
-function makeLabel(text: string): THREE.Sprite {
+interface ScenePalette {
+  canvas: string;
+  gridMajor: string;
+  gridMinor: string;
+  member: string;
+  node: string;
+  selected: string;
+  axisX: string;
+  axisY: string;
+  axisZ: string;
+  stem: string;
+  labelSurface: string;
+  labelBorder: string;
+  labelText: string;
+  lightSky: string;
+  lightGround: string;
+  lightKey: string;
+}
+
+function readScenePalette(): ScenePalette {
+  const styles = getComputedStyle(document.documentElement);
+  const color = (token: string) => styles.getPropertyValue(token).trim();
+  return {
+    canvas: color("--surface-canvas"),
+    gridMajor: color("--model-grid-major"),
+    gridMinor: color("--model-grid-minor"),
+    member: color("--model-default"),
+    node: color("--model-node"),
+    selected: color("--model-selected"),
+    axisX: color("--model-axis-x"),
+    axisY: color("--model-axis-y"),
+    axisZ: color("--model-axis-z"),
+    stem: color("--model-stem"),
+    labelSurface: color("--model-label-surface"),
+    labelBorder: color("--model-label-border"),
+    labelText: color("--model-label-text"),
+    lightSky: color("--model-light-sky"),
+    lightGround: color("--model-light-ground"),
+    lightKey: color("--model-light-key"),
+  };
+}
+
+function makeLabel(text: string, palette: ScenePalette): THREE.Sprite {
   const canvas = document.createElement("canvas"); canvas.width = 192; canvas.height = 80;
   const context = canvas.getContext("2d")!;
-  context.fillStyle = "rgba(14, 21, 28, 0.92)"; context.beginPath(); context.roundRect(22, 10, 148, 52, 12); context.fill();
-  context.strokeStyle = "rgba(153, 177, 198, 0.35)"; context.lineWidth = 2; context.stroke();
-  context.font = "600 25px Inter, Segoe UI, sans-serif"; context.textAlign = "center"; context.textBaseline = "middle";
-  context.fillStyle = "#e8eef3"; context.fillText(text, 96, 36);
+  context.fillStyle = palette.labelSurface; context.beginPath(); context.roundRect(22, 10, 148, 52, 10); context.fill();
+  context.strokeStyle = palette.labelBorder; context.lineWidth = 2; context.stroke();
+  context.font = "600 25px Segoe UI, sans-serif"; context.textAlign = "center"; context.textBaseline = "middle";
+  context.fillStyle = palette.labelText; context.fillText(text, 96, 36);
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true })); sprite.scale.set(1.8, 0.75, 1);
   return sprite;
@@ -36,15 +78,16 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
 
   useEffect(() => {
     const host = hostRef.current; if (!host) return;
-    const scene = new THREE.Scene(); scene.background = new THREE.Color("#101820"); scene.fog = new THREE.Fog("#101820", 24, 55);
+    const palette = readScenePalette();
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(palette.canvas); scene.fog = new THREE.Fog(palette.canvas, 24, 55);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200); camera.up.set(0, 0, 1);
     const frame = calculateSceneFrame(nodes); camera.position.set(frame.camera.x, frame.camera.y, frame.camera.z); camera.far = frame.far; camera.updateProjectionMatrix();
     const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; host.appendChild(renderer.domElement);
     const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.target.set(frame.target.x, frame.target.y, frame.target.z); controls.minDistance = 2; controls.maxDistance = 70;
-    const grid = new THREE.GridHelper(30, 30, "#405361", "#24333e"); grid.rotation.x = Math.PI / 2; scene.add(grid);
-    const axes = new THREE.AxesHelper(2.2); axes.position.set(-0.01, -0.01, 0.02); scene.add(axes);
-    scene.add(new THREE.HemisphereLight("#cfe5f5", "#17222b", 2.2));
-    const light = new THREE.DirectionalLight("#ffffff", 3.4); light.position.set(8, -5, 13); scene.add(light);
+    const grid = new THREE.GridHelper(30, 30, palette.gridMajor, palette.gridMinor); grid.rotation.x = Math.PI / 2; scene.add(grid);
+    const axes = new THREE.AxesHelper(2.2); axes.setColors(palette.axisX, palette.axisY, palette.axisZ); axes.position.set(-0.01, -0.01, 0.02); scene.add(axes);
+    scene.add(new THREE.HemisphereLight(palette.lightSky, palette.lightGround, 2.2));
+    const light = new THREE.DirectionalLight(palette.lightKey, 3.2); light.position.set(8, -5, 13); scene.add(light);
     const modelGroup = new THREE.Group(); scene.add(modelGroup); const hitTargets: THREE.Object3D[] = [];
 
     for (const member of members) {
@@ -57,15 +100,15 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
       const direction = endVector.clone().sub(startVector).normalize(); const selected = selection?.kind === "member" && selection.id === member.id;
       const mesh = new THREE.Mesh(
         new THREE.CylinderGeometry(selected ? equivalentRadius + 0.03 : equivalentRadius, selected ? equivalentRadius + 0.03 : equivalentRadius, geometry.length, 14),
-        new THREE.MeshStandardMaterial({ color: selected ? "#f3b64a" : "#7898aa", emissive: selected ? "#6b3d0a" : "#172b36", roughness: 0.35, metalness: 0.42 }),
+        new THREE.MeshStandardMaterial({ color: selected ? palette.selected : palette.member, roughness: 0.48, metalness: 0.24 }),
       );
       mesh.position.copy(startVector).add(endVector).multiplyScalar(0.5); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
       mesh.userData = { kind: "member", id: member.id }; modelGroup.add(mesh); hitTargets.push(mesh);
-      const label = makeLabel(member.label); label.position.copy(mesh.position).add(new THREE.Vector3(0, 0, 0.62)); modelGroup.add(label);
+      const label = makeLabel(member.label, palette); label.position.copy(mesh.position).add(new THREE.Vector3(0, 0, 0.62)); modelGroup.add(label);
       if (selected) {
         const origin = mesh.position; const size = Math.min(1.2, Math.max(0.55, geometry.length * 0.22));
-        modelGroup.add(new THREE.ArrowHelper(new THREE.Vector3(geometry.localY.x, geometry.localY.y, geometry.localY.z), origin, size, "#55d790", 0.18, 0.1));
-        modelGroup.add(new THREE.ArrowHelper(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), origin, size, "#64a8ff", 0.18, 0.1));
+        modelGroup.add(new THREE.ArrowHelper(new THREE.Vector3(geometry.localY.x, geometry.localY.y, geometry.localY.z), origin, size, palette.axisY, 0.18, 0.1));
+        modelGroup.add(new THREE.ArrowHelper(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), origin, size, palette.axisZ, 0.18, 0.1));
       }
     }
 
@@ -73,11 +116,11 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
       const selected = selection?.kind === "node" && selection.id === node.id;
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(selected ? 0.27 : 0.23, 28, 20),
-        new THREE.MeshStandardMaterial({ color: selected ? "#f3b64a" : "#54b6d8", emissive: selected ? "#6b3d0a" : "#0b3542", emissiveIntensity: selected ? 0.65 : 0.28, roughness: 0.28, metalness: 0.2 }),
+        new THREE.MeshStandardMaterial({ color: selected ? palette.selected : palette.node, roughness: 0.45, metalness: 0.12 }),
       );
       sphere.position.set(node.position.x, node.position.y, node.position.z); sphere.userData = { kind: "node", id: node.id }; modelGroup.add(sphere); hitTargets.push(sphere);
-      const label = makeLabel(node.label); label.position.set(node.position.x, node.position.y, node.position.z + 0.72); modelGroup.add(label);
-      const stem = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(node.position.x, node.position.y, 0), new THREE.Vector3(node.position.x, node.position.y, node.position.z)]), new THREE.LineDashedMaterial({ color: "#546978", dashSize: 0.16, gapSize: 0.1 }));
+      const label = makeLabel(node.label, palette); label.position.set(node.position.x, node.position.y, node.position.z + 0.72); modelGroup.add(label);
+      const stem = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(node.position.x, node.position.y, 0), new THREE.Vector3(node.position.x, node.position.y, node.position.z)]), new THREE.LineDashedMaterial({ color: palette.stem, dashSize: 0.16, gapSize: 0.1 }));
       stem.computeLineDistances(); modelGroup.add(stem);
     }
 
@@ -110,7 +153,7 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
       <div className="viewport-topline"><span className="view-chip">透视</span><span className="view-hint">左键选择 · 右键旋转 · 滚轮缩放</span></div>
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
       {selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>等效面积轮廓 · 转角 {selectedMember.rotationDegrees}°</small></div>}
-      {nodes.length === 0 && <div className="empty-scene"><span className="empty-kicker">MODEL SPACE</span><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
+      {nodes.length === 0 && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
     </div>
   );
 }

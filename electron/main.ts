@@ -16,7 +16,7 @@ function createWindow(): void {
     height: 920,
     minWidth: 1080,
     minHeight: 680,
-    backgroundColor: "#111820",
+    backgroundColor: "#1a1a1a",
     title: "FrameMind",
     show: false,
     autoHideMenuBar: true,
