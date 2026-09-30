@@ -63,6 +63,16 @@ export function addNode(project: FrameProject, position: Vector3): FrameProject 
   if (![position.x, position.y, position.z].every(Number.isFinite)) {
     throw new Error("坐标必须是有限数值");
   }
+  if (
+    !Number.isSafeInteger(project.nextNodeNumber) ||
+    project.nextNodeNumber < 1 ||
+    project.nextNodeNumber >= Number.MAX_SAFE_INTEGER ||
+    !Number.isSafeInteger(project.revision) ||
+    project.revision < 0 ||
+    project.revision >= Number.MAX_SAFE_INTEGER
+  ) {
+    throw new Error("项目编号状态无法安全递增");
+  }
 
   const nodeNumber = project.nextNodeNumber;
   const node: FrameNode = {

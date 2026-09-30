@@ -87,10 +87,13 @@ export function decodeProject(source: string): FrameProject {
 
   if (
     typeof value.revision !== "number" ||
-    !Number.isInteger(value.revision) ||
+    !Number.isSafeInteger(value.revision) ||
+    value.revision < 0 ||
+    value.revision >= Number.MAX_SAFE_INTEGER ||
     typeof value.nextNodeNumber !== "number" ||
-    !Number.isInteger(value.nextNodeNumber) ||
-    value.nextNodeNumber < 1
+    !Number.isSafeInteger(value.nextNodeNumber) ||
+    value.nextNodeNumber < 1 ||
+    value.nextNodeNumber >= Number.MAX_SAFE_INTEGER
   ) {
     throw new Error("项目版本信息无效");
   }

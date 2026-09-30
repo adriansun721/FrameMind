@@ -32,6 +32,7 @@ function filename(path: string | null): string | null {
 export function App() {
   const [project, setProject] = useState<FrameProject>(() => createProject());
   const activeProjectRef = useRef(project);
+  const activeSessionRef = useRef(0);
   activeProjectRef.current = project;
   const [projectPath, setProjectPath] = useState<string | null>(null);
   const [savedRevision, setSavedRevision] = useState(0);
@@ -50,14 +51,15 @@ export function App() {
     [project.nodes, selectedNodeId],
   );
 
-  const activateProject = (nextProject: FrameProject) => {
+  const activateProject = (nextProject: FrameProject, beginNewSession: boolean) => {
+    if (beginNewSession) activeSessionRef.current += 1;
     activeProjectRef.current = nextProject;
     setProject(nextProject);
   };
 
   const beginNewProject = () => {
     if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return;
-    activateProject(createProject());
+    activateProject(createProject(), true);
     setProjectPath(null);
     setSavedRevision(0);
     setSelectedNodeId(null);
@@ -66,43 +68,43 @@ export function App() {
 
   const openProject = async () => {
     if (dirty && !window.confirm("当前项目有未保存修改，确定打开其他项目吗？")) return;
-    const checkpoint = captureProjectCheckpoint(project);
+    const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
     try {
       const result = await window.frameMind.openProject();
       if (result.status === "cancelled") return;
-      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "exact")) return;
+      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
       const opened = decodeProject(result.content);
-      activateProject(opened);
+      activateProject(opened, true);
       setProjectPath(result.path);
       setSavedRevision(opened.revision);
       setSelectedNodeId(null);
       setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
     } catch (error) {
-      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "exact")) {
+      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) {
         setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" });
       }
     }
   };
 
   const saveProject = async () => {
-    const checkpoint = captureProjectCheckpoint(project);
+    const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
     try {
       const result = await window.frameMind.saveProject({
         path: projectPath,
         content: encodeProject(project),
       });
       if (result.status === "cancelled") return;
-      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "identity")) return;
+      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
       setProjectPath(result.path);
       setSavedRevision(checkpoint.revision);
       setStatus({
         tone: "success",
-        text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "exact")
+        text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")
           ? `已保存 ${filename(result.path)}`
           : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改`,
       });
     } catch (error) {
-      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "identity")) {
+      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) {
         setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" });
       }
     }
@@ -125,7 +127,7 @@ export function App() {
 
     try {
       const updated = addNode(project, position);
-      activateProject(updated);
+      activateProject(updated, false);
       setSelectedNodeId(updated.nodes.at(-1)?.id ?? null);
       setNodeDialogOpen(false);
       setCoordinates({ x: "0", y: "0", z: "0" });
