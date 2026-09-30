@@ -1,4 +1,5 @@
-import { _electron as electron, expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import { launchFrameMind } from "./electron-app";
 
 function colorChannels(color: string): number[] {
   return color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
@@ -13,11 +14,7 @@ async function expectNeutralSurface(page: Page, selector: string): Promise<void>
 }
 
 test("UI01 presents a compact neutral workbench at supported window sizes", async () => {
-  const environment: NodeJS.ProcessEnv = { ...process.env };
-  delete environment.ELECTRON_RUN_AS_NODE;
-
-  const app = await electron.launch({ args: ["."], env: environment });
-  const page = await app.firstWindow();
+  const { app, page } = await launchFrameMind();
 
   await expect(page.locator(".app-shell")).toBeVisible();
   await expect(page.locator(".topbar")).toHaveCSS("height", "44px");
@@ -43,7 +40,7 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
 
   await expectNeutralSurface(page, ".topbar");
   await expectNeutralSurface(page, ".project-panel");
-  await expectNeutralSurface(page, ".inspector-panel");
+  await expectNeutralSurface(page, ".property-pane");
   await expectNeutralSurface(page, ".button.primary");
 
   await page.getByRole("button", { name: "创建节点" }).click();
@@ -56,7 +53,6 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
   await expectNeutralSurface(page, ".tree-item.selected");
   await expect(page.locator(".tree-item.selected")).toHaveCSS("box-shadow", "none");
   await expect(page.locator(".statusbar")).toHaveCSS("font-size", "11px");
-  await expect(page.locator(".ai-placeholder small")).toHaveCSS("font-size", "11px");
   await expect(page.locator(".selection-icon svg")).toHaveCSS("width", "15px");
   await expect(page.locator(".viewport-count")).toBeHidden();
   await expect(page.locator(".view-chip")).toHaveCSS("border-top-width", "0px");
@@ -79,7 +75,7 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
     for (const name of ["新建项目", "打开项目", "保存项目", "创建节点", "创建材料与截面"]) {
       await expect(page.getByRole("button", { name })).toBeVisible();
     }
-    await expect(page.getByRole("complementary").getByLabel("X 坐标")).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "项目与属性" }).getByLabel("X 坐标")).toBeVisible();
   }
 
   await app.close();
