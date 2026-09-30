@@ -42,12 +42,15 @@ describe("FrameMind project file", () => {
     expect(() => decodeProject(malformed)).toThrow("下一节点编号与已有节点冲突");
   });
 
-  it("rejects counters that cannot be incremented safely", () => {
-    const malformed = JSON.stringify({
+  it("reopens a safe terminal counter but refuses to increment it", () => {
+    const terminal = JSON.stringify({
       ...createProject("Unsafe counter"),
       nextNodeNumber: Number.MAX_SAFE_INTEGER,
     });
 
-    expect(() => decodeProject(malformed)).toThrow("项目版本信息无效");
+    const reopened = decodeProject(terminal);
+    expect(() => addNode(reopened, { x: 0, y: 0, z: 0 })).toThrow(
+      "项目编号状态无法安全递增",
+    );
   });
 });

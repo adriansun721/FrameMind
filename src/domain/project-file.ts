@@ -89,11 +89,9 @@ export function decodeProject(source: string): FrameProject {
     typeof value.revision !== "number" ||
     !Number.isSafeInteger(value.revision) ||
     value.revision < 0 ||
-    value.revision >= Number.MAX_SAFE_INTEGER ||
     typeof value.nextNodeNumber !== "number" ||
     !Number.isSafeInteger(value.nextNodeNumber) ||
-    value.nextNodeNumber < 1 ||
-    value.nextNodeNumber >= Number.MAX_SAFE_INTEGER
+    value.nextNodeNumber < 1
   ) {
     throw new Error("项目版本信息无效");
   }
