@@ -3,6 +3,8 @@ import {
   PROJECT_FORMAT_VERSION,
   type FrameNode,
   type FrameProject,
+  type NodeId,
+  type ProjectId,
 } from "./project";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -34,7 +36,7 @@ function decodeNode(value: unknown): FrameNode {
   }
 
   return {
-    id,
+    id: id as NodeId,
     label,
     position: {
       x: position.x as number,
@@ -93,10 +95,23 @@ export function decodeProject(source: string): FrameProject {
     throw new Error("项目版本信息无效");
   }
 
+  const highestUsedNodeNumber = nodes.reduce((highest, node) => {
+    const idMatch = /^node_(\d+)$/.exec(node.id);
+    const labelMatch = /^N(\d+)$/.exec(node.label);
+    return Math.max(
+      highest,
+      idMatch ? Number(idMatch[1]) : 0,
+      labelMatch ? Number(labelMatch[1]) : 0,
+    );
+  }, 0);
+  if (value.nextNodeNumber <= highestUsedNodeNumber) {
+    throw new Error("下一节点编号与已有节点冲突");
+  }
+
   return {
     format: PROJECT_FORMAT,
     formatVersion: PROJECT_FORMAT_VERSION,
-    id: requireString(value.id, "项目缺少稳定标识"),
+    id: requireString(value.id, "项目缺少稳定标识") as ProjectId,
     name: requireString(value.name, "项目缺少名称"),
     createdAt: requireString(value.createdAt, "项目缺少创建时间"),
     updatedAt: requireString(value.updatedAt, "项目缺少更新时间"),

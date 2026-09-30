@@ -1,13 +1,14 @@
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { join } from "node:path";
+import {
+  DesktopChannel,
+  type OpenProjectResult,
+  type SaveProjectRequest,
+  type SaveProjectResult,
+} from "./contracts";
 import { ProjectFileStore } from "./project-files";
 
 const projectFiles = new ProjectFileStore();
-
-interface SaveRequest {
-  path: string | null;
-  content: string;
-}
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -37,7 +38,7 @@ function createWindow(): void {
   }
 }
 
-ipcMain.handle("project:save", async (_event, request: SaveRequest) => {
+ipcMain.handle(DesktopChannel.SaveProject, async (_event, request: SaveProjectRequest): Promise<SaveProjectResult> => {
   const automatedPath = process.env.FRAMEMIND_E2E_PROJECT_PATH;
   let targetPath = request.path ?? automatedPath ?? null;
 
@@ -57,7 +58,7 @@ ipcMain.handle("project:save", async (_event, request: SaveRequest) => {
   return { status: "saved" as const, path: targetPath };
 });
 
-ipcMain.handle("project:open", async () => {
+ipcMain.handle(DesktopChannel.OpenProject, async (): Promise<OpenProjectResult> => {
   const automatedPath = process.env.FRAMEMIND_E2E_PROJECT_PATH;
   let targetPath = automatedPath ?? null;
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Box,
   ChevronDown,
@@ -13,8 +13,9 @@ import {
   X,
 } from "lucide-react";
 import { SceneViewport } from "./components/SceneViewport";
-import { addNode, createProject, type FrameProject } from "./domain/project";
+import { addNode, createProject, type FrameProject, type NodeId } from "./domain/project";
 import { decodeProject, encodeProject } from "./domain/project-file";
+import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 
 type StatusTone = "neutral" | "success" | "error";
 
@@ -30,9 +31,11 @@ function filename(path: string | null): string | null {
 
 export function App() {
   const [project, setProject] = useState<FrameProject>(() => createProject());
+  const activeProjectRef = useRef(project);
+  activeProjectRef.current = project;
   const [projectPath, setProjectPath] = useState<string | null>(null);
   const [savedRevision, setSavedRevision] = useState(0);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<NodeId | null>(null);
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false);
   const [coordinates, setCoordinates] = useState({ x: "0", y: "0", z: "0" });
   const [formError, setFormError] = useState<string | null>(null);
@@ -47,9 +50,14 @@ export function App() {
     [project.nodes, selectedNodeId],
   );
 
+  const activateProject = (nextProject: FrameProject) => {
+    activeProjectRef.current = nextProject;
+    setProject(nextProject);
+  };
+
   const beginNewProject = () => {
     if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return;
-    setProject(createProject());
+    activateProject(createProject());
     setProjectPath(null);
     setSavedRevision(0);
     setSelectedNodeId(null);
@@ -58,32 +66,45 @@ export function App() {
 
   const openProject = async () => {
     if (dirty && !window.confirm("当前项目有未保存修改，确定打开其他项目吗？")) return;
+    const checkpoint = captureProjectCheckpoint(project);
     try {
       const result = await window.frameMind.openProject();
-      if (result.status === "cancelled" || !result.content || !result.path) return;
+      if (result.status === "cancelled") return;
+      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "exact")) return;
       const opened = decodeProject(result.content);
-      setProject(opened);
+      activateProject(opened);
       setProjectPath(result.path);
       setSavedRevision(opened.revision);
       setSelectedNodeId(null);
       setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
     } catch (error) {
-      setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" });
+      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "exact")) {
+        setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" });
+      }
     }
   };
 
   const saveProject = async () => {
+    const checkpoint = captureProjectCheckpoint(project);
     try {
       const result = await window.frameMind.saveProject({
         path: projectPath,
         content: encodeProject(project),
       });
-      if (result.status === "cancelled" || !result.path) return;
+      if (result.status === "cancelled") return;
+      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "identity")) return;
       setProjectPath(result.path);
-      setSavedRevision(project.revision);
-      setStatus({ tone: "success", text: `已保存 ${filename(result.path)}` });
+      setSavedRevision(checkpoint.revision);
+      setStatus({
+        tone: "success",
+        text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "exact")
+          ? `已保存 ${filename(result.path)}`
+          : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改`,
+      });
     } catch (error) {
-      setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" });
+      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, "identity")) {
+        setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" });
+      }
     }
   };
 
@@ -104,7 +125,7 @@ export function App() {
 
     try {
       const updated = addNode(project, position);
-      setProject(updated);
+      activateProject(updated);
       setSelectedNodeId(updated.nodes.at(-1)?.id ?? null);
       setNodeDialogOpen(false);
       setCoordinates({ x: "0", y: "0", z: "0" });

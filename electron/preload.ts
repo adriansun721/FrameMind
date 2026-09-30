@@ -1,7 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
+import { DesktopChannel, type FrameMindDesktopApi } from "./contracts";
 
-contextBridge.exposeInMainWorld("frameMind", {
+const desktopApi: FrameMindDesktopApi = {
   saveProject: (request: { path: string | null; content: string }) =>
-    ipcRenderer.invoke("project:save", request),
-  openProject: () => ipcRenderer.invoke("project:open"),
-});
+    ipcRenderer.invoke(DesktopChannel.SaveProject, request),
+  openProject: () => ipcRenderer.invoke(DesktopChannel.OpenProject),
+};
+
+contextBridge.exposeInMainWorld("frameMind", desktopApi);

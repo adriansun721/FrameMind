@@ -34,4 +34,11 @@ describe("FrameMind project file", () => {
 
     expect(() => decodeProject(malformed)).toThrow("节点 node_0001 的坐标无效");
   });
+
+  it("rejects a next-node counter that would reuse an existing identity", () => {
+    const project = addNode(createProject("Conflicting counter"), { x: 0, y: 0, z: 0 });
+    const malformed = JSON.stringify({ ...project, nextNodeNumber: 1 });
+
+    expect(() => decodeProject(malformed)).toThrow("下一节点编号与已有节点冲突");
+  });
 });

@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { FrameNode } from "../domain/project";
+import type { FrameNode, NodeId } from "../domain/project";
+import { calculateSceneFrame } from "./scene-camera";
 
 interface SceneViewportProps {
   nodes: FrameNode[];
-  selectedNodeId: string | null;
-  onSelectNode(id: string | null): void;
+  selectedNodeId: NodeId | null;
+  onSelectNode(id: NodeId | null): void;
 }
 
 function makeLabel(text: string): THREE.Sprite {
@@ -50,7 +51,10 @@ export function SceneViewport({ nodes, selectedNodeId, onSelectNode }: SceneView
 
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
     camera.up.set(0, 0, 1);
-    camera.position.set(10, -12, 9);
+    const frame = calculateSceneFrame(nodes);
+    camera.position.set(frame.camera.x, frame.camera.y, frame.camera.z);
+    camera.far = frame.far;
+    camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -59,7 +63,7 @@ export function SceneViewport({ nodes, selectedNodeId, onSelectNode }: SceneView
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.target.set(0, 0, 1.5);
+    controls.target.set(frame.target.x, frame.target.y, frame.target.z);
     controls.minDistance = 2;
     controls.maxDistance = 70;
 
@@ -110,20 +114,16 @@ export function SceneViewport({ nodes, selectedNodeId, onSelectNode }: SceneView
       nodeGroup.add(stem);
     }
 
-    if (nodes.length === 1) {
-      const node = nodes[0];
-      controls.target.set(node.position.x, node.position.y, node.position.z);
-    }
-
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const selectAtPointer = (event: PointerEvent) => {
+      if (event.button !== 0) return;
       const bounds = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
       pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
       const hit = raycaster.intersectObjects(hitTargets, false)[0];
-      onSelectRef.current(hit ? String(hit.object.userData.nodeId) : null);
+      onSelectRef.current(hit ? (String(hit.object.userData.nodeId) as NodeId) : null);
     };
     renderer.domElement.addEventListener("pointerdown", selectAtPointer);
 
