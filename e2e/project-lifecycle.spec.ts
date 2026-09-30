@@ -1,7 +1,12 @@
-import { _electron as electron, expect, test } from "@playwright/test";
+import { _electron as electron, expect, test, type Page } from "@playwright/test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+async function runFileAction(page: Page, action: "新建项目" | "打开项目" | "保存项目") {
+  await page.getByRole("button", { name: "文件" }).click();
+  await page.getByRole("menu", { name: "文件" }).getByRole("menuitem", { name: new RegExp(action) }).click();
+}
 
 test("creates, displays, saves, closes, and reopens a spatial node", async () => {
   const directory = await mkdtemp(join(tmpdir(), "framemind-e2e-"));
@@ -22,7 +27,7 @@ test("creates, displays, saves, closes, and reopens a spatial node", async () =>
   await expect(firstWindow.getByTestId("viewport-node-count")).toHaveText("1 个节点");
   await expect(firstWindow.getByText("node_0001", { exact: true })).toBeVisible();
 
-  await firstWindow.getByRole("button", { name: "保存项目" }).click();
+  await runFileAction(firstWindow, "保存项目");
   await expect(firstWindow.getByRole("status")).toContainText("已保存");
   await firstRun.close();
 
@@ -34,7 +39,7 @@ test("creates, displays, saves, closes, and reopens a spatial node", async () =>
 
   const secondRun = await electron.launch({ args: ["."], env: environment });
   const secondWindow = await secondRun.firstWindow();
-  await secondWindow.getByRole("button", { name: "打开项目" }).click();
+  await runFileAction(secondWindow, "打开项目");
   await secondWindow.getByText("N1", { exact: true }).click();
 
   await expect(secondWindow.getByTestId("viewport-node-count")).toHaveText("1 个节点");
@@ -97,7 +102,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
   await page.getByRole("button", { name: "保存杆件属性" }).click();
   await expect(page.getByRole("status")).toContainText("已更新 M1");
 
-  await page.getByRole("button", { name: "保存项目" }).click();
+  await runFileAction(page, "保存项目");
   await firstRun.close();
 
   const saved = JSON.parse(await readFile(projectPath, "utf8"));
@@ -113,7 +118,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
 
   const secondRun = await electron.launch({ args: ["."], env: environment });
   const reopened = await secondRun.firstWindow();
-  await reopened.getByRole("button", { name: "打开项目" }).click();
+  await runFileAction(reopened, "打开项目");
   await reopened.getByText("M1", { exact: true }).click();
   await expect(reopened.getByText("member_0001", { exact: true })).toBeVisible();
   await expect(reopened.getByLabel("截面转角（°）")).toHaveValue("30");

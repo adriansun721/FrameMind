@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
-import { Box, ChevronDown, CircleDot, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, Plus, Save, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Anchor, Box, ChevronDown, CircleDot, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Undo2, X } from "lucide-react";
 import { SceneViewport, type SceneSelection } from "./components/SceneViewport";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
@@ -40,13 +40,16 @@ export function App() {
   const [materialDraft, setMaterialDraft] = useState<MaterialDraft>(defaultMaterial); const [sectionDraft, setSectionDraft] = useState<SectionDraft>(defaultSection);
   const [memberDraft, setMemberDraft] = useState<MemberDraft>({ startNodeId: "", endNodeId: "", materialId: "", sectionId: "", rotationDegrees: "0" });
   const [formError, setFormError] = useState<string | null>(null);
-  const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪 · 长度单位 m" });
+  const [fileMenuOpen, setFileMenuOpen] = useState(false);
+  const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const dirty = project.revision !== savedRevision;
+  const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
 
   const selectedNode = selection?.kind === "node" ? project.nodes.find((item) => item.id === selection.id) ?? null : null;
   const selectedMember = selection?.kind === "member" ? project.members.find((item) => item.id === selection.id) ?? null : null;
   const selectedMaterial = selection?.kind === "material" ? project.materials.find((item) => item.id === selection.id) ?? null : null;
   const selectedSection = selection?.kind === "section" ? project.sections.find((item) => item.id === selection.id) ?? null : null;
+  const currentSelectionLabel = selectedNode?.label ?? selectedMember?.label ?? selectedMaterial?.label ?? selectedSection?.label ?? "无选择";
   const memberGeometry = useMemo(() => {
     if (!selectedMember) return null;
     const start = project.nodes.find((item) => item.id === selectedMember.startNodeId); const end = project.nodes.find((item) => item.id === selectedMember.endNodeId);
@@ -107,12 +110,55 @@ export function App() {
   const saveMaterialEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMaterial) return; try { const updated = updateMaterial(project, selectedMaterial.id, materialToNumbers(materialDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新材料 ${selectedMaterial.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新材料失败"); } };
   const saveSectionEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedSection) return; try { const updated = updateSection(project, selectedSection.id, sectionToNumbers(sectionDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新截面 ${selectedSection.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新截面失败"); } };
 
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setFileMenuOpen(false); return; }
+      if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+      const key = event.key.toLowerCase();
+      if (!["n", "o", "s"].includes(key)) return;
+      event.preventDefault();
+      setFileMenuOpen(false);
+      if (key === "n") beginNewProject();
+      if (key === "o") void openProject();
+      if (key === "s") void saveProject();
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  });
+
   return <main className="app-shell">
     <header className="topbar">
-      <div className="brand-block"><div className="brand-mark"><Hexagon size={16} strokeWidth={1.5} /></div><span className="brand-name">FrameMind</span></div>
+      <div className="brand-and-file">
+        <div className="brand-block"><div className="brand-mark"><Hexagon size={15} strokeWidth={1.5} /></div><span className="brand-name">FrameMind</span></div>
+        <div className="file-menu-container" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFileMenuOpen(false); }}>
+          <button className="file-menu-trigger" aria-label="文件" aria-haspopup="menu" aria-expanded={fileMenuOpen} onClick={() => setFileMenuOpen((open) => !open)}>文件<ChevronDown size={14} /></button>
+          {fileMenuOpen && <div className="file-menu" role="menu" aria-label="文件">
+            <MenuAction icon={<FilePlus2 size={14} />} label="新建项目" shortcut="Ctrl+N" onSelect={() => { setFileMenuOpen(false); beginNewProject(); }} />
+            <MenuAction icon={<FolderOpen size={14} />} label="打开项目" shortcut="Ctrl+O" onSelect={() => { setFileMenuOpen(false); void openProject(); }} />
+            <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
+          </div>}
+        </div>
+      </div>
       <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{filename(projectPath) ?? "未保存项目"}</small></div>
-      <div className="top-actions"><button className="button ghost" onClick={beginNewProject} aria-label="新建项目"><FilePlus2 size={16} /> 新建</button><button className="button ghost" onClick={openProject} aria-label="打开项目"><FolderOpen size={16} /> 打开</button><button className="button primary" onClick={saveProject} aria-label="保存项目"><Save size={16} /> 保存</button></div>
+      <nav className="task-tabs" role="tablist" aria-label="工作任务">
+        <button className="task-tab active" role="tab" aria-selected="true">建模</button>
+        {(["荷载", "分析", "结果"] as const).map((task) => <button className="task-tab" role="tab" aria-selected="false" disabled title={`${task}功能尚未实现`} key={task}>{task}</button>)}
+      </nav>
     </header>
+
+    <section className="task-toolbar" aria-label="当前任务工具">
+      <span className="task-context">建模</span><span className="toolbar-divider" />
+      <div className="model-toolbar" role="toolbar" aria-label="建模工具">
+        <button className="tool-button active" aria-label="选择" aria-pressed="true" title="选择对象" onClick={() => selectObject(null)}><MousePointer2 size={15} />选择</button>
+        <button className="tool-button" onClick={openNodeDialog} aria-label="创建节点" title="创建节点"><CircleDot size={15} />节点</button>
+        <button className="tool-button" aria-disabled={!memberCreationAvailable} onClick={memberCreationAvailable ? openMemberDialog : undefined} aria-label="创建杆件" title={memberCreationAvailable ? "创建杆件" : "需要至少两个节点、一个材料和一个截面"}><Link2 size={15} />杆件</button>
+        <button className="tool-button" onClick={() => { setMaterialDraft(defaultMaterial); setSectionDraft(defaultSection); setFormError(null); setResourceDialogOpen(true); }} aria-label="创建材料与截面" title="创建材料与截面"><Layers3 size={15} />材料与截面</button>
+        <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="支座功能尚未实现"><Anchor size={15} />支座</button>
+        <span className="toolbar-divider" />
+        <button className="tool-button icon-only" aria-disabled="true" aria-label="撤销（尚未实现）" title="撤销尚未实现"><Undo2 size={15} /></button>
+        <button className="tool-button icon-only" aria-disabled="true" aria-label="重做（尚未实现）" title="重做尚未实现"><Redo2 size={15} /></button>
+      </div>
+    </section>
 
     <section className="workspace">
       <aside className="project-panel" aria-label="项目与属性">
@@ -151,16 +197,11 @@ export function App() {
         </section>
       </aside>
 
-      <section className="model-area"><div className="model-toolbar">
-        <button className="button tool-primary" onClick={openNodeDialog} aria-label="创建节点"><Plus size={16} /> 创建节点</button>
-        <button className="button tool-primary" onClick={() => { setMaterialDraft(defaultMaterial); setSectionDraft(defaultSection); setFormError(null); setResourceDialogOpen(true); }} aria-label="创建材料与截面"><Plus size={16} /> 材料 / 截面</button>
-        <button className="button tool-primary" disabled={project.nodes.length < 2 || !project.materials.length || !project.sections.length} onClick={openMemberDialog} aria-label="创建杆件"><Link2 size={16} /> 创建杆件</button>
-        <span className="toolbar-divider" /><span className="coordinate-badge">XYZ · m · Z 向上</span>
-      </div><SceneViewport nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : null} onSelect={selectObject} /></section>
+      <section className="model-area"><SceneViewport nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : null} onSelect={selectObject} /></section>
 
     </section>
 
-    <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>全局坐标系 · Z 向上</span></footer>
+    <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>
 
     {nodeDialogOpen && <Dialog title="创建空间节点" copy="输入全局坐标。长度统一以米（m）保存和显示。" onClose={() => setNodeDialogOpen(false)}><form onSubmit={submitNode}><div className="coordinate-inputs">{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={nodeDraft[axis]} onChange={(value) => setNodeDraft({ ...nodeDraft, [axis]: value })} unit="m" />)}</div><FormFeedback error={formError} /><DialogActions close={() => setNodeDialogOpen(false)} submit="添加到模型" /></form></Dialog>}
     {resourceDialogOpen && <Dialog title="创建材料与截面" copy="参数使用 SI 基准单位；这些值将在 T03 核定单元理论前保持明确含义。" onClose={() => setResourceDialogOpen(false)}><form onSubmit={submitResources}><div className="resource-columns"><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><SectionFields draft={sectionDraft} setDraft={setSectionDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => setResourceDialogOpen(false)} submit="保存材料与截面" /></form></Dialog>}
@@ -169,6 +210,7 @@ export function App() {
 }
 
 function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) { return <div className="tree-group"><div className="tree-group-label"><ChevronDown size={13} />{icon}<span>{label}</span><em>{count}</em></div><div className="tree-items">{children}</div></div>; }
+function MenuAction({ icon, label, shortcut, onSelect }: { icon: React.ReactNode; label: string; shortcut: string; onSelect(): void }) { return <button className="menu-item" role="menuitem" onClick={onSelect}><span>{icon}{label}</span><kbd>{shortcut}</kbd></button>; }
 function Inspector({ title, label, icon, children }: { title: string; label: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="inspector-content"><div className="selection-title"><span className="selection-icon">{icon}</span><div><small>{title}</small><strong>{label}</strong></div></div>{children}<p className="inspector-note">属性来自当前已应用模型，三维视图与项目文件共享同一对象身份。</p></div>; }
 function Identity({ id, label }: { id: string; label: string }) { return <section className="property-section"><h3>标识</h3><dl><div><dt>稳定 ID</dt><dd>{id}</dd></div><div><dt>显示编号</dt><dd>{label}</dd></div></dl></section>; }
 function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange(value: string): void; options: Array<{ value: string; label: string }> }) { return <label className="field"><span>{label}</span><select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>; }

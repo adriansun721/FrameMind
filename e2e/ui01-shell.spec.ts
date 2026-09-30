@@ -17,7 +17,7 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
   const { app, page } = await launchFrameMind();
 
   await expect(page.locator(".app-shell")).toBeVisible();
-  await expect(page.locator(".topbar")).toHaveCSS("height", "44px");
+  await expect(page.locator(".topbar")).toHaveCSS("height", "34px");
   await expect(page.getByText("STRUCTURAL STUDIO", { exact: true })).toHaveCount(0);
   await expect(page.getByText("MODEL SPACE", { exact: true })).toHaveCount(0);
 
@@ -41,7 +41,7 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
   await expectNeutralSurface(page, ".topbar");
   await expectNeutralSurface(page, ".project-panel");
   await expectNeutralSurface(page, ".property-pane");
-  await expectNeutralSurface(page, ".button.primary");
+  await expectNeutralSurface(page, ".tool-button.active");
 
   await page.getByRole("button", { name: "创建节点" }).click();
   const nodeDialog = page.getByRole("dialog", { name: "创建空间节点" });
@@ -72,9 +72,14 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
     expect(layout.scrollWidth).toBe(layout.clientWidth);
     expect(layout.scrollHeight).toBe(layout.clientHeight);
 
-    for (const name of ["新建项目", "打开项目", "保存项目", "创建节点", "创建材料与截面"]) {
+    for (const name of ["创建节点", "创建材料与截面"]) {
       await expect(page.getByRole("button", { name })).toBeVisible();
     }
+    await page.getByRole("button", { name: "文件" }).click();
+    for (const name of ["新建项目", "打开项目", "保存项目"]) {
+      await expect(page.getByRole("menu", { name: "文件" }).getByRole("menuitem", { name: new RegExp(name) })).toBeVisible();
+    }
+    await page.keyboard.press("Escape");
     await expect(page.getByRole("complementary", { name: "项目与属性" }).getByLabel("X 坐标")).toBeVisible();
   }
 
