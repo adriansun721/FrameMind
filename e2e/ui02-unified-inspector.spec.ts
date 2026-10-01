@@ -41,13 +41,6 @@ test("UI02 keeps project selection and editable properties in one left sidebar",
 
   await expect(sidebar.locator(".tree-item.selected")).toHaveText(/N1/);
   await expect(properties.getByLabel("X 坐标")).toHaveValue("1");
-  await properties.getByLabel("X 坐标").fill("4.5");
-  await properties.getByRole("button", { name: "保存节点属性" }).click();
-
-  await expect(sidebar.locator(".tree-item.selected")).toContainText("4.5, 2, 3");
-  await expect(properties.getByText("4.500 m", { exact: true })).toBeVisible();
-
-  await expectRequiredPropertyError(properties, "X 坐标", "保存节点属性", "X 坐标不能为空");
 
   await page.getByRole("button", { name: "创建材料与截面" }).click();
   await page.getByRole("button", { name: "保存材料与截面" }).click();
@@ -59,7 +52,14 @@ test("UI02 keeps project selection and editable properties in one left sidebar",
   expect(canvasBox).not.toBeNull();
   await canvas.click({ position: { x: canvasBox!.width / 2, y: canvasBox!.height / 2 } });
   await expect(sidebar.locator(".tree-item.selected")).toHaveText(/N1/);
+  await expect(properties.getByLabel("X 坐标")).toHaveValue("1");
+  await properties.getByLabel("X 坐标").fill("4.5");
+  await properties.getByRole("button", { name: "保存节点属性" }).click();
+
+  await expect(sidebar.locator(".tree-item.selected")).toContainText("4.5, 2, 3");
+  await expect(properties.getByText("4.500 m", { exact: true })).toBeVisible();
   await expect(properties.getByLabel("X 坐标")).toHaveValue("4.5");
+  await expectRequiredPropertyError(properties, "X 坐标", "保存节点属性", "X 坐标不能为空");
 
   await projectTree.getByText("材料 M1 · Q355", { exact: true }).click();
   await expectRequiredPropertyError(properties, "弹性模量 E", "保存材料属性", "弹性模量 E不能为空");
