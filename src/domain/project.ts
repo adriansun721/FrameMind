@@ -1,4 +1,5 @@
 import { calculateMemberGeometry } from "./member-geometry";
+import type { AnalysisResult } from "./analysis";
 
 export const PROJECT_FORMAT = "framemind-project" as const;
 export const PROJECT_FORMAT_VERSION = 1 as const;
@@ -8,11 +9,15 @@ declare const nodeIdBrand: unique symbol;
 declare const materialIdBrand: unique symbol;
 declare const sectionIdBrand: unique symbol;
 declare const memberIdBrand: unique symbol;
+declare const supportIdBrand: unique symbol;
+declare const loadIdBrand: unique symbol;
 export type ProjectId = string & { readonly [projectIdBrand]: true };
 export type NodeId = string & { readonly [nodeIdBrand]: true };
 export type MaterialId = string & { readonly [materialIdBrand]: true };
 export type SectionId = string & { readonly [sectionIdBrand]: true };
 export type MemberId = string & { readonly [memberIdBrand]: true };
+export type SupportId = string & { readonly [supportIdBrand]: true };
+export type LoadId = string & { readonly [loadIdBrand]: true };
 
 export interface Vector3 { x: number; y: number; z: number; }
 export interface FrameNode { id: NodeId; label: string; position: Vector3; }
@@ -22,6 +27,9 @@ export interface SectionProperties { name: string; areaM2: number; secondMomentY
 export interface FrameSection extends SectionProperties { id: SectionId; label: string; }
 export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; }
 export interface FrameMember extends MemberProperties { id: MemberId; label: string; }
+export type DofRestraints = [boolean, boolean, boolean, boolean, boolean, boolean];
+export interface FrameSupport { id: SupportId; label: string; nodeId: NodeId; restraints: DofRestraints; }
+export interface FrameNodalLoad { id: LoadId; label: string; nodeId: NodeId; force: Vector3; moment: Vector3; }
 
 export interface FrameProject {
   format: typeof PROJECT_FORMAT;
@@ -36,10 +44,15 @@ export interface FrameProject {
   materials: FrameMaterial[];
   sections: FrameSection[];
   members: FrameMember[];
+  supports: FrameSupport[];
+  nodalLoads: FrameNodalLoad[];
+  latestAnalysis?: AnalysisResult;
   nextNodeNumber: number;
   nextMaterialNumber: number;
   nextSectionNumber: number;
   nextMemberNumber: number;
+  nextSupportNumber: number;
+  nextLoadNumber: number;
 }
 
 function createIdentity(): string { return globalThis.crypto.randomUUID(); }
@@ -57,6 +70,12 @@ function assertCounter(value: number): void {
 
 function assertFiniteVector(position: Vector3): void {
   if (![position.x, position.y, position.z].every(Number.isFinite)) throw new Error("坐标必须是有限数值");
+}
+
+function assertRestraints(restraints: DofRestraints): void {
+  if (!Array.isArray(restraints) || restraints.length !== 6 || !restraints.every((item) => typeof item === "boolean")) {
+    throw new Error("支座约束必须包含六个自由度");
+  }
 }
 
 function assertPositive(value: number, message: string): void {
@@ -115,8 +134,8 @@ export function createProject(name = "未命名项目"): FrameProject {
     id: `project_${createIdentity()}` as ProjectId, name: name.trim() || "未命名项目",
     createdAt: now, updatedAt: now, revision: 0,
     units: { length: "m", force: "kN", moment: "kN·m" },
-    nodes: [], materials: [], sections: [], members: [],
-    nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1,
+    nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [],
+    nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1,
   };
 }
 
@@ -178,4 +197,39 @@ export function updateMember(project: FrameProject, id: MemberId, changes: Parti
     rotationDegrees: changes.rotationDegrees ?? current.rotationDegrees,
   });
   return { ...project, members: project.members.map((item) => item.id === id ? { ...item, ...input } : item), ...nextRevision(project) };
+}
+
+function requireProjectNode(project: FrameProject, nodeId: NodeId, label: string): void {
+  if (!project.nodes.some((node) => node.id === nodeId)) throw new Error(`${label} 引用了不存在的节点 ${nodeId}`);
+}
+
+export function addSupport(project: FrameProject, nodeId: NodeId, restraints: DofRestraints): FrameProject {
+  requireProjectNode(project, nodeId, "支座"); assertRestraints(restraints); assertCounter(project.nextSupportNumber);
+  const number = project.nextSupportNumber;
+  const support: FrameSupport = { id: `support_${String(number).padStart(4, "0")}` as SupportId, label: `B${number}`, nodeId, restraints: [...restraints] as DofRestraints };
+  return { ...project, supports: [...project.supports, support], nextSupportNumber: number + 1, ...nextRevision(project) };
+}
+
+export function updateSupport(project: FrameProject, id: SupportId, nodeId: NodeId, restraints: DofRestraints): FrameProject {
+  const current = project.supports.find((support) => support.id === id); if (!current) throw new Error(`支座 ${id} 不存在`);
+  requireProjectNode(project, nodeId, current.label); assertRestraints(restraints);
+  return { ...project, supports: project.supports.map((support) => support.id === id ? { ...support, nodeId, restraints: [...restraints] as DofRestraints } : support), ...nextRevision(project) };
+}
+
+export function addNodalLoad(project: FrameProject, nodeId: NodeId, force: Vector3, moment: Vector3): FrameProject {
+  requireProjectNode(project, nodeId, "节点荷载"); assertFiniteVector(force); assertFiniteVector(moment); assertCounter(project.nextLoadNumber);
+  const number = project.nextLoadNumber;
+  const load: FrameNodalLoad = { id: `load_${String(number).padStart(4, "0")}` as LoadId, label: `L${number}`, nodeId, force: { ...force }, moment: { ...moment } };
+  return { ...project, nodalLoads: [...project.nodalLoads, load], nextLoadNumber: number + 1, ...nextRevision(project) };
+}
+
+export function updateNodalLoad(project: FrameProject, id: LoadId, nodeId: NodeId, force: Vector3, moment: Vector3): FrameProject {
+  const current = project.nodalLoads.find((load) => load.id === id); if (!current) throw new Error(`节点荷载 ${id} 不存在`);
+  requireProjectNode(project, nodeId, current.label); assertFiniteVector(force); assertFiniteVector(moment);
+  return { ...project, nodalLoads: project.nodalLoads.map((load) => load.id === id ? { ...load, nodeId, force: { ...force }, moment: { ...moment } } : load), ...nextRevision(project) };
+}
+
+export function attachAnalysisResult(project: FrameProject, result: AnalysisResult): FrameProject {
+  if (result.projectId !== project.id || result.projectRevision !== project.revision) throw new Error("分析结果不属于当前模型版本");
+  return { ...project, latestAnalysis: result, ...nextRevision(project) };
 }

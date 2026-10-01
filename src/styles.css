@@ -264,8 +264,17 @@ button { color: inherit; }
 .field em { min-width: 31px; display: grid; place-items: center; padding: 0 var(--space-1); border-left: 1px solid var(--border-subtle); background: var(--surface-control); color: var(--text-muted); font-size: var(--text-caption); font-style: normal; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-0) var(--space-4); }
 .resource-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.load-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .resource-fieldset { min-width: 0; margin: 0; padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
 .resource-fieldset legend { padding: 0 var(--space-1); color: var(--text-secondary); font-size: var(--text-caption); font-weight: 600; }
+.restraint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.check-field { display: flex; align-items: center; gap: var(--space-2); min-height: 26px; color: var(--text-secondary); font-size: var(--text-caption); }
+.check-field input { accent-color: var(--surface-action); }
+.analysis-result-panel { flex: 1; min-height: 0; overflow: auto; }
+.analysis-table { display: grid; gap: var(--space-2); }
+.analysis-row { display: grid; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.analysis-row strong { color: var(--text-primary); font-size: var(--text-caption); }
+.analysis-row span { color: var(--text-secondary); font: var(--text-micro) var(--font-mono); }
 .form-error { margin: var(--space-3) 0 0; color: var(--status-error); font-size: var(--text-caption); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-1); margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--border-subtle); }
 
