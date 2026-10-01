@@ -24,3 +24,9 @@ LC1 端力 (10,12,14) kN，端矩 (2,3,4) kN·m；LC2 端力 (-4,6,-8)，端矩 
 - Windows 受限沙箱内 Electron 被 AppContainer 目录 ACL 阻止启动；在获准的沙箱外运行上述真实桌面验证，没有修改 ACL 或关闭应用安全设置。
 
 截图：[1440 结果](T12-results-1440.png)、[1080 结果](T12-results-1080.png)、[1440 编辑](T12-editor-1440.png)、[1080 编辑](T12-editor-1080.png)。
+
+## 审查
+
+相对 `b3fe8e9` 按 code-review 的 Standards 与 Spec 两轴独立审查。Spec 未发现缺项、错误实现或范围扩张；Standards 未发现硬性问题，提出来源查询沿用工况名称的可维护性建议，已增加 `getAnalysisResultForSource` 并保持 `getLoadCaseResult` 仅返回独立工况结果。修正后复验类型检查、单元套件与 T11/T12 Electron 流程。
+
+组合新增独立数值基准使用 X 向悬臂及全局均布力；倾斜杆/局部均布力沿用 T09 已验证的转换和恢复边界，组合只是对相同荷载表达做线性缩放。本任务未增加该组合场景的独立解析算例。

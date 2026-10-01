@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Plus, Save, Trash2, X } from "lucide-react";
 import { addLoadCombination, deleteLoadCombination, selectLoadCombination, updateLoadCombination, type FrameProject } from "../domain/project";
-import { getLoadCaseResult, isAnalysisResultCurrent } from "../domain/analysis";
+import { getAnalysisResultForSource, isAnalysisResultCurrent } from "../domain/analysis";
 
 export function LoadCombinationManager({ project, onChange, onClose }: { project: FrameProject; onChange(project: FrameProject): void; onClose(): void }) {
   const initial = project.loadCombinations.find((item) => item.id === project.activeLoadCombinationId);
@@ -28,7 +28,7 @@ export function LoadCombinationManager({ project, onChange, onClose }: { project
   };
   const remove = () => {
     try {
-      const result = getLoadCaseResult(project, editingId);
+      const result = getAnalysisResultForSource(project, editingId);
       if (result && !window.confirm(`删除 ${editingId} 及其组合结果？此变更可撤销。`)) return;
       onChange(deleteLoadCombination(project, editingId)); edit("");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "组合删除失败"); }
@@ -37,7 +37,7 @@ export function LoadCombinationManager({ project, onChange, onClose }: { project
     <header><h2 id="combination-title">自定义荷载组合</h2><button className="icon-button" aria-label="关闭组合管理" title="关闭" onClick={onClose}><X size={17} /></button></header>
     <div className="dialog-form">
       <div className="load-case-list" role="list" aria-label="组合列表">{project.loadCombinations.map((item) => {
-        const result = getLoadCaseResult(project, item.id);
+        const result = getAnalysisResultForSource(project, item.id);
         return <button role="listitem" className={`load-case-row ${editingId === item.id ? "active" : ""}`} key={item.id} onClick={() => edit(item.id)}><span>{item.id} · {item.name}</span><small>{result ? isAnalysisResultCurrent(project, result) ? "结果当前" : "结果已过期" : "未计算"}</small></button>;
       })}</div>
       <button className="button ghost" onClick={() => edit("")}><Plus size={14} />新建组合</button>

@@ -287,11 +287,16 @@ export function validateCombinationInput(input: AnalysisInputSnapshot): void {
 }
 
 export function getLoadCaseResult(project: FrameProject, id = project.activeLoadCaseId): AnalysisResult | undefined {
+  const result = getAnalysisResultForSource(project, id);
+  return result?.input.combination ? undefined : result;
+}
+
+export function getAnalysisResultForSource(project: FrameProject, id: string): AnalysisResult | undefined {
   return project.analysisResults.find((result) => getAnalysisSourceId(result.input) === id);
 }
 
 export function getActiveAnalysisResult(project: FrameProject): AnalysisResult | undefined {
-  return project.analysisResults.find((result) => getAnalysisSourceId(result.input) === (project.activeLoadCombinationId ?? project.activeLoadCaseId));
+  return getAnalysisResultForSource(project, project.activeLoadCombinationId ?? project.activeLoadCaseId);
 }
 
 function sameInputValue(left: unknown, right: unknown): boolean {

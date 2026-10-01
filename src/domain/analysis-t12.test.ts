@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { captureAnalysisInput, getActiveAnalysisResult, getLoadCaseResult, getMemberSectionForces, isAnalysisResultCurrent, solveFrame } from "./analysis";
+import { captureAnalysisInput, getActiveAnalysisResult, getAnalysisResultForSource, getLoadCaseResult, getMemberSectionForces, isAnalysisResultCurrent, solveFrame } from "./analysis";
 import { addLoadCase, addLoadCombination, addMaterial, addMember, addNodalLoad, addNode, addSection, addSupport, addUniformLoad, attachAnalysisResult, createProject, deleteLoadCase, deleteLoadCombination, selectLoadCase, selectLoadCombination, updateLoadCombination, updateNodalLoad, updateNode, updateSelfWeight } from "./project";
 import { decodeProject, encodeProject } from "./project-file";
 
@@ -47,6 +47,8 @@ it("saves and reopens original inputs and coefficients, with independent case an
   expect(result.input.combination?.cases[1].selfWeight.enabled).toBe(true);
   expect(isAnalysisResultCurrent(p, result)).toBe(true);
   expect(getLoadCaseResult(p)).not.toBe(result);
+  expect(getLoadCaseResult(p, "CB1")).toBeUndefined();
+  expect(getAnalysisResultForSource(p, "CB1")).toBe(result);
   expect(p.activeLoadCombinationId).toBe("CB1");
   const changed = updateNodalLoad(p, p.nodalLoads[1].id, p.nodes[1].id, { x: 20, y: 6, z: -8 }, p.nodalLoads[1].moment, "LC2");
   expect(isAnalysisResultCurrent(changed, result)).toBe(false);
