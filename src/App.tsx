@@ -6,7 +6,7 @@ import {
   addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection,
   type DofRestraints, type FrameProject, type MaterialId, type NodeId, type SectionId,
 } from "./domain/project";
-import { solveFrame, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, solveFrame, type AnalysisResult } from "./domain/analysis";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 
@@ -128,7 +128,7 @@ export function App() {
   };
   const runAnalysis = async () => {
     if (analysisBusy || !analysisAvailable) { if (!analysisAvailable) setStatus({ tone: "error", text: "请先创建杆件、支座和节点荷载" }); return; }
-    const inputProject = project; const checkpoint = captureProjectCheckpoint(inputProject, activeSessionRef.current); setAnalysisBusy(true); setStatus({ tone: "neutral", text: "正在组装刚度矩阵并求解…" });
+    const inputProject = captureAnalysisInput(project); const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current); setAnalysisBusy(true); setStatus({ tone: "neutral", text: "正在组装刚度矩阵并求解…" });
     await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
     try {
       const result = solveFrame(inputProject);
@@ -220,7 +220,7 @@ export function App() {
             {project.nodalLoads.map((load) => <button className="tree-item resource" key={load.id} onClick={() => setSelection(null)}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
             {project.nodalLoads.length === 0 && <p className="tree-empty">暂无节点荷载</p>}
           </TreeGroup>
-          <div className="tree-muted"><span className="chevron-placeholder">›</span><Calculator size={14} /><span>分析结果</span><em>{project.latestAnalysis ? project.latestAnalysis.nodes.length : 0}</em></div>
+          <button className={`tree-item ${project.latestAnalysis && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!project.latestAnalysis} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果</span><small>{project.latestAnalysis?.nodes.length ?? 0}</small></button>
           <div className="tree-muted"><span className="chevron-placeholder">›</span><Layers3 size={14} /><span>报告</span><em>0</em></div>
           </div><div className="model-summary"><span>模型版本</span><strong>R{project.revision}</strong><small>格式 v{project.formatVersion}</small></div>
         </section>
@@ -260,7 +260,27 @@ export function App() {
 function AnalysisResultPanel({ result, project }: { result: AnalysisResult; project: FrameProject }) {
   const stale = result.projectRevision !== project.revision - 1;
   const formatEndForces = (values: number[]) => `Fx ${values[0].toFixed(3)} kN · Fy ${values[1].toFixed(3)} kN · Fz ${values[2].toFixed(3)} kN · Mx ${values[3].toFixed(3)} kN·m · My ${values[4].toFixed(3)} kN·m · Mz ${values[5].toFixed(3)} kN·m`;
-  return <div className="analysis-result-panel"><div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>最近一次分析</small><strong>3D 线弹性静力</strong></div></div><section className="property-section"><h3>计算输入</h3><dl><div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div><div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div><div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length}</dd></div></dl></section><section className="property-section"><h3>节点结果</h3><div className="analysis-table">{result.nodes.map((node) => <div className="analysis-row" key={node.nodeId}><strong>{project.nodes.find((item) => item.id === node.nodeId)?.label ?? node.nodeId}</strong><span>位移 {vectorText(node.displacement)} m</span><span>转角 {vectorText(node.rotation)} rad</span><span>反力 {vectorText(node.reaction)} kN</span></div>)}</div></section><section className="property-section"><h3>杆端内力（局部轴）</h3><div className="analysis-table">{result.members.map((member) => <div className="analysis-row" key={member.memberId}><strong>{project.members.find((item) => item.id === member.memberId)?.label ?? member.memberId} · L {member.length.toFixed(3)} m</strong><span>起点 {formatEndForces(member.localEndForces.start)}</span><span>终点 {formatEndForces(member.localEndForces.end)}</span></div>)}</div></section><p className="inspector-note">结果绑定本次不可变输入快照；修改模型后需重新计算，迟到的任务不会覆盖当前项目。</p></div>;
+  const preciseVector = (vector: { x: number; y: number; z: number }) => `(${[vector.x, vector.y, vector.z].map((value) => value.toPrecision(10)).join(", ")})`;
+  return <div className="analysis-result-panel">
+    <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>最近一次分析</small><strong>3D 线弹性静力</strong></div></div>
+    <section className="property-section"><h3>计算输入</h3><dl>
+      <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
+      <div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div>
+      <div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div>
+      <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length}</dd></div>
+    </dl></section>
+    <section className="property-section"><h3>节点结果</h3><div className="analysis-table">{result.nodes.map((node) => <div className="analysis-row" key={node.nodeId}>
+      <strong>{result.input.nodes.find((item) => item.id === node.nodeId)?.label ?? node.nodeId}</strong>
+      <span title={`${preciseVector(node.displacement)} m`}>位移 {vectorText(node.displacement)} m</span>
+      <span title={`${preciseVector(node.rotation)} rad`}>转角 {vectorText(node.rotation)} rad</span>
+      <span title={`${preciseVector(node.reaction)} kN`}>反力 {vectorText(node.reaction)} kN</span>
+      <span title={`${preciseVector(node.reactionMoment)} kN·m`}>反力矩 {vectorText(node.reactionMoment)} kN·m</span>
+    </div>)}</div></section>
+    <section className="property-section"><h3>杆端内力（局部轴）</h3><div className="analysis-table">{result.members.map((member) => <div className="analysis-row" key={member.memberId}>
+      <strong>{result.input.members.find((item) => item.id === member.memberId)?.label ?? member.memberId} · L {member.length.toFixed(3)} m</strong>
+      <span>起点 {formatEndForces(member.localEndForces.start)}</span><span>终点 {formatEndForces(member.localEndForces.end)}</span>
+    </div>)}</div></section>
+  </div>;
 }
 function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) { return <div className="tree-group"><div className="tree-group-label"><ChevronDown size={13} />{icon}<span>{label}</span><em>{count}</em></div><div className="tree-items">{children}</div></div>; }
 function MenuAction({ icon, label, shortcut, onSelect }: { icon: React.ReactNode; label: string; shortcut: string; onSelect(): void }) { return <button className="menu-item" role="menuitem" onClick={onSelect}><span>{icon}{label}</span><kbd>{shortcut}</kbd></button>; }

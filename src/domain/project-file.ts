@@ -20,7 +20,7 @@ import {
   type LoadId,
   type DofRestraints,
 } from "./project";
-import type { AnalysisResult } from "./analysis";
+import { freezeAnalysisInput, type AnalysisResult } from "./analysis";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -139,6 +139,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
   const input = value.input;
+  if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || input.solver.algorithm !== "partial-pivot-gaussian" || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
   if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
   const inputNodes = input.nodes.map(decodeNode); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map(decodeMember); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
   assertUnique(inputNodes, "分析输入节点"); assertUnique(inputMaterials, "分析输入材料"); assertUnique(inputSections, "分析输入截面"); assertUnique(inputMembers, "分析输入杆件"); assertUnique(inputSupports, "分析输入支座"); assertUnique(inputLoads, "分析输入节点荷载");
@@ -167,7 +168,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input: { ...input, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads } as AnalysisResult["input"], nodes, members };
+  return { id, projectId, projectRevision, createdAt, status: "complete", input: freezeAnalysisInput({ ...input, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads } as AnalysisResult["input"]), nodes, members };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {

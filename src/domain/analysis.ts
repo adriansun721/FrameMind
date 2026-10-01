@@ -14,6 +14,17 @@ import type {
 export const ANALYSIS_DOF_ORDER = ["ux", "uy", "uz", "rx", "ry", "rz"] as const;
 export type AnalysisDof = typeof ANALYSIS_DOF_ORDER[number];
 
+export interface AnalysisSolverConfig {
+  implementation: string;
+  algorithm: "partial-pivot-gaussian";
+  constraints: "free-dof-elimination";
+  relativePivotTolerance: number;
+}
+
+export const ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({
+  implementation: "framemind-frame/2", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12,
+});
+
 export interface AnalysisAssumptions {
   theory: "3d-euler-bernoulli-frame";
   shearDeformation: "neglected";
@@ -27,6 +38,7 @@ export interface AnalysisInputSnapshot {
   projectRevision: number;
   dofOrder: readonly AnalysisDof[];
   assumptions: AnalysisAssumptions;
+  solver?: AnalysisSolverConfig;
   nodes: FrameNode[];
   members: FrameMember[];
   materials: FrameMaterial[];
@@ -62,6 +74,30 @@ export interface AnalysisResult {
 }
 
 type Matrix = number[][];
+
+interface MemberMatrices {
+  member: FrameMember;
+  geometry: MemberGeometry;
+  local: Matrix;
+  transform: Matrix;
+  global: Matrix;
+}
+
+export interface MemberAnalysisRecord {
+  analysisId: string;
+  projectRevision: number;
+  origin: "reconstructed-from-frozen-input";
+  solver: AnalysisSolverConfig;
+  memberId: string;
+  dofs: Array<{ nodeId: string; dof: AnalysisDof; globalIndex: number }>;
+  geometry: MemberGeometry;
+  localStiffness: Matrix;
+  transformation: Matrix;
+  globalStiffness: Matrix;
+  globalDisplacement: number[];
+  localDisplacement: number[];
+  localEndForces: MemberAnalysisResult["localEndForces"];
+}
 
 const zeroMatrix = (rows: number, columns: number): Matrix => Array.from({ length: rows }, () => Array(columns).fill(0));
 const zeros = (length: number) => Array(length).fill(0) as number[];
@@ -120,7 +156,7 @@ function transformation(geometry: MemberGeometry): Matrix {
 function solveLinearSystem(matrix: Matrix, vector: number[]): number[] {
   const size = vector.length; const a = matrix.map((row, index) => [...row, vector[index]]);
   let scale = 0; for (const row of matrix) for (const value of row) scale = Math.max(scale, Math.abs(value));
-  const tolerance = Math.max(scale, 1) * 1e-12;
+  const tolerance = scale * ANALYSIS_SOLVER.relativePivotTolerance;
   for (let pivot = 0; pivot < size; pivot += 1) {
     let selected = pivot;
     for (let row = pivot + 1; row < size; row += 1) if (Math.abs(a[row][pivot]) > Math.abs(a[selected][pivot])) selected = row;
@@ -139,21 +175,30 @@ function solveLinearSystem(matrix: Matrix, vector: number[]): number[] {
   return result;
 }
 
-function snapshot(project: FrameProject): AnalysisInputSnapshot {
-  return {
+export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInputSnapshot {
+  const freeze = (value: object): void => {
+    for (const child of Object.values(value)) if (typeof child === "object" && child !== null) freeze(child);
+    Object.freeze(value);
+  };
+  freeze(input);
+  return input;
+}
+
+export function captureAnalysisInput(project: FrameProject): AnalysisInputSnapshot {
+  return freezeAnalysisInput({
     projectId: project.id, projectRevision: project.revision, dofOrder: [...ANALYSIS_DOF_ORDER],
+    solver: { ...ANALYSIS_SOLVER },
     assumptions: { theory: "3d-euler-bernoulli-frame", shearDeformation: "neglected", rigidJoints: true, units: "m-kN-kN·m", localAxis: "member-geometry" },
     nodes: project.nodes.map((node) => ({ ...node, position: { ...node.position } })),
     members: project.members.map((member) => ({ ...member })), materials: project.materials.map((material) => ({ ...material })), sections: project.sections.map((section) => ({ ...section })),
     supports: project.supports.map((support) => ({ ...support, restraints: [...support.restraints] as DofRestraints })),
     nodalLoads: project.nodalLoads.map((load) => ({ ...load, force: { ...load.force }, moment: { ...load.moment } })),
-  };
+  });
 }
 
-function requireAnalysisInput(project: FrameProject): void {
+function requireAnalysisInput(project: AnalysisInputSnapshot): void {
   if (project.nodes.length === 0) throw new Error("模型没有节点");
   if (project.members.length === 0) throw new Error("模型没有杆件");
-  if (project.members.length !== 1) throw new Error("T03 当前仅支持单根空间杆件；多杆整体求解将在 T04 验证");
   for (const member of project.members) {
     if (!project.nodes.some((node) => node.id === member.startNodeId) || !project.nodes.some((node) => node.id === member.endNodeId)) throw new Error(`杆件 ${member.label} 的节点引用无效`);
     if (!project.materials.some((material) => material.id === member.materialId)) throw new Error(`杆件 ${member.label} 的材料引用无效`);
@@ -164,21 +209,55 @@ function requireAnalysisInput(project: FrameProject): void {
   if (!project.supports.some((support) => support.restraints.some(Boolean))) throw new Error("请至少设置一个受约束自由度");
 }
 
-export function solveFrame(project: FrameProject): AnalysisResult {
+function memberMatrices(input: AnalysisInputSnapshot, member: FrameMember): MemberMatrices {
+  const start = input.nodes.find((node) => node.id === member.startNodeId)!; const end = input.nodes.find((node) => node.id === member.endNodeId)!;
+  const material = input.materials.find((item) => item.id === member.materialId)!; const section = input.sections.find((item) => item.id === member.sectionId)!;
+  const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+  const local = localStiffness(geometry.length, material, section); const transform = transformation(geometry);
+  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform) };
+}
+
+function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
+  if (!solver || solver.implementation !== ANALYSIS_SOLVER.implementation || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
+}
+
+export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {
+  requireCurrentSolver(result.input.solver);
+  const input = result.input; const member = input.members.find((item) => item.id === memberId);
+  if (!member) throw new Error(`本次分析没有杆件 ${memberId}`);
+  const { geometry, local, transform, global } = memberMatrices(input, member);
+  const dofs = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((dof, index) => ({ nodeId, dof, globalIndex: input.nodes.findIndex((node) => node.id === nodeId) * 6 + index })));
+  const globalDisplacement = [member.startNodeId, member.endNodeId].flatMap((nodeId) => {
+    const node = result.nodes.find((item) => item.nodeId === nodeId);
+    if (!node) throw new Error(`分析结果缺少节点 ${nodeId}`);
+    return [node.displacement.x, node.displacement.y, node.displacement.z, node.rotation.x, node.rotation.y, node.rotation.z];
+  });
+  const stored = result.members.find((item) => item.memberId === memberId);
+  if (!stored) throw new Error(`分析结果缺少杆件 ${memberId}`);
+  return { analysisId: result.id, projectRevision: result.projectRevision, origin: "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
+    localStiffness: local, transformation: transform, globalStiffness: global, globalDisplacement,
+    localDisplacement: transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
+    localEndForces: { start: [...stored.localEndForces.start], end: [...stored.localEndForces.end] },
+  };
+}
+
+export function solveFrame(source: FrameProject | AnalysisInputSnapshot): AnalysisResult {
+  if ("projectId" in source && source.solver) requireCurrentSolver(source.solver);
+  const input = "projectId" in source ? freezeAnalysisInput({ ...structuredClone(source), solver: { ...ANALYSIS_SOLVER } }) : captureAnalysisInput(source);
+  const project = input;
   requireAnalysisInput(project);
   const nodeIndex = new Map(project.nodes.map((node, index) => [node.id, index])); const size = project.nodes.length * 6;
   const stiffness = zeroMatrix(size, size); const force = zeros(size);
-  const memberData: Array<{ member: FrameMember; geometry: MemberGeometry; local: Matrix; transform: Matrix; global: Matrix }> = [];
+  const memberData: MemberMatrices[] = [];
   for (const member of project.members) {
     const start = project.nodes.find((node) => node.id === member.startNodeId)!; const end = project.nodes.find((node) => node.id === member.endNodeId)!;
-    const material = project.materials.find((item) => item.id === member.materialId)!; const section = project.sections.find((item) => item.id === member.sectionId)!;
-    const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees); const local = localStiffness(geometry.length, material, section); const transform = transformation(geometry); const global = matrixMultiply(matrixMultiply(transpose(transform), local), transform);
+    const data = memberMatrices(input, member); const { global } = data;
     const startOffset = nodeIndex.get(start.id)! * 6; const endOffset = nodeIndex.get(end.id)! * 6;
     for (let row = 0; row < 12; row += 1) for (let column = 0; column < 12; column += 1) {
       const globalRow = (row < 6 ? startOffset : endOffset) + row % 6; const globalColumn = (column < 6 ? startOffset : endOffset) + column % 6;
       stiffness[globalRow][globalColumn] += global[row][column];
     }
-    memberData.push({ member, geometry, local, transform, global });
+    memberData.push(data);
   }
   for (const load of project.nodalLoads) {
     const offset = nodeIndex.get(load.nodeId)! * 6; force[offset] += load.force.x; force[offset + 1] += load.force.y; force[offset + 2] += load.force.z; force[offset + 3] += load.moment.x; force[offset + 4] += load.moment.y; force[offset + 5] += load.moment.z;
@@ -186,9 +265,10 @@ export function solveFrame(project: FrameProject): AnalysisResult {
   const constrained = new Set<number>();
   for (const support of project.supports) { const offset = nodeIndex.get(support.nodeId)! * 6; support.restraints.forEach((restrained, index) => { if (restrained) constrained.add(offset + index); }); }
   if (constrained.size === 0) throw new Error("请至少设置一个受约束自由度");
-  const constrainedStiffness = stiffness.map((row, rowIndex) => row.map((value, columnIndex) => constrained.has(rowIndex) || constrained.has(columnIndex) ? (rowIndex === columnIndex ? 1 : 0) : value));
-  const constrainedForce = force.map((value, index) => constrained.has(index) ? 0 : value);
-  const displacement = solveLinearSystem(constrainedStiffness, constrainedForce);
+  const freeDofs = Array.from({ length: size }, (_, index) => index).filter((index) => !constrained.has(index));
+  const freeDisplacement = solveLinearSystem(freeDofs.map((row) => freeDofs.map((column) => stiffness[row][column])), freeDofs.map((index) => force[index]));
+  const displacement = zeros(size);
+  freeDofs.forEach((dof, index) => { displacement[dof] = freeDisplacement[index]; });
   const residual = zeros(size); for (let row = 0; row < size; row += 1) { let value = -force[row]; for (let column = 0; column < size; column += 1) value += stiffness[row][column] * displacement[column]; residual[row] = value; }
   if (![...displacement, ...residual].every(Number.isFinite)) throw new Error("求解结果包含非有限数值，分析未完成");
   const nodes: NodeAnalysisResult[] = project.nodes.map((node, index) => ({ nodeId: node.id, displacement: { x: displacement[index * 6], y: displacement[index * 6 + 1], z: displacement[index * 6 + 2] }, rotation: { x: displacement[index * 6 + 3], y: displacement[index * 6 + 4], z: displacement[index * 6 + 5] }, reaction: { x: residual[index * 6], y: residual[index * 6 + 1], z: residual[index * 6 + 2] }, reactionMoment: { x: residual[index * 6 + 3], y: residual[index * 6 + 4], z: residual[index * 6 + 5] } }));
@@ -197,5 +277,5 @@ export function solveFrame(project: FrameProject): AnalysisResult {
     if (![...localDisplacement, ...localForce].every(Number.isFinite)) throw new Error("杆件结果包含非有限数值，分析未完成");
     return { memberId: member.id, length: geometry.length, localAxes: { x: { ...geometry.localX }, y: { ...geometry.localY }, z: { ...geometry.localZ } }, localEndForces: { start: localForce.slice(0, 6) as MemberAnalysisResult["localEndForces"]["start"], end: localForce.slice(6, 12) as MemberAnalysisResult["localEndForces"]["end"] } };
   });
-  return { id: `analysis_${globalThis.crypto.randomUUID()}`, projectId: project.id, projectRevision: project.revision, createdAt: new Date().toISOString(), status: "complete", input: snapshot(project), nodes, members };
+  return { id: `analysis_${globalThis.crypto.randomUUID()}`, projectId: input.projectId, projectRevision: input.projectRevision, createdAt: new Date().toISOString(), status: "complete", input, nodes, members };
 }

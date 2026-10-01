@@ -41,8 +41,11 @@ describe("3D frame analysis", () => {
     expect(() => solveFrame({ ...project, supports: [] })).toThrow(/约束/);
   });
 
-  it("does not label an unverified multi-member model as a T03 result", () => {
-    const project = cantilever();
-    expect(() => solveFrame({ ...project, members: [...project.members, { ...project.members[0], id: "member_0002" as typeof project.members[number]["id"], label: "M2" }] })).toThrow(/T03.*单根/);
+  it("shares a tip load between two identical parallel members", () => {
+    const base = cantilever();
+    const project = addNodalLoad(base, base.nodes[1].id, { x: 0, y: 5, z: 0 }, { x: 0, y: 0, z: 0 });
+    const result = solveFrame({ ...project, members: [...project.members, { ...project.members[0], id: "member_0002" as typeof project.members[number]["id"], label: "M2" }] });
+    expectReference(result.nodes[1].displacement.y, 5 * 4 ** 3 / (6 * 200e6 * 0.0001));
+    result.members.forEach((member) => expectReference(member.localEndForces.end[1], 2.5));
   });
 });

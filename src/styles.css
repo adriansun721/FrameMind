@@ -202,6 +202,8 @@ button { color: inherit; }
 .viewport { position: relative; min-height: 0; overflow: hidden; background: var(--surface-canvas); }
 .viewport canvas { display: block; width: 100%; height: 100%; }
 .viewport-topline { position: absolute; z-index: 2; top: var(--space-3); left: var(--space-4); right: var(--space-4); display: flex; justify-content: space-between; pointer-events: none; }
+.viewport-tools { display: flex; align-items: center; gap: var(--space-3); }
+.viewport-tools button { pointer-events: auto; }
 .view-chip { border: 0; background: transparent; }
 .view-hint { color: var(--text-muted); font-size: var(--text-caption); }
 .viewport-count { display: none; }
@@ -272,9 +274,9 @@ button { color: inherit; }
 .check-field input { accent-color: var(--surface-action); }
 .analysis-result-panel { flex: 1; min-height: 0; overflow: auto; }
 .analysis-table { display: grid; gap: var(--space-2); }
-.analysis-row { display: grid; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.analysis-row { display: grid; min-width: 0; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
 .analysis-row strong { color: var(--text-primary); font-size: var(--text-caption); }
-.analysis-row span { color: var(--text-secondary); font: var(--text-micro) var(--font-mono); }
+.analysis-row span { color: var(--text-secondary); font: var(--text-micro) var(--font-mono); overflow-wrap: anywhere; }
 .form-error { margin: var(--space-3) 0 0; color: var(--status-error); font-size: var(--text-caption); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-1); margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--border-subtle); }
 

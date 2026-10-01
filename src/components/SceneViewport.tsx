@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Scan } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { FrameMaterial, FrameMember, FrameNode, FrameSection, MemberId, NodeId, ProjectId } from "../domain/project";
@@ -182,9 +183,14 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
 
+  const fitModel = () => {
+    const runtime = runtimeRef.current;
+    if (runtime) applySceneFrame(runtime.camera, runtime.controls, nodes);
+  };
+
   return (
     <div className="viewport" ref={hostRef} aria-label="三维模型视图">
-      <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><span className="view-hint">单击选择 · 拖动旋转 · 滚轮缩放</span></div>
+      <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">单击选择 · 拖动旋转 · 滚轮缩放</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
       {selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>分析线模型 · 截面转角 {selectedMember.rotationDegrees}°</small></div>}
       {nodes.length === 0 && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
