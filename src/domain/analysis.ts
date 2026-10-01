@@ -1,10 +1,12 @@
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
+import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
 import type {
   DofRestraints,
   FrameMaterial,
   FrameMember,
   FrameNodalLoad,
+  FrameUniformLoad,
   FrameNode,
   FrameProject,
   FrameSection,
@@ -23,7 +25,7 @@ export interface AnalysisSolverConfig {
 }
 
 export const ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({
-  implementation: "framemind-frame/2", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12,
+  implementation: "framemind-frame/3", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12,
 });
 
 export interface AnalysisAssumptions {
@@ -46,6 +48,7 @@ export interface AnalysisInputSnapshot {
   sections: FrameSection[];
   supports: FrameSupport[];
   nodalLoads: FrameNodalLoad[];
+  uniformLoads?: FrameUniformLoad[];
 }
 
 export interface NodeAnalysisResult {
@@ -82,6 +85,9 @@ interface MemberMatrices {
   local: Matrix;
   transform: Matrix;
   global: Matrix;
+  intensity: Vector3;
+  equivalentLocalForces: number[];
+  equivalentGlobalForces: number[];
 }
 
 export interface MemberAnalysisRecord {
@@ -97,6 +103,8 @@ export interface MemberAnalysisRecord {
   globalStiffness: Matrix;
   globalDisplacement: number[];
   localDisplacement: number[];
+  equivalentLocalForces: number[];
+  equivalentGlobalForces: number[];
   localEndForces: MemberAnalysisResult["localEndForces"];
 }
 
@@ -201,6 +209,7 @@ export function captureAnalysisInput(project: FrameProject): AnalysisInputSnapsh
     members: project.members.map((member) => ({ ...member })), materials: project.materials.map((material) => ({ ...material })), sections: project.sections.map((section) => ({ ...section })),
     supports: project.supports.map((support) => ({ ...support, restraints: [...support.restraints] as DofRestraints })),
     nodalLoads: project.nodalLoads.map((load) => ({ ...load, force: { ...load.force }, moment: { ...load.moment } })),
+    uniformLoads: project.uniformLoads.map((load) => ({ ...load, intensity: { ...load.intensity } })),
   });
 }
 
@@ -214,18 +223,47 @@ function memberMatrices(input: AnalysisInputSnapshot, member: FrameMember): Memb
   const material = input.materials.find((item) => item.id === member.materialId)!; const section = input.sections.find((item) => item.id === member.sectionId)!;
   const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
   const local = localStiffness(geometry.length, material, section); const transform = transformation(geometry);
-  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform) };
+  const intensity = memberUniformIntensity(input.uniformLoads ?? [], member.id, geometry);
+  const equivalentLocalForces = uniformEquivalentForces(intensity, geometry.length);
+  const equivalentGlobalForces = transpose(transform).map((row) => row.reduce((sum, value, index) => sum + value * equivalentLocalForces[index], 0));
+  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform), intensity, equivalentLocalForces, equivalentGlobalForces };
 }
 
 function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
-  if (!solver || solver.implementation !== ANALYSIS_SOLVER.implementation || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
+  if (!solver || ![ANALYSIS_SOLVER.implementation, "framemind-frame/2"].includes(solver.implementation) || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
+}
+
+function requireLoadRecoveryVersion(input: AnalysisInputSnapshot): void {
+  requireCurrentSolver(input.solver);
+  if (input.uniformLoads?.length && input.solver?.implementation !== ANALYSIS_SOLVER.implementation) throw new Error("该分析的求解器版本不支持均布荷载恢复");
+}
+
+export interface MemberSectionForces {
+  analysisId: string;
+  memberId: string;
+  position: number;
+  forces: [number, number, number, number, number, number];
+}
+
+/** Section actions on the positive local-x face; order: N, Vy, Vz, T, My, Mz. */
+export function getMemberSectionForces(result: AnalysisResult, memberId: string, position: number): MemberSectionForces {
+  requireLoadRecoveryVersion(result.input);
+  const member = result.input.members.find((item) => item.id === memberId);
+  const stored = result.members.find((item) => item.memberId === memberId);
+  if (!member || !stored) throw new Error(`本次分析没有杆件 ${memberId}`);
+  const { geometry, intensity: q } = memberMatrices(result.input, member);
+  if (!Number.isFinite(position) || position < 0 || position > geometry.length) throw new Error("沿杆位置必须在起点 0 与杆长之间（m）");
+  const s = stored.localEndForces.start; const x = position;
+  const forces: MemberSectionForces["forces"] = [-s[0] - q.x * x, -s[1] - q.y * x, -s[2] - q.z * x, -s[3], -s[4] - s[2] * x - q.z * x ** 2 / 2, -s[5] + s[1] * x + q.y * x ** 2 / 2];
+  if (!forces.every(Number.isFinite)) throw new Error("沿杆内力包含非有限数值");
+  return { analysisId: result.id, memberId, position, forces };
 }
 
 export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {
-  requireCurrentSolver(result.input.solver);
+  requireLoadRecoveryVersion(result.input);
   const input = result.input; const member = input.members.find((item) => item.id === memberId);
   if (!member) throw new Error(`本次分析没有杆件 ${memberId}`);
-  const { geometry, local, transform, global } = memberMatrices(input, member);
+  const { geometry, local, transform, global, equivalentLocalForces, equivalentGlobalForces } = memberMatrices(input, member);
   const dofs = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((dof, index) => ({ nodeId, dof, globalIndex: input.nodes.findIndex((node) => node.id === nodeId) * 6 + index })));
   const globalDisplacement = [member.startNodeId, member.endNodeId].flatMap((nodeId) => {
     const node = result.nodes.find((item) => item.nodeId === nodeId);
@@ -237,6 +275,8 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   return { analysisId: result.id, projectRevision: result.projectRevision, origin: "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
     localStiffness: local, transformation: transform, globalStiffness: global, globalDisplacement,
     localDisplacement: transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
+    equivalentLocalForces,
+    equivalentGlobalForces,
     localEndForces: { start: [...stored.localEndForces.start], end: [...stored.localEndForces.end] },
   };
 }
@@ -244,7 +284,7 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
 export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage?: (stage: AnalysisStage) => void): AnalysisResult {
   onStage?.("model-check");
   if ("projectId" in source && source.solver) {
-    try { requireCurrentSolver(source.solver); }
+    try { requireLoadRecoveryVersion(source); }
     catch (error) { throw new AnalysisFailure("model-check", [{ code: "unsupported-solver", message: error instanceof Error ? error.message : "求解配置不支持" }]); }
   }
   requireAnalysisInput(source);
@@ -259,6 +299,11 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage
     const data = memberMatrices(input, member); const { global } = data;
     if (![...data.local.flat(), ...data.transform.flat(), ...global.flat()].every(Number.isFinite)) throw new AnalysisFailure("assembly", [{ code: "non-finite-stiffness", message: `${member.label} 的单元刚度或转换包含非有限数值，请核查杆长、材料及截面参数量级`, target: { kind: "member", id: member.id }, field: "stiffness" }]);
     const startOffset = nodeIndex.get(start.id)! * 6; const endOffset = nodeIndex.get(end.id)! * 6;
+    for (let row = 0; row < 12; row += 1) {
+      const index = (row < 6 ? startOffset : endOffset) + row % 6;
+      force[index] += data.equivalentGlobalForces[row];
+      if (!Number.isFinite(force[index])) throw new AnalysisFailure("assembly", [{ code: "non-finite-load", message: `${member.label} 的等效均布荷载超出有限数值范围`, target: { kind: "member", id: member.id }, field: "intensity" }]);
+    }
     for (let row = 0; row < 12; row += 1) for (let column = 0; column < 12; column += 1) {
       const globalRow = (row < 6 ? startOffset : endOffset) + row % 6; const globalColumn = (column < 6 ? startOffset : endOffset) + column % 6;
       stiffness[globalRow][globalColumn] += global[row][column];
@@ -281,8 +326,9 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage
   const residual = zeros(size); for (let row = 0; row < size; row += 1) { let value = -force[row]; for (let column = 0; column < size; column += 1) value += stiffness[row][column] * displacement[column]; residual[row] = value; }
   for (let index = 0; index < size; index += 1) if (!Number.isFinite(residual[index])) throw new AnalysisFailure("recovery", [{ code: "non-finite-reaction", message: "反力恢复包含非有限数值，分析未完成", target: { kind: "node", id: project.nodes[Math.floor(index / 6)].id }, dof: ANALYSIS_DOF_ORDER[index % 6], field: "reaction" }]);
   const nodes: NodeAnalysisResult[] = project.nodes.map((node, index) => ({ nodeId: node.id, displacement: { x: displacement[index * 6], y: displacement[index * 6 + 1], z: displacement[index * 6 + 2] }, rotation: { x: displacement[index * 6 + 3], y: displacement[index * 6 + 4], z: displacement[index * 6 + 5] }, reaction: { x: residual[index * 6], y: residual[index * 6 + 1], z: residual[index * 6 + 2] }, reactionMoment: { x: residual[index * 6 + 3], y: residual[index * 6 + 4], z: residual[index * 6 + 5] } }));
-  const members: MemberAnalysisResult[] = memberData.map(({ member, geometry, local, transform }) => {
+  const members: MemberAnalysisResult[] = memberData.map(({ member, geometry, local, transform, equivalentLocalForces }) => {
     const startIndex = nodeIndex.get(member.startNodeId)! * 6; const endIndex = nodeIndex.get(member.endNodeId)! * 6; const globalDisplacement = [...displacement.slice(startIndex, startIndex + 6), ...displacement.slice(endIndex, endIndex + 6)]; const localDisplacement = transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)); const localForce = local.map((row) => row.reduce((sum, value, index) => sum + value * localDisplacement[index], 0));
+    for (let index = 0; index < 12; index += 1) localForce[index] -= equivalentLocalForces[index];
     if (![...localDisplacement, ...localForce].every(Number.isFinite)) throw new AnalysisFailure("recovery", [{ code: "non-finite-member-result", message: `${member.label} 的杆件结果包含非有限数值，分析未完成`, target: { kind: "member", id: member.id }, field: "localEndForces" }]);
     return { memberId: member.id, length: geometry.length, localAxes: { x: { ...geometry.localX }, y: { ...geometry.localY }, z: { ...geometry.localZ } }, localEndForces: { start: localForce.slice(0, 6) as MemberAnalysisResult["localEndForces"]["start"], end: localForce.slice(6, 12) as MemberAnalysisResult["localEndForces"]["end"] } };
   });

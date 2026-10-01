@@ -1,0 +1,118 @@
+import { _electron as electron, expect, test, type Page } from "@playwright/test";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createNode } from "./modeling-actions";
+
+async function fileAction(page: Page, name: "保存项目" | "打开项目") {
+  await page.getByRole("button", { name: "文件", exact: true }).click();
+  await page.getByRole("menuitem", { name: new RegExp(name) }).click();
+}
+
+test("T09 creates, renders, edits, undoes, solves and reopens uniform member loading", async ({}, testInfo) => {
+  test.setTimeout(90000);
+  const directory = await mkdtemp(join(tmpdir(), "framemind-t09-"));
+  const path = join(directory, "uniform.framemind");
+  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  env.FRAMEMIND_E2E_PROJECT_PATH = path;
+  delete env.ELECTRON_RUN_AS_NODE;
+  let app = await electron.launch({ args: ["."], env });
+  try {
+    let page = await app.firstWindow();
+    await page.bringToFront();
+    await expect(page.locator(".viewport canvas")).toBeVisible();
+    const errors: string[] = []; page.on("pageerror", (error) => errors.push(error.message));
+    await expect(page.getByRole("button", { name: "创建均布荷载" })).toBeDisabled();
+    await createNode(page, ["0", "0", "0"]); await createNode(page, ["4", "0", "0"]);
+    await page.getByRole("button", { name: "创建材料与截面" }).click();
+    await page.getByLabel("弹性模量 E").fill("200");
+    await page.getByLabel("惯性矩 Iy").fill("0.0002");
+    await page.getByLabel("惯性矩 Iz").fill("0.0001");
+    await page.getByRole("button", { name: "保存材料与截面" }).click();
+    await page.getByRole("button", { name: "创建杆件" }).click();
+    await page.getByRole("button", { name: "添加杆件" }).click();
+    await page.getByRole("button", { name: "设置支座" }).click();
+    await page.getByRole("button", { name: "添加支座" }).click();
+    await page.getByRole("button", { name: "创建均布荷载" }).click();
+    const dialog = page.getByRole("dialog", { name: "创建杆件均布荷载" });
+    await dialog.getByLabel("qy", { exact: true }).fill("-3");
+    await dialog.getByRole("button", { name: "添加均布荷载" }).click();
+    await expect(page.getByTestId("viewport-load-details")).toContainText("全局 XYZ · q (0, -3, 0) kN/m");
+    await page.setViewportSize({ width: 1480, height: 920 });
+    await page.getByRole("button", { name: "适合模型" }).click();
+    await page.screenshot({ path: testInfo.outputPath("T09-load-desktop.png") });
+    const canvas = page.locator(".viewport canvas");
+    const png = await canvas.screenshot();
+    const amberPixels = await app.evaluate(({ nativeImage }, encoded) => {
+      const pixels = nativeImage.createFromBuffer(Buffer.from(encoded, "base64")).toBitmap(); let count = 0;
+      for (let i = 0; i < pixels.length; i += 4) if (pixels[i + 2] > 140 && pixels[i + 1] > 110 && pixels[i] < 120 && pixels[i + 2] > pixels[i + 1] + 20) count += 1;
+      return count;
+    }, png.toString("base64"));
+    expect(amberPixels).toBeGreaterThan(40);
+    const cameraBefore = await page.getByLabel("三维模型视图").getAttribute("data-camera-state");
+    const bounds = await canvas.boundingBox();
+    await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
+    await page.mouse.down(); await page.mouse.move(bounds!.x + bounds!.width / 2 + 70, bounds!.y + bounds!.height / 2 - 30, { steps: 8 }); await page.mouse.up();
+    await expect(page.getByLabel("三维模型视图")).not.toHaveAttribute("data-camera-state", cameraBefore!);
+    await page.getByRole("button", { name: "运行分析" }).click();
+    await expect(page.getByRole("status")).toContainText("分析完成");
+    await expect(page.getByText("位移 (0.000, -0.005, 0.000) m", { exact: true })).toBeVisible();
+    await page.getByLabel("M1 沿杆位置").fill("2");
+    await expect(page.getByTestId("M1-section-Mz")).toHaveText("-6.000 kN·m");
+    await page.getByLabel("M1 沿杆位置").fill("1");
+    await expect(page.getByTestId("M1-section-Mz")).toHaveText("-13.500 kN·m");
+    await page.getByLabel("M1 沿杆位置").fill("5");
+    await expect(page.getByRole("alert")).toContainText("沿杆位置必须");
+    await page.getByLabel("M1 沿杆位置").fill("2");
+    const treeLoad = page.getByRole("region", { name: "项目树" }).getByRole("button", { name: "Q1 · M1", exact: true });
+    await treeLoad.click();
+    await page.getByLabel("qy", { exact: true }).fill("");
+    await page.getByRole("button", { name: "保存均布荷载属性" }).click();
+    await expect(page.getByRole("alert")).toContainText("qy不能为空");
+    await expect(page.getByTestId("viewport-load-details")).toContainText("q (0, -3, 0)");
+    await page.getByLabel("qy", { exact: true }).fill("-6");
+    await page.getByRole("button", { name: "保存均布荷载属性" }).click();
+    await expect(page.getByTestId("viewport-load-details")).toContainText("q (0, -6, 0)");
+    await page.getByRole("button", { name: "撤销", exact: true }).click(); await treeLoad.click();
+    await expect(page.getByLabel("qy", { exact: true })).toHaveValue("-3");
+    await page.getByRole("button", { name: "重做", exact: true }).click(); await treeLoad.click();
+    await expect(page.getByLabel("qy", { exact: true })).toHaveValue("-6");
+    await page.getByRole("button", { name: "删除均布荷载" }).click();
+    await expect(treeLoad).toHaveCount(0);
+    await page.getByRole("button", { name: "撤销", exact: true }).click();
+    await expect(treeLoad).toBeVisible();
+    await page.getByRole("button", { name: "查看分析结果" }).click();
+    await expect(page.getByText(/R\d+ · 已过期/)).toBeVisible();
+    await expect(page.getByTestId("M1-section-Mz")).toHaveText("-6.000 kN·m");
+    await fileAction(page, "保存项目"); await expect(page.getByRole("status")).toContainText("已保存");
+    const saved = JSON.parse(await readFile(path, "utf8"));
+    expect(saved.uniformLoads[0].intensity.y).toBe(-6);
+    expect(saved.latestAnalysis.input.uniformLoads[0].intensity.y).toBe(-3);
+    expect(errors).toEqual([]);
+    await app.close(); app = await electron.launch({ args: ["."], env }); page = await app.firstWindow();
+    await fileAction(page, "打开项目");
+    await expect(page.getByTestId("M1-section-Mz")).toHaveText("-6.000 kN·m");
+    await page.getByRole("region", { name: "项目树" }).getByRole("button", { name: "Q1 · M1", exact: true }).click();
+    await expect(page.getByLabel("qy", { exact: true })).toHaveValue("-6");
+    await page.setViewportSize({ width: 1080, height: 680 });
+    await page.getByRole("button", { name: "适合模型" }).click();
+    await page.screenshot({ path: testInfo.outputPath("T09-load-compact.png") });
+    const compactPng = await page.locator(".viewport canvas").screenshot();
+    const compactLoadPixels = await app.evaluate(({ nativeImage }, encoded) => {
+      const pixels = nativeImage.createFromBuffer(Buffer.from(encoded, "base64")).toBitmap(); let count = 0;
+      for (let i = 0; i < pixels.length; i += 4) if (pixels[i + 2] > 140 && pixels[i + 1] > 110 && pixels[i] < 120 && pixels[i + 2] > pixels[i + 1] + 20) count += 1;
+      return count;
+    }, compactPng.toString("base64"));
+    expect(compactLoadPixels).toBeGreaterThan(40);
+    await page.getByLabel("方向坐标系").selectOption("local");
+    await page.getByRole("button", { name: "保存均布荷载属性" }).click();
+    await expect(page.getByTestId("viewport-load-details")).toContainText("杆件局部 xyz");
+    await page.getByRole("button", { name: "运行分析" }).click();
+    await expect(page.getByRole("status")).toContainText("分析完成");
+    await expect(page.getByTestId("M1-section-Mz")).toHaveText("-12.000 kN·m");
+    await page.getByTestId("M1-section-Mz").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath("T09-results-compact.png") });
+  } finally {
+    await app.close(); await rm(directory, { recursive: true, force: true });
+  }
+});

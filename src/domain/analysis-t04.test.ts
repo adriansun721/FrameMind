@@ -135,7 +135,7 @@ describe("T04 multi-member spatial analysis", () => {
     project.supports[0].restraints[0] = false;
     const result = solveFrame(input);
     expectReference(result.nodes[3].displacement.x, 0.02806391666666667);
-    expect(result.input.solver).toEqual({ implementation: "framemind-frame/2", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12 });
+    expect(result.input.solver).toEqual({ implementation: "framemind-frame/3", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12 });
     const reopened = decodeProject(encodeProject(attachAnalysisResult(project, result)));
     expect(JSON.stringify(reopened.latestAnalysis)).toBe(JSON.stringify(result));
     const record = getMemberAnalysisRecord(reopened.latestAnalysis!, result.members[2].memberId);

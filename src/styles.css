@@ -306,6 +306,12 @@ button { color: inherit; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-0) var(--space-4); }
 .resource-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .load-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.member-section-query { padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+.member-section-query small { display: block; margin-bottom: var(--space-2); color: var(--text-muted); }
+.member-section-query dl { font-size: var(--text-caption); }
+.member-section-query [role="alert"] { color: var(--status-error); overflow-wrap: anywhere; }
+.viewport-member-details { max-width: calc(100% - 20px); }
+.viewport-member-details span { overflow-wrap: anywhere; }
 .resource-fieldset { min-width: 0; margin: 0; padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
 .resource-fieldset legend { padding: 0 var(--space-1); color: var(--text-secondary); font-size: var(--text-caption); font-weight: 600; }
 .restraint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }

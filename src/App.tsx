@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, Box, Calculator, ChevronDown, CircleDot, Crosshair, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Table2, Undo2, X } from "lucide-react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Table2, Trash2, Undo2, X } from "lucide-react";
 import { SceneViewport } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
+import { MemberSectionQuery } from "./components/MemberSectionQuery";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
+  addUniformLoad, updateUniformLoad, deleteUniformLoad, DEFAULT_LOAD_CASE,
   type DofRestraints, type FrameProject, type MaterialId, type MemberId, type NodeId, type SectionId,
 } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
@@ -21,6 +23,8 @@ interface StatusMessage { tone: StatusTone; text: string; }
 interface MaterialDraft { name: string; elasticModulusGPa: string; poissonRatio: string; densityKgM3: string; }
 interface SectionDraft { name: string; areaM2: string; secondMomentYM4: string; secondMomentZM4: string; torsionalConstantM4: string; }
 interface LoadDraft { nodeId: string; fx: string; fy: string; fz: string; mx: string; my: string; mz: string; }
+interface UniformDraft { memberId: string; coordinateSystem: "global" | "local"; qx: string; qy: string; qz: string; }
+const defaultUniform: UniformDraft = { memberId: "", coordinateSystem: "global", qx: "0", qy: "0", qz: "0" };
 
 const defaultMaterial: MaterialDraft = { name: "Q355", elasticModulusGPa: "206", poissonRatio: "0.3", densityKgM3: "7850" };
 const defaultSection: SectionDraft = { name: "箱形截面", areaM2: "0.01", secondMomentYM4: "0.0001", secondMomentZM4: "0.0001", torsionalConstantM4: "0.00015" };
@@ -65,6 +69,8 @@ export function App() {
   const [newMemberDraft, setNewMemberDraft] = useState<MemberDraft>({ startNodeId: "", endNodeId: "", materialId: "", sectionId: "", rotationDegrees: "0" });
   const [supportNodeId, setSupportNodeId] = useState(""); const [supportRestraints, setSupportRestraints] = useState<DofRestraints>([true, true, true, true, true, true]);
   const [loadDraft, setLoadDraft] = useState<LoadDraft>(defaultLoad);
+  const [uniformDraft, setUniformDraft] = useState<UniformDraft>(defaultUniform);
+  const [uniformDialogOpen, setUniformDialogOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
@@ -79,7 +85,8 @@ export function App() {
   const selectedSection = selection?.kind === "section" ? project.sections.find((item) => item.id === selection.id) ?? null : null;
   const selectedSupport = selection?.kind === "support" ? project.supports.find((item) => item.id === selection.id) ?? null : null;
   const selectedLoad = selection?.kind === "load" ? project.nodalLoads.find((item) => item.id === selection.id) ?? null : null;
-  const currentSelectionLabel = selectedNode?.label ?? selectedMember?.label ?? selectedMaterial?.label ?? selectedSection?.label ?? selectedSupport?.label ?? selectedLoad?.label ?? "无选择";
+  const selectedUniform = selection?.kind === "uniform-load" ? project.uniformLoads.find((item) => item.id === selection.id) ?? null : null;
+  const currentSelectionLabel = selectedNode?.label ?? selectedMember?.label ?? selectedMaterial?.label ?? selectedSection?.label ?? selectedSupport?.label ?? selectedLoad?.label ?? selectedUniform?.label ?? "无选择";
   const memberGeometry = useMemo(() => {
     if (!selectedMember) return null;
     const start = project.nodes.find((item) => item.id === selectedMember.startNodeId); const end = project.nodes.find((item) => item.id === selectedMember.endNodeId);
@@ -121,6 +128,22 @@ export function App() {
     if (next.kind === "section") { const item = project.sections.find((section) => section.id === next.id); if (item) setSectionDraft({ name: item.name, areaM2: String(item.areaM2), secondMomentYM4: String(item.secondMomentYM4), secondMomentZM4: String(item.secondMomentZM4), torsionalConstantM4: String(item.torsionalConstantM4) }); }
     if (next.kind === "support") { const item = project.supports.find((support) => support.id === next.id); if (item) { setSupportNodeId(item.nodeId); setSupportRestraints([...item.restraints]); } }
     if (next.kind === "load") { const item = project.nodalLoads.find((load) => load.id === next.id); if (item) setLoadDraft({ nodeId: item.nodeId, fx: String(item.force.x), fy: String(item.force.y), fz: String(item.force.z), mx: String(item.moment.x), my: String(item.moment.y), mz: String(item.moment.z) }); }
+    if (next.kind === "uniform-load") { const item = project.uniformLoads.find((load) => load.id === next.id); if (item) setUniformDraft({ memberId: item.memberId, coordinateSystem: item.coordinateSystem, qx: String(item.intensity.x), qy: String(item.intensity.y), qz: String(item.intensity.z) }); }
+  };
+
+  const submitUniform = (event: React.FormEvent, editing: boolean) => {
+    event.preventDefault();
+    try {
+      const properties = { kind: "uniform" as const, memberId: uniformDraft.memberId as MemberId, coordinateSystem: uniformDraft.coordinateSystem, loadCaseId: DEFAULT_LOAD_CASE, intensity: { x: parseNumber(uniformDraft.qx, "qx"), y: parseNumber(uniformDraft.qy, "qy"), z: parseNumber(uniformDraft.qz, "qz") } };
+      const updated = editing && selectedUniform ? updateUniformLoad(project, selectedUniform.id, properties) : addUniformLoad(project, properties);
+      activateProject(updated, false);
+      if (!editing) setSelection({ kind: "uniform-load", id: updated.uniformLoads.at(-1)!.id });
+      setUniformDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: editing ? "已更新均布荷载" : "已创建均布荷载" });
+    } catch (error) { setFormError(error instanceof Error ? error.message : "均布荷载提交失败"); }
+  };
+  const removeUniform = () => {
+    if (!selectedUniform) return;
+    activateProject(deleteUniformLoad(project, selectedUniform.id), false); setSelection(null); setFormError(null); setStatus({ tone: "success", text: "已删除均布荷载" });
   };
 
   const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setSavedRevision(0); setSavedProjectContent(encodeProject(next)); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
@@ -332,6 +355,7 @@ export function App() {
         <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="基础工具栏占位；使用设置支座打开 T03 支座输入"><Anchor size={15} />支座</button>
         <button className="tool-button" aria-label="设置支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />设置支座</button>
         <button className="tool-button" aria-label="创建荷载" title="创建节点集中力和力矩" onClick={openLoadDialog}><Plus size={15} />荷载</button>
+        <button className="tool-button" aria-label="创建均布荷载" title="整根杆件均布力 · kN/m" disabled={project.members.length === 0} onClick={() => { setUniformDraft({ ...defaultUniform, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}><ArrowDownToLine size={15} />均布荷载</button>
         {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={runAnalysis}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
         <button className={`tool-button icon-only ${dataTableOpen ? "active" : ""}`} aria-label="数据表" aria-pressed={dataTableOpen} title="数据表" onClick={() => setDataTableOpen((open) => !open)}><Table2 size={15} /></button>
@@ -364,6 +388,10 @@ export function App() {
             {project.nodalLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "load", id: load.id })}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
             {project.nodalLoads.length === 0 && <p className="tree-empty">暂无节点荷载</p>}
           </TreeGroup>
+          <TreeGroup label="杆件均布荷载 · LC1" count={project.uniformLoads.length} icon={<ArrowDownToLine size={14} />}>
+            {project.uniformLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "uniform-load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "uniform-load", id: load.id })}><ArrowDownToLine size={14} /><span>{load.label} · {project.members.find((member) => member.id === load.memberId)?.label}</span></button>)}
+            {project.uniformLoads.length === 0 && <p className="tree-empty">暂无均布荷载</p>}
+          </TreeGroup>
           <button className={`tree-item ${project.latestAnalysis && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!project.latestAnalysis} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果</span><small>{project.latestAnalysis?.nodes.length ?? 0}</small></button>
           <div className="tree-muted"><span className="chevron-placeholder">›</span><Layers3 size={14} /><span>报告</span><em>0</em></div>
           </div><div className="model-summary"><span>模型版本</span><strong>R{project.revision}</strong><small>格式 v{project.formatVersion}</small></div>
@@ -390,6 +418,7 @@ export function App() {
             <SelectField label="加载节点" value={loadDraft.nodeId} onChange={(nodeId) => setLoadDraft({ ...loadDraft, nodeId })} options={project.nodes.map((node) => ({ value: node.id, label: node.label }))} />
             <LoadFields draft={loadDraft} onChange={setLoadDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存荷载属性</button>
           </form></Inspector>}
+          {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />}><Identity id={selectedUniform.id} label={selectedUniform.label} /><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>LC1</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q (kN/m)</dt><dd title={vectorText(selectedUniform.intensity)}>{vectorText(selectedUniform.intensity)}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
           {project.latestAnalysis && !selection && <AnalysisResultPanel result={project.latestAnalysis} project={project} />}
           {!selection && !project.latestAnalysis && <div className="inspector-empty"><strong>未选择对象</strong><p>从项目树或三维视图选择对象以编辑属性。</p></div>}
         </section>
@@ -400,7 +429,7 @@ export function App() {
           <header><strong>{ANALYSIS_STAGE_LABELS[analysisFailure.failure.stage]}失败</strong><span>R{analysisFailure.revision} · {analysisFailure.revision === project.revision ? "当前模型" : "模型已修改，待重新检查"}</span><button className="icon-button" aria-label="关闭分析诊断" title="关闭分析诊断" onClick={() => setAnalysisFailure(null)}><X size={15} /></button></header>
           <ul>{analysisFailure.failure.diagnostics.map((diagnostic, index) => {
             const target = diagnostic.target;
-            const objects = target?.kind === "node" ? project.nodes : target?.kind === "member" ? project.members : target?.kind === "material" ? project.materials : target?.kind === "section" ? project.sections : target?.kind === "support" ? project.supports : project.nodalLoads;
+            const objects = target?.kind === "node" ? project.nodes : target?.kind === "member" ? project.members : target?.kind === "material" ? project.materials : target?.kind === "section" ? project.sections : target?.kind === "support" ? project.supports : target?.kind === "uniform-load" ? project.uniformLoads : project.nodalLoads;
             const object = target ? objects.find((item) => item.id === target.id) : undefined;
             const fieldLabel = diagnostic.field ? ANALYSIS_FIELD_LABELS[diagnostic.field] ?? diagnostic.field : diagnostic.dof?.toUpperCase() ?? "对象";
             return <li key={index}><div><p>{diagnostic.message}</p>{diagnostic.evidence && <small>主元 {diagnostic.evidence.pivotMagnitude.toExponential(3)} · 阈值 {diagnostic.evidence.threshold.toExponential(3)} · 矩阵尺度 {diagnostic.evidence.matrixScale.toExponential(3)} · 全局索引 {diagnostic.evidence.globalDofIndex}（从 0 起）</small>}</div>
@@ -408,7 +437,7 @@ export function App() {
             </li>;
           })}</ul>
         </section>}
-        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} uniformLoads={project.uniformLoads} selectedUniformLoadId={selectedUniform?.id} onSelectUniformLoad={(id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
@@ -422,6 +451,7 @@ export function App() {
     {batchDialog && <Dialog title={batchDialog === "node" ? "批量移动节点" : "批量修改杆件"} copy={batchDialog === "node" ? `将一次移动 ${selectedNodeIds.size} 个节点，任一校验失败则全部不提交。` : `将一次设置 ${selectedMemberIds.size} 个杆件的截面转角，任一校验失败则全部不提交。`} onClose={() => { setBatchDialog(null); setFormError(null); }}><form onSubmit={submitBatchEdit}>{batchDialog === "node" ? <div className="coordinate-inputs"><NumberField label="X 偏移" value={batchDraft.x} onChange={(value) => setBatchDraft({ ...batchDraft, x: value })} unit="m" /><NumberField label="Y 偏移" value={batchDraft.y} onChange={(value) => setBatchDraft({ ...batchDraft, y: value })} unit="m" /><NumberField label="Z 偏移" value={batchDraft.z} onChange={(value) => setBatchDraft({ ...batchDraft, z: value })} unit="m" /></div> : <NumberField label="统一截面转角" value={batchDraft.rotationDegrees} onChange={(value) => setBatchDraft({ ...batchDraft, rotationDegrees: value })} unit="°" />}<FormFeedback error={formError} /><DialogActions close={() => { setBatchDialog(null); setFormError(null); }} submit="应用批量修改" /></form></Dialog>}
     {supportDialogOpen && <Dialog title="创建节点支座" copy="支座独立约束节点的六个自由度。固定支座默认约束平移与转动全部分量。" onClose={() => { setSupportDialogOpen(false); selectObject(selection); }}><form onSubmit={submitSupport}><SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><DialogActions close={() => { setSupportDialogOpen(false); selectObject(selection); }} submit="添加支座" /></form></Dialog>}
     {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="输入全局坐标系下的节点力（kN）和节点力矩（kN·m）；零值分量仍会保留在输入记录中。" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
+    {uniformDialogOpen && <Dialog title="创建杆件均布荷载" copy="整根杆件 · 工况 LC1 · kN/m" onClose={() => { setUniformDialogOpen(false); selectObject(selection); }}><form onSubmit={(event) => submitUniform(event, false)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><DialogActions close={() => { setUniformDialogOpen(false); selectObject(selection); }} submit="添加均布荷载" /></form></Dialog>}
   </main>;
 }
 
@@ -435,7 +465,7 @@ function AnalysisResultPanel({ result, project }: { result: AnalysisResult; proj
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
       <div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div>
       <div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div>
-      <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length}</dd></div>
+      <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length + (result.input.uniformLoads?.length ?? 0)}</dd></div>
     </dl></section>
     <section className="property-section"><h3>节点结果</h3><div className="analysis-table">{result.nodes.map((node) => <div className="analysis-row" key={node.nodeId}>
       <strong>{result.input.nodes.find((item) => item.id === node.nodeId)?.label ?? node.nodeId}</strong>
@@ -447,6 +477,7 @@ function AnalysisResultPanel({ result, project }: { result: AnalysisResult; proj
     <section className="property-section"><h3>杆端内力（局部轴）</h3><div className="analysis-table">{result.members.map((member) => <div className="analysis-row" key={member.memberId}>
       <strong>{result.input.members.find((item) => item.id === member.memberId)?.label ?? member.memberId} · L {member.length.toFixed(3)} m</strong>
       <span>起点 {formatEndForces(member.localEndForces.start)}</span><span>终点 {formatEndForces(member.localEndForces.end)}</span>
+      <MemberSectionQuery key={result.id} result={result} member={member} />
     </div>)}</div></section>
   </div>;
 }
@@ -454,6 +485,10 @@ function TreeGroup({ label, count, icon, children }: { label: string; count: num
 function MenuAction({ icon, label, shortcut, onSelect }: { icon: React.ReactNode; label: string; shortcut: string; onSelect(): void }) { return <button className="menu-item" role="menuitem" onClick={onSelect}><span>{icon}{label}</span><kbd>{shortcut}</kbd></button>; }
 function RestraintFields({ restraints, onChange }: { restraints: DofRestraints; onChange: (value: DofRestraints) => void }) {
   return <fieldset className="resource-fieldset"><legend>约束自由度</legend><div className="restraint-grid">{["UX 平移", "UY 平移", "UZ 平移", "RX 转动", "RY 转动", "RZ 转动"].map((label, index) => <label className="check-field" key={label}><input type="checkbox" checked={restraints[index]} onChange={(event) => onChange(restraints.map((value, itemIndex) => itemIndex === index ? event.target.checked : value) as DofRestraints)} /><span>{label}</span></label>)}</div></fieldset>;
+}
+
+function UniformFields({ project, draft, onChange }: { project: FrameProject; draft: UniformDraft; onChange(value: UniformDraft): void }) {
+  return <><SelectField label="加载杆件" value={draft.memberId} onChange={(memberId) => onChange({ ...draft, memberId })} options={project.members.map((member) => ({ value: member.id, label: member.label }))} /><SelectField label="方向坐标系" value={draft.coordinateSystem} onChange={(coordinateSystem) => onChange({ ...draft, coordinateSystem: coordinateSystem as UniformDraft["coordinateSystem"] })} options={[{ value: "global", label: "全局 XYZ" }, { value: "local", label: "杆件局部 xyz" }]} /><SelectField label="所属工况" value={DEFAULT_LOAD_CASE} onChange={() => {}} options={[{ value: DEFAULT_LOAD_CASE, label: "LC1" }]} />{(["qx", "qy", "qz"] as const).map((field) => <NumberField key={field} label={field} value={draft[field]} unit="kN/m" onChange={(value) => onChange({ ...draft, [field]: value })} />)}</>;
 }
 
 function LoadFields({ draft, onChange }: { draft: LoadDraft; onChange: (value: LoadDraft) => void }) {

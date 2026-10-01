@@ -30,6 +30,15 @@ export interface FrameMember extends MemberProperties { id: MemberId; label: str
 export type DofRestraints = [boolean, boolean, boolean, boolean, boolean, boolean];
 export interface FrameSupport { id: SupportId; label: string; nodeId: NodeId; restraints: DofRestraints; }
 export interface FrameNodalLoad { id: LoadId; label: string; nodeId: NodeId; force: Vector3; moment: Vector3; }
+export const DEFAULT_LOAD_CASE = "LC1";
+export interface UniformLoadProperties {
+  kind: "uniform";
+  memberId: MemberId;
+  coordinateSystem: "global" | "local";
+  loadCaseId: string;
+  intensity: Vector3;
+}
+export interface FrameUniformLoad extends UniformLoadProperties { id: LoadId; label: string; }
 
 export interface FrameProject {
   format: typeof PROJECT_FORMAT;
@@ -46,6 +55,7 @@ export interface FrameProject {
   members: FrameMember[];
   supports: FrameSupport[];
   nodalLoads: FrameNodalLoad[];
+  uniformLoads: FrameUniformLoad[];
   latestAnalysis?: AnalysisResult;
   nextNodeNumber: number;
   nextMaterialNumber: number;
@@ -53,6 +63,7 @@ export interface FrameProject {
   nextMemberNumber: number;
   nextSupportNumber: number;
   nextLoadNumber: number;
+  nextUniformLoadNumber: number;
 }
 
 function createIdentity(): string { return globalThis.crypto.randomUUID(); }
@@ -134,8 +145,8 @@ export function createProject(name = "未命名项目"): FrameProject {
     id: `project_${createIdentity()}` as ProjectId, name: name.trim() || "未命名项目",
     createdAt: now, updatedAt: now, revision: 0,
     units: { length: "m", force: "kN", moment: "kN·m" },
-    nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [],
-    nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1,
+    nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [], uniformLoads: [],
+    nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1, nextUniformLoadNumber: 1,
   };
 }
 
@@ -201,7 +212,39 @@ export function updateMember(project: FrameProject, id: MemberId, changes: Parti
 
 export function deleteMember(project: FrameProject, id: MemberId): FrameProject {
   if (!project.members.some((member) => member.id === id)) throw new Error(`杆件 ${id} 不存在`);
-  return { ...project, members: project.members.filter((member) => member.id !== id), ...nextRevision(project) };
+  return { ...project, members: project.members.filter((member) => member.id !== id), uniformLoads: project.uniformLoads.filter((load) => load.memberId !== id), ...nextRevision(project) };
+}
+
+export function validateUniformLoad(input: UniformLoadProperties): UniformLoadProperties {
+  const allowed = new Set(["id", "label", "kind", "memberId", "coordinateSystem", "loadCaseId", "intensity"]);
+  if (!input || input.kind !== "uniform" || Object.keys(input).some((key) => !allowed.has(key))) throw new Error("仅支持整根杆件均布力，不支持中间集中、分段或非均匀荷载");
+  if (input.coordinateSystem !== "global" && input.coordinateSystem !== "local") throw new Error("均布荷载坐标系必须为 global 或 local");
+  if (input.loadCaseId !== DEFAULT_LOAD_CASE) throw new Error("当前仅支持工况 LC1");
+  if (!input.intensity || Object.keys(input.intensity).some((key) => !["x", "y", "z"].includes(key))) throw new Error("均布荷载必须是三个有限的力分量（kN/m）");
+  if (![input.intensity.x, input.intensity.y, input.intensity.z].every(Number.isFinite)) throw new Error("均布荷载分量必须是有限数值（kN/m）");
+  return { kind: "uniform", memberId: input.memberId, coordinateSystem: input.coordinateSystem, loadCaseId: input.loadCaseId, intensity: { ...input.intensity } };
+}
+
+export function addUniformLoad(project: FrameProject, input: UniformLoadProperties): FrameProject {
+  const properties = validateUniformLoad(input);
+  if (!project.members.some((member) => member.id === properties.memberId)) throw new Error("均布荷载引用了不存在的杆件");
+  assertCounter(project.nextUniformLoadNumber);
+  const number = project.nextUniformLoadNumber;
+  const load: FrameUniformLoad = { id: `uniform_load_${String(number).padStart(4, "0")}` as LoadId, label: `Q${number}`, ...properties };
+  return { ...project, uniformLoads: [...project.uniformLoads, load], nextUniformLoadNumber: number + 1, ...nextRevision(project) };
+}
+
+export function updateUniformLoad(project: FrameProject, id: LoadId, input: UniformLoadProperties): FrameProject {
+  const current = project.uniformLoads.find((load) => load.id === id);
+  if (!current) throw new Error(`均布荷载 ${id} 不存在`);
+  const properties = validateUniformLoad(input);
+  if (!project.members.some((member) => member.id === properties.memberId)) throw new Error("均布荷载引用了不存在的杆件");
+  return { ...project, uniformLoads: project.uniformLoads.map((load) => load.id === id ? { ...current, ...properties } : load), ...nextRevision(project) };
+}
+
+export function deleteUniformLoad(project: FrameProject, id: LoadId): FrameProject {
+  if (!project.uniformLoads.some((load) => load.id === id)) throw new Error(`均布荷载 ${id} 不存在`);
+  return { ...project, uniformLoads: project.uniformLoads.filter((load) => load.id !== id), ...nextRevision(project) };
 }
 
 function requireProjectNode(project: FrameProject, nodeId: NodeId, label: string): void {

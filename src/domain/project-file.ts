@@ -4,6 +4,8 @@ import {
   validateMaterial,
   validateMember,
   validateSection,
+  validateUniformLoad,
+  type FrameUniformLoad,
   type FrameMaterial,
   type FrameMember,
   type FrameNode,
@@ -133,6 +135,16 @@ function decodeNodalLoad(value: unknown): FrameNodalLoad {
   return { id: id as LoadId, label, nodeId, force: decodeVector(value.force, "力"), moment: decodeVector(value.moment, "力矩") };
 }
 
+function decodeUniformLoad(value: unknown): FrameUniformLoad {
+  if (!isRecord(value)) throw new Error("项目包含无效均布荷载");
+  const id = requireString(value.id, "均布荷载缺少稳定标识");
+  const label = requireString(value.label, `均布荷载 ${id} 缺少编号`);
+  assertNumberedIdentity("均布荷载", id, label, "uniform_load", "Q");
+  // Validate the entire object so unsupported distributions cannot be silently discarded.
+  const properties = validateUniformLoad(value as unknown as FrameUniformLoad);
+  return { id: id as LoadId, label, ...properties, memberId: requireString(value.memberId, "均布荷载缺少杆件") as MemberId };
+}
+
 function decodeAnalysisResult(value: unknown): AnalysisResult {
   if (!isRecord(value) || value.status !== "complete") throw new Error("项目包含无效分析结果");
   const id = requireString(value.id, "分析结果缺少稳定标识"); const projectId = requireString(value.projectId, "分析结果缺少项目标识"); const createdAt = requireString(value.createdAt, "分析结果缺少创建时间");
@@ -145,6 +157,9 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   assertUnique(inputNodes, "分析输入节点"); assertUnique(inputMaterials, "分析输入材料"); assertUnique(inputSections, "分析输入截面"); assertUnique(inputMembers, "分析输入杆件"); assertUnique(inputSupports, "分析输入支座"); assertUnique(inputLoads, "分析输入节点荷载");
   assertUniqueLabels(inputNodes, "分析输入节点"); assertUniqueLabels(inputMaterials, "分析输入材料"); assertUniqueLabels(inputSections, "分析输入截面"); assertUniqueLabels(inputMembers, "分析输入杆件"); assertUniqueLabels(inputSupports, "分析输入支座"); assertUniqueLabels(inputLoads, "分析输入节点荷载");
   const inputNodeIds = new Set(inputNodes.map((node) => node.id)); const inputMaterialIds = new Set(inputMaterials.map((material) => material.id)); const inputSectionIds = new Set(inputSections.map((section) => section.id));
+  const inputUniformLoads = decodeOptionalArray(input.uniformLoads, "分析输入均布荷载", decodeUniformLoad);
+  assertUnique(inputUniformLoads, "分析输入均布荷载"); assertUniqueLabels(inputUniformLoads, "分析输入均布荷载");
+  for (const load of inputUniformLoads) if (!inputMembers.some((member) => member.id === load.memberId)) throw new Error("分析结果均布荷载引用无效");
   for (const member of inputMembers) if (!inputNodeIds.has(member.startNodeId) || !inputNodeIds.has(member.endNodeId) || !inputMaterialIds.has(member.materialId) || !inputSectionIds.has(member.sectionId)) throw new Error("分析结果杆件引用无效");
   for (const support of inputSupports) if (!inputNodeIds.has(support.nodeId)) throw new Error("分析结果支座引用无效");
   for (const load of inputLoads) if (!inputNodeIds.has(load.nodeId)) throw new Error("分析结果节点荷载引用无效");
@@ -168,7 +183,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input: freezeAnalysisInput({ ...input, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads } as AnalysisResult["input"]), nodes, members };
+  return { id, projectId, projectRevision, createdAt, status: "complete", input: freezeAnalysisInput({ ...input, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads } as AnalysisResult["input"]), nodes, members };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {
@@ -218,6 +233,8 @@ export function decodeProject(source: string): FrameProject {
   const members = decodeOptionalArray(value.members, "杆件", decodeMember);
   const supports = decodeOptionalArray(value.supports, "支座", decodeSupport);
   const nodalLoads = decodeOptionalArray(value.nodalLoads, "节点荷载", decodeNodalLoad);
+  const uniformLoads = decodeOptionalArray(value.uniformLoads, "均布荷载", decodeUniformLoad);
+  assertUnique(uniformLoads, "均布荷载"); assertUniqueLabels(uniformLoads, "均布荷载");
   assertUnique(nodes, "节点"); assertUnique(materials, "材料"); assertUnique(sections, "截面"); assertUnique(members, "杆件"); assertUnique(supports, "支座"); assertUnique(nodalLoads, "节点荷载");
   assertUniqueLabels(nodes, "节点"); assertUniqueLabels(materials, "材料"); assertUniqueLabels(sections, "截面"); assertUniqueLabels(members, "杆件"); assertUniqueLabels(supports, "支座"); assertUniqueLabels(nodalLoads, "节点荷载");
   if (!isRecord(value.units) || value.units.length !== "m" || value.units.force !== "kN" || value.units.moment !== "kN·m") {
@@ -231,17 +248,19 @@ export function decodeProject(source: string): FrameProject {
   const nextSupportNumber = decodeCounter(value.nextSupportNumber, 1, "支座", highestNumber(supports, /^support_(\d+)$/, /^B(\d+)$/), true);
   const nextLoadNumber = decodeCounter(value.nextLoadNumber, 1, "节点荷载", highestNumber(nodalLoads, /^load_(\d+)$/, /^L(\d+)$/), true);
   const latestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
+  const nextUniformLoadNumber = decodeCounter(value.nextUniformLoadNumber, 1, "均布荷载", highestNumber(uniformLoads, /^uniform_load_(\d+)$/, /^Q(\d+)$/), true);
   const project: FrameProject = {
     format: PROJECT_FORMAT, formatVersion: PROJECT_FORMAT_VERSION,
     id: requireString(value.id, "项目缺少稳定标识") as ProjectId,
     name: requireString(value.name, "项目缺少名称"),
     createdAt: requireString(value.createdAt, "项目缺少创建时间"), updatedAt: requireString(value.updatedAt, "项目缺少更新时间"),
     revision: value.revision, units: { length: "m", force: "kN", moment: "kN·m" },
-    nodes, materials, sections, members, supports, nodalLoads,
+    nodes, materials, sections, members, supports, nodalLoads, uniformLoads,
     latestAnalysis,
-    nextNodeNumber, nextMaterialNumber, nextSectionNumber, nextMemberNumber, nextSupportNumber, nextLoadNumber,
+    nextNodeNumber, nextMaterialNumber, nextSectionNumber, nextMemberNumber, nextSupportNumber, nextLoadNumber, nextUniformLoadNumber,
   };
   for (const member of members) validateMember(project, member.label, member);
+  for (const load of uniformLoads) if (!members.some((member) => member.id === load.memberId)) throw new Error(`均布荷载 ${load.label} 引用了不存在的杆件 ${load.memberId}`);
   for (const support of supports) if (!nodes.some((node) => node.id === support.nodeId)) throw new Error(`支座 ${support.label} 引用了不存在的节点 ${support.nodeId}`);
   for (const load of nodalLoads) if (!nodes.some((node) => node.id === load.nodeId)) throw new Error(`节点荷载 ${load.label} 引用了不存在的节点 ${load.nodeId}`);
   if (latestAnalysis && latestAnalysis.projectId !== project.id) throw new Error("分析结果项目标识与文件不一致");

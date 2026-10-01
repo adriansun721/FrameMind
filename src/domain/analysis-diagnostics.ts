@@ -1,6 +1,7 @@
 import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisDof } from "./analysis";
 import type { FrameProject, LoadId, MaterialId, MemberId, NodeId, SectionId, SupportId } from "./project";
+import { validateUniformLoad } from "./project";
 
 export type AnalysisStage = "model-check" | "assembly" | "solve" | "recovery";
 export const ANALYSIS_STAGE_LABELS: Record<AnalysisStage, string> = {
@@ -11,7 +12,7 @@ export const ANALYSIS_FIELD_LABELS: Record<string, string> = {
   elasticModulusGPa: "弹性模量 E", densityKgM3: "密度", poissonRatio: "泊松比",
   areaM2: "面积 A", secondMomentYM4: "惯性矩 Iy", secondMomentZM4: "惯性矩 Iz", torsionalConstantM4: "扭转常数 J",
   startNodeId: "起点节点", endNodeId: "终点节点", nodeId: "所属节点", materialId: "材料", sectionId: "截面", rotationDegrees: "截面转角",
-  restraints: "约束自由度", connectivity: "连接关系", stiffness: "刚度", reaction: "反力", localEndForces: "杆端内力", "force/moment": "力与力矩",
+  restraints: "约束自由度", connectivity: "连接关系", stiffness: "刚度", reaction: "反力", localEndForces: "杆端内力", "force/moment": "力与力矩", intensity: "均布力（kN/m）", memberId: "加载杆件",
   "force.x": "FX", "force.y": "FY", "force.z": "FZ", "moment.x": "MX", "moment.y": "MY", "moment.z": "MZ",
 };
 
@@ -21,7 +22,8 @@ export type AnalysisTarget =
   | { kind: "material"; id: MaterialId }
   | { kind: "section"; id: SectionId }
   | { kind: "support"; id: SupportId }
-  | { kind: "load"; id: LoadId };
+  | { kind: "load"; id: LoadId }
+  | { kind: "uniform-load"; id: LoadId };
 
 export interface AnalysisDiagnostic {
   code: string;
@@ -39,7 +41,7 @@ export class AnalysisFailure extends Error {
   }
 }
 
-export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members" | "materials" | "sections" | "supports" | "nodalLoads">): AnalysisDiagnostic[] {
+export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members" | "materials" | "sections" | "supports" | "nodalLoads"> & Partial<Pick<FrameProject, "uniformLoads">>): AnalysisDiagnostic[] {
   const issues: AnalysisDiagnostic[] = [];
   const issue = (code: string, message: string, target?: AnalysisTarget, field?: string) => issues.push({ code, message, target, field });
   const positive = (value: number, target: AnalysisTarget, field: string, label: string) => {
@@ -51,6 +53,7 @@ export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members"
     { kind: "node", items: input.nodes }, { kind: "member", items: input.members },
     { kind: "material", items: input.materials }, { kind: "section", items: input.sections },
     { kind: "support", items: input.supports }, { kind: "load", items: input.nodalLoads },
+    { kind: "uniform-load", items: input.uniformLoads ?? [] },
   ] as const;
   for (const { kind, items } of groups) {
     const seen = new Set<string>();
@@ -109,6 +112,12 @@ export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members"
     for (const vector of ["force", "moment"] as const) for (const axis of ["x", "y", "z"] as const) {
       if (!Number.isFinite(load[vector]?.[axis])) issue("invalid-load", `${load.label} 的 ${vector === "force" ? "力" : "力矩"} ${axis.toUpperCase()} 必须是有限数值`, target, `${vector}.${axis}`);
     }
+  }
+  for (const load of input.uniformLoads ?? []) {
+    const target = { kind: "uniform-load", id: load.id } as const;
+    if (!input.members.some((member) => member.id === load.memberId)) issue("invalid-reference", `${load.label} 的杆件引用无效`, target, "memberId");
+    try { validateUniformLoad(load); }
+    catch (error) { issue("invalid-load", `${load.label}：${error instanceof Error ? error.message : "均布荷载无效"}`, target, "intensity"); }
   }
   if (restrainedNodes.size === 0) issue("missing-restraints", "请至少设置一个受约束自由度");
   // Only unrestrained components are rejected; separately supported frames are valid.

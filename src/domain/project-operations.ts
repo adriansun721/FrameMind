@@ -76,6 +76,7 @@ export function deleteNode(project: FrameProject, id: NodeId): FrameProject {
       members: current.members.filter((member) => !memberIds.has(member.id)),
       supports: current.supports.filter((support) => support.nodeId !== id),
       nodalLoads: current.nodalLoads.filter((load) => load.nodeId !== id),
+      uniformLoads: current.uniformLoads.filter((load) => !memberIds.has(load.memberId)),
     };
   });
 }

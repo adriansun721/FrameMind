@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { Scan } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { FrameMaterial, FrameMember, FrameNode, FrameSection, MemberId, NodeId, ProjectId } from "../domain/project";
+import type { FrameMaterial, FrameMember, FrameNode, FrameSection, FrameUniformLoad, LoadId, MemberId, NodeId, ProjectId } from "../domain/project";
+import { calculateMemberGeometry } from "../domain/member-geometry";
+import { uniformLoadVector } from "../domain/uniform-loads";
 import { EngineeringSceneModel, type EngineeringScenePalette, type EngineeringSceneSelection } from "./engineering-scene-model";
 import { calculateSceneFrame } from "./scene-camera";
 import { disposeObjectTree } from "./three-resources";
@@ -15,6 +17,9 @@ interface SceneViewportProps {
   members: FrameMember[];
   materials: FrameMaterial[];
   sections: FrameSection[];
+  uniformLoads?: FrameUniformLoad[];
+  selectedUniformLoadId?: LoadId;
+  onSelectUniformLoad?(id: LoadId): void;
   selection: SceneSelection;
   fitRequest?: number;
   onSelect(selection: SceneSelection): void;
@@ -37,6 +42,7 @@ interface SceneRuntime {
   renderer: THREE.WebGLRenderer;
   projectId: ProjectId | null;
   hasFramedModel: boolean;
+  loads: THREE.Group;
 }
 
 function readScenePalette(): ScenePalette {
@@ -92,11 +98,13 @@ function selectionFromHit(hit: THREE.Intersection): SceneSelection {
     : { kind: "member", id: String(hit.object.userData.id) as MemberId };
 }
 
-export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect, fitRequest = 0 }: SceneViewportProps) {
+export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selectedUniformLoadId, onSelectUniformLoad, fitRequest = 0 }: SceneViewportProps) {
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
+  const onSelectLoadRef = useRef(onSelectUniformLoad); onSelectLoadRef.current = onSelectUniformLoad;
+  const selectedLoad = uniformLoads?.find((load) => load.id === selectedUniformLoadId);
   const selectedMember = selection?.kind === "member" ? members.find((member) => member.id === selection.id) : undefined;
   const selectedMaterial = selectedMember ? materials.find((material) => material.id === selectedMember.materialId) : undefined;
   const selectedSection = selectedMember ? sections.find((section) => section.id === selectedMember.sectionId) : undefined;
@@ -121,25 +129,29 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
     const axesMaterial = axes.material as THREE.LineBasicMaterial; axesMaterial.transparent = true; axesMaterial.opacity = 0.72; scene.add(axes);
     const modelGroup = new THREE.Group(); modelGroup.name = "engineering-model"; scene.add(modelGroup);
     const model = new EngineeringSceneModel(modelGroup, palette, (text) => makeLabel(text, palette));
-    runtimeRef.current = { camera, controls, model, renderer, projectId: null, hasFramedModel: false };
+    const loads = new THREE.Group(); scene.add(loads);
+    runtimeRef.current = { camera, controls, model, renderer, loads, projectId: null, hasFramedModel: false };
 
-    const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
+    const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.04;
+    const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
     const hitAtPointer = (event: PointerEvent): THREE.Intersection | undefined => {
       const bounds = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      return raycaster.intersectObjects(model.getHitTargets(), false)[0];
+      return [...raycaster.intersectObjects(model.getHitTargets(), false), ...raycaster.intersectObjects(loads.children, true)].sort((a, b) => a.distance - b.distance)[0];
     };
     const beginPointer = (event: PointerEvent) => { if (event.button === 0) pointerStart = new THREE.Vector2(event.clientX, event.clientY); };
     const finishPointer = (event: PointerEvent) => {
       if (event.button !== 0 || !pointerStart) return;
       const moved = pointerStart.distanceTo(new THREE.Vector2(event.clientX, event.clientY)); pointerStart = null;
       if (moved > 4) return;
-      const hit = hitAtPointer(event); onSelectRef.current(hit ? selectionFromHit(hit) : null);
+      const hit = hitAtPointer(event);
+      if (hit?.object.userData.kind === "uniform-load") onSelectLoadRef.current?.(hit.object.userData.id as LoadId);
+      else onSelectRef.current(hit ? selectionFromHit(hit) : null);
     };
     const hoverPointer = (event: PointerEvent) => {
       if (event.buttons !== 0) { model.setHover(null); return; }
-      const hit = hitAtPointer(event); model.setHover(hit ? selectionFromHit(hit) : null);
+      const hit = hitAtPointer(event); model.setHover(hit && hit.object.userData.kind !== "uniform-load" ? selectionFromHit(hit) : null);
       renderer.domElement.style.cursor = hit ? "pointer" : "default";
     };
     const clearHover = () => { model.setHover(null); renderer.domElement.style.cursor = "default"; };
@@ -185,6 +197,39 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
   useEffect(() => {
+    const group = runtimeRef.current?.loads;
+    if (!group) return;
+    for (const child of [...group.children]) disposeObjectTree(child);
+    for (const [index, load] of (uniformLoads ?? []).entries()) {
+      const member = members.find((item) => item.id === load.memberId);
+      const start = nodes.find((item) => item.id === member?.startNodeId);
+      const end = nodes.find((item) => item.id === member?.endNodeId);
+      if (!member || !start || !end) continue;
+      const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+      const globalQ = uniformLoadVector(load, geometry, "global");
+      const direction = new THREE.Vector3(globalQ.x, globalQ.y, globalQ.z);
+      const magnitude = direction.length();
+      if (magnitude === 0 || !Number.isFinite(magnitude)) continue;
+      direction.normalize();
+      const arrowLength = Math.min(0.8, Math.max(0.2, geometry.length * 0.16));
+      const color = selectedUniformLoadId === load.id ? "#d3ac44" : "#cf4973";
+      const layer = new THREE.Group();
+      const tails: THREE.Vector3[] = [];
+      for (let station = 0; station < 5; station += 1) {
+        const head = new THREE.Vector3(start.position.x, start.position.y, start.position.z).lerp(new THREE.Vector3(end.position.x, end.position.y, end.position.z), (station + 0.5) / 5);
+        head.addScaledVector(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), index * arrowLength * 0.3);
+        const tail = head.clone().addScaledVector(direction, -arrowLength); tails.push(tail);
+        const arrow = new THREE.ArrowHelper(direction, tail, arrowLength, color, arrowLength * 0.25, arrowLength * 0.14);
+        // ArrowHelper uses shared geometries; own clones allow safe per-layer disposal.
+        arrow.line.geometry = arrow.line.geometry.clone(); arrow.cone.geometry = arrow.cone.geometry.clone();
+        layer.add(arrow);
+      }
+      layer.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([tails[0], tails[4]]), new THREE.LineBasicMaterial({ color })));
+      const label = makeLabel(load.label, readScenePalette()); label.position.copy(tails[2]).addScaledVector(direction, -arrowLength * 0.3); layer.add(label);
+      layer.traverse((object) => { object.userData = { kind: "uniform-load", id: load.id }; }); group.add(layer);
+    }
+  }, [uniformLoads, nodes, members, selectedUniformLoadId]);
+  useEffect(() => {
     const runtime = runtimeRef.current;
     if (runtime && fitRequest > 0) applySceneFrame(runtime.camera, runtime.controls, nodesRef.current);
   }, [fitRequest]);
@@ -198,7 +243,7 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
     <div className="viewport" ref={hostRef} aria-label="三维模型视图">
       <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">单击选择 · 拖动旋转 · 滚轮缩放</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
-      {selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>分析线模型 · 截面转角 {selectedMember.rotationDegrees}°</small></div>}
+      {selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q ({selectedLoad.intensity.x}, {selectedLoad.intensity.y}, {selectedLoad.intensity.z}) kN/m</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>分析线模型 · 截面转角 {selectedMember.rotationDegrees}°</small></div>}
       {nodes.length === 0 && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
     </div>
   );
