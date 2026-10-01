@@ -25,7 +25,8 @@ export function LoadCaseManager({ project, onChange, onClose }: { project: Frame
   const remove = () => {
     try {
       const refs = getLoadCaseReferences(project, editingId);
-      if (project.loadCases.length > 1 && (refs.loads || refs.results) && !window.confirm(`删除 ${editingId} 及其 ${refs.loads} 条荷载、${refs.results} 份结果？此变更可撤销。`)) return;
+      const dependents = project.loadCombinations.filter((item) => item.terms.some((term) => term.loadCaseId === editingId));
+      if (project.loadCases.length > 1 && (refs.loads || refs.results || refs.combinations) && !window.confirm(`删除 ${editingId} 及其 ${refs.loads} 条荷载、${refs.results} 份结果、${refs.combinations} 个组合${dependents.length ? `（${dependents.map((item) => `${item.id} · ${item.name}`).join("、")}）及其结果` : ""}？此变更可撤销。`)) return;
       const next = deleteLoadCase(project, editingId, true);
       onChange(next);
       const item = next.loadCases.find((item) => item.id === next.activeLoadCaseId)!;

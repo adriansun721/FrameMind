@@ -32,6 +32,8 @@ export interface FrameSupport { id: SupportId; label: string; nodeId: NodeId; re
 export interface FrameNodalLoad { id: LoadId; label: string; nodeId: NodeId; loadCaseId: string; force: Vector3; moment: Vector3; }
 export const DEFAULT_LOAD_CASE = "LC1";
 export interface FrameLoadCase { id: string; name: string; description: string; }
+export interface LoadCombinationTerm { loadCaseId: string; factor: number; }
+export interface FrameLoadCombination { id: string; name: string; terms: LoadCombinationTerm[]; }
 export const DEFAULT_LOAD_CASES: readonly FrameLoadCase[] = [{ id: DEFAULT_LOAD_CASE, name: "默认工况", description: "" }];
 export function getAnalysisLoadCaseId(input: { loadCase?: FrameLoadCase }): string {
   return input.loadCase?.id ?? DEFAULT_LOAD_CASE;
@@ -72,6 +74,9 @@ export interface FrameProject {
   loadCases: FrameLoadCase[];
   activeLoadCaseId: string;
   nextLoadCaseNumber: number;
+  loadCombinations: FrameLoadCombination[];
+  activeLoadCombinationId?: string;
+  nextLoadCombinationNumber: number;
   analysisResults: AnalysisResult[];
   latestAnalysis?: AnalysisResult;
   nextNodeNumber: number;
@@ -164,6 +169,7 @@ export function createProject(name = "未命名项目"): FrameProject {
     units: { length: "m", force: "kN", moment: "kN·m" },
     nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [], uniformLoads: [], selfWeight: { ...DEFAULT_SELF_WEIGHT, gravity: { ...DEFAULT_SELF_WEIGHT.gravity } },
     loadCases: DEFAULT_LOAD_CASES.map((item) => ({ ...item })), activeLoadCaseId: DEFAULT_LOAD_CASE, nextLoadCaseNumber: 2, analysisResults: [],
+    loadCombinations: [], nextLoadCombinationNumber: 1,
     nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1, nextUniformLoadNumber: 1,
   };
 }
@@ -340,9 +346,59 @@ export function deleteNodalLoad(project: FrameProject, id: LoadId): FrameProject
 
 export function attachAnalysisResult(project: FrameProject, result: AnalysisResult): FrameProject {
   if (result.projectId !== project.id || result.projectRevision !== project.revision) throw new Error("分析结果不属于当前模型版本");
-  const loadCaseId = getAnalysisLoadCaseId(result.input);
-  requireLoadCase(project, loadCaseId);
-  return { ...project, latestAnalysis: result, analysisResults: [...project.analysisResults.filter((item) => getAnalysisLoadCaseId(item.input) !== loadCaseId), result], ...nextRevision(project) };
+  const sourceId = getAnalysisSourceId(result.input);
+  if (result.input.combination) requireLoadCombination(project, sourceId);
+  else requireLoadCase(project, sourceId);
+  return { ...project, latestAnalysis: result, analysisResults: [...project.analysisResults.filter((item) => getAnalysisSourceId(item.input) !== sourceId), result], ...nextRevision(project) };
+}
+
+export function getAnalysisSourceId(input: AnalysisResult["input"]): string {
+  return input.combination?.definition.id ?? getAnalysisLoadCaseId(input);
+}
+
+export function validateLoadCombination(project: Pick<FrameProject, "loadCases">, input: FrameLoadCombination): FrameLoadCombination {
+  if (!input || typeof input.id !== "string" || !/^CB[1-9]\d*$/.test(input.id) || !Number.isSafeInteger(Number(input.id.slice(2)))) throw new Error("组合标识无效");
+  if (typeof input.name !== "string" || !input.name.trim()) throw new Error("组合名称不能为空");
+  if (!Array.isArray(input.terms) || !input.terms.length) throw new Error("组合至少需要一个工况");
+  const ids = new Set<string>();
+  const terms = input.terms.map((term) => {
+    if (!term || typeof term.loadCaseId !== "string" || typeof term.factor !== "number" || !Number.isFinite(term.factor)) throw new Error("组合系数必须为有限数值（无量纲）");
+    requireLoadCase(project, term.loadCaseId);
+    if (ids.has(term.loadCaseId)) throw new Error("组合不能重复引用同一工况");
+    ids.add(term.loadCaseId);
+    return { loadCaseId: term.loadCaseId, factor: term.factor };
+  });
+  return { id: input.id, name: input.name.trim(), terms };
+}
+
+export function requireLoadCombination(project: Pick<FrameProject, "loadCombinations">, id: string): FrameLoadCombination {
+  const item = project.loadCombinations.find((item) => item.id === id);
+  if (!item) throw new Error(`组合 ${id} 不存在`);
+  return item;
+}
+
+export function addLoadCombination(project: FrameProject, name: string, terms: LoadCombinationTerm[]): FrameProject {
+  assertCounter(project.nextLoadCombinationNumber);
+  const item = validateLoadCombination(project, { id: `CB${project.nextLoadCombinationNumber}`, name, terms });
+  return { ...project, loadCombinations: [...project.loadCombinations, item], nextLoadCombinationNumber: project.nextLoadCombinationNumber + 1, ...nextRevision(project) };
+}
+
+export function updateLoadCombination(project: FrameProject, id: string, name: string, terms: LoadCombinationTerm[]): FrameProject {
+  requireLoadCombination(project, id);
+  const item = validateLoadCombination(project, { id, name, terms });
+  return { ...project, loadCombinations: project.loadCombinations.map((current) => current.id === id ? item : current), ...nextRevision(project) };
+}
+
+export function selectLoadCombination(project: FrameProject, id: string): FrameProject {
+  requireLoadCombination(project, id);
+  return { ...project, activeLoadCombinationId: id };
+}
+
+export function deleteLoadCombination(project: FrameProject, id: string): FrameProject {
+  requireLoadCombination(project, id);
+  const analysisResults = project.analysisResults.filter((result) => getAnalysisSourceId(result.input) !== id);
+  return { ...project, loadCombinations: project.loadCombinations.filter((item) => item.id !== id), activeLoadCombinationId: project.activeLoadCombinationId === id ? undefined : project.activeLoadCombinationId,
+    analysisResults, latestAnalysis: project.latestAnalysis && getAnalysisSourceId(project.latestAnalysis.input) === id ? analysisResults.at(-1) : project.latestAnalysis, ...nextRevision(project) };
 }
 
 export function requireLoadCase(project: Pick<FrameProject, "loadCases">, id: string): FrameLoadCase {
@@ -366,22 +422,28 @@ export function updateLoadCase(project: FrameProject, id: string, name: string, 
 
 export function selectLoadCase(project: FrameProject, id: string): FrameProject {
   requireLoadCase(project, id);
-  return { ...project, activeLoadCaseId: id };
+  return { ...project, activeLoadCaseId: id, activeLoadCombinationId: undefined };
 }
 
-export function getLoadCaseReferences(project: FrameProject, id: string): { loads: number; results: number } {
-  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => getAnalysisLoadCaseId(result.input) === id).length };
+export function getLoadCaseReferences(project: FrameProject, id: string): { loads: number; results: number; combinations: number } {
+  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => getAnalysisSourceId(result.input) === id || result.input.combination?.definition.terms.some((term) => term.loadCaseId === id)).length,
+    combinations: project.loadCombinations.filter((item) => item.terms.some((term) => term.loadCaseId === id)).length };
 }
 
 export function deleteLoadCase(project: FrameProject, id: string, removeReferences = false): FrameProject {
   requireLoadCase(project, id);
   if (project.loadCases.length === 1) throw new Error("至少保留一个荷载工况");
   const refs = getLoadCaseReferences(project, id);
-  if ((refs.loads || refs.results) && !removeReferences) throw new Error(`工况 ${id} 仍被 ${refs.loads} 条荷载、${refs.results} 份结果引用，请先处理引用`);
+  if ((refs.loads || refs.results || refs.combinations) && !removeReferences) throw new Error(`工况 ${id} 仍被 ${refs.loads} 条荷载、${refs.results} 份结果、${refs.combinations} 个组合引用，请先处理引用`);
   const loadCases = project.loadCases.filter((item) => item.id !== id);
   const activeLoadCaseId = project.activeLoadCaseId === id ? loadCases[0].id : project.activeLoadCaseId;
   const selfWeight = project.selfWeight.loadCaseId === id ? { ...project.selfWeight, enabled: false, loadCaseId: loadCases[0].id } : project.selfWeight;
-  const analysisResults = project.analysisResults.filter((result) => getAnalysisLoadCaseId(result.input) !== id);
-  const latestAnalysis = project.latestAnalysis && getAnalysisLoadCaseId(project.latestAnalysis.input) === id ? analysisResults.at(-1) : project.latestAnalysis;
-  return { ...project, loadCases, activeLoadCaseId, selfWeight, analysisResults, latestAnalysis, nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId !== id), uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId !== id), ...nextRevision(project) };
+  const removedIds = new Set(project.loadCombinations.filter((item) => item.terms.some((term) => term.loadCaseId === id)).map((item) => item.id));
+  removedIds.add(id);
+  const referencesRemovedCase = (result: AnalysisResult) => removedIds.has(getAnalysisSourceId(result.input)) || result.input.combination?.definition.terms.some((term) => term.loadCaseId === id);
+  const analysisResults = project.analysisResults.filter((result) => !referencesRemovedCase(result));
+  const latestAnalysis = project.latestAnalysis && referencesRemovedCase(project.latestAnalysis) ? analysisResults.at(-1) : project.latestAnalysis;
+  return { ...project, loadCases, activeLoadCaseId, selfWeight, analysisResults, latestAnalysis,
+    loadCombinations: project.loadCombinations.filter((item) => !removedIds.has(item.id)), activeLoadCombinationId: project.activeLoadCombinationId && removedIds.has(project.activeLoadCombinationId) ? undefined : project.activeLoadCombinationId,
+    nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId !== id), uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId !== id), ...nextRevision(project) };
 }

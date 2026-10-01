@@ -1,7 +1,7 @@
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
-import { getAnalysisLoadCaseId, requireLoadCase } from "./project";
+import { getAnalysisLoadCaseId, getAnalysisSourceId, requireLoadCase, requireLoadCombination, validateLoadCombination } from "./project";
 import type {
   DofRestraints,
   FrameMaterial,
@@ -14,6 +14,7 @@ import type {
   FrameSupport,
   FrameSelfWeight,
   FrameLoadCase,
+  FrameLoadCombination,
   Vector3,
 } from "./project";
 
@@ -54,6 +55,14 @@ export interface AnalysisInputSnapshot {
   nodalLoads: FrameNodalLoad[];
   uniformLoads?: FrameUniformLoad[];
   selfWeight?: FrameSelfWeight;
+  combination?: { definition: FrameLoadCombination; cases: CombinationCaseInput[] };
+}
+
+export interface CombinationCaseInput {
+  loadCase: FrameLoadCase;
+  nodalLoads: FrameNodalLoad[];
+  uniformLoads: FrameUniformLoad[];
+  selfWeight: FrameSelfWeight;
 }
 
 export interface NodeAnalysisResult {
@@ -210,7 +219,14 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
   return input;
 }
 
-export function captureAnalysisInput(project: FrameProject, loadCaseId = project.activeLoadCaseId): AnalysisInputSnapshot {
+export function captureAnalysisInput(project: FrameProject, loadCaseId?: string): AnalysisInputSnapshot {
+  if (loadCaseId === undefined && project.activeLoadCombinationId) {
+    const definition = requireLoadCombination(project, project.activeLoadCombinationId);
+    validateLoadCombination(project, definition);
+    const inputs = definition.terms.map((term) => captureAnalysisInput(project, term.loadCaseId));
+    return buildCombinationInput(inputs[0], definition, inputs.map((input) => ({ loadCase: input.loadCase!, nodalLoads: input.nodalLoads, uniformLoads: input.uniformLoads ?? [], selfWeight: input.selfWeight! })));
+  }
+  loadCaseId ??= project.activeLoadCaseId;
   const loadCase = requireLoadCase(project, loadCaseId);
   return freezeAnalysisInput({
     projectId: project.id, projectRevision: project.revision, dofOrder: [...ANALYSIS_DOF_ORDER],
@@ -226,8 +242,56 @@ export function captureAnalysisInput(project: FrameProject, loadCaseId = project
   });
 }
 
+/** All constituent loads use the one structural basis supplied here. No historic results are combined. */
+export function buildCombinationInput(base: AnalysisInputSnapshot, definition: FrameLoadCombination, cases: CombinationCaseInput[]): AnalysisInputSnapshot {
+  const validated = validateLoadCombination({ loadCases: cases.map((item) => item.loadCase) }, definition);
+  if (cases.length !== validated.terms.length || new Set(cases.map((item) => item.loadCase.id)).size !== cases.length) throw new Error("组合工况来源不完整或重复");
+  const loadCase = cases[0].loadCase;
+  const nodalLoads: FrameNodalLoad[] = []; const uniformLoads: FrameUniformLoad[] = [];
+  let gravity = { x: 0, y: 0, z: 0 };
+  const scale = (v: Vector3, factor: number): Vector3 => {
+    const value = { x: v.x * factor, y: v.y * factor, z: v.z * factor };
+    if (!Object.values(value).every(Number.isFinite)) throw new Error("组合加权荷载超出有限数值范围");
+    return value;
+  };
+  for (const term of validated.terms) {
+    const source = cases.find((item) => item.loadCase.id === term.loadCaseId)!;
+    if ([...source.nodalLoads, ...source.uniformLoads].some((load) => load.loadCaseId !== term.loadCaseId) || source.selfWeight.loadCaseId !== term.loadCaseId) throw new Error("组合工况荷载来源不一致");
+    for (const load of source.nodalLoads) {
+      const number = nodalLoads.length + 1;
+      nodalLoads.push({ ...load, id: `load_${String(number).padStart(4, "0")}` as FrameNodalLoad["id"], label: `L${number}`, loadCaseId: loadCase.id, force: scale(load.force, term.factor), moment: scale(load.moment, term.factor) });
+    }
+    for (const load of source.uniformLoads) {
+      const number = uniformLoads.length + 1;
+      uniformLoads.push({ ...load, id: `uniform_load_${String(number).padStart(4, "0")}` as FrameUniformLoad["id"], label: `Q${number}`, loadCaseId: loadCase.id, intensity: scale(load.intensity, term.factor) });
+    }
+    if (source.selfWeight.enabled) {
+      const g = scale(source.selfWeight.gravity, term.factor);
+      gravity = { x: gravity.x + g.x, y: gravity.y + g.y, z: gravity.z + g.z };
+      if (!Object.values(gravity).every(Number.isFinite)) throw new Error("组合自重超出有限数值范围");
+    }
+  }
+  return freezeAnalysisInput(structuredClone({ ...base, loadCase, nodalLoads, uniformLoads,
+    selfWeight: { enabled: Math.hypot(gravity.x, gravity.y, gravity.z) > 0, loadCaseId: loadCase.id, gravity }, combination: { definition: validated, cases } }));
+}
+
+export function validateCombinationInput(input: AnalysisInputSnapshot): void {
+  if (!input.combination) return;
+  if (!Array.isArray(input.combination.cases) || input.combination.cases.some((source) => Object.keys(source).some((key) => !["loadCase", "nodalLoads", "uniformLoads", "selfWeight"].includes(key)))) throw new Error("组合工况必须共享同一结构基础");
+  if (input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry" || input.dofOrder.join(",") !== ANALYSIS_DOF_ORDER.join(",")) throw new Error("组合仅支持已验证的线弹性假设与单位约定");
+  const rebuilt = buildCombinationInput(input, input.combination.definition, input.combination.cases);
+  if (!sameInputValue(input, rebuilt)) throw new Error("组合有效荷载与工况、系数或单位依据不一致");
+  for (const source of input.combination.cases) {
+    requireAnalysisInput({ ...input, combination: undefined, ...source });
+  }
+}
+
 export function getLoadCaseResult(project: FrameProject, id = project.activeLoadCaseId): AnalysisResult | undefined {
-  return project.analysisResults.find((result) => getAnalysisLoadCaseId(result.input) === id);
+  return project.analysisResults.find((result) => getAnalysisSourceId(result.input) === id);
+}
+
+export function getActiveAnalysisResult(project: FrameProject): AnalysisResult | undefined {
+  return project.analysisResults.find((result) => getAnalysisSourceId(result.input) === (project.activeLoadCombinationId ?? project.activeLoadCaseId));
 }
 
 function sameInputValue(left: unknown, right: unknown): boolean {
@@ -240,6 +304,13 @@ function sameInputValue(left: unknown, right: unknown): boolean {
 }
 
 export function isAnalysisResultCurrent(project: FrameProject, result: AnalysisResult): boolean {
+  if (result.input.combination) {
+    if (result.projectId !== project.id || !project.loadCombinations.some((item) => item.id === result.input.combination!.definition.id)) return false;
+    try {
+      const current = captureAnalysisInput({ ...project, activeLoadCombinationId: result.input.combination.definition.id });
+      return sameInputValue({ ...current, projectRevision: 0 }, { ...result.input, projectRevision: 0 });
+    } catch { return false; }
+  }
   const id = getAnalysisLoadCaseId(result.input);
   if (result.projectId !== project.id || !project.loadCases.some((item) => item.id === id)) return false;
   if (!result.input.loadCase) return result.projectRevision === project.revision - 1;
@@ -377,6 +448,8 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage
   }
   requireAnalysisInput(source);
   const input = "projectId" in source ? freezeAnalysisInput({ ...structuredClone(source), solver: { ...ANALYSIS_SOLVER } }) : captureAnalysisInput(source);
+  validateCombinationInput(input);
+  requireAnalysisInput(input);
   const project = input;
   const nodeIndex = new Map(project.nodes.map((node, index) => [node.id, index])); const size = project.nodes.length * 6;
   const stiffness = zeroMatrix(size, size); const force = zeros(size);

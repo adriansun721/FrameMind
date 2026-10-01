@@ -9,6 +9,10 @@ import {
   DEFAULT_LOAD_CASE,
   DEFAULT_LOAD_CASES,
   getAnalysisLoadCaseId,
+  getAnalysisSourceId,
+  validateLoadCombination,
+  requireLoadCombination,
+  type FrameLoadCombination,
   requireLoadCase,
   type FrameLoadCase,
   validateUniformLoad,
@@ -30,7 +34,7 @@ import {
   type DofRestraints,
   type FrameSelfWeight,
 } from "./project";
-import { freezeAnalysisInput, type AnalysisResult } from "./analysis";
+import { freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -171,12 +175,7 @@ function decodeSelfWeight(value: unknown, fallback = DEFAULT_SELF_WEIGHT): Frame
   return validateSelfWeight({ enabled: value.enabled, loadCaseId: requireString(value.loadCaseId, "自重缺少所属工况"), gravity: { x: requireFinite(gravity.x, "重力加速度 X 无效"), y: requireFinite(gravity.y, "重力加速度 Y 无效"), z: requireFinite(gravity.z, "重力加速度 Z 无效") } });
 }
 
-function decodeAnalysisResult(value: unknown): AnalysisResult {
-  if (!isRecord(value) || value.status !== "complete") throw new Error("项目包含无效分析结果");
-  const id = requireString(value.id, "分析结果缺少稳定标识"); const projectId = requireString(value.projectId, "分析结果缺少项目标识"); const createdAt = requireString(value.createdAt, "分析结果缺少创建时间");
-  const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
-  if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
-  const input = value.input;
+function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number): AnalysisInputSnapshot {
   if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || input.solver.algorithm !== "partial-pivot-gaussian" || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
   if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
   const inputNodes = input.nodes.map(decodeNode); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map(decodeMember); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
@@ -193,6 +192,32 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   for (const member of inputMembers) if (!inputNodeIds.has(member.startNodeId) || !inputNodeIds.has(member.endNodeId) || !inputMaterialIds.has(member.materialId) || !inputSectionIds.has(member.sectionId)) throw new Error("分析结果杆件引用无效");
   for (const support of inputSupports) if (!inputNodeIds.has(support.nodeId)) throw new Error("分析结果支座引用无效");
   for (const load of inputLoads) if (!inputNodeIds.has(load.nodeId)) throw new Error("分析结果节点荷载引用无效");
+  let combination: AnalysisInputSnapshot["combination"];
+  if (input.combination !== undefined) {
+    if (!isRecord(input.combination) || !Array.isArray(input.combination.cases)) throw new Error("组合来源无效");
+    const cases: CombinationCaseInput[] = input.combination.cases.map((source) => {
+      if (!isRecord(source) || Object.keys(source).some((key) => !["loadCase", "nodalLoads", "uniformLoads", "selfWeight"].includes(key)) || !Array.isArray(source.nodalLoads) || !Array.isArray(source.uniformLoads) || !isRecord(source.selfWeight)) throw new Error("组合工况必须共享同一结构基础，且完整记录原始荷载");
+      return { loadCase: decodeLoadCase(source.loadCase), nodalLoads: source.nodalLoads.map(decodeNodalLoad), uniformLoads: source.uniformLoads.map(decodeUniformLoad), selfWeight: decodeSelfWeight(source.selfWeight) };
+    });
+    combination = { definition: decodeLoadCombination(input.combination.definition, cases.map((source) => source.loadCase)), cases };
+  }
+  const decoded = { ...input, loadCase, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight, combination } as AnalysisInputSnapshot;
+  validateCombinationInput(decoded);
+  return freezeAnalysisInput(decoded);
+}
+
+function decodeLoadCombination(value: unknown, loadCases: FrameLoadCase[]): FrameLoadCombination {
+  if (!isRecord(value)) throw new Error("组合定义无效");
+  return validateLoadCombination({ loadCases }, value as unknown as FrameLoadCombination);
+}
+
+function decodeAnalysisResult(value: unknown): AnalysisResult {
+  if (!isRecord(value) || value.status !== "complete") throw new Error("项目包含无效分析结果");
+  const id = requireString(value.id, "分析结果缺少稳定标识"); const projectId = requireString(value.projectId, "分析结果缺少项目标识"); const createdAt = requireString(value.createdAt, "分析结果缺少创建时间");
+  const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
+  if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
+  const input = decodeAnalysisInput(value.input, projectId, projectRevision);
+  const inputNodes = input.nodes; const inputMembers = input.members;
   const finiteVector = (vector: unknown, label: string) => {
     if (!isRecord(vector) || ![vector.x, vector.y, vector.z].every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))) throw new Error(`分析结果${label}无效`);
     return { x: vector.x as number, y: vector.y as number, z: vector.z as number };
@@ -213,7 +238,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input: freezeAnalysisInput({ ...input, loadCase, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight } as AnalysisResult["input"]), nodes, members };
+  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {
@@ -271,6 +296,11 @@ export function decodeProject(source: string): FrameProject {
   const activeLoadCaseId = value.activeLoadCaseId === undefined ? DEFAULT_LOAD_CASE : requireString(value.activeLoadCaseId, "当前工况无效");
   const highestLoadCaseNumber = Math.max(...loadCases.map((item) => Number(item.id.slice(2))));
   const nextLoadCaseNumber = decodeCounter(value.nextLoadCaseNumber, highestLoadCaseNumber + 1, "工况", highestLoadCaseNumber, true);
+  const loadCombinations = decodeOptionalArray(value.loadCombinations, "组合", (item) => decodeLoadCombination(item, loadCases));
+  assertUnique(loadCombinations, "组合");
+  const highestCombinationNumber = loadCombinations.reduce((highest, item) => Math.max(highest, Number(item.id.slice(2))), 0);
+  const nextLoadCombinationNumber = decodeCounter(value.nextLoadCombinationNumber, highestCombinationNumber + 1, "组合", highestCombinationNumber, true);
+  const activeLoadCombinationId = value.activeLoadCombinationId === undefined ? undefined : requireString(value.activeLoadCombinationId, "当前组合无效");
   assertUnique(uniformLoads, "均布荷载"); assertUniqueLabels(uniformLoads, "均布荷载");
   assertUnique(nodes, "节点"); assertUnique(materials, "材料"); assertUnique(sections, "截面"); assertUnique(members, "杆件"); assertUnique(supports, "支座"); assertUnique(nodalLoads, "节点荷载");
   assertUniqueLabels(nodes, "节点"); assertUniqueLabels(materials, "材料"); assertUniqueLabels(sections, "截面"); assertUniqueLabels(members, "杆件"); assertUniqueLabels(supports, "支座"); assertUniqueLabels(nodalLoads, "节点荷载");
@@ -286,7 +316,7 @@ export function decodeProject(source: string): FrameProject {
   const nextLoadNumber = decodeCounter(value.nextLoadNumber, 1, "节点荷载", highestNumber(nodalLoads, /^load_(\d+)$/, /^L(\d+)$/), true);
   const latestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
   const analysisResults = value.analysisResults === undefined ? (latestAnalysis ? [latestAnalysis] : []) : decodeOptionalArray(value.analysisResults, "工况结果", decodeAnalysisResult);
-  if (new Set(analysisResults.map((result) => getAnalysisLoadCaseId(result.input))).size !== analysisResults.length) throw new Error("工况结果来源重复");
+  if (new Set(analysisResults.map((result) => getAnalysisSourceId(result.input))).size !== analysisResults.length) throw new Error("工况或组合结果来源重复");
   const nextUniformLoadNumber = decodeCounter(value.nextUniformLoadNumber, 1, "均布荷载", highestNumber(uniformLoads, /^uniform_load_(\d+)$/, /^Q(\d+)$/), true);
   const project: FrameProject = {
     format: PROJECT_FORMAT, formatVersion: PROJECT_FORMAT_VERSION,
@@ -295,17 +325,27 @@ export function decodeProject(source: string): FrameProject {
     createdAt: requireString(value.createdAt, "项目缺少创建时间"), updatedAt: requireString(value.updatedAt, "项目缺少更新时间"),
     revision: value.revision, units: { length: "m", force: "kN", moment: "kN·m" },
     nodes, materials, sections, members, supports, nodalLoads, uniformLoads, selfWeight, loadCases, activeLoadCaseId, nextLoadCaseNumber, analysisResults,
+    loadCombinations, nextLoadCombinationNumber, activeLoadCombinationId,
     latestAnalysis,
     nextNodeNumber, nextMaterialNumber, nextSectionNumber, nextMemberNumber, nextSupportNumber, nextLoadNumber, nextUniformLoadNumber,
   };
   requireLoadCase(project, activeLoadCaseId);
+  if (activeLoadCombinationId) requireLoadCombination(project, activeLoadCombinationId);
   requireLoadCase(project, selfWeight.loadCaseId);
   for (const load of [...nodalLoads, ...uniformLoads]) requireLoadCase(project, load.loadCaseId);
   for (const result of analysisResults) {
-    requireLoadCase(project, getAnalysisLoadCaseId(result.input));
+    if (result.input.combination) {
+      requireLoadCombination(project, getAnalysisSourceId(result.input));
+      for (const term of result.input.combination.definition.terms) requireLoadCase(project, term.loadCaseId);
+    } else requireLoadCase(project, getAnalysisLoadCaseId(result.input));
     if (result.projectId !== project.id || result.projectRevision >= project.revision) throw new Error("工况结果项目标识或版本无效");
   }
-  if (latestAnalysis) requireLoadCase(project, getAnalysisLoadCaseId(latestAnalysis.input));
+  if (latestAnalysis) {
+    if (latestAnalysis.input.combination) {
+      requireLoadCombination(project, getAnalysisSourceId(latestAnalysis.input));
+      for (const term of latestAnalysis.input.combination.definition.terms) requireLoadCase(project, term.loadCaseId);
+    } else requireLoadCase(project, getAnalysisLoadCaseId(latestAnalysis.input));
+  }
   for (const member of members) validateMember(project, member.label, member);
   for (const load of uniformLoads) if (!members.some((member) => member.id === load.memberId)) throw new Error(`均布荷载 ${load.label} 引用了不存在的杆件 ${load.memberId}`);
   for (const support of supports) if (!nodes.some((node) => node.id === support.nodeId)) throw new Error(`支座 ${support.label} 引用了不存在的节点 ${support.nodeId}`);
