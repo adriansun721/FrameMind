@@ -204,7 +204,7 @@ export function captureAnalysisInput(project: FrameProject): AnalysisInputSnapsh
   });
 }
 
-function requireAnalysisInput(project: AnalysisInputSnapshot): void {
+function requireAnalysisInput(project: FrameProject | AnalysisInputSnapshot): void {
   const diagnostics = checkAnalysisInput(project);
   if (diagnostics.length) throw new AnalysisFailure("model-check", diagnostics);
 }
@@ -246,9 +246,9 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot): Analys
     try { requireCurrentSolver(source.solver); }
     catch (error) { throw new AnalysisFailure("model-check", [{ code: "unsupported-solver", message: error instanceof Error ? error.message : "求解配置不支持" }]); }
   }
+  requireAnalysisInput(source);
   const input = "projectId" in source ? freezeAnalysisInput({ ...structuredClone(source), solver: { ...ANALYSIS_SOLVER } }) : captureAnalysisInput(source);
   const project = input;
-  requireAnalysisInput(project);
   const nodeIndex = new Map(project.nodes.map((node, index) => [node.id, index])); const size = project.nodes.length * 6;
   const stiffness = zeroMatrix(size, size); const force = zeros(size);
   const memberData: MemberMatrices[] = [];

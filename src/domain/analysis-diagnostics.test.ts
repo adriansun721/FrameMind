@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import { solveFrame } from "./analysis";
+import { captureAnalysisInput, solveFrame } from "./analysis";
+import { checkAnalysisInput } from "./analysis-diagnostics";
 import { addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, type FrameProject } from "./project";
 
 function cantilever() {
@@ -21,6 +22,24 @@ it("rejects missing section parameters with the owning object and field", () => 
       code: "invalid-parameter", field: "areaM2", target: { kind: "section", id: project.sections[0].id },
     })]),
   }));
+});
+
+it("collects missing coordinates on a snapshot and solves with a structured model failure", () => {
+  const input = structuredClone(captureAnalysisInput(cantilever()));
+  Reflect.deleteProperty(input.nodes[0], "position");
+  expect(checkAnalysisInput(input)).toEqual(expect.arrayContaining([expect.objectContaining({ code: "invalid-coordinate", field: "position.x", target: { kind: "node", id: input.nodes[0].id } })]));
+  expect(() => solveFrame(input)).toThrowError(expect.objectContaining({ stage: "model-check" }));
+});
+
+it("reports a missing restraint field before snapshot capture", () => {
+  const project = cantilever(); Reflect.deleteProperty(project.supports[0], "restraints");
+  expect(() => solveFrame(project)).toThrowError(expect.objectContaining({ stage: "model-check", diagnostics: expect.arrayContaining([expect.objectContaining({ code: "invalid-restraints", target: { kind: "support", id: project.supports[0].id }, field: "restraints" })]) }));
+});
+
+it("reports an omitted load vector as missing input", () => {
+  let project = cantilever(); project = addNodalLoad(project, project.nodes[1].id, { x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  Reflect.deleteProperty(project.nodalLoads[0], "force");
+  expect(() => solveFrame(project)).toThrowError(expect.objectContaining({ stage: "model-check", diagnostics: expect.arrayContaining([expect.objectContaining({ code: "invalid-load", field: "force.x" })]) }));
 });
 
 it.each([

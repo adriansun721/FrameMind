@@ -6,7 +6,7 @@
 
 ## 诊断契约
 
-公开入口 `solveFrame(projectOrSnapshot)` 在失败时抛出 `AnalysisFailure`。`stage` 区分模型检查、刚度组装、方程求解、结果恢复；`diagnostics` 包含稳定问题码、说明、可选对象身份、字段、自由度与数值证据。它仍继承 `Error`，现有文本错误调用者保持兼容。`checkAnalysisInput(snapshot)` 可只读检查输入并一次返回模型问题，不组装或改变模型。
+公开入口 `solveFrame(projectOrSnapshot)` 在失败时抛出 `AnalysisFailure`。`stage` 区分模型检查、刚度组装、方程求解、结果恢复；`diagnostics` 包含稳定问题码、说明、可选对象身份、字段、自由度与数值证据。它仍继承 `Error`，现有文本错误调用者保持兼容。`checkAnalysisInput(projectOrSnapshot)` 可只读检查输入并一次返回模型问题，不组装或改变模型。检查在快照复制前完成；整个坐标、支座约束或荷载向量字段缺失时仍生成模型诊断，不让复制或几何检查抛出类型错误。
 
 检查覆盖节点和杆件缺失、对象身份重复、缺失/非有限/不合适的材料截面参数、坐标与朝向、失效引用、无效几何、支座六布尔自由度、荷载六分量、孤立节点及没有有效约束的连接分量。零长度沿用几何模块的 `1e-12 m` 下限，不静默修正。
 

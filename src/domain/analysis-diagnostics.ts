@@ -1,6 +1,6 @@
 import { calculateMemberGeometry } from "./member-geometry";
-import type { AnalysisDof, AnalysisInputSnapshot } from "./analysis";
-import type { LoadId, MaterialId, MemberId, NodeId, SectionId, SupportId } from "./project";
+import type { AnalysisDof } from "./analysis";
+import type { FrameProject, LoadId, MaterialId, MemberId, NodeId, SectionId, SupportId } from "./project";
 
 export type AnalysisStage = "model-check" | "assembly" | "solve" | "recovery";
 export const ANALYSIS_STAGE_LABELS: Record<AnalysisStage, string> = {
@@ -39,7 +39,7 @@ export class AnalysisFailure extends Error {
   }
 }
 
-export function checkAnalysisInput(input: AnalysisInputSnapshot): AnalysisDiagnostic[] {
+export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members" | "materials" | "sections" | "supports" | "nodalLoads">): AnalysisDiagnostic[] {
   const issues: AnalysisDiagnostic[] = [];
   const issue = (code: string, message: string, target?: AnalysisTarget, field?: string) => issues.push({ code, message, target, field });
   const positive = (value: number, target: AnalysisTarget, field: string, label: string) => {
@@ -87,7 +87,7 @@ export function checkAnalysisInput(input: AnalysisInputSnapshot): AnalysisDiagno
     if (!Number.isFinite(member.rotationDegrees)) issue("invalid-parameter", `${member.label} 的截面转角必须是有限数值`, target, "rotationDegrees");
     if (start && end) {
       adjacency.get(start.id)!.add(end.id); adjacency.get(end.id)!.add(start.id);
-      if ([...Object.values(start.position), ...Object.values(end.position), member.rotationDegrees].every(Number.isFinite)) {
+      if ((["x", "y", "z"] as const).every((axis) => Number.isFinite(start.position?.[axis]) && Number.isFinite(end.position?.[axis])) && Number.isFinite(member.rotationDegrees)) {
         try { calculateMemberGeometry(start.position, end.position, member.rotationDegrees); }
         catch { issue("invalid-geometry", `${member.label} 的杆长无效（零长度或超出有限数值范围）`, target, "endNodeId"); }
       }
