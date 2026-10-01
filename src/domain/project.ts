@@ -33,6 +33,9 @@ export interface FrameNodalLoad { id: LoadId; label: string; nodeId: NodeId; loa
 export const DEFAULT_LOAD_CASE = "LC1";
 export interface FrameLoadCase { id: string; name: string; description: string; }
 export const DEFAULT_LOAD_CASES: readonly FrameLoadCase[] = [{ id: DEFAULT_LOAD_CASE, name: "默认工况", description: "" }];
+export function getAnalysisLoadCaseId(input: { loadCase?: FrameLoadCase }): string {
+  return input.loadCase?.id ?? DEFAULT_LOAD_CASE;
+}
 export interface UniformLoadProperties {
   kind: "uniform";
   memberId: MemberId;
@@ -337,9 +340,9 @@ export function deleteNodalLoad(project: FrameProject, id: LoadId): FrameProject
 
 export function attachAnalysisResult(project: FrameProject, result: AnalysisResult): FrameProject {
   if (result.projectId !== project.id || result.projectRevision !== project.revision) throw new Error("分析结果不属于当前模型版本");
-  const loadCaseId = result.input.loadCase?.id ?? DEFAULT_LOAD_CASE;
+  const loadCaseId = getAnalysisLoadCaseId(result.input);
   requireLoadCase(project, loadCaseId);
-  return { ...project, latestAnalysis: result, analysisResults: [...project.analysisResults.filter((item) => (item.input.loadCase?.id ?? DEFAULT_LOAD_CASE) !== loadCaseId), result], ...nextRevision(project) };
+  return { ...project, latestAnalysis: result, analysisResults: [...project.analysisResults.filter((item) => getAnalysisLoadCaseId(item.input) !== loadCaseId), result], ...nextRevision(project) };
 }
 
 export function requireLoadCase(project: Pick<FrameProject, "loadCases">, id: string): FrameLoadCase {
@@ -367,7 +370,7 @@ export function selectLoadCase(project: FrameProject, id: string): FrameProject 
 }
 
 export function getLoadCaseReferences(project: FrameProject, id: string): { loads: number; results: number } {
-  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => (result.input.loadCase?.id ?? DEFAULT_LOAD_CASE) === id).length };
+  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => getAnalysisLoadCaseId(result.input) === id).length };
 }
 
 export function deleteLoadCase(project: FrameProject, id: string, removeReferences = false): FrameProject {
@@ -378,7 +381,7 @@ export function deleteLoadCase(project: FrameProject, id: string, removeReferenc
   const loadCases = project.loadCases.filter((item) => item.id !== id);
   const activeLoadCaseId = project.activeLoadCaseId === id ? loadCases[0].id : project.activeLoadCaseId;
   const selfWeight = project.selfWeight.loadCaseId === id ? { ...project.selfWeight, enabled: false, loadCaseId: loadCases[0].id } : project.selfWeight;
-  const analysisResults = project.analysisResults.filter((result) => (result.input.loadCase?.id ?? DEFAULT_LOAD_CASE) !== id);
-  const latestAnalysis = (project.latestAnalysis?.input.loadCase?.id ?? DEFAULT_LOAD_CASE) === id ? analysisResults.at(-1) : project.latestAnalysis;
+  const analysisResults = project.analysisResults.filter((result) => getAnalysisLoadCaseId(result.input) !== id);
+  const latestAnalysis = project.latestAnalysis && getAnalysisLoadCaseId(project.latestAnalysis.input) === id ? analysisResults.at(-1) : project.latestAnalysis;
   return { ...project, loadCases, activeLoadCaseId, selfWeight, analysisResults, latestAnalysis, nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId !== id), uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId !== id), ...nextRevision(project) };
 }

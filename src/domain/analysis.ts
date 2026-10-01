@@ -1,7 +1,7 @@
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
-import { DEFAULT_LOAD_CASE, requireLoadCase } from "./project";
+import { getAnalysisLoadCaseId, requireLoadCase } from "./project";
 import type {
   DofRestraints,
   FrameMaterial,
@@ -227,15 +227,23 @@ export function captureAnalysisInput(project: FrameProject, loadCaseId = project
 }
 
 export function getLoadCaseResult(project: FrameProject, id = project.activeLoadCaseId): AnalysisResult | undefined {
-  return project.analysisResults.find((result) => (result.input.loadCase?.id ?? DEFAULT_LOAD_CASE) === id);
+  return project.analysisResults.find((result) => getAnalysisLoadCaseId(result.input) === id);
+}
+
+function sameInputValue(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (left === null || right === null || typeof left !== "object" || typeof right !== "object") return false;
+  if (Array.isArray(left) || Array.isArray(right)) return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => sameInputValue(value, right[index]));
+  const leftEntries = Object.entries(left).filter(([, value]) => value !== undefined);
+  const rightEntries = Object.entries(right).filter(([, value]) => value !== undefined);
+  return leftEntries.length === rightEntries.length && leftEntries.every(([key, value]) => Object.hasOwn(right, key) && sameInputValue(value, (right as Record<string, unknown>)[key]));
 }
 
 export function isAnalysisResultCurrent(project: FrameProject, result: AnalysisResult): boolean {
-  const id = result.input.loadCase?.id ?? DEFAULT_LOAD_CASE;
+  const id = getAnalysisLoadCaseId(result.input);
   if (result.projectId !== project.id || !project.loadCases.some((item) => item.id === id)) return false;
   if (!result.input.loadCase) return result.projectRevision === project.revision - 1;
-  const comparable = (input: AnalysisInputSnapshot) => JSON.stringify({ ...input, projectRevision: 0 });
-  return comparable(captureAnalysisInput(project, id)) === comparable(result.input);
+  return sameInputValue({ ...captureAnalysisInput(project, id), projectRevision: 0 }, { ...result.input, projectRevision: 0 });
 }
 
 function requireAnalysisInput(project: FrameProject | AnalysisInputSnapshot): void {

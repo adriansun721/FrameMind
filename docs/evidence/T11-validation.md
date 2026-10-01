@@ -26,7 +26,7 @@
 ## 验证命令
 
 - `npm run typecheck`、`npm run build` 通过。
-- `npm test`：15 个测试文件、89 项测试通过。
+- `npm test`：15 个测试文件、90 项测试通过，含 JSON 键顺序变化不影响结果有效性的回归。
 - `npx playwright test`：23 项 Electron 测试通过。
 
 截图：[桌面工况视图](T11-cases-1440.png)、[紧凑工况视图](T11-cases-1080.png)、[桌面比较](T11-comparison-1440.png)、[紧凑比较](T11-comparison-1080.png)。本任务提供工况输入图形和数值结果比较；变形/内力结果图及组合仍由后续任务实现。

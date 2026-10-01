@@ -17,6 +17,17 @@ function cantilever() {
 }
 
 describe("T11 independent load cases", () => {
+  it("keeps unchanged reopened results current when JSON object keys are reordered", () => {
+    const p = cantilever();
+    const saved = JSON.parse(encodeProject(attachAnalysisResult(p, solveFrame(p))));
+    const reverseKeys = (value: unknown): unknown => {
+      if (Array.isArray(value)) return value.map(reverseKeys);
+      if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).reverse().map(([key, child]) => [key, reverseKeys(child)]));
+      return value;
+    };
+    const reopened = decodeProject(JSON.stringify(reverseKeys(saved)));
+    expect(isAnalysisResultCurrent(reopened, getLoadCaseResult(reopened)!)).toBe(true);
+  });
   it("separately solves nodal force/moment and uniform/self-weight inputs against cantilever formulas", () => {
     const p = cantilever();
     const axial = solveFrame(p); const transverse = solveFrame(captureAnalysisInput(p, "LC2"));

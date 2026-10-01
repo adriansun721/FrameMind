@@ -8,6 +8,7 @@ import {
   DEFAULT_SELF_WEIGHT,
   DEFAULT_LOAD_CASE,
   DEFAULT_LOAD_CASES,
+  getAnalysisLoadCaseId,
   requireLoadCase,
   type FrameLoadCase,
   validateUniformLoad,
@@ -185,7 +186,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const inputUniformLoads = decodeOptionalArray(input.uniformLoads, "分析输入均布荷载", decodeUniformLoad);
   const inputSelfWeight = decodeSelfWeight(input.selfWeight);
   const loadCase = input.loadCase === undefined ? undefined : decodeLoadCase(input.loadCase);
-  const loadCaseId = loadCase?.id ?? DEFAULT_LOAD_CASE;
+  const loadCaseId = getAnalysisLoadCaseId({ loadCase });
   if ([...inputLoads, ...inputUniformLoads].some((load) => load.loadCaseId !== loadCaseId) || inputSelfWeight.loadCaseId !== loadCaseId) throw new Error("分析结果荷载与来源工况不一致");
   assertUnique(inputUniformLoads, "分析输入均布荷载"); assertUniqueLabels(inputUniformLoads, "分析输入均布荷载");
   for (const load of inputUniformLoads) if (!inputMembers.some((member) => member.id === load.memberId)) throw new Error("分析结果均布荷载引用无效");
@@ -285,7 +286,7 @@ export function decodeProject(source: string): FrameProject {
   const nextLoadNumber = decodeCounter(value.nextLoadNumber, 1, "节点荷载", highestNumber(nodalLoads, /^load_(\d+)$/, /^L(\d+)$/), true);
   const latestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
   const analysisResults = value.analysisResults === undefined ? (latestAnalysis ? [latestAnalysis] : []) : decodeOptionalArray(value.analysisResults, "工况结果", decodeAnalysisResult);
-  if (new Set(analysisResults.map((result) => result.input.loadCase?.id ?? DEFAULT_LOAD_CASE)).size !== analysisResults.length) throw new Error("工况结果来源重复");
+  if (new Set(analysisResults.map((result) => getAnalysisLoadCaseId(result.input))).size !== analysisResults.length) throw new Error("工况结果来源重复");
   const nextUniformLoadNumber = decodeCounter(value.nextUniformLoadNumber, 1, "均布荷载", highestNumber(uniformLoads, /^uniform_load_(\d+)$/, /^Q(\d+)$/), true);
   const project: FrameProject = {
     format: PROJECT_FORMAT, formatVersion: PROJECT_FORMAT_VERSION,
@@ -301,10 +302,10 @@ export function decodeProject(source: string): FrameProject {
   requireLoadCase(project, selfWeight.loadCaseId);
   for (const load of [...nodalLoads, ...uniformLoads]) requireLoadCase(project, load.loadCaseId);
   for (const result of analysisResults) {
-    requireLoadCase(project, result.input.loadCase?.id ?? DEFAULT_LOAD_CASE);
+    requireLoadCase(project, getAnalysisLoadCaseId(result.input));
     if (result.projectId !== project.id || result.projectRevision >= project.revision) throw new Error("工况结果项目标识或版本无效");
   }
-  if (latestAnalysis) requireLoadCase(project, latestAnalysis.input.loadCase?.id ?? DEFAULT_LOAD_CASE);
+  if (latestAnalysis) requireLoadCase(project, getAnalysisLoadCaseId(latestAnalysis.input));
   for (const member of members) validateMember(project, member.label, member);
   for (const load of uniformLoads) if (!members.some((member) => member.id === load.memberId)) throw new Error(`均布荷载 ${load.label} 引用了不存在的杆件 ${load.memberId}`);
   for (const support of supports) if (!nodes.some((node) => node.id === support.nodeId)) throw new Error(`支座 ${support.label} 引用了不存在的节点 ${support.nodeId}`);
