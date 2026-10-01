@@ -199,6 +199,11 @@ export function updateMember(project: FrameProject, id: MemberId, changes: Parti
   return { ...project, members: project.members.map((item) => item.id === id ? { ...item, ...input } : item), ...nextRevision(project) };
 }
 
+export function deleteMember(project: FrameProject, id: MemberId): FrameProject {
+  if (!project.members.some((member) => member.id === id)) throw new Error(`杆件 ${id} 不存在`);
+  return { ...project, members: project.members.filter((member) => member.id !== id), ...nextRevision(project) };
+}
+
 function requireProjectNode(project: FrameProject, nodeId: NodeId, label: string): void {
   if (!project.nodes.some((node) => node.id === nodeId)) throw new Error(`${label} 引用了不存在的节点 ${nodeId}`);
 }
@@ -227,6 +232,30 @@ export function updateNodalLoad(project: FrameProject, id: LoadId, nodeId: NodeI
   const current = project.nodalLoads.find((load) => load.id === id); if (!current) throw new Error(`节点荷载 ${id} 不存在`);
   requireProjectNode(project, nodeId, current.label); assertFiniteVector(force); assertFiniteVector(moment);
   return { ...project, nodalLoads: project.nodalLoads.map((load) => load.id === id ? { ...load, nodeId, force: { ...force }, moment: { ...moment } } : load), ...nextRevision(project) };
+}
+
+export function deleteMaterial(project: FrameProject, id: MaterialId): FrameProject {
+  if (!project.materials.some((material) => material.id === id)) throw new Error(`材料 ${id} 不存在`);
+  const dependent = project.members.filter((member) => member.materialId === id);
+  if (dependent.length > 0) throw new Error(`材料仍被 ${dependent.map((member) => member.label).join("、")} 引用，请先处理杆件`);
+  return { ...project, materials: project.materials.filter((material) => material.id !== id), ...nextRevision(project) };
+}
+
+export function deleteSection(project: FrameProject, id: SectionId): FrameProject {
+  if (!project.sections.some((section) => section.id === id)) throw new Error(`截面 ${id} 不存在`);
+  const dependent = project.members.filter((member) => member.sectionId === id);
+  if (dependent.length > 0) throw new Error(`截面仍被 ${dependent.map((member) => member.label).join("、")} 引用，请先处理杆件`);
+  return { ...project, sections: project.sections.filter((section) => section.id !== id), ...nextRevision(project) };
+}
+
+export function deleteSupport(project: FrameProject, id: SupportId): FrameProject {
+  if (!project.supports.some((support) => support.id === id)) throw new Error(`支座 ${id} 不存在`);
+  return { ...project, supports: project.supports.filter((support) => support.id !== id), ...nextRevision(project) };
+}
+
+export function deleteNodalLoad(project: FrameProject, id: LoadId): FrameProject {
+  if (!project.nodalLoads.some((load) => load.id === id)) throw new Error(`节点荷载 ${id} 不存在`);
+  return { ...project, nodalLoads: project.nodalLoads.filter((load) => load.id !== id), ...nextRevision(project) };
 }
 
 export function attachAnalysisResult(project: FrameProject, result: AnalysisResult): FrameProject {

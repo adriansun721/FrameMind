@@ -203,11 +203,17 @@ button { color: inherit; }
 .data-table-heading [role="tab"] { height: 28px; padding: 0 10px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .data-table-heading [aria-selected="true"] { border-bottom-color: var(--model-selected); color: var(--text-primary); }
 .data-table-heading > span { color: var(--text-muted); font-family: var(--font-mono); }
+.data-table-actions { display: flex; gap: 4px; }
+.table-action { height: 26px; padding: 0 7px; border: 1px solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface-control); color: var(--text-secondary); cursor: pointer; font-size: 11px; }
+.table-action:hover { color: var(--text-primary); border-color: var(--model-selected); }
+.table-action.danger { color: var(--status-error); }
 .data-table-scroll { min-height: 0; overflow: auto; }
 .model-data-table table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
 .model-data-table th, .model-data-table td { height: 36px; padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--border-subtle); overflow-wrap: anywhere; }
 .model-data-table thead th { position: sticky; top: 0; z-index: 1; height: 30px; color: var(--text-secondary); background: var(--surface-panel-muted); font-weight: 500; }
 .model-data-table th:first-child, .model-data-table th:last-child { width: 76px; }
+.model-data-table th:first-child { width: 30px; }
+.model-data-table td:first-child { width: 30px; text-align: center; }
 .model-data-table tr[aria-selected="true"] { background: var(--surface-selected); }
 .model-data-table input, .model-data-table select { width: 100%; min-width: 0; height: 28px; padding: 0 5px; border: 1px solid var(--border-strong); border-radius: var(--radius-control); color: var(--text-primary); background: var(--surface-control); }
 .model-data-table [aria-invalid="true"] { border-color: var(--status-error); }

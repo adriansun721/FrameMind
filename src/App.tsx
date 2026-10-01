@@ -5,8 +5,10 @@ import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/M
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
-  type DofRestraints, type FrameProject, type MaterialId, type NodeId, type SectionId,
+  type DofRestraints, type FrameProject, type MaterialId, type MemberId, type NodeId, type SectionId,
 } from "./domain/project";
+import { ProjectHistory } from "./domain/project-history";
+import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
 import { captureAnalysisInput, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
@@ -43,8 +45,14 @@ const ANALYSIS_PHASE_TEXT: Record<AnalysisTaskPhase, string> = {
 export function App() {
   const [project, setProject] = useState<FrameProject>(() => createProject());
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
-  const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0);
+  const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProjectContent, setSavedProjectContent] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>(null);
+  const projectHistoryRef = useRef(new ProjectHistory());
+  const [historyVersion, setHistoryVersion] = useState(0);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(() => new Set());
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(() => new Set());
+  const [batchDialog, setBatchDialog] = useState<"node" | "member" | null>(null);
+  const [batchDraft, setBatchDraft] = useState({ x: "0", y: "0", z: "0", rotationDegrees: "0" });
   const [dataTableOpen, setDataTableOpen] = useState(false);
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false); const [analysisPhase, setAnalysisPhase] = useState<AnalysisTaskPhase | null>(null);
@@ -62,7 +70,7 @@ export function App() {
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const analysisRunRef = useRef(0);
   const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
-  const dirty = project.revision !== savedRevision;
+  const dirty = savedProjectContent === null ? project.revision !== savedRevision : encodeProject(project) !== savedProjectContent;
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
 
   const selectedNode = selection?.kind === "node" ? project.nodes.find((item) => item.id === selection.id) ?? null : null;
@@ -78,7 +86,11 @@ export function App() {
     return start && end ? calculateMemberGeometry(start.position, end.position, selectedMember.rotationDegrees) : null;
   }, [project.nodes, selectedMember]);
 
-  const activateProject = (next: FrameProject, newSession: boolean) => {
+  const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record") => {
+    const previous = activeProjectRef.current;
+    if (historyMode === "reset") projectHistoryRef.current.reset();
+    if (historyMode === "record") projectHistoryRef.current.record(previous, next);
+    setHistoryVersion((value) => value + 1);
     if (newSession) {
       activeSessionRef.current += 1;
       setAnalysisFailure(null);
@@ -93,6 +105,14 @@ export function App() {
     }
     activeProjectRef.current = next; setProject(next);
   };
+  const restoreHistory = (direction: "undo" | "redo") => {
+    const current = activeProjectRef.current;
+    const restored = direction === "undo" ? projectHistoryRef.current.undo(current) : projectHistoryRef.current.redo(current);
+    if (!restored) return;
+    activateProject(restored, false, "restore");
+    setSelection(null); setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setFormError(null);
+    setStatus({ tone: "neutral", text: direction === "undo" ? "已撤销上一组变更" : "已重做上一组变更" });
+  };
   const selectObject = (next: Selection) => {
     setSelection(next); setFormError(null); if (!next) return;
     if (next.kind === "node") { const item = project.nodes.find((node) => node.id === next.id); if (item) setNodeDraft({ x: String(item.position.x), y: String(item.position.y), z: String(item.position.z) }); }
@@ -103,20 +123,21 @@ export function App() {
     if (next.kind === "load") { const item = project.nodalLoads.find((load) => load.id === next.id); if (item) setLoadDraft({ nodeId: item.nodeId, fx: String(item.force.x), fy: String(item.force.y), fz: String(item.force.z), mx: String(item.moment.x), my: String(item.moment.y), mz: String(item.moment.z) }); }
   };
 
-  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; activateProject(createProject(), true); setProjectPath(null); setSavedRevision(0); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
+  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setSavedRevision(0); setSavedProjectContent(encodeProject(next)); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
   const openProject = async () => {
     if (dirty && !window.confirm("当前项目有未保存修改，确定打开其他项目吗？")) return;
     const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
     try {
       const result = await window.frameMind.openProject(); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
-      const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
+      const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProjectContent(encodeProject(opened)); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" }); }
   };
   const saveProject = async () => {
     const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
+    const content = encodeProject(project);
     try {
-      const result = await window.frameMind.saveProject({ path: projectPath, content: encodeProject(project) }); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
-      setProjectPath(result.path); setSavedRevision(checkpoint.revision); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
+      const result = await window.frameMind.saveProject({ path: projectPath, content }); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
+      setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProjectContent(content); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" }); }
   };
 
@@ -213,17 +234,61 @@ export function App() {
     activateProject(updateNodalLoad(project, selectedLoad.id, loadDraft.nodeId as NodeId, force, moment), false); setStatus({ tone: "success", text: `已更新荷载 ${selectedLoad.label}` }); setFormError(null);
   } catch (error) { setFormError(error instanceof Error ? error.message : "更新荷载失败"); } };
 
+  const toggleMultiSelection = (kind: "node" | "member", id: string) => {
+    const setter = kind === "node" ? setSelectedNodeIds : setSelectedMemberIds;
+    setter((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  };
+  const duplicateSelected = (kind: "node" | "member") => {
+    try {
+      if (kind === "node") {
+        const ids = [...selectedNodeIds] as NodeId[]; if (!ids.length) return;
+        const count = project.nodes.length; const updated = duplicateNodes(project, ids); activateProject(updated, false); const copies = updated.nodes.slice(count); setSelectedNodeIds(new Set(copies.map((item) => item.id))); setSelection(copies.at(-1) ? { kind: "node", id: copies.at(-1)!.id } : null); setStatus({ tone: "success", text: `已复制 ${copies.length} 个节点` });
+      } else {
+        const ids = [...selectedMemberIds] as MemberId[]; if (!ids.length) return;
+        const count = project.members.length; const updated = duplicateMembers(project, ids); activateProject(updated, false); const copies = updated.members.slice(count); setSelectedMemberIds(new Set(copies.map((item) => item.id))); setSelection(copies.at(-1) ? { kind: "member", id: copies.at(-1)!.id } : null); setStatus({ tone: "success", text: `已复制 ${copies.length} 个杆件` });
+      }
+    } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "复制失败" }); }
+  };
+  const deleteSelected = (kind: "node" | "member") => {
+    try {
+      if (kind === "node") {
+        const ids = [...selectedNodeIds] as NodeId[]; if (!ids.length) return;
+        const updated = deleteNodes(project, ids); activateProject(updated, false); setSelectedNodeIds(new Set()); setSelection(null); setStatus({ tone: "success", text: `已删除 ${ids.length} 个节点及其关联对象` });
+      } else {
+        const ids = [...selectedMemberIds] as MemberId[]; if (!ids.length) return;
+        const updated = deleteMembers(project, ids); activateProject(updated, false); setSelectedMemberIds(new Set()); setSelection(null); setStatus({ tone: "success", text: `已删除 ${ids.length} 个杆件` });
+      }
+    } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "删除失败" }); }
+  };
+  const openBatchEdit = (kind: "node" | "member") => { setBatchDraft({ x: "0", y: "0", z: "0", rotationDegrees: "0" }); setFormError(null); setBatchDialog(kind); };
+  const submitBatchEdit = (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      if (batchDialog === "node") {
+        const offset = { x: parseNumber(batchDraft.x, "X 偏移"), y: parseNumber(batchDraft.y, "Y 偏移"), z: parseNumber(batchDraft.z, "Z 偏移") };
+        const updated = batchUpdateNodes(project, [...selectedNodeIds].map((id) => { const node = project.nodes.find((item) => item.id === id)!; return { id: id as NodeId, position: { x: node.position.x + offset.x, y: node.position.y + offset.y, z: node.position.z + offset.z } }; }));
+        activateProject(updated, false); setBatchDialog(null); setFormError(null); setStatus({ tone: "success", text: `已批量移动 ${selectedNodeIds.size} 个节点` });
+      } else if (batchDialog === "member") {
+        const rotationDegrees = parseNumber(batchDraft.rotationDegrees, "截面转角");
+        const updated = batchUpdateMembers(project, [...selectedMemberIds].map((id) => ({ id: id as MemberId, changes: { rotationDegrees } })));
+        activateProject(updated, false); setBatchDialog(null); setFormError(null); setStatus({ tone: "success", text: `已批量修改 ${selectedMemberIds.size} 个杆件` });
+      }
+    } catch (error) { setFormError(error instanceof Error ? error.message : "批量修改失败"); }
+  };
+
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if (event.key === "Escape") { setFileMenuOpen(false); return; }
       if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
       const key = event.key.toLowerCase();
-      if (!["n", "o", "s"].includes(key)) return;
+      if (!["n", "o", "s", "z", "y"].includes(key)) return;
       event.preventDefault();
       setFileMenuOpen(false);
       if (key === "n") beginNewProject();
       if (key === "o") void openProject();
       if (key === "s") void saveProject();
+      if (key === "z") restoreHistory(event.shiftKey ? "redo" : "undo");
+      if (key === "y") restoreHistory("redo");
     };
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
@@ -257,7 +322,7 @@ export function App() {
       </nav>
     </header>
 
-    <section className="task-toolbar" aria-label="当前任务工具" aria-busy={analysisBusy} data-analysis-phase={analysisPhase ?? undefined}>
+    <section className="task-toolbar" aria-label="当前任务工具" aria-busy={analysisBusy} data-analysis-phase={analysisPhase ?? undefined} data-history-version={historyVersion}>
       <span className="task-context">建模</span><span className="toolbar-divider" />
       <div className="model-toolbar" role="toolbar" aria-label="建模工具">
         <button className="tool-button active" aria-label="选择" aria-pressed="true" title="选择对象" onClick={() => selectObject(null)}><MousePointer2 size={15} />选择</button>
@@ -270,8 +335,8 @@ export function App() {
         {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={runAnalysis}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
         <button className={`tool-button icon-only ${dataTableOpen ? "active" : ""}`} aria-label="数据表" aria-pressed={dataTableOpen} title="数据表" onClick={() => setDataTableOpen((open) => !open)}><Table2 size={15} /></button>
-        <button className="tool-button icon-only" aria-disabled="true" aria-label="撤销（尚未实现）" title="撤销尚未实现"><Undo2 size={15} /></button>
-        <button className="tool-button icon-only" aria-disabled="true" aria-label="重做（尚未实现）" title="重做尚未实现"><Redo2 size={15} /></button>
+        <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canUndo} aria-label={projectHistoryRef.current.canUndo ? "撤销" : "撤销（尚未实现）"} title="撤销（Ctrl+Z）" onClick={() => restoreHistory("undo")}><Undo2 size={15} /></button>
+        <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canRedo} aria-label={projectHistoryRef.current.canRedo ? "重做" : "重做（尚未实现）"} title="重做（Ctrl+Y）" onClick={() => restoreHistory("redo")}><Redo2 size={15} /></button>
       </div>
     </section>
 
@@ -344,7 +409,7 @@ export function App() {
           })}</ul>
         </section>}
         <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
-        {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
+        {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
     </section>
@@ -354,6 +419,7 @@ export function App() {
     {nodeDialogOpen && <Dialog title="创建空间节点" copy="输入全局坐标。长度统一以米（m）保存和显示。" onClose={() => { setNodeDialogOpen(false); setFormError(null); }}><form onSubmit={submitNode}><div className="coordinate-inputs">{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={newNodeDraft[axis]} onChange={(value) => setNewNodeDraft({ ...newNodeDraft, [axis]: value })} unit="m" />)}</div><FormFeedback error={formError} /><DialogActions close={() => { setNodeDialogOpen(false); setFormError(null); }} submit="添加到模型" /></form></Dialog>}
     {resourceDialogOpen && <Dialog title="创建材料与截面" copy="参数使用 SI 基准单位；这些值将在 T03 核定单元理论前保持明确含义。" onClose={() => setResourceDialogOpen(false)}><form onSubmit={submitResources}><div className="resource-columns"><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><SectionFields draft={sectionDraft} setDraft={setSectionDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => setResourceDialogOpen(false)} submit="保存材料与截面" /></form></Dialog>}
     {memberDialogOpen && <Dialog title="连接空间杆件" copy="选择两个不同位置的节点，并指定材料、截面和绕局部 x 轴的截面转角。" onClose={() => { setMemberDialogOpen(false); setFormError(null); }}><form onSubmit={submitMember}><div className="form-grid"><SelectField label="起点节点" value={newMemberDraft.startNodeId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={newMemberDraft.endNodeId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={newMemberDraft.materialId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={newMemberDraft.sectionId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={newMemberDraft.rotationDegrees} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, rotationDegrees: value })} unit="°" /></div><FormFeedback error={formError} /><DialogActions close={() => { setMemberDialogOpen(false); setFormError(null); }} submit="添加杆件" /></form></Dialog>}
+    {batchDialog && <Dialog title={batchDialog === "node" ? "批量移动节点" : "批量修改杆件"} copy={batchDialog === "node" ? `将一次移动 ${selectedNodeIds.size} 个节点，任一校验失败则全部不提交。` : `将一次设置 ${selectedMemberIds.size} 个杆件的截面转角，任一校验失败则全部不提交。`} onClose={() => { setBatchDialog(null); setFormError(null); }}><form onSubmit={submitBatchEdit}>{batchDialog === "node" ? <div className="coordinate-inputs"><NumberField label="X 偏移" value={batchDraft.x} onChange={(value) => setBatchDraft({ ...batchDraft, x: value })} unit="m" /><NumberField label="Y 偏移" value={batchDraft.y} onChange={(value) => setBatchDraft({ ...batchDraft, y: value })} unit="m" /><NumberField label="Z 偏移" value={batchDraft.z} onChange={(value) => setBatchDraft({ ...batchDraft, z: value })} unit="m" /></div> : <NumberField label="统一截面转角" value={batchDraft.rotationDegrees} onChange={(value) => setBatchDraft({ ...batchDraft, rotationDegrees: value })} unit="°" />}<FormFeedback error={formError} /><DialogActions close={() => { setBatchDialog(null); setFormError(null); }} submit="应用批量修改" /></form></Dialog>}
     {supportDialogOpen && <Dialog title="创建节点支座" copy="支座独立约束节点的六个自由度。固定支座默认约束平移与转动全部分量。" onClose={() => { setSupportDialogOpen(false); selectObject(selection); }}><form onSubmit={submitSupport}><SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><DialogActions close={() => { setSupportDialogOpen(false); selectObject(selection); }} submit="添加支座" /></form></Dialog>}
     {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="输入全局坐标系下的节点力（kN）和节点力矩（kN·m）；零值分量仍会保留在输入记录中。" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
   </main>;
