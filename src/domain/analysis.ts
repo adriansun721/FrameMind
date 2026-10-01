@@ -406,6 +406,58 @@ export interface MemberSectionForces {
   forces: [number, number, number, number, number, number];
 }
 
+export interface MemberResponseSample {
+  analysisId: string;
+  memberId: string;
+  position: number;
+  forces: [number, number, number, number, number, number];
+  localDisplacement: Vector3;
+  globalDisplacement: Vector3;
+}
+
+const hermite = (coordinate: number, length: number) => {
+  const t = coordinate / length;
+  return {
+    valueStart: 1 - 3 * t ** 2 + 2 * t ** 3,
+    slopeStart: length * (t - 2 * t ** 2 + t ** 3),
+    valueEnd: 3 * t ** 2 - 2 * t ** 3,
+    slopeEnd: length * (-(t ** 2) + t ** 3),
+  };
+};
+
+/** Returns the verified member recovery at uniformly spaced stations.
+ * Translations use the Euler-Bernoulli cubic field stored by the frame model;
+ * rotations and axial displacement are linearly interpolated for display.
+ */
+export function getMemberResponseSamples(result: AnalysisResult, memberId: string, stationCount = 17): MemberResponseSample[] {
+  if (!Number.isInteger(stationCount) || stationCount < 2 || stationCount > 101) throw new Error("沿杆采样数量必须在 2 到 101 之间");
+  const record = getMemberAnalysisRecord(result, memberId);
+  const start = record.localDisplacement.slice(0, 6);
+  const end = record.localDisplacement.slice(6, 12);
+  const { geometry } = record;
+  const axis = (localX: number, localY: number, localZ: number): Vector3 => ({
+    x: geometry.localX.x * localX + geometry.localY.x * localY + geometry.localZ.x * localZ,
+    y: geometry.localX.y * localX + geometry.localY.y * localY + geometry.localZ.y * localZ,
+    z: geometry.localX.z * localX + geometry.localY.z * localY + geometry.localZ.z * localZ,
+  });
+  return Array.from({ length: stationCount }, (_, index) => {
+    const position = geometry.length * index / (stationCount - 1);
+    const shape = hermite(position, geometry.length);
+    const localY = shape.valueStart * start[1] + shape.slopeStart * start[5] + shape.valueEnd * end[1] + shape.slopeEnd * end[5];
+    const localZ = shape.valueStart * start[2] - shape.slopeStart * start[4] + shape.valueEnd * end[2] - shape.slopeEnd * end[4];
+    const localX = start[0] + (end[0] - start[0]) * index / (stationCount - 1);
+    const globalDisplacement = axis(localX, localY, localZ);
+    return {
+      analysisId: result.id,
+      memberId,
+      position,
+      forces: getMemberSectionForces(result, memberId, position).forces,
+      localDisplacement: { x: localX, y: localY, z: localZ },
+      globalDisplacement,
+    };
+  });
+}
+
 /** Section actions on the positive local-x face; order: N, Vy, Vz, T, My, Mz. */
 export function getMemberSectionForces(result: AnalysisResult, memberId: string, position: number): MemberSectionForces {
   requireLoadRecoveryVersion(result.input);

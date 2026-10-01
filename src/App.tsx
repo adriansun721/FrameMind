@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Send, Settings2, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
-import { SceneViewport } from "./components/SceneViewport";
+import { SceneViewport, type ForceComponent, type ResultViewMode } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
 import { LoadCaseManager } from "./components/LoadCaseManager";
@@ -16,7 +16,7 @@ import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECT
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
-import { captureAnalysisInput, getSelfWeightSummary, getActiveAnalysisResult, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
@@ -46,6 +46,7 @@ const materialToNumbers = (draft: MaterialDraft) => ({ name: draft.name, elastic
 const sectionToNumbers = (draft: SectionDraft) => ({ name: draft.name, areaM2: parseNumber(draft.areaM2, "面积 A"), secondMomentYM4: parseNumber(draft.secondMomentYM4, "惯性矩 Iy"), secondMomentZM4: parseNumber(draft.secondMomentZM4, "惯性矩 Iz"), torsionalConstantM4: parseNumber(draft.torsionalConstantM4, "扭转常数 J") });
 const filename = (path: string | null) => path ? path.split(/[\\/]/).pop() ?? path : null;
 const vectorText = (vector: { x: number; y: number; z: number }) => `(${vector.x.toFixed(3)}, ${vector.y.toFixed(3)}, ${vector.z.toFixed(3)})`;
+const localSectionText = (values: number[]) => `N ${values[0].toFixed(3)} kN · Vy ${values[1].toFixed(3)} kN · Vz ${values[2].toFixed(3)} kN · T ${values[3].toFixed(3)} kN·m · My ${values[4].toFixed(3)} kN·m · Mz ${values[5].toFixed(3)} kN·m`;
 const ANALYSIS_PHASE_TEXT: Record<AnalysisTaskPhase, string> = {
   "model-check": "正在检查模型",
   assembly: "正在组装刚度矩阵",
@@ -65,6 +66,10 @@ export function App() {
   const [batchDialog, setBatchDialog] = useState<"node" | "member" | null>(null);
   const [batchDraft, setBatchDraft] = useState({ x: "0", y: "0", z: "0", rotationDegrees: "0" });
   const [dataTableOpen, setDataTableOpen] = useState(false);
+  const [resultView, setResultView] = useState<ResultViewMode>("model");
+  const [forceComponent, setForceComponent] = useState<ForceComponent>("N");
+  const [deformationScale, setDeformationScale] = useState(100);
+  const [resultFocus, setResultFocus] = useState<{ memberId: string; position: number } | null>(null);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
   const [sidebarModule, setSidebarModule] = useState<"project" | "search" | "library">("project");
   const [assistantPanelOpen, setAssistantPanelOpen] = useState(true);
@@ -496,7 +501,7 @@ export function App() {
             <LoadFields draft={loadDraft} onChange={setLoadDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存荷载属性</button>
           </form></Inspector>}
           {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />}><Identity id={selectedUniform.id} label={selectedUniform.label} /><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>{selectedUniform.loadCaseId}</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q (kN/m)</dt><dd title={vectorText(selectedUniform.intensity)}>{vectorText(selectedUniform.intensity)}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
-          {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} />}
+          {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
           {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </section>
       </aside>
@@ -522,7 +527,7 @@ export function App() {
             </li>;
           })}</ul>
         </section>}
-        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
@@ -553,10 +558,33 @@ export function App() {
   </main>;
 }
 
-function AnalysisResultPanel({ result, project }: { result: AnalysisResult; project: FrameProject }) {
+function AnalysisResultPanel({ result, project, view, forceComponent, deformationScale, onViewChange, onForceComponentChange, onDeformationScaleChange, onSelect }: {
+  result: AnalysisResult;
+  project: FrameProject;
+  view: ResultViewMode;
+  forceComponent: ForceComponent;
+  deformationScale: number;
+  onViewChange(value: ResultViewMode): void;
+  onForceComponentChange(value: ForceComponent): void;
+  onDeformationScaleChange(value: number): void;
+  onSelect(next: Selection, focus?: { memberId: string; position: number }, preferredView?: ResultViewMode): void;
+}) {
   const stale = !isAnalysisResultCurrent(project, result);
   const selfWeight = getSelfWeightSummary(result.input);
   const combination = result.input.combination;
+  const forceLabels: Record<ForceComponent, string> = { N: "轴力 N", Vy: "剪力 Vy", Vz: "剪力 Vz", T: "扭矩 T", My: "弯矩 My", Mz: "弯矩 Mz" };
+  const forceUnits: Record<ForceComponent, string> = { N: "kN", Vy: "kN", Vz: "kN", T: "kN·m", My: "kN·m", Mz: "kN·m" };
+  const forceIndex: Record<ForceComponent, number> = { N: 0, Vy: 1, Vz: 2, T: 3, My: 4, Mz: 5 };
+  const maxForceRecord = view === "forces" ? result.members.reduce<{ value: number; memberId: string; position: number } | null>((best, member) => {
+    try {
+      for (const sample of getMemberResponseSamples(result, member.memberId, 17)) {
+        const value = Math.abs(sample.forces[forceIndex[forceComponent]]);
+        if (!best || value > best.value) best = { value, memberId: member.memberId, position: sample.position };
+      }
+    } catch { /* incompatible historic results remain visible in the table */ }
+    return best;
+  }, null) : null;
+  const maxForce = maxForceRecord?.value ?? 0;
   const formatEndForces = (values: number[]) => `Fx ${values[0].toFixed(3)} kN · Fy ${values[1].toFixed(3)} kN · Fz ${values[2].toFixed(3)} kN · Mx ${values[3].toFixed(3)} kN·m · My ${values[4].toFixed(3)} kN·m · Mz ${values[5].toFixed(3)} kN·m`;
   const preciseVector = (vector: { x: number; y: number; z: number }) => `(${[vector.x, vector.y, vector.z].map((value) => value.toPrecision(10)).join(", ")})`;
   return <div className="analysis-result-panel">
@@ -570,18 +598,26 @@ function AnalysisResultPanel({ result, project }: { result: AnalysisResult; proj
       <div><dt>{combination ? "加权自重" : "自重"}</dt><dd>{selfWeight.enabled ? `${selfWeight.totalWeightKN.toFixed(3)} kN${combination ? "" : ` · ${selfWeight.loadCaseId}`}` : "未启用"}</dd></div>
     </dl></section>
     {combination && <section className="property-section"><h3>组合依据 · 无量纲系数</h3><ul className="combination-source-terms">{combination.definition.terms.map((term) => <li key={term.loadCaseId}>{term.loadCaseId} · {combination.cases.find((item) => item.loadCase.id === term.loadCaseId)?.loadCase.name} × {term.factor}</li>)}</ul><p className="combination-basis">用户定义 · 线弹性 · m / kN / kN·m</p></section>}
-    <section className="property-section"><h3>节点结果</h3><div className="analysis-table">{result.nodes.map((node) => <div className="analysis-row" key={node.nodeId}>
-      <strong>{result.input.nodes.find((item) => item.id === node.nodeId)?.label ?? node.nodeId}</strong>
-      <span title={`${preciseVector(node.displacement)} m`}>位移 {vectorText(node.displacement)} m</span>
-      <span title={`${preciseVector(node.rotation)} rad`}>转角 {vectorText(node.rotation)} rad</span>
-      <span title={`${preciseVector(node.reaction)} kN`}>反力 {vectorText(node.reaction)} kN</span>
-      <span title={`${preciseVector(node.reactionMoment)} kN·m`}>反力矩 {vectorText(node.reactionMoment)} kN·m</span>
-    </div>)}</div></section>
-    <section className="property-section"><h3>杆端内力（局部轴）</h3><div className="analysis-table">{result.members.map((member) => <div className="analysis-row" key={member.memberId}>
-      <strong>{result.input.members.find((item) => item.id === member.memberId)?.label ?? member.memberId} · L {member.length.toFixed(3)} m</strong>
-      <span>起点 {formatEndForces(member.localEndForces.start)}</span><span>终点 {formatEndForces(member.localEndForces.end)}</span>
-      <MemberSectionQuery key={result.id} result={result} member={member} />
-    </div>)}</div></section>
+    <section className="property-section result-view-controls" aria-label="结果视图">
+      <h3>结果视图</h3>
+      <div className="result-view-tabs" role="tablist">
+        <button className={view === "model" ? "active" : ""} role="tab" aria-selected={view === "model"} onClick={() => onViewChange("model")}>结果表</button>
+        <button className={view === "deformation" ? "active" : ""} role="tab" aria-selected={view === "deformation"} onClick={() => onViewChange("deformation")}>变形图</button>
+        <button className={view === "forces" ? "active" : ""} role="tab" aria-selected={view === "forces"} onClick={() => onViewChange("forces")}>内力图</button>
+      </div>
+      {view === "deformation" && <label className="result-scale-field"><span>变形放大比例</span><input aria-label="变形放大比例" type="range" min="1" max="1000" step="1" value={deformationScale} onChange={(event) => onDeformationScaleChange(Number(event.target.value))} /><output>{deformationScale}×</output></label>}
+      {view === "forces" && <><label className="result-component-field"><span>内力分量</span><select aria-label="内力分量" value={forceComponent} onChange={(event) => onForceComponentChange(event.target.value as ForceComponent)}>{(Object.keys(forceLabels) as ForceComponent[]).map((item) => <option key={item} value={item}>{forceLabels[item]}</option>)}</select></label><div className="result-legend"><span className="legend-line" />{forceLabels[forceComponent]} · {forceUnits[forceComponent]}<small>当前极值 {maxForce < 1e-9 ? "近零" : `${maxForce.toPrecision(5)} ${forceUnits[forceComponent]}`}</small>{maxForceRecord && <button type="button" className="query-locate-button" onClick={() => onSelect({ kind: "member", id: maxForceRecord.memberId as MemberId }, { memberId: maxForceRecord.memberId, position: maxForceRecord.position }, "forces")}>定位极值</button>}</div></>}
+      {view !== "model" && <p className="result-view-note">图形、表格和图例均来自 {combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase?.id ?? "当前工况"} 的冻结分析结果；点击杆件结果可定位对象。</p>}
+    </section>
+    {view === "model" && <>
+      <section className="property-section"><h3>节点结果 · 位移、转动与支座反力</h3><div className="analysis-table">{result.nodes.map((node) => { const sourceNode = result.input.nodes.find((item) => item.id === node.nodeId); return <div className="analysis-row result-select-row" key={node.nodeId} role="button" tabIndex={0} onClick={() => sourceNode && onSelect({ kind: "node", id: sourceNode.id })} onKeyDown={(event) => { if (event.key === "Enter") sourceNode && onSelect({ kind: "node", id: sourceNode.id }); }}>
+        <strong>{sourceNode?.label ?? node.nodeId}</strong>
+        <span title={`${preciseVector(node.displacement)} m`}>位移 {vectorText(node.displacement)} m</span><span title={`${preciseVector(node.rotation)} rad`}>转角 {vectorText(node.rotation)} rad</span><span title={`${preciseVector(node.reaction)} kN`}>反力 {vectorText(node.reaction)} kN</span><span title={`${preciseVector(node.reactionMoment)} kN·m`}>反力矩 {vectorText(node.reactionMoment)} kN·m</span>
+      </div>; })}</div></section>
+      <section className="property-section"><h3>杆端内力（局部轴）</h3><div className="analysis-table">{result.members.map((member) => { const sourceMember = result.input.members.find((item) => item.id === member.memberId); return <div className="analysis-row result-select-row" key={member.memberId} role="button" tabIndex={0} onClick={() => sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 })} onKeyDown={(event) => { if (event.key === "Enter") sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 }); }}>
+        <strong>{sourceMember?.label ?? member.memberId} · L {member.length.toFixed(3)} m</strong><span>局部轴分量顺序 N · Vy · Vz · T · My · Mz</span><span>起点 {formatEndForces(member.localEndForces.start)}</span><span>终点 {formatEndForces(member.localEndForces.end)}</span>{(() => { try { const start = getMemberSectionForces(result, member.memberId, 0).forces; const end = getMemberSectionForces(result, member.memberId, member.length).forces; return <><span>起点截面 {localSectionText(start)}</span><span>终点截面 {localSectionText(end)}</span></>; } catch { return null; } })()}<MemberSectionQuery key={result.id} result={result} member={member} onLocate={(position) => sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position })} />
+      </div>; })}</div></section>
+    </>}
   </div>;
 }
 function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) { return <div className="tree-group"><div className="tree-group-label"><ChevronDown size={13} />{icon}<span>{label}</span><em>{count}</em></div><div className="tree-items">{children}</div></div>; }

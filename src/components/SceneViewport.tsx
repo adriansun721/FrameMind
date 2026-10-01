@@ -5,11 +5,14 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { FrameMaterial, FrameMember, FrameNode, FrameSection, FrameUniformLoad, LoadId, MemberId, NodeId, ProjectId } from "../domain/project";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { uniformLoadVector } from "../domain/uniform-loads";
+import { getMemberResponseSamples, type AnalysisResult } from "../domain/analysis";
 import { EngineeringSceneModel, type EngineeringScenePalette, type EngineeringSceneSelection } from "./engineering-scene-model";
 import { calculateSceneFrame } from "./scene-camera";
 import { disposeObjectTree } from "./three-resources";
 
 export type SceneSelection = EngineeringSceneSelection;
+export type ResultViewMode = "model" | "deformation" | "forces";
+export type ForceComponent = "N" | "Vy" | "Vz" | "T" | "My" | "Mz";
 
 interface SceneViewportProps {
   projectId: ProjectId;
@@ -21,6 +24,11 @@ interface SceneViewportProps {
   sourceLabel?: string;
   selectedUniformLoadId?: LoadId;
   onSelectUniformLoad?(id: LoadId): void;
+  analysis?: AnalysisResult;
+  resultView?: ResultViewMode;
+  forceComponent?: ForceComponent;
+  deformationScale?: number;
+  resultFocus?: { memberId: string; position: number } | null;
   selection: SceneSelection;
   fitRequest?: number;
   onSelect(selection: SceneSelection): void;
@@ -44,6 +52,7 @@ interface SceneRuntime {
   projectId: ProjectId | null;
   hasFramedModel: boolean;
   loads: THREE.Group;
+  results: THREE.Group;
 }
 
 function readScenePalette(): ScenePalette {
@@ -99,7 +108,7 @@ function selectionFromHit(hit: THREE.Intersection): SceneSelection {
     : { kind: "member", id: String(hit.object.userData.id) as MemberId };
 }
 
-export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, fitRequest = 0 }: SceneViewportProps) {
+export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
@@ -131,7 +140,8 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
     const modelGroup = new THREE.Group(); modelGroup.name = "engineering-model"; scene.add(modelGroup);
     const model = new EngineeringSceneModel(modelGroup, palette, (text) => makeLabel(text, palette));
     const loads = new THREE.Group(); scene.add(loads);
-    runtimeRef.current = { camera, controls, model, renderer, loads, projectId: null, hasFramedModel: false };
+    const results = new THREE.Group(); results.name = "analysis-results"; scene.add(results);
+    runtimeRef.current = { camera, controls, model, renderer, loads, results, projectId: null, hasFramedModel: false };
 
     const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.04;
     const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
@@ -230,6 +240,74 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
       layer.traverse((object) => { object.userData = { kind: "uniform-load", id: load.id }; }); group.add(layer);
     }
   }, [uniformLoads, nodes, members, selectedUniformLoadId]);
+  useEffect(() => {
+    const group = runtimeRef.current?.results;
+    if (!group) return;
+    for (const child of [...group.children]) disposeObjectTree(child);
+    if (!analysis || resultView === "model") return;
+    const inputNodes = new Map(analysis.input.nodes.map((node) => [node.id, node]));
+    const palette = readScenePalette();
+    const componentIndex: Record<ForceComponent, number> = { N: 0, Vy: 1, Vz: 2, T: 3, My: 4, Mz: 5 };
+    const allValues: number[] = [];
+    const memberSamples = new Map<string, ReturnType<typeof getMemberResponseSamples>>();
+    for (const member of analysis.members) {
+      try {
+        const samples = getMemberResponseSamples(analysis, member.memberId, 25);
+        memberSamples.set(member.memberId, samples);
+        if (resultView === "forces") for (const sample of samples) allValues.push(Math.abs(sample.forces[componentIndex[forceComponent]]));
+      } catch { /* incompatible historic results remain visible in the table */ }
+    }
+    const maxValue = Math.max(...allValues, 0);
+    const modelExtent = Math.max(...analysis.input.nodes.flatMap((node) => [Math.abs(node.position.x), Math.abs(node.position.y), Math.abs(node.position.z)]), 1);
+    const scale = resultView === "deformation" ? Math.max(1, deformationScale) : maxValue < 1e-9 ? 0 : Math.max(0.18, modelExtent * 0.22 / maxValue);
+    const lineMaterial = (color: string, opacity = 0.92) => new THREE.LineBasicMaterial({ color, transparent: opacity < 1, opacity });
+    const addPath = (points: THREE.Vector3[], color: string, width = 1) => {
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial(color));
+      line.renderOrder = 4; line.userData = { result: true }; group.add(line);
+      if (width > 1) (line.material as THREE.LineBasicMaterial).linewidth = width;
+    };
+    for (const member of analysis.members) {
+      const sourceMember = analysis.input.members.find((item) => item.id === member.memberId);
+      const original = sourceMember ? inputNodes.get(sourceMember.startNodeId) : undefined;
+      const originalEnd = sourceMember ? inputNodes.get(sourceMember.endNodeId) : undefined;
+      const samples = memberSamples.get(member.memberId);
+      if (!original || !originalEnd || !samples) continue;
+      const start = new THREE.Vector3(original.position.x, original.position.y, original.position.z);
+      const end = new THREE.Vector3(originalEnd.position.x, originalEnd.position.y, originalEnd.position.z);
+      const geometry = calculateMemberGeometry(original.position, originalEnd.position, sourceMember?.rotationDegrees ?? 0);
+      if (resultView === "deformation") {
+        const points = samples.map((sample) => {
+          const base = start.clone().lerp(end, sample.position / geometry.length);
+          return base.add(new THREE.Vector3(sample.globalDisplacement.x, sample.globalDisplacement.y, sample.globalDisplacement.z).multiplyScalar(scale));
+        });
+        addPath(points, palette.selected, 2);
+      } else {
+        const index = componentIndex[forceComponent];
+        const diagramAxis = forceComponent === "Vy" || forceComponent === "My" ? geometry.localZ : geometry.localY;
+        const direction = new THREE.Vector3(diagramAxis.x, diagramAxis.y, diagramAxis.z);
+        const points = samples.map((sample) => {
+          const base = start.clone().lerp(end, sample.position / geometry.length);
+          return base.addScaledVector(direction, sample.forces[index] * scale);
+        });
+        addPath(points, palette.axisY, 2);
+        addPath([start, end], palette.member, 1);
+      }
+    }
+    if (resultFocus) {
+      const member = analysis.input.members.find((item) => item.id === resultFocus.memberId);
+      const start = member && inputNodes.get(member.startNodeId); const end = member && inputNodes.get(member.endNodeId);
+      if (member && start && end) {
+        const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+        const ratio = Math.max(0, Math.min(1, resultFocus.position / geometry.length));
+        const point = new THREE.Vector3(start.position.x, start.position.y, start.position.z).lerp(new THREE.Vector3(end.position.x, end.position.y, end.position.z), ratio);
+        const focusedSamples = memberSamples.get(member.id);
+        const nearest = focusedSamples?.reduce((best, sample) => Math.abs(sample.position - resultFocus.position) < Math.abs(best.position - resultFocus.position) ? sample : best);
+        if (nearest && resultView === "deformation") point.add(new THREE.Vector3(nearest.globalDisplacement.x, nearest.globalDisplacement.y, nearest.globalDisplacement.z).multiplyScalar(scale));
+        const marker = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), new THREE.MeshBasicMaterial({ color: palette.selected }));
+        marker.position.copy(point); marker.renderOrder = 5; group.add(marker);
+      }
+    }
+  }, [analysis, resultView, forceComponent, deformationScale, resultFocus, nodes]);
   useEffect(() => {
     const runtime = runtimeRef.current;
     if (runtime && fitRequest > 0) applySceneFrame(runtime.camera, runtime.controls, nodesRef.current);
