@@ -1,13 +1,17 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { launchFrameMind } from "./electron-app";
+import { createNode } from "./modeling-actions";
 
-async function createNode(page: Page, coordinates: [string, string, string]) {
-  await page.getByRole("button", { name: "创建节点" }).click();
-  const dialog = page.getByRole("dialog", { name: "创建空间节点" });
-  for (const [label, value] of [["X 坐标", coordinates[0]], ["Y 坐标", coordinates[1]], ["Z 坐标", coordinates[2]]] as const) {
-    await dialog.getByLabel(label).fill(value);
+async function settledCameraState(viewport: Locator): Promise<string> {
+  let previous = ""; let stableReads = 0;
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const current = await viewport.getAttribute("data-camera-state");
+    if (current && current === previous) stableReads += 1; else stableReads = 0;
+    if (current && stableReads >= 2) return current;
+    previous = current ?? "";
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  await dialog.getByRole("button", { name: "添加到模型" }).click();
+  throw new Error("相机阻尼未在预期时间内稳定");
 }
 
 test("UI04 keeps the Three.js canvas alive while selection changes", async () => {
@@ -29,6 +33,35 @@ test("UI04 keeps the Three.js canvas alive while selection changes", async () =>
   expect(keptCanvas).toBe(true);
   await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N1");
 
+  await app.close();
+});
+
+test("UI04 preserves the rotated and zoomed camera across consecutive tree selections", async () => {
+  const { app, page } = await launchFrameMind();
+
+  await createNode(page, ["0", "0", "0"]);
+  await createNode(page, ["4", "2", "1"]);
+  const viewport = page.getByLabel("三维模型视图");
+  const canvas = viewport.locator("canvas");
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const center = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down();
+  await page.mouse.move(center.x + 110, center.y - 55, { steps: 8 });
+  await page.mouse.up();
+  await page.mouse.wheel(0, -420);
+  const cameraBeforeSelection = await settledCameraState(viewport);
+
+  const tree = page.getByRole("region", { name: "项目树" });
+  await tree.getByText("N1", { exact: true }).click();
+  await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N1");
+  await expect(page.getByRole("status")).toContainText("当前选择 N1");
+  await tree.getByText("N2", { exact: true }).click();
+  await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N2");
+  await expect(page.getByRole("status")).toContainText("当前选择 N2");
+
+  await expect(viewport).toHaveAttribute("data-camera-state", cameraBeforeSelection);
   await app.close();
 });
 
@@ -56,5 +89,23 @@ test("UI04 presents members as an analysis-line model without rebuilding the vie
   );
   expect(keptCanvas).toBe(true);
 
+  await app.close();
+});
+
+test("UI04 reframes the first model object after starting a new project", async () => {
+  const { app, page } = await launchFrameMind();
+
+  await createNode(page, ["0", "0", "0"]);
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.keyboard.press("Control+N");
+  await createNode(page, ["100", "100", "100"]);
+  await page.getByRole("button", { name: "选择" }).click();
+
+  const canvas = page.locator(".viewport canvas");
+  const canvasBox = await canvas.boundingBox();
+  expect(canvasBox).not.toBeNull();
+  await canvas.click({ position: { x: canvasBox!.width / 2, y: canvasBox!.height / 2 } });
+
+  await expect(page.getByRole("region", { name: "项目树" }).locator(".tree-item.selected")).toHaveText(/N1/);
   await app.close();
 });

@@ -63,6 +63,24 @@ describe("engineering scene model", () => {
     model.dispose();
   });
 
+  it("moves the steel-blue highlight between selected model objects", () => {
+    const parent = new THREE.Group();
+    const model = new EngineeringSceneModel(parent, palette, () => new THREE.Sprite(new THREE.SpriteMaterial()));
+    const start = node(1, 0); const end = node(2, 4); const frameMember = member(start, end);
+    model.sync([start, end], [frameMember]);
+    const memberDisplay = parent.children.find((object) => object instanceof THREE.Line) as THREE.Line;
+    const firstNodeDisplay = parent.children.find((object) => object instanceof THREE.Points) as THREE.Points;
+
+    model.setSelection({ kind: "member", id: frameMember.id });
+    expect((memberDisplay.material as THREE.LineBasicMaterial).color.getHexString()).toBe("7891ad");
+    expect((firstNodeDisplay.material as THREE.PointsMaterial).color.getHexString()).toBe("999999");
+
+    model.setSelection({ kind: "node", id: start.id });
+    expect((memberDisplay.material as THREE.LineBasicMaterial).color.getHexString()).toBe("888888");
+    expect((firstNodeDisplay.material as THREE.PointsMaterial).color.getHexString()).toBe("7891ad");
+    model.dispose();
+  });
+
   it("disposes removed geometry, materials, and selected label textures", () => {
     const parent = new THREE.Group();
     const model = new EngineeringSceneModel(parent, palette, () => {

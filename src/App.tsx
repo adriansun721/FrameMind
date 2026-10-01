@@ -197,7 +197,7 @@ export function App() {
         </section>
       </aside>
 
-      <section className="model-area"><SceneViewport nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : null} onSelect={selectObject} /></section>
+      <section className="model-area"><SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : null} onSelect={selectObject} /></section>
 
     </section>
 

@@ -1,13 +1,15 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { FrameMaterial, FrameMember, FrameNode, FrameSection, MemberId, NodeId } from "../domain/project";
+import type { FrameMaterial, FrameMember, FrameNode, FrameSection, MemberId, NodeId, ProjectId } from "../domain/project";
 import { EngineeringSceneModel, type EngineeringScenePalette, type EngineeringSceneSelection } from "./engineering-scene-model";
 import { calculateSceneFrame } from "./scene-camera";
+import { disposeObjectTree } from "./three-resources";
 
 export type SceneSelection = EngineeringSceneSelection;
 
 interface SceneViewportProps {
+  projectId: ProjectId;
   nodes: FrameNode[];
   members: FrameMember[];
   materials: FrameMaterial[];
@@ -31,6 +33,7 @@ interface SceneRuntime {
   controls: OrbitControls;
   model: EngineeringSceneModel;
   renderer: THREE.WebGLRenderer;
+  projectId: ProjectId | null;
   hasFramedModel: boolean;
 }
 
@@ -76,21 +79,18 @@ function applySceneFrame(camera: THREE.PerspectiveCamera, controls: OrbitControl
   controls.update();
 }
 
+function cameraState(camera: THREE.PerspectiveCamera, controls: OrbitControls): string {
+  const values = [camera.position.x, camera.position.y, camera.position.z, controls.target.x, controls.target.y, controls.target.z, camera.zoom];
+  return values.map((value) => value.toFixed(6)).join(",");
+}
+
 function selectionFromHit(hit: THREE.Intersection): SceneSelection {
   return hit.object.userData.kind === "node"
     ? { kind: "node", id: String(hit.object.userData.id) as NodeId }
     : { kind: "member", id: String(hit.object.userData.id) as MemberId };
 }
 
-function disposeSceneObject(object: THREE.Object3D): void {
-  if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.Points) {
-    object.geometry.dispose();
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
-    for (const material of materials) material.dispose();
-  }
-}
-
-export function SceneViewport({ nodes, members, materials, sections, selection, onSelect }: SceneViewportProps) {
+export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect }: SceneViewportProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
@@ -107,6 +107,8 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; host.appendChild(renderer.domElement);
     const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.minDistance = 2; controls.maxDistance = 70;
     applySceneFrame(camera, controls, []);
+    const updateCameraState = () => { host.dataset.cameraState = cameraState(camera, controls); };
+    controls.addEventListener("change", updateCameraState); updateCameraState();
 
     const grid = new THREE.GridHelper(30, 30, palette.gridMajor, palette.gridMinor); grid.rotation.x = Math.PI / 2;
     const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material];
@@ -116,7 +118,7 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
     const axesMaterial = axes.material as THREE.LineBasicMaterial; axesMaterial.transparent = true; axesMaterial.opacity = 0.72; scene.add(axes);
     const modelGroup = new THREE.Group(); modelGroup.name = "engineering-model"; scene.add(modelGroup);
     const model = new EngineeringSceneModel(modelGroup, palette, (text) => makeLabel(text, palette));
-    runtimeRef.current = { camera, controls, model, renderer, hasFramedModel: false };
+    runtimeRef.current = { camera, controls, model, renderer, projectId: null, hasFramedModel: false };
 
     const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
     const hitAtPointer = (event: PointerEvent): THREE.Intersection | undefined => {
@@ -158,19 +160,24 @@ export function SceneViewport({ nodes, members, materials, sections, selection, 
       renderer.domElement.removeEventListener("pointerup", finishPointer);
       renderer.domElement.removeEventListener("pointermove", hoverPointer);
       renderer.domElement.removeEventListener("pointerleave", clearHover);
-      controls.dispose(); model.dispose(); scene.traverse(disposeSceneObject); renderer.dispose(); renderer.domElement.remove();
+      controls.removeEventListener("change", updateCameraState); controls.dispose(); model.dispose(); disposeObjectTree(scene); renderer.dispose(); renderer.domElement.remove();
       if (runtimeRef.current?.renderer === renderer) runtimeRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     const runtime = runtimeRef.current; if (!runtime) return;
+    if (runtime.projectId !== projectId) {
+      runtime.projectId = projectId;
+      runtime.hasFramedModel = false;
+    }
     runtime.model.sync(nodes, members);
+    if (nodes.length === 0) runtime.hasFramedModel = false;
     if (!runtime.hasFramedModel && nodes.length > 0) {
       applySceneFrame(runtime.camera, runtime.controls, nodes);
       runtime.hasFramedModel = true;
     }
-  }, [nodes, members]);
+  }, [projectId, nodes, members]);
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
 

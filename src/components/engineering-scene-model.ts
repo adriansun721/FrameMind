@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import type { FrameMember, FrameNode, MemberId, NodeId } from "../domain/project";
+import { disposeObjectTree } from "./three-resources";
 
 export type EngineeringSceneSelection = { kind: "node"; id: NodeId } | { kind: "member"; id: MemberId } | null;
 
@@ -35,21 +36,6 @@ function sameSelection(left: EngineeringSceneSelection, right: EngineeringSceneS
   return left?.kind === right?.kind && left?.id === right?.id;
 }
 
-function disposeObject(root: THREE.Object3D): void {
-  root.traverse((object) => {
-    if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.Points) {
-      object.geometry.dispose();
-      const materials = Array.isArray(object.material) ? object.material : [object.material];
-      for (const material of materials) material.dispose();
-    }
-    if (object instanceof THREE.Sprite) {
-      object.material.map?.dispose();
-      object.material.dispose();
-    }
-  });
-  root.removeFromParent();
-}
-
 function placeCylinderBetween(mesh: THREE.Mesh, start: THREE.Vector3, end: THREE.Vector3): void {
   mesh.position.copy(start).add(end).multiplyScalar(0.5);
   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().sub(start).normalize());
@@ -57,8 +43,8 @@ function placeCylinderBetween(mesh: THREE.Mesh, start: THREE.Vector3, end: THREE
 
 export class EngineeringSceneModel {
   private readonly annotationGroup = new THREE.Group();
-  private readonly memberRecords = new Map<string, MemberRecord>();
-  private readonly nodeRecords = new Map<string, NodeRecord>();
+  private readonly memberRecords = new Map<MemberId, MemberRecord>();
+  private readonly nodeRecords = new Map<NodeId, NodeRecord>();
   private selection: EngineeringSceneSelection = null;
   private hover: EngineeringSceneSelection = null;
   private renderedAnnotationFingerprint = "";
@@ -74,14 +60,15 @@ export class EngineeringSceneModel {
 
   sync(nodes: FrameNode[], members: FrameMember[]): void {
     const nodesById = new Map(nodes.map((node) => [node.id, node]));
-    const currentNodeIds = new Set(nodes.map((node) => String(node.id)));
-    const currentMemberIds = new Set(members.map((member) => String(member.id)));
+    const membersById = new Map(members.map((member) => [member.id, member]));
+    const currentNodeIds = new Set(nodes.map((node) => node.id));
+    const currentMemberIds = new Set(members.map((member) => member.id));
 
     for (const [id, record] of this.nodeRecords) {
       if (!currentNodeIds.has(id)) this.removeNode(id, record);
     }
     for (const [id, record] of this.memberRecords) {
-      const member = members.find((candidate) => candidate.id === record.member.id);
+      const member = membersById.get(record.member.id);
       const valid = member && nodesById.has(member.startNodeId) && nodesById.has(member.endNodeId);
       if (!currentMemberIds.has(id) || !valid) this.removeMember(id, record);
     }
@@ -173,12 +160,12 @@ export class EngineeringSceneModel {
     return { fingerprint, display, hitTarget, member, start, end };
   }
 
-  private removeNode(id: string, record: NodeRecord): void {
-    disposeObject(record.display); disposeObject(record.hitTarget); this.nodeRecords.delete(id);
+  private removeNode(id: NodeId, record: NodeRecord): void {
+    disposeObjectTree(record.display); disposeObjectTree(record.hitTarget); this.nodeRecords.delete(id);
   }
 
-  private removeMember(id: string, record: MemberRecord): void {
-    disposeObject(record.display); disposeObject(record.hitTarget); this.memberRecords.delete(id);
+  private removeMember(id: MemberId, record: MemberRecord): void {
+    disposeObjectTree(record.display); disposeObjectTree(record.hitTarget); this.memberRecords.delete(id);
   }
 
   private applyInteractionState(): void {
@@ -240,6 +227,6 @@ export class EngineeringSceneModel {
   }
 
   private clearAnnotations(): void {
-    for (const child of [...this.annotationGroup.children]) disposeObject(child);
+    for (const child of [...this.annotationGroup.children]) disposeObjectTree(child);
   }
 }
