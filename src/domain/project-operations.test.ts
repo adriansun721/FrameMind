@@ -42,7 +42,7 @@ describe("T08 grouped project operations", () => {
     let project = frame();
     project = applyProjectTransaction(project, [
       (current) => ({ ...current, supports: [{ id: "support_0001" as never, label: "B1", nodeId: current.nodes[0].id, restraints: [true, true, true, true, true, true] }] }),
-      (current) => ({ ...current, nodalLoads: [{ id: "load_0001" as never, label: "L1", nodeId: current.nodes[0].id, force: { x: 1, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 } }] }),
+      (current) => ({ ...current, nodalLoads: [{ id: "load_0001" as never, label: "L1", nodeId: current.nodes[0].id, loadCaseId: "LC1", force: { x: 1, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 } }] }),
     ]);
     const deleted = deleteNode(project, project.nodes[0].id);
     expect(deleted.nodes).toHaveLength(1);

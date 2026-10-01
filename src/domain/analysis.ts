@@ -1,6 +1,7 @@
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
+import { DEFAULT_LOAD_CASE, requireLoadCase } from "./project";
 import type {
   DofRestraints,
   FrameMaterial,
@@ -12,6 +13,7 @@ import type {
   FrameSection,
   FrameSupport,
   FrameSelfWeight,
+  FrameLoadCase,
   Vector3,
 } from "./project";
 
@@ -43,6 +45,7 @@ export interface AnalysisInputSnapshot {
   dofOrder: readonly AnalysisDof[];
   assumptions: AnalysisAssumptions;
   solver?: AnalysisSolverConfig;
+  loadCase?: FrameLoadCase;
   nodes: FrameNode[];
   members: FrameMember[];
   materials: FrameMaterial[];
@@ -207,18 +210,32 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
   return input;
 }
 
-export function captureAnalysisInput(project: FrameProject): AnalysisInputSnapshot {
+export function captureAnalysisInput(project: FrameProject, loadCaseId = project.activeLoadCaseId): AnalysisInputSnapshot {
+  const loadCase = requireLoadCase(project, loadCaseId);
   return freezeAnalysisInput({
     projectId: project.id, projectRevision: project.revision, dofOrder: [...ANALYSIS_DOF_ORDER],
     solver: { ...ANALYSIS_SOLVER },
+    loadCase: { ...loadCase },
     assumptions: { theory: "3d-euler-bernoulli-frame", shearDeformation: "neglected", rigidJoints: true, units: "m-kN-kN·m", localAxis: "member-geometry" },
     nodes: project.nodes.map((node) => ({ ...node, position: { ...node.position } })),
     members: project.members.map((member) => ({ ...member })), materials: project.materials.map((material) => ({ ...material })), sections: project.sections.map((section) => ({ ...section })),
     supports: project.supports.map((support) => ({ ...support, restraints: [...support.restraints] as DofRestraints })),
-    nodalLoads: project.nodalLoads.map((load) => ({ ...load, force: { ...load.force }, moment: { ...load.moment } })),
-    uniformLoads: project.uniformLoads.map((load) => ({ ...load, intensity: { ...load.intensity } })),
-    selfWeight: project.selfWeight ? { ...project.selfWeight, gravity: { ...project.selfWeight.gravity } } : undefined,
+    nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId === loadCaseId).map((load) => ({ ...load, force: { ...load.force }, moment: { ...load.moment } })),
+    uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId === loadCaseId).map((load) => ({ ...load, intensity: { ...load.intensity } })),
+    selfWeight: project.selfWeight?.loadCaseId === loadCaseId ? { ...project.selfWeight, gravity: { ...project.selfWeight.gravity } } : { enabled: false, loadCaseId, gravity: { x: 0, y: 0, z: -9.81 } },
   });
+}
+
+export function getLoadCaseResult(project: FrameProject, id = project.activeLoadCaseId): AnalysisResult | undefined {
+  return project.analysisResults.find((result) => (result.input.loadCase?.id ?? DEFAULT_LOAD_CASE) === id);
+}
+
+export function isAnalysisResultCurrent(project: FrameProject, result: AnalysisResult): boolean {
+  const id = result.input.loadCase?.id ?? DEFAULT_LOAD_CASE;
+  if (result.projectId !== project.id || !project.loadCases.some((item) => item.id === id)) return false;
+  if (!result.input.loadCase) return result.projectRevision === project.revision - 1;
+  const comparable = (input: AnalysisInputSnapshot) => JSON.stringify({ ...input, projectRevision: 0 });
+  return comparable(captureAnalysisInput(project, id)) === comparable(result.input);
 }
 
 function requireAnalysisInput(project: FrameProject | AnalysisInputSnapshot): void {

@@ -6,6 +6,10 @@ import {
   validateSection,
   validateSelfWeight,
   DEFAULT_SELF_WEIGHT,
+  DEFAULT_LOAD_CASE,
+  DEFAULT_LOAD_CASES,
+  requireLoadCase,
+  type FrameLoadCase,
   validateUniformLoad,
   type FrameUniformLoad,
   type FrameMaterial,
@@ -135,7 +139,16 @@ function decodeNodalLoad(value: unknown): FrameNodalLoad {
     if (!isRecord(input) || ![input.x, input.y, input.z].every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))) throw new Error(`节点荷载 ${label} 的${name}无效`);
     return { x: input.x as number, y: input.y as number, z: input.z as number };
   };
-  return { id: id as LoadId, label, nodeId, force: decodeVector(value.force, "力"), moment: decodeVector(value.moment, "力矩") };
+  return { id: id as LoadId, label, nodeId, loadCaseId: value.loadCaseId === undefined ? DEFAULT_LOAD_CASE : requireString(value.loadCaseId, "节点荷载缺少所属工况"), force: decodeVector(value.force, "力"), moment: decodeVector(value.moment, "力矩") };
+}
+
+function decodeLoadCase(value: unknown): FrameLoadCase {
+  if (!isRecord(value)) throw new Error("项目包含无效工况");
+  const id = requireString(value.id, "工况缺少稳定标识");
+  if (!/^LC[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id.slice(2)))) throw new Error("工况标识无效");
+  const name = requireString(value.name, "工况名称不能为空").trim();
+  if (!name || typeof value.description !== "string") throw new Error("工况名称或说明无效");
+  return { id, name, description: value.description };
 }
 
 function decodeUniformLoad(value: unknown): FrameUniformLoad {
@@ -171,6 +184,9 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const inputNodeIds = new Set(inputNodes.map((node) => node.id)); const inputMaterialIds = new Set(inputMaterials.map((material) => material.id)); const inputSectionIds = new Set(inputSections.map((section) => section.id));
   const inputUniformLoads = decodeOptionalArray(input.uniformLoads, "分析输入均布荷载", decodeUniformLoad);
   const inputSelfWeight = decodeSelfWeight(input.selfWeight);
+  const loadCase = input.loadCase === undefined ? undefined : decodeLoadCase(input.loadCase);
+  const loadCaseId = loadCase?.id ?? DEFAULT_LOAD_CASE;
+  if ([...inputLoads, ...inputUniformLoads].some((load) => load.loadCaseId !== loadCaseId) || inputSelfWeight.loadCaseId !== loadCaseId) throw new Error("分析结果荷载与来源工况不一致");
   assertUnique(inputUniformLoads, "分析输入均布荷载"); assertUniqueLabels(inputUniformLoads, "分析输入均布荷载");
   for (const load of inputUniformLoads) if (!inputMembers.some((member) => member.id === load.memberId)) throw new Error("分析结果均布荷载引用无效");
   for (const member of inputMembers) if (!inputNodeIds.has(member.startNodeId) || !inputNodeIds.has(member.endNodeId) || !inputMaterialIds.has(member.materialId) || !inputSectionIds.has(member.sectionId)) throw new Error("分析结果杆件引用无效");
@@ -196,7 +212,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input: freezeAnalysisInput({ ...input, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight } as AnalysisResult["input"]), nodes, members };
+  return { id, projectId, projectRevision, createdAt, status: "complete", input: freezeAnalysisInput({ ...input, loadCase, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight } as AnalysisResult["input"]), nodes, members };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {
@@ -248,6 +264,12 @@ export function decodeProject(source: string): FrameProject {
   const nodalLoads = decodeOptionalArray(value.nodalLoads, "节点荷载", decodeNodalLoad);
   const uniformLoads = decodeOptionalArray(value.uniformLoads, "均布荷载", decodeUniformLoad);
   const selfWeight = decodeSelfWeight(value.selfWeight);
+  const loadCases = value.loadCases === undefined ? DEFAULT_LOAD_CASES.map((item) => ({ ...item })) : decodeOptionalArray(value.loadCases, "工况", decodeLoadCase);
+  assertUnique(loadCases, "工况");
+  if (!loadCases.length) throw new Error("至少保留一个荷载工况");
+  const activeLoadCaseId = value.activeLoadCaseId === undefined ? DEFAULT_LOAD_CASE : requireString(value.activeLoadCaseId, "当前工况无效");
+  const highestLoadCaseNumber = Math.max(...loadCases.map((item) => Number(item.id.slice(2))));
+  const nextLoadCaseNumber = decodeCounter(value.nextLoadCaseNumber, highestLoadCaseNumber + 1, "工况", highestLoadCaseNumber, true);
   assertUnique(uniformLoads, "均布荷载"); assertUniqueLabels(uniformLoads, "均布荷载");
   assertUnique(nodes, "节点"); assertUnique(materials, "材料"); assertUnique(sections, "截面"); assertUnique(members, "杆件"); assertUnique(supports, "支座"); assertUnique(nodalLoads, "节点荷载");
   assertUniqueLabels(nodes, "节点"); assertUniqueLabels(materials, "材料"); assertUniqueLabels(sections, "截面"); assertUniqueLabels(members, "杆件"); assertUniqueLabels(supports, "支座"); assertUniqueLabels(nodalLoads, "节点荷载");
@@ -262,6 +284,8 @@ export function decodeProject(source: string): FrameProject {
   const nextSupportNumber = decodeCounter(value.nextSupportNumber, 1, "支座", highestNumber(supports, /^support_(\d+)$/, /^B(\d+)$/), true);
   const nextLoadNumber = decodeCounter(value.nextLoadNumber, 1, "节点荷载", highestNumber(nodalLoads, /^load_(\d+)$/, /^L(\d+)$/), true);
   const latestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
+  const analysisResults = value.analysisResults === undefined ? (latestAnalysis ? [latestAnalysis] : []) : decodeOptionalArray(value.analysisResults, "工况结果", decodeAnalysisResult);
+  if (new Set(analysisResults.map((result) => result.input.loadCase?.id ?? DEFAULT_LOAD_CASE)).size !== analysisResults.length) throw new Error("工况结果来源重复");
   const nextUniformLoadNumber = decodeCounter(value.nextUniformLoadNumber, 1, "均布荷载", highestNumber(uniformLoads, /^uniform_load_(\d+)$/, /^Q(\d+)$/), true);
   const project: FrameProject = {
     format: PROJECT_FORMAT, formatVersion: PROJECT_FORMAT_VERSION,
@@ -269,10 +293,18 @@ export function decodeProject(source: string): FrameProject {
     name: requireString(value.name, "项目缺少名称"),
     createdAt: requireString(value.createdAt, "项目缺少创建时间"), updatedAt: requireString(value.updatedAt, "项目缺少更新时间"),
     revision: value.revision, units: { length: "m", force: "kN", moment: "kN·m" },
-    nodes, materials, sections, members, supports, nodalLoads, uniformLoads, selfWeight,
+    nodes, materials, sections, members, supports, nodalLoads, uniformLoads, selfWeight, loadCases, activeLoadCaseId, nextLoadCaseNumber, analysisResults,
     latestAnalysis,
     nextNodeNumber, nextMaterialNumber, nextSectionNumber, nextMemberNumber, nextSupportNumber, nextLoadNumber, nextUniformLoadNumber,
   };
+  requireLoadCase(project, activeLoadCaseId);
+  requireLoadCase(project, selfWeight.loadCaseId);
+  for (const load of [...nodalLoads, ...uniformLoads]) requireLoadCase(project, load.loadCaseId);
+  for (const result of analysisResults) {
+    requireLoadCase(project, result.input.loadCase?.id ?? DEFAULT_LOAD_CASE);
+    if (result.projectId !== project.id || result.projectRevision >= project.revision) throw new Error("工况结果项目标识或版本无效");
+  }
+  if (latestAnalysis) requireLoadCase(project, latestAnalysis.input.loadCase?.id ?? DEFAULT_LOAD_CASE);
   for (const member of members) validateMember(project, member.label, member);
   for (const load of uniformLoads) if (!members.some((member) => member.id === load.memberId)) throw new Error(`均布荷载 ${load.label} 引用了不存在的杆件 ${load.memberId}`);
   for (const support of supports) if (!nodes.some((node) => node.id === support.nodeId)) throw new Error(`支座 ${support.label} 引用了不存在的节点 ${support.nodeId}`);

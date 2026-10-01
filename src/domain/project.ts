@@ -29,8 +29,10 @@ export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; mate
 export interface FrameMember extends MemberProperties { id: MemberId; label: string; }
 export type DofRestraints = [boolean, boolean, boolean, boolean, boolean, boolean];
 export interface FrameSupport { id: SupportId; label: string; nodeId: NodeId; restraints: DofRestraints; }
-export interface FrameNodalLoad { id: LoadId; label: string; nodeId: NodeId; force: Vector3; moment: Vector3; }
+export interface FrameNodalLoad { id: LoadId; label: string; nodeId: NodeId; loadCaseId: string; force: Vector3; moment: Vector3; }
 export const DEFAULT_LOAD_CASE = "LC1";
+export interface FrameLoadCase { id: string; name: string; description: string; }
+export const DEFAULT_LOAD_CASES: readonly FrameLoadCase[] = [{ id: DEFAULT_LOAD_CASE, name: "默认工况", description: "" }];
 export interface UniformLoadProperties {
   kind: "uniform";
   memberId: MemberId;
@@ -64,6 +66,10 @@ export interface FrameProject {
   nodalLoads: FrameNodalLoad[];
   uniformLoads: FrameUniformLoad[];
   selfWeight: FrameSelfWeight;
+  loadCases: FrameLoadCase[];
+  activeLoadCaseId: string;
+  nextLoadCaseNumber: number;
+  analysisResults: AnalysisResult[];
   latestAnalysis?: AnalysisResult;
   nextNodeNumber: number;
   nextMaterialNumber: number;
@@ -154,6 +160,7 @@ export function createProject(name = "未命名项目"): FrameProject {
     createdAt: now, updatedAt: now, revision: 0,
     units: { length: "m", force: "kN", moment: "kN·m" },
     nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [], uniformLoads: [], selfWeight: { ...DEFAULT_SELF_WEIGHT, gravity: { ...DEFAULT_SELF_WEIGHT.gravity } },
+    loadCases: DEFAULT_LOAD_CASES.map((item) => ({ ...item })), activeLoadCaseId: DEFAULT_LOAD_CASE, nextLoadCaseNumber: 2, analysisResults: [],
     nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1, nextUniformLoadNumber: 1,
   };
 }
@@ -227,7 +234,7 @@ export function validateUniformLoad(input: UniformLoadProperties): UniformLoadPr
   const allowed = new Set(["id", "label", "kind", "memberId", "coordinateSystem", "loadCaseId", "intensity"]);
   if (!input || input.kind !== "uniform" || Object.keys(input).some((key) => !allowed.has(key))) throw new Error("仅支持整根杆件均布力，不支持中间集中、分段或非均匀荷载");
   if (input.coordinateSystem !== "global" && input.coordinateSystem !== "local") throw new Error("均布荷载坐标系必须为 global 或 local");
-  if (input.loadCaseId !== DEFAULT_LOAD_CASE) throw new Error("当前仅支持工况 LC1");
+  if (typeof input.loadCaseId !== "string" || !/^LC[1-9]\d*$/.test(input.loadCaseId)) throw new Error("荷载所属工况无效");
   if (!input.intensity || Object.keys(input.intensity).some((key) => !["x", "y", "z"].includes(key))) throw new Error("均布荷载必须是三个有限的力分量（kN/m）");
   if (![input.intensity.x, input.intensity.y, input.intensity.z].every(Number.isFinite)) throw new Error("均布荷载分量必须是有限数值（kN/m）");
   return { kind: "uniform", memberId: input.memberId, coordinateSystem: input.coordinateSystem, loadCaseId: input.loadCaseId, intensity: { ...input.intensity } };
@@ -235,7 +242,7 @@ export function validateUniformLoad(input: UniformLoadProperties): UniformLoadPr
 
 export function validateSelfWeight(input: SelfWeightProperties): SelfWeightProperties {
   if (!input || typeof input.enabled !== "boolean") throw new Error("自重启用状态无效");
-  if (input.loadCaseId !== DEFAULT_LOAD_CASE) throw new Error("当前自重仅支持工况 LC1");
+  if (typeof input.loadCaseId !== "string" || !/^LC[1-9]\d*$/.test(input.loadCaseId)) throw new Error("自重所属工况无效");
   if (!input.gravity || ![input.gravity.x, input.gravity.y, input.gravity.z].every(Number.isFinite)) throw new Error("重力加速度必须是有限数值（m/s²）");
   if (input.enabled && Math.hypot(input.gravity.x, input.gravity.y, input.gravity.z) <= 0) throw new Error("启用自重时重力加速度不能为零");
   return { enabled: input.enabled, loadCaseId: input.loadCaseId, gravity: { ...input.gravity } };
@@ -244,10 +251,12 @@ export function validateSelfWeight(input: SelfWeightProperties): SelfWeightPrope
 export const DEFAULT_SELF_WEIGHT: FrameSelfWeight = Object.freeze({ enabled: false, loadCaseId: DEFAULT_LOAD_CASE, gravity: Object.freeze({ x: 0, y: 0, z: -9.81 }) });
 
 export function updateSelfWeight(project: FrameProject, input: SelfWeightProperties): FrameProject {
+  requireLoadCase(project, input.loadCaseId);
   return { ...project, selfWeight: validateSelfWeight(input), ...nextRevision(project) };
 }
 
 export function addUniformLoad(project: FrameProject, input: UniformLoadProperties): FrameProject {
+  requireLoadCase(project, input.loadCaseId);
   const properties = validateUniformLoad(input);
   if (!project.members.some((member) => member.id === properties.memberId)) throw new Error("均布荷载引用了不存在的杆件");
   assertCounter(project.nextUniformLoadNumber);
@@ -257,6 +266,7 @@ export function addUniformLoad(project: FrameProject, input: UniformLoadProperti
 }
 
 export function updateUniformLoad(project: FrameProject, id: LoadId, input: UniformLoadProperties): FrameProject {
+  requireLoadCase(project, input.loadCaseId);
   const current = project.uniformLoads.find((load) => load.id === id);
   if (!current) throw new Error(`均布荷载 ${id} 不存在`);
   const properties = validateUniformLoad(input);
@@ -286,17 +296,19 @@ export function updateSupport(project: FrameProject, id: SupportId, nodeId: Node
   return { ...project, supports: project.supports.map((support) => support.id === id ? { ...support, nodeId, restraints: [...restraints] as DofRestraints } : support), ...nextRevision(project) };
 }
 
-export function addNodalLoad(project: FrameProject, nodeId: NodeId, force: Vector3, moment: Vector3): FrameProject {
+export function addNodalLoad(project: FrameProject, nodeId: NodeId, force: Vector3, moment: Vector3, loadCaseId = project.activeLoadCaseId): FrameProject {
+  requireLoadCase(project, loadCaseId);
   requireProjectNode(project, nodeId, "节点荷载"); assertFiniteVector(force); assertFiniteVector(moment); assertCounter(project.nextLoadNumber);
   const number = project.nextLoadNumber;
-  const load: FrameNodalLoad = { id: `load_${String(number).padStart(4, "0")}` as LoadId, label: `L${number}`, nodeId, force: { ...force }, moment: { ...moment } };
+  const load: FrameNodalLoad = { id: `load_${String(number).padStart(4, "0")}` as LoadId, label: `L${number}`, nodeId, loadCaseId, force: { ...force }, moment: { ...moment } };
   return { ...project, nodalLoads: [...project.nodalLoads, load], nextLoadNumber: number + 1, ...nextRevision(project) };
 }
 
-export function updateNodalLoad(project: FrameProject, id: LoadId, nodeId: NodeId, force: Vector3, moment: Vector3): FrameProject {
+export function updateNodalLoad(project: FrameProject, id: LoadId, nodeId: NodeId, force: Vector3, moment: Vector3, loadCaseId?: string): FrameProject {
   const current = project.nodalLoads.find((load) => load.id === id); if (!current) throw new Error(`节点荷载 ${id} 不存在`);
+  requireLoadCase(project, loadCaseId ?? current.loadCaseId);
   requireProjectNode(project, nodeId, current.label); assertFiniteVector(force); assertFiniteVector(moment);
-  return { ...project, nodalLoads: project.nodalLoads.map((load) => load.id === id ? { ...load, nodeId, force: { ...force }, moment: { ...moment } } : load), ...nextRevision(project) };
+  return { ...project, nodalLoads: project.nodalLoads.map((load) => load.id === id ? { ...load, nodeId, loadCaseId: loadCaseId ?? current.loadCaseId, force: { ...force }, moment: { ...moment } } : load), ...nextRevision(project) };
 }
 
 export function deleteMaterial(project: FrameProject, id: MaterialId): FrameProject {
@@ -325,5 +337,48 @@ export function deleteNodalLoad(project: FrameProject, id: LoadId): FrameProject
 
 export function attachAnalysisResult(project: FrameProject, result: AnalysisResult): FrameProject {
   if (result.projectId !== project.id || result.projectRevision !== project.revision) throw new Error("分析结果不属于当前模型版本");
-  return { ...project, latestAnalysis: result, ...nextRevision(project) };
+  const loadCaseId = result.input.loadCase?.id ?? DEFAULT_LOAD_CASE;
+  requireLoadCase(project, loadCaseId);
+  return { ...project, latestAnalysis: result, analysisResults: [...project.analysisResults.filter((item) => (item.input.loadCase?.id ?? DEFAULT_LOAD_CASE) !== loadCaseId), result], ...nextRevision(project) };
+}
+
+export function requireLoadCase(project: Pick<FrameProject, "loadCases">, id: string): FrameLoadCase {
+  const item = project.loadCases.find((item) => item.id === id);
+  if (!item) throw new Error(`工况 ${id} 不存在`);
+  return item;
+}
+
+export function addLoadCase(project: FrameProject, name: string, description = ""): FrameProject {
+  assertCounter(project.nextLoadCaseNumber);
+  const id = `LC${project.nextLoadCaseNumber}`;
+  const item = { id, name: cleanName(name, "工况名称不能为空"), description: description.trim() };
+  return { ...project, loadCases: [...project.loadCases, item], nextLoadCaseNumber: project.nextLoadCaseNumber + 1, ...nextRevision(project) };
+}
+
+export function updateLoadCase(project: FrameProject, id: string, name: string, description: string): FrameProject {
+  requireLoadCase(project, id);
+  const item = { id, name: cleanName(name, "工况名称不能为空"), description: description.trim() };
+  return { ...project, loadCases: project.loadCases.map((current) => current.id === id ? item : current), ...nextRevision(project) };
+}
+
+export function selectLoadCase(project: FrameProject, id: string): FrameProject {
+  requireLoadCase(project, id);
+  return { ...project, activeLoadCaseId: id };
+}
+
+export function getLoadCaseReferences(project: FrameProject, id: string): { loads: number; results: number } {
+  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => (result.input.loadCase?.id ?? DEFAULT_LOAD_CASE) === id).length };
+}
+
+export function deleteLoadCase(project: FrameProject, id: string, removeReferences = false): FrameProject {
+  requireLoadCase(project, id);
+  if (project.loadCases.length === 1) throw new Error("至少保留一个荷载工况");
+  const refs = getLoadCaseReferences(project, id);
+  if ((refs.loads || refs.results) && !removeReferences) throw new Error(`工况 ${id} 仍被 ${refs.loads} 条荷载、${refs.results} 份结果引用，请先处理引用`);
+  const loadCases = project.loadCases.filter((item) => item.id !== id);
+  const activeLoadCaseId = project.activeLoadCaseId === id ? loadCases[0].id : project.activeLoadCaseId;
+  const selfWeight = project.selfWeight.loadCaseId === id ? { ...project.selfWeight, enabled: false, loadCaseId: loadCases[0].id } : project.selfWeight;
+  const analysisResults = project.analysisResults.filter((result) => (result.input.loadCase?.id ?? DEFAULT_LOAD_CASE) !== id);
+  const latestAnalysis = (project.latestAnalysis?.input.loadCase?.id ?? DEFAULT_LOAD_CASE) === id ? analysisResults.at(-1) : project.latestAnalysis;
+  return { ...project, loadCases, activeLoadCaseId, selfWeight, analysisResults, latestAnalysis, nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId !== id), uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId !== id), ...nextRevision(project) };
 }

@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Send, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Send, Settings2, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
+import { LoadCaseManager } from "./components/LoadCaseManager";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
-  addUniformLoad, updateUniformLoad, deleteUniformLoad, updateSelfWeight, DEFAULT_LOAD_CASE,
+  addUniformLoad, updateUniformLoad, deleteUniformLoad, updateSelfWeight, DEFAULT_LOAD_CASE, selectLoadCase,
   type DofRestraints, type FrameProject, type MaterialId, type MemberId, type NodeId, type SectionId,
 } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
-import { captureAnalysisInput, getSelfWeightSummary, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, getSelfWeightSummary, getLoadCaseResult, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
@@ -22,15 +23,15 @@ type Selection = AnalysisTarget | null;
 interface StatusMessage { tone: StatusTone; text: string; }
 interface MaterialDraft { name: string; elasticModulusGPa: string; poissonRatio: string; densityKgM3: string; }
 interface SectionDraft { name: string; areaM2: string; secondMomentYM4: string; secondMomentZM4: string; torsionalConstantM4: string; }
-interface LoadDraft { nodeId: string; fx: string; fy: string; fz: string; mx: string; my: string; mz: string; }
-interface UniformDraft { memberId: string; coordinateSystem: "global" | "local"; qx: string; qy: string; qz: string; }
-interface SelfWeightDraft { enabled: boolean; gx: string; gy: string; gz: string; }
-const defaultUniform: UniformDraft = { memberId: "", coordinateSystem: "global", qx: "0", qy: "0", qz: "0" };
-const defaultSelfWeight: SelfWeightDraft = { enabled: false, gx: "0", gy: "0", gz: "-9.81" };
+interface LoadDraft { nodeId: string; loadCaseId: string; fx: string; fy: string; fz: string; mx: string; my: string; mz: string; }
+interface UniformDraft { memberId: string; loadCaseId: string; coordinateSystem: "global" | "local"; qx: string; qy: string; qz: string; }
+interface SelfWeightDraft { enabled: boolean; loadCaseId: string; gx: string; gy: string; gz: string; }
+const defaultUniform: UniformDraft = { memberId: "", loadCaseId: DEFAULT_LOAD_CASE, coordinateSystem: "global", qx: "0", qy: "0", qz: "0" };
+const defaultSelfWeight: SelfWeightDraft = { enabled: false, loadCaseId: DEFAULT_LOAD_CASE, gx: "0", gy: "0", gz: "-9.81" };
 
 const defaultMaterial: MaterialDraft = { name: "Q355", elasticModulusGPa: "206", poissonRatio: "0.3", densityKgM3: "7850" };
 const defaultSection: SectionDraft = { name: "箱形截面", areaM2: "0.01", secondMomentYM4: "0.0001", secondMomentZM4: "0.0001", torsionalConstantM4: "0.00015" };
-const defaultLoad: LoadDraft = { nodeId: "", fx: "0", fy: "0", fz: "0", mx: "0", my: "0", mz: "0" };
+const defaultLoad: LoadDraft = { nodeId: "", loadCaseId: DEFAULT_LOAD_CASE, fx: "0", fy: "0", fz: "0", mx: "0", my: "0", mz: "0" };
 const parseNumber = (value: string, label: string) => {
   if (!value.trim()) throw new Error(`${label}不能为空`);
   const parsed = Number(value);
@@ -78,6 +79,7 @@ export function App() {
   const [uniformDialogOpen, setUniformDialogOpen] = useState(false);
   const [selfWeightDraft, setSelfWeightDraft] = useState<SelfWeightDraft>(defaultSelfWeight);
   const [selfWeightDialogOpen, setSelfWeightDialogOpen] = useState(false);
+  const [loadCaseManagerOpen, setLoadCaseManagerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
@@ -85,6 +87,11 @@ export function App() {
   const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
   const dirty = savedProjectContent === null ? project.revision !== savedRevision : encodeProject(project) !== savedProjectContent;
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
+  const activeCase = project.loadCases.find((item) => item.id === project.activeLoadCaseId)!;
+  const caseLoads = useMemo(() => project.nodalLoads.filter((load) => load.loadCaseId === activeCase.id), [project.nodalLoads, activeCase.id]);
+  const caseUniformLoads = useMemo(() => project.uniformLoads.filter((load) => load.loadCaseId === activeCase.id), [project.uniformLoads, activeCase.id]);
+  const caseSelfWeightEnabled = project.selfWeight.enabled && project.selfWeight.loadCaseId === activeCase.id;
+  const caseResult = getLoadCaseResult(project);
 
   const selectedNode = selection?.kind === "node" ? project.nodes.find((item) => item.id === selection.id) ?? null : null;
   const selectedMember = selection?.kind === "member" ? project.members.find((item) => item.id === selection.id) ?? null : null;
@@ -105,7 +112,7 @@ export function App() {
     if (historyMode === "reset") projectHistoryRef.current.reset();
     if (historyMode === "record") projectHistoryRef.current.record(previous, next);
     setHistoryVersion((value) => value + 1);
-    if (newSession) {
+    if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId) {
       activeSessionRef.current += 1;
       setAnalysisFailure(null);
       const activeAnalysis = analysisTaskRef.current;
@@ -134,16 +141,16 @@ export function App() {
     if (next.kind === "material") { const item = project.materials.find((material) => material.id === next.id); if (item) setMaterialDraft({ name: item.name, elasticModulusGPa: String(item.elasticModulusGPa), poissonRatio: String(item.poissonRatio), densityKgM3: String(item.densityKgM3) }); }
     if (next.kind === "section") { const item = project.sections.find((section) => section.id === next.id); if (item) setSectionDraft({ name: item.name, areaM2: String(item.areaM2), secondMomentYM4: String(item.secondMomentYM4), secondMomentZM4: String(item.secondMomentZM4), torsionalConstantM4: String(item.torsionalConstantM4) }); }
     if (next.kind === "support") { const item = project.supports.find((support) => support.id === next.id); if (item) { setSupportNodeId(item.nodeId); setSupportRestraints([...item.restraints]); } }
-    if (next.kind === "load") { const item = project.nodalLoads.find((load) => load.id === next.id); if (item) setLoadDraft({ nodeId: item.nodeId, fx: String(item.force.x), fy: String(item.force.y), fz: String(item.force.z), mx: String(item.moment.x), my: String(item.moment.y), mz: String(item.moment.z) }); }
-    if (next.kind === "uniform-load") { const item = project.uniformLoads.find((load) => load.id === next.id); if (item) setUniformDraft({ memberId: item.memberId, coordinateSystem: item.coordinateSystem, qx: String(item.intensity.x), qy: String(item.intensity.y), qz: String(item.intensity.z) }); }
+    if (next.kind === "load") { const item = project.nodalLoads.find((load) => load.id === next.id); if (item) setLoadDraft({ nodeId: item.nodeId, loadCaseId: item.loadCaseId, fx: String(item.force.x), fy: String(item.force.y), fz: String(item.force.z), mx: String(item.moment.x), my: String(item.moment.y), mz: String(item.moment.z) }); }
+    if (next.kind === "uniform-load") { const item = project.uniformLoads.find((load) => load.id === next.id); if (item) setUniformDraft({ memberId: item.memberId, loadCaseId: item.loadCaseId, coordinateSystem: item.coordinateSystem, qx: String(item.intensity.x), qy: String(item.intensity.y), qz: String(item.intensity.z) }); }
   };
 
   const submitUniform = (event: React.FormEvent, editing: boolean) => {
     event.preventDefault();
     try {
-      const properties = { kind: "uniform" as const, memberId: uniformDraft.memberId as MemberId, coordinateSystem: uniformDraft.coordinateSystem, loadCaseId: DEFAULT_LOAD_CASE, intensity: { x: parseNumber(uniformDraft.qx, "qx"), y: parseNumber(uniformDraft.qy, "qy"), z: parseNumber(uniformDraft.qz, "qz") } };
+      const properties = { kind: "uniform" as const, memberId: uniformDraft.memberId as MemberId, coordinateSystem: uniformDraft.coordinateSystem, loadCaseId: uniformDraft.loadCaseId, intensity: { x: parseNumber(uniformDraft.qx, "qx"), y: parseNumber(uniformDraft.qy, "qy"), z: parseNumber(uniformDraft.qz, "qz") } };
       const updated = editing && selectedUniform ? updateUniformLoad(project, selectedUniform.id, properties) : addUniformLoad(project, properties);
-      activateProject(updated, false);
+      activateProject(selectLoadCase(updated, properties.loadCaseId), false);
       if (!editing) setSelection({ kind: "uniform-load", id: updated.uniformLoads.at(-1)!.id });
       setUniformDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: editing ? "已更新均布荷载" : "已创建均布荷载" });
     } catch (error) { setFormError(error instanceof Error ? error.message : "均布荷载提交失败"); }
@@ -186,8 +193,8 @@ export function App() {
     setNewMemberDraft({ startNodeId: project.nodes[0]?.id ?? "", endNodeId: project.nodes[1]?.id ?? project.nodes[0]?.id ?? "", materialId: project.materials[0]?.id ?? "", sectionId: project.sections[0]?.id ?? "", rotationDegrees: "0" }); setFormError(null); setMemberDialogOpen(true);
   };
   const openSupportDialog = () => { setSupportNodeId(project.nodes[0]?.id ?? ""); setSupportRestraints([true, true, true, true, true, true]); setFormError(null); setSupportDialogOpen(true); };
-  const openLoadDialog = () => { setLoadDraft({ ...defaultLoad, nodeId: project.nodes.at(-1)?.id ?? project.nodes[0]?.id ?? "" }); setFormError(null); setLoadDialogOpen(true); };
-  const openSelfWeightDialog = () => { setSelfWeightDraft({ enabled: project.selfWeight.enabled, gx: String(project.selfWeight.gravity.x), gy: String(project.selfWeight.gravity.y), gz: String(project.selfWeight.gravity.z) }); setFormError(null); setSelfWeightDialogOpen(true); };
+  const openLoadDialog = () => { setLoadDraft({ ...defaultLoad, loadCaseId: activeCase.id, nodeId: project.nodes.at(-1)?.id ?? project.nodes[0]?.id ?? "" }); setFormError(null); setLoadDialogOpen(true); };
+  const openSelfWeightDialog = () => { setSelfWeightDraft({ enabled: project.selfWeight.enabled, loadCaseId: project.selfWeight.loadCaseId, gx: String(project.selfWeight.gravity.x), gy: String(project.selfWeight.gravity.y), gz: String(project.selfWeight.gravity.z) }); setFormError(null); setSelfWeightDialogOpen(true); };
   const openNodeDialog = () => { setNewNodeDraft({ x: "0", y: "0", z: "0" }); setFormError(null); setNodeDialogOpen(true); };
   const submitMember = (event: React.FormEvent) => {
     event.preventDefault();
@@ -205,15 +212,15 @@ export function App() {
     event.preventDefault();
     try {
       const vector = (x: string, y: string, z: string, name: string) => ({ x: parseNumber(x, `${name} X`), y: parseNumber(y, `${name} Y`), z: parseNumber(z, `${name} Z`) });
-      const updated = addNodalLoad(project, loadDraft.nodeId as NodeId, vector(loadDraft.fx, loadDraft.fy, loadDraft.fz, "节点力"), vector(loadDraft.mx, loadDraft.my, loadDraft.mz, "节点力矩"));
-      activateProject(updated, false); setSelection({ kind: "load", id: updated.nodalLoads.at(-1)!.id }); setLoadDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建节点荷载 ${updated.nodalLoads.at(-1)!.label}` });
+      const updated = addNodalLoad(project, loadDraft.nodeId as NodeId, vector(loadDraft.fx, loadDraft.fy, loadDraft.fz, "节点力"), vector(loadDraft.mx, loadDraft.my, loadDraft.mz, "节点力矩"), loadDraft.loadCaseId);
+      activateProject(selectLoadCase(updated, loadDraft.loadCaseId), false); setSelection({ kind: "load", id: updated.nodalLoads.at(-1)!.id }); setLoadDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建节点荷载 ${updated.nodalLoads.at(-1)!.label}` });
     } catch (error) { setFormError(error instanceof Error ? error.message : "创建节点荷载失败"); }
   };
   const submitSelfWeight = (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const updated = updateSelfWeight(project, { enabled: selfWeightDraft.enabled, loadCaseId: DEFAULT_LOAD_CASE, gravity: { x: parseNumber(selfWeightDraft.gx, "重力 X"), y: parseNumber(selfWeightDraft.gy, "重力 Y"), z: parseNumber(selfWeightDraft.gz, "重力 Z") } });
-      activateProject(updated, false); setSelfWeightDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: updated.selfWeight.enabled ? "已启用结构自重 · LC1" : "已关闭结构自重" });
+      const updated = updateSelfWeight(project, { enabled: selfWeightDraft.enabled, loadCaseId: selfWeightDraft.loadCaseId, gravity: { x: parseNumber(selfWeightDraft.gx, "重力 X"), y: parseNumber(selfWeightDraft.gy, "重力 Y"), z: parseNumber(selfWeightDraft.gz, "重力 Z") } });
+      activateProject(selectLoadCase(updated, selfWeightDraft.loadCaseId), false); setSelection(null); setSelfWeightDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: updated.selfWeight.enabled ? `已启用结构自重 · ${selfWeightDraft.loadCaseId}` : "已关闭结构自重" });
     } catch (error) { setFormError(error instanceof Error ? error.message : "保存自重设置失败"); }
   };
   const cancelAnalysis = () => {
@@ -269,7 +276,7 @@ export function App() {
   const saveLoadEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedLoad) return; try {
     const force = { x: parseNumber(loadDraft.fx, "FX"), y: parseNumber(loadDraft.fy, "FY"), z: parseNumber(loadDraft.fz, "FZ") };
     const moment = { x: parseNumber(loadDraft.mx, "MX"), y: parseNumber(loadDraft.my, "MY"), z: parseNumber(loadDraft.mz, "MZ") };
-    activateProject(updateNodalLoad(project, selectedLoad.id, loadDraft.nodeId as NodeId, force, moment), false); setStatus({ tone: "success", text: `已更新荷载 ${selectedLoad.label}` }); setFormError(null);
+    activateProject(selectLoadCase(updateNodalLoad(project, selectedLoad.id, loadDraft.nodeId as NodeId, force, moment, loadDraft.loadCaseId), loadDraft.loadCaseId), false); setStatus({ tone: "success", text: `已更新荷载 ${selectedLoad.label}` }); setFormError(null);
   } catch (error) { setFormError(error instanceof Error ? error.message : "更新荷载失败"); } };
 
   const toggleMultiSelection = (kind: "node" | "member", id: string) => {
@@ -374,8 +381,8 @@ export function App() {
         <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="基础工具栏占位；使用设置支座打开 T03 支座输入"><Anchor size={15} />支座</button>
         <button className="tool-button" aria-label="设置支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />设置支座</button>
         <button className="tool-button" aria-label="创建荷载" title="创建节点集中力和力矩" onClick={openLoadDialog}><Plus size={15} />荷载</button>
-        <button className="tool-button" aria-label="创建均布荷载" title="整根杆件均布力 · kN/m" disabled={project.members.length === 0} onClick={() => { setUniformDraft({ ...defaultUniform, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}><ArrowDownToLine size={15} />均布荷载</button>
-        <button className={`tool-button ${project.selfWeight.enabled ? "active" : ""}`} aria-label="设置自重" aria-pressed={project.selfWeight.enabled} title="设置结构自重 · LC1" onClick={openSelfWeightDialog}><Weight size={15} />自重</button>
+        <button className="tool-button" aria-label="创建均布荷载" title="整根杆件均布力 · kN/m" disabled={project.members.length === 0} onClick={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}><ArrowDownToLine size={15} />均布荷载</button>
+        <button className={`tool-button ${caseSelfWeightEnabled ? "active" : ""}`} aria-label="设置自重" aria-pressed={caseSelfWeightEnabled} title={`设置结构自重 · ${project.selfWeight.loadCaseId}`} onClick={openSelfWeightDialog}><Weight size={15} />自重</button>
         {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={runAnalysis}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
         <button className={`tool-button icon-only ${dataTableOpen ? "active" : ""}`} aria-label="数据表" aria-pressed={dataTableOpen} title="数据表" onClick={() => setDataTableOpen((open) => !open)}><Table2 size={15} /></button>
@@ -390,6 +397,7 @@ export function App() {
       </nav>
       <aside id="resource-panel" className="project-panel" aria-label="项目与属性" hidden={!resourcePanelOpen}>
         <section className="sidebar-pane project-tree-pane" aria-label="项目树"><div className="panel-heading"><span>项目</span><button className="icon-button" title="添加节点" onClick={openNodeDialog}><Plus size={16} /></button></div>
+          <div className="load-case-selector"><label><span>当前工况</span><select aria-label="当前工况" value={activeCase.id} onChange={(event) => { activateProject(selectLoadCase(project, event.target.value), false); setSelection(null); setFormError(null); setStatus({ tone: "neutral", text: `当前工况 · ${event.target.value}` }); }}>{project.loadCases.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理工况" title="管理荷载工况" onClick={() => setLoadCaseManagerOpen(true)}><Settings2 size={15} /></button></div>
           <div className="project-tree"><div className="tree-root"><ChevronDown size={14} /><Box size={15} /><span>{project.name}</span></div>
           <TreeGroup label="节点" count={project.nodes.length} icon={<CircleDot size={14} />}>
             {project.nodes.map((node) => <button className={`tree-item ${selection?.kind === "node" && selection.id === node.id ? "selected" : ""}`} key={node.id} onClick={() => selectObject({ kind: "node", id: node.id })}><span className="node-glyph" /><span>{node.label}</span><small>{node.position.x}, {node.position.y}, {node.position.z}</small></button>)}
@@ -407,18 +415,18 @@ export function App() {
             {project.supports.map((support) => <button className={`tree-item resource ${selection?.kind === "support" && selection.id === support.id ? "selected" : ""}`} key={support.id} onClick={() => selectObject({ kind: "support", id: support.id })}><span className="material-glyph" /><span>{support.label} · {project.nodes.find((node) => node.id === support.nodeId)?.label ?? support.nodeId}</span></button>)}
             {project.supports.length === 0 && <p className="tree-empty">暂无支座</p>}
           </TreeGroup>
-          <TreeGroup label="节点荷载" count={project.nodalLoads.length} icon={<Plus size={14} />}>
-            {project.nodalLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "load", id: load.id })}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
-            {project.nodalLoads.length === 0 && <p className="tree-empty">暂无节点荷载</p>}
+          <TreeGroup label={`节点荷载 · ${activeCase.id}`} count={caseLoads.length} icon={<Plus size={14} />}>
+            {caseLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "load", id: load.id })}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
+            {caseLoads.length === 0 && <p className="tree-empty">暂无节点荷载</p>}
           </TreeGroup>
-          <TreeGroup label="杆件均布荷载 · LC1" count={project.uniformLoads.length} icon={<ArrowDownToLine size={14} />}>
-            {project.uniformLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "uniform-load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "uniform-load", id: load.id })}><ArrowDownToLine size={14} /><span>{load.label} · {project.members.find((member) => member.id === load.memberId)?.label}</span></button>)}
-            {project.uniformLoads.length === 0 && <p className="tree-empty">暂无均布荷载</p>}
+          <TreeGroup label={`杆件均布荷载 · ${activeCase.id}`} count={caseUniformLoads.length} icon={<ArrowDownToLine size={14} />}>
+            {caseUniformLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "uniform-load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "uniform-load", id: load.id })}><ArrowDownToLine size={14} /><span>{load.label} · {project.members.find((member) => member.id === load.memberId)?.label}</span></button>)}
+            {caseUniformLoads.length === 0 && <p className="tree-empty">暂无均布荷载</p>}
           </TreeGroup>
-          <TreeGroup label="结构自重 · LC1" count={project.selfWeight.enabled ? 1 : 0} icon={<Weight size={14} />}>
-            <button className="tree-item resource" aria-label="结构自重 LC1" onClick={openSelfWeightDialog}><Weight size={14} /><span>{project.selfWeight.enabled ? "已启用 · g" : "未启用"}</span><small>{vectorText(project.selfWeight.gravity)} m/s²</small></button>
+          <TreeGroup label={`结构自重 · ${activeCase.id}`} count={caseSelfWeightEnabled ? 1 : 0} icon={<Weight size={14} />}>
+            <button className="tree-item resource case-self-weight" aria-label={`结构自重 ${activeCase.id}`} onClick={openSelfWeightDialog}><Weight size={14} /><span>{caseSelfWeightEnabled ? "已启用 · g" : "未启用"}</span><small>{project.selfWeight.loadCaseId === activeCase.id ? `${vectorText(project.selfWeight.gravity)} m/s²` : `归属 ${project.selfWeight.loadCaseId}`}</small></button>
           </TreeGroup>
-          <button className={`tree-item ${project.latestAnalysis && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!project.latestAnalysis} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果</span><small>{project.latestAnalysis?.nodes.length ?? 0}</small></button>
+          <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果 · {activeCase.id}</span><small>{caseResult ? isAnalysisResultCurrent(project, caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
           <div className="tree-muted"><span className="chevron-placeholder">›</span><Layers3 size={14} /><span>报告</span><em>0</em></div>
           </div>
         </section>
@@ -442,11 +450,12 @@ export function App() {
           </form></Inspector>}
           {selectedLoad && <Inspector title="节点集中荷载" label={selectedLoad.label} icon={<Plus size={15} />}><Identity id={selectedLoad.id} label={selectedLoad.label} /><form className="property-form" onSubmit={saveLoadEdit}>
             <SelectField label="加载节点" value={loadDraft.nodeId} onChange={(nodeId) => setLoadDraft({ ...loadDraft, nodeId })} options={project.nodes.map((node) => ({ value: node.id, label: node.label }))} />
+            <LoadCaseField project={project} value={loadDraft.loadCaseId} onChange={(loadCaseId) => setLoadDraft({ ...loadDraft, loadCaseId })} />
             <LoadFields draft={loadDraft} onChange={setLoadDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存荷载属性</button>
           </form></Inspector>}
-          {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />}><Identity id={selectedUniform.id} label={selectedUniform.label} /><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>LC1</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q (kN/m)</dt><dd title={vectorText(selectedUniform.intensity)}>{vectorText(selectedUniform.intensity)}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
-          {project.latestAnalysis && !selection && <AnalysisResultPanel result={project.latestAnalysis} project={project} />}
-          {!selection && !project.latestAnalysis && <div className="inspector-empty"><strong>未选择对象</strong><p>从项目树或三维视图选择对象以编辑属性。</p></div>}
+          {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />}><Identity id={selectedUniform.id} label={selectedUniform.label} /><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>{selectedUniform.loadCaseId}</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q (kN/m)</dt><dd title={vectorText(selectedUniform.intensity)}>{vectorText(selectedUniform.intensity)}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
+          {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} />}
+          {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </section>
       </aside>
 
@@ -463,7 +472,7 @@ export function App() {
             </li>;
           })}</ul>
         </section>}
-        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} uniformLoads={project.uniformLoads} selectedUniformLoadId={selectedUniform?.id} onSelectUniformLoad={(id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} uniformLoads={caseUniformLoads} sourceLabel={`${activeCase.id} · ${activeCase.name} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={selectedUniform?.id} onSelectUniformLoad={(id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
@@ -486,20 +495,22 @@ export function App() {
     {memberDialogOpen && <Dialog title="连接空间杆件" copy="选择两个不同位置的节点，并指定材料、截面和绕局部 x 轴的截面转角。" onClose={() => { setMemberDialogOpen(false); setFormError(null); }}><form onSubmit={submitMember}><div className="form-grid"><SelectField label="起点节点" value={newMemberDraft.startNodeId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={newMemberDraft.endNodeId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={newMemberDraft.materialId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={newMemberDraft.sectionId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={newMemberDraft.rotationDegrees} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, rotationDegrees: value })} unit="°" /></div><FormFeedback error={formError} /><DialogActions close={() => { setMemberDialogOpen(false); setFormError(null); }} submit="添加杆件" /></form></Dialog>}
     {batchDialog && <Dialog title={batchDialog === "node" ? "批量移动节点" : "批量修改杆件"} copy={batchDialog === "node" ? `将一次移动 ${selectedNodeIds.size} 个节点，任一校验失败则全部不提交。` : `将一次设置 ${selectedMemberIds.size} 个杆件的截面转角，任一校验失败则全部不提交。`} onClose={() => { setBatchDialog(null); setFormError(null); }}><form onSubmit={submitBatchEdit}>{batchDialog === "node" ? <div className="coordinate-inputs"><NumberField label="X 偏移" value={batchDraft.x} onChange={(value) => setBatchDraft({ ...batchDraft, x: value })} unit="m" /><NumberField label="Y 偏移" value={batchDraft.y} onChange={(value) => setBatchDraft({ ...batchDraft, y: value })} unit="m" /><NumberField label="Z 偏移" value={batchDraft.z} onChange={(value) => setBatchDraft({ ...batchDraft, z: value })} unit="m" /></div> : <NumberField label="统一截面转角" value={batchDraft.rotationDegrees} onChange={(value) => setBatchDraft({ ...batchDraft, rotationDegrees: value })} unit="°" />}<FormFeedback error={formError} /><DialogActions close={() => { setBatchDialog(null); setFormError(null); }} submit="应用批量修改" /></form></Dialog>}
     {supportDialogOpen && <Dialog title="创建节点支座" copy="支座独立约束节点的六个自由度。固定支座默认约束平移与转动全部分量。" onClose={() => { setSupportDialogOpen(false); selectObject(selection); }}><form onSubmit={submitSupport}><SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><DialogActions close={() => { setSupportDialogOpen(false); selectObject(selection); }} submit="添加支座" /></form></Dialog>}
-    {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="输入全局坐标系下的节点力（kN）和节点力矩（kN·m）；零值分量仍会保留在输入记录中。" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
-    {uniformDialogOpen && <Dialog title="创建杆件均布荷载" copy="整根杆件 · 工况 LC1 · kN/m" onClose={() => { setUniformDialogOpen(false); selectObject(selection); }}><form onSubmit={(event) => submitUniform(event, false)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><DialogActions close={() => { setUniformDialogOpen(false); selectObject(selection); }} submit="添加均布荷载" /></form></Dialog>}
-    {selfWeightDialogOpen && <Dialog title="设置结构自重" copy="自重按材料密度 ρ、截面面积 A 和重力加速度 g 逐杆计算，归属工况 LC1；重力单位为 m/s²。" onClose={() => { setSelfWeightDialogOpen(false); setFormError(null); }}><form onSubmit={submitSelfWeight}><label className="check-field self-weight-toggle"><input type="checkbox" checked={selfWeightDraft.enabled} onChange={(event) => setSelfWeightDraft({ ...selfWeightDraft, enabled: event.target.checked })} /><span>启用结构自重</span></label><SelectField label="所属工况" value={DEFAULT_LOAD_CASE} onChange={() => {}} options={[{ value: DEFAULT_LOAD_CASE, label: "LC1" }]} /><div className="coordinate-inputs"><NumberField label="重力 X" value={selfWeightDraft.gx} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gx: value })} /><NumberField label="重力 Y" value={selfWeightDraft.gy} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gy: value })} /><NumberField label="重力 Z" value={selfWeightDraft.gz} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gz: value })} /></div><SelfWeightReferences project={project} /><FormFeedback error={formError} /><DialogActions close={() => { setSelfWeightDialogOpen(false); setFormError(null); }} submit="保存自重设置" /></form></Dialog>}
+    {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="全局 XYZ · 力 kN · 力矩 kN·m" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><LoadCaseField project={project} value={loadDraft.loadCaseId} onChange={(loadCaseId) => setLoadDraft({ ...loadDraft, loadCaseId })} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
+    {uniformDialogOpen && <Dialog title="创建杆件均布荷载" copy={`整根杆件 · ${uniformDraft.loadCaseId} · kN/m`} onClose={() => { setUniformDialogOpen(false); selectObject(selection); }}><form onSubmit={(event) => submitUniform(event, false)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><DialogActions close={() => { setUniformDialogOpen(false); selectObject(selection); }} submit="添加均布荷载" /></form></Dialog>}
+    {selfWeightDialogOpen && <Dialog title="设置结构自重" copy={`材料密度 ρ (kg/m³) · 截面面积 A (m²) · 重力加速度 g (m/s²) · ${selfWeightDraft.loadCaseId}`} onClose={() => { setSelfWeightDialogOpen(false); setFormError(null); }}><form onSubmit={submitSelfWeight}><label className="check-field self-weight-toggle"><input type="checkbox" checked={selfWeightDraft.enabled} onChange={(event) => setSelfWeightDraft({ ...selfWeightDraft, enabled: event.target.checked })} /><span>启用结构自重</span></label><LoadCaseField project={project} value={selfWeightDraft.loadCaseId} onChange={(loadCaseId) => setSelfWeightDraft({ ...selfWeightDraft, loadCaseId })} /><div className="coordinate-inputs"><NumberField label="重力 X" value={selfWeightDraft.gx} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gx: value })} /><NumberField label="重力 Y" value={selfWeightDraft.gy} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gy: value })} /><NumberField label="重力 Z" value={selfWeightDraft.gz} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gz: value })} /></div><SelfWeightReferences project={project} /><FormFeedback error={formError} /><DialogActions close={() => { setSelfWeightDialogOpen(false); setFormError(null); }} submit="保存自重设置" /></form></Dialog>}
+    {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCaseManagerOpen(false)} />}
   </main>;
 }
 
 function AnalysisResultPanel({ result, project }: { result: AnalysisResult; project: FrameProject }) {
-  const stale = result.projectRevision !== project.revision - 1;
+  const stale = !isAnalysisResultCurrent(project, result);
   const selfWeight = getSelfWeightSummary(result.input);
   const formatEndForces = (values: number[]) => `Fx ${values[0].toFixed(3)} kN · Fy ${values[1].toFixed(3)} kN · Fz ${values[2].toFixed(3)} kN · Mx ${values[3].toFixed(3)} kN·m · My ${values[4].toFixed(3)} kN·m · Mz ${values[5].toFixed(3)} kN·m`;
   const preciseVector = (vector: { x: number; y: number; z: number }) => `(${[vector.x, vector.y, vector.z].map((value) => value.toPrecision(10)).join(", ")})`;
   return <div className="analysis-result-panel">
     <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>最近一次分析</small><strong>3D 线弹性静力</strong></div></div>
     <section className="property-section"><h3>计算输入</h3><dl>
+      <div><dt>来源工况</dt><dd>{result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入"}</dd></div>
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
       <div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div>
       <div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div>
@@ -526,8 +537,11 @@ function RestraintFields({ restraints, onChange }: { restraints: DofRestraints; 
   return <fieldset className="resource-fieldset"><legend>约束自由度</legend><div className="restraint-grid">{["UX 平移", "UY 平移", "UZ 平移", "RX 转动", "RY 转动", "RZ 转动"].map((label, index) => <label className="check-field" key={label}><input type="checkbox" checked={restraints[index]} onChange={(event) => onChange(restraints.map((value, itemIndex) => itemIndex === index ? event.target.checked : value) as DofRestraints)} /><span>{label}</span></label>)}</div></fieldset>;
 }
 
+function LoadCaseField({ project, value, onChange }: { project: FrameProject; value: string; onChange(value: string): void }) {
+  return <SelectField label="所属工况" value={value} onChange={onChange} options={project.loadCases.map((item) => ({ value: item.id, label: `${item.id} · ${item.name}` }))} />;
+}
 function UniformFields({ project, draft, onChange }: { project: FrameProject; draft: UniformDraft; onChange(value: UniformDraft): void }) {
-  return <><SelectField label="加载杆件" value={draft.memberId} onChange={(memberId) => onChange({ ...draft, memberId })} options={project.members.map((member) => ({ value: member.id, label: member.label }))} /><SelectField label="方向坐标系" value={draft.coordinateSystem} onChange={(coordinateSystem) => onChange({ ...draft, coordinateSystem: coordinateSystem as UniformDraft["coordinateSystem"] })} options={[{ value: "global", label: "全局 XYZ" }, { value: "local", label: "杆件局部 xyz" }]} /><SelectField label="所属工况" value={DEFAULT_LOAD_CASE} onChange={() => {}} options={[{ value: DEFAULT_LOAD_CASE, label: "LC1" }]} />{(["qx", "qy", "qz"] as const).map((field) => <NumberField key={field} label={field} value={draft[field]} unit="kN/m" onChange={(value) => onChange({ ...draft, [field]: value })} />)}</>;
+  return <><SelectField label="加载杆件" value={draft.memberId} onChange={(memberId) => onChange({ ...draft, memberId })} options={project.members.map((member) => ({ value: member.id, label: member.label }))} /><SelectField label="方向坐标系" value={draft.coordinateSystem} onChange={(coordinateSystem) => onChange({ ...draft, coordinateSystem: coordinateSystem as UniformDraft["coordinateSystem"] })} options={[{ value: "global", label: "全局 XYZ" }, { value: "local", label: "杆件局部 xyz" }]} /><LoadCaseField project={project} value={draft.loadCaseId} onChange={(loadCaseId) => onChange({ ...draft, loadCaseId })} />{(["qx", "qy", "qz"] as const).map((field) => <NumberField key={field} label={field} value={draft[field]} unit="kN/m" onChange={(value) => onChange({ ...draft, [field]: value })} />)}</>;
 }
 
 function SelfWeightReferences({ project }: { project: FrameProject }) {

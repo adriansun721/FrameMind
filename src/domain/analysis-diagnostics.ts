@@ -1,7 +1,7 @@
 import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisDof } from "./analysis";
 import type { FrameProject, LoadId, MaterialId, MemberId, NodeId, ProjectId, SectionId, SupportId } from "./project";
-import { validateSelfWeight, validateUniformLoad } from "./project";
+import { DEFAULT_LOAD_CASE, validateSelfWeight, validateUniformLoad } from "./project";
 
 export type AnalysisStage = "model-check" | "assembly" | "solve" | "recovery";
 export const ANALYSIS_STAGE_LABELS: Record<AnalysisStage, string> = {
@@ -42,9 +42,15 @@ export class AnalysisFailure extends Error {
   }
 }
 
-export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members" | "materials" | "sections" | "supports" | "nodalLoads"> & Partial<Pick<FrameProject, "uniformLoads" | "selfWeight">>): AnalysisDiagnostic[] {
+export function checkAnalysisInput(input: Pick<FrameProject, "nodes" | "members" | "materials" | "sections" | "supports" | "nodalLoads"> & Partial<Pick<FrameProject, "uniformLoads" | "selfWeight" | "loadCases" | "activeLoadCaseId">> & { loadCase?: { id: string } }): AnalysisDiagnostic[] {
   const issues: AnalysisDiagnostic[] = [];
   const issue = (code: string, message: string, target?: AnalysisTarget, field?: string) => issues.push({ code, message, target, field });
+  const caseIds = new Set(input.loadCases?.map((item) => item.id) ?? [input.loadCase?.id ?? DEFAULT_LOAD_CASE]);
+  if (input.loadCases && (!input.loadCases.length || caseIds.size !== input.loadCases.length || input.loadCases.some((item) => !/^LC[1-9]\d*$/.test(item.id) || !item.name.trim() || typeof item.description !== "string") || !caseIds.has(input.activeLoadCaseId ?? DEFAULT_LOAD_CASE))) issue("invalid-load-case", "工况列表或当前工况无效");
+  for (const load of [...input.nodalLoads, ...(input.uniformLoads ?? [])]) {
+    if (!caseIds.has(load.loadCaseId)) issue("invalid-load-case", `${load.label} 引用了不存在的工况 ${load.loadCaseId}`, { kind: "kind" in load ? "uniform-load" : "load", id: load.id }, "loadCaseId");
+  }
+  if (input.selfWeight && !caseIds.has(input.selfWeight.loadCaseId)) issue("invalid-load-case", "自重引用了不存在的工况", { kind: "self-weight", id: "self-weight" }, "selfWeight");
   const positive = (value: number, target: AnalysisTarget, field: string, label: string) => {
     if (!Number.isFinite(value) || value <= 0) issue("invalid-parameter", `${label}必须为正有限数值`, target, field);
   };
