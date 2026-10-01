@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { launchFrameMind } from "./electron-app";
 import { createNode } from "./modeling-actions";
 
@@ -14,6 +14,19 @@ async function settledCameraState(viewport: Locator): Promise<string> {
   throw new Error("相机阻尼未在预期时间内稳定");
 }
 
+async function rememberViewportCanvas(page: Page): Promise<void> {
+  await page.locator(".viewport canvas").evaluate((canvas) => {
+    (window as Window & { ui04Canvas?: Element }).ui04Canvas = canvas;
+  });
+}
+
+async function expectViewportCanvasPreserved(page: Page): Promise<void> {
+  const keptCanvas = await page.evaluate(() =>
+    document.querySelector(".viewport canvas") === (window as Window & { ui04Canvas?: Element }).ui04Canvas,
+  );
+  expect(keptCanvas).toBe(true);
+}
+
 test("UI04 keeps the Three.js canvas alive while selection changes", async () => {
   const { app, page } = await launchFrameMind();
 
@@ -21,16 +34,10 @@ test("UI04 keeps the Three.js canvas alive while selection changes", async () =>
   await createNode(page, ["4", "0", "0"]);
   await expect(page.getByTestId("viewport-node-count")).toHaveText("2 个节点");
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-
-  await page.locator(".viewport canvas").evaluate((canvas) => {
-    (window as Window & { ui04Canvas?: Element }).ui04Canvas = canvas;
-  });
+  await rememberViewportCanvas(page);
   await page.getByRole("region", { name: "项目树" }).getByText("N1", { exact: true }).click();
 
-  const keptCanvas = await page.evaluate(() =>
-    document.querySelector(".viewport canvas") === (window as Window & { ui04Canvas?: Element }).ui04Canvas,
-  );
-  expect(keptCanvas).toBe(true);
+  await expectViewportCanvasPreserved(page);
   await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N1");
 
   await app.close();
@@ -71,9 +78,7 @@ test("UI04 presents members as an analysis-line model without rebuilding the vie
   await createNode(page, ["0", "0", "0"]);
   await createNode(page, ["4", "0", "2"]);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  await page.locator(".viewport canvas").evaluate((canvas) => {
-    (window as Window & { ui04Canvas?: Element }).ui04Canvas = canvas;
-  });
+  await rememberViewportCanvas(page);
 
   await page.getByRole("button", { name: "创建材料与截面" }).click();
   await page.getByRole("button", { name: "保存材料与截面" }).click();
@@ -84,10 +89,7 @@ test("UI04 presents members as an analysis-line model without rebuilding the vie
   await expect(page.locator(".view-chip")).toHaveText("分析线 · 透视");
   await expect(page.getByTestId("viewport-member-details")).toContainText("分析线模型");
   await expect(page.getByTestId("viewport-member-details")).not.toContainText("等效面积轮廓");
-  const keptCanvas = await page.evaluate(() =>
-    document.querySelector(".viewport canvas") === (window as Window & { ui04Canvas?: Element }).ui04Canvas,
-  );
-  expect(keptCanvas).toBe(true);
+  await expectViewportCanvasPreserved(page);
 
   await app.close();
 });

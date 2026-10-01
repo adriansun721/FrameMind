@@ -170,6 +170,7 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
     if (runtime.projectId !== projectId) {
       runtime.projectId = projectId;
       runtime.hasFramedModel = false;
+      runtime.model.setHover(null);
     }
     runtime.model.sync(nodes, members);
     if (nodes.length === 0) runtime.hasFramedModel = false;
