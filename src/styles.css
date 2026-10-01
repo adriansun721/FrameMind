@@ -195,8 +195,27 @@ button { color: inherit; }
 .model-summary strong { color: var(--text-secondary); font: 600 var(--text-caption) var(--font-mono); }
 .model-summary small { grid-column: 1 / -1; }
 
-.model-area { min-width: 0; min-height: 0; display: grid; background: var(--surface-canvas); }
-.model-area.has-diagnostics { grid-template-rows: auto minmax(0, 1fr); }
+.model-area { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--surface-canvas); }
+.model-area > .viewport { flex: 1; }
+.model-data-table { flex: 0 0 230px; min-height: 0; max-height: 40%; display: flex; flex-direction: column; border-top: 1px solid var(--border-strong); background: var(--surface-panel); }
+.data-table-heading { flex: 0 0 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-bottom: 1px solid var(--border-subtle); }
+.data-table-heading [role="tablist"] { display: flex; gap: 4px; margin-right: auto; }
+.data-table-heading [role="tab"] { height: 28px; padding: 0 10px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.data-table-heading [aria-selected="true"] { border-bottom-color: var(--model-selected); color: var(--text-primary); }
+.data-table-heading > span { color: var(--text-muted); font-family: var(--font-mono); }
+.data-table-scroll { min-height: 0; overflow: auto; }
+.model-data-table table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+.model-data-table th, .model-data-table td { height: 36px; padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--border-subtle); overflow-wrap: anywhere; }
+.model-data-table thead th { position: sticky; top: 0; z-index: 1; height: 30px; color: var(--text-secondary); background: var(--surface-panel-muted); font-weight: 500; }
+.model-data-table th:first-child, .model-data-table th:last-child { width: 76px; }
+.model-data-table tr[aria-selected="true"] { background: var(--surface-selected); }
+.model-data-table input, .model-data-table select { width: 100%; min-width: 0; height: 28px; padding: 0 5px; border: 1px solid var(--border-strong); border-radius: var(--radius-control); color: var(--text-primary); background: var(--surface-control); }
+.model-data-table [aria-invalid="true"] { border-color: var(--status-error); }
+.data-object-location { display: flex; align-items: center; gap: 5px; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.data-row-actions { display: flex; gap: 2px; }
+.committed-value { color: var(--text-secondary); font-family: var(--font-mono); }
+.data-table-error { flex-shrink: 0; margin: 0; padding: 6px 10px; color: var(--status-error); }
+.data-table-empty { margin: 12px; color: var(--text-muted); }
 .analysis-diagnostics { max-height: 220px; min-width: 0; overflow: auto; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-strong); background: var(--surface-panel); font-size: var(--text-caption); }
 .analysis-diagnostics header { display: flex; align-items: center; gap: var(--space-3); }
 .analysis-diagnostics header strong { color: var(--status-error); }

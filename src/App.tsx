@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, Box, Calculator, ChevronDown, CircleDot, Crosshair, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Undo2, X } from "lucide-react";
+import { Anchor, Box, Calculator, ChevronDown, CircleDot, Crosshair, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Table2, Undo2, X } from "lucide-react";
 import { SceneViewport } from "./components/SceneViewport";
+import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
@@ -15,10 +16,8 @@ import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type Anal
 type StatusTone = "neutral" | "success" | "error";
 type Selection = AnalysisTarget | null;
 interface StatusMessage { tone: StatusTone; text: string; }
-interface NodeDraft { x: string; y: string; z: string; }
 interface MaterialDraft { name: string; elasticModulusGPa: string; poissonRatio: string; densityKgM3: string; }
 interface SectionDraft { name: string; areaM2: string; secondMomentYM4: string; secondMomentZM4: string; torsionalConstantM4: string; }
-interface MemberDraft { startNodeId: string; endNodeId: string; materialId: string; sectionId: string; rotationDegrees: string; }
 interface LoadDraft { nodeId: string; fx: string; fy: string; fz: string; mx: string; my: string; mz: string; }
 
 const defaultMaterial: MaterialDraft = { name: "Q355", elasticModulusGPa: "206", poissonRatio: "0.3", densityKgM3: "7850" };
@@ -46,13 +45,16 @@ export function App() {
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0);
   const [selection, setSelection] = useState<Selection>(null);
+  const [dataTableOpen, setDataTableOpen] = useState(false);
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false); const [analysisPhase, setAnalysisPhase] = useState<AnalysisTaskPhase | null>(null);
   const [analysisFailure, setAnalysisFailure] = useState<{ failure: AnalysisFailure; revision: number } | null>(null);
   const [diagnosticFitRequest, setDiagnosticFitRequest] = useState(0);
   const [nodeDraft, setNodeDraft] = useState<NodeDraft>({ x: "0", y: "0", z: "0" });
+  const [newNodeDraft, setNewNodeDraft] = useState<NodeDraft>({ x: "0", y: "0", z: "0" });
   const [materialDraft, setMaterialDraft] = useState<MaterialDraft>(defaultMaterial); const [sectionDraft, setSectionDraft] = useState<SectionDraft>(defaultSection);
   const [memberDraft, setMemberDraft] = useState<MemberDraft>({ startNodeId: "", endNodeId: "", materialId: "", sectionId: "", rotationDegrees: "0" });
+  const [newMemberDraft, setNewMemberDraft] = useState<MemberDraft>({ startNodeId: "", endNodeId: "", materialId: "", sectionId: "", rotationDegrees: "0" });
   const [supportNodeId, setSupportNodeId] = useState(""); const [supportRestraints, setSupportRestraints] = useState<DofRestraints>([true, true, true, true, true, true]);
   const [loadDraft, setLoadDraft] = useState<LoadDraft>(defaultLoad);
   const [formError, setFormError] = useState<string | null>(null);
@@ -119,9 +121,9 @@ export function App() {
   };
 
   const submitNode = (event: React.FormEvent) => {
-    event.preventDefault(); const position = { x: Number(nodeDraft.x), y: Number(nodeDraft.y), z: Number(nodeDraft.z) };
-    if (Object.values(nodeDraft).some((value) => value.trim() === "") || !Object.values(position).every(Number.isFinite)) { setFormError("请输入有效的有限数值"); return; }
-    try { const updated = addNode(project, position); activateProject(updated, false); const node = updated.nodes.at(-1)!; setSelection({ kind: "node", id: node.id }); setNodeDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${node.label}` }); }
+    event.preventDefault(); const position = { x: Number(newNodeDraft.x), y: Number(newNodeDraft.y), z: Number(newNodeDraft.z) };
+    if (Object.values(newNodeDraft).some((value) => value.trim() === "") || !Object.values(position).every(Number.isFinite)) { setFormError("请输入有效的有限数值"); return; }
+    try { const updated = addNode(project, position); activateProject(updated, false); const node = updated.nodes.at(-1)!; setSelection({ kind: "node", id: node.id }); setNodeDraft(newNodeDraft); setNodeDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${node.label}` }); }
     catch (error) { setFormError(error instanceof Error ? error.message : "创建节点失败"); }
   };
   const submitResources = (event: React.FormEvent) => {
@@ -130,16 +132,16 @@ export function App() {
     catch (error) { setFormError(error instanceof Error ? error.message : "创建材料与截面失败"); }
   };
   const openMemberDialog = () => {
-    setMemberDraft({ startNodeId: project.nodes[0]?.id ?? "", endNodeId: project.nodes[1]?.id ?? project.nodes[0]?.id ?? "", materialId: project.materials[0]?.id ?? "", sectionId: project.sections[0]?.id ?? "", rotationDegrees: "0" }); setFormError(null); setMemberDialogOpen(true);
+    setNewMemberDraft({ startNodeId: project.nodes[0]?.id ?? "", endNodeId: project.nodes[1]?.id ?? project.nodes[0]?.id ?? "", materialId: project.materials[0]?.id ?? "", sectionId: project.sections[0]?.id ?? "", rotationDegrees: "0" }); setFormError(null); setMemberDialogOpen(true);
   };
   const openSupportDialog = () => { setSupportNodeId(project.nodes[0]?.id ?? ""); setSupportRestraints([true, true, true, true, true, true]); setFormError(null); setSupportDialogOpen(true); };
   const openLoadDialog = () => { setLoadDraft({ ...defaultLoad, nodeId: project.nodes.at(-1)?.id ?? project.nodes[0]?.id ?? "" }); setFormError(null); setLoadDialogOpen(true); };
-  const openNodeDialog = () => { setNodeDraft({ x: "0", y: "0", z: "0" }); setFormError(null); setNodeDialogOpen(true); };
+  const openNodeDialog = () => { setNewNodeDraft({ x: "0", y: "0", z: "0" }); setFormError(null); setNodeDialogOpen(true); };
   const submitMember = (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const updated = addMember(project, { startNodeId: memberDraft.startNodeId as NodeId, endNodeId: memberDraft.endNodeId as NodeId, materialId: memberDraft.materialId as MaterialId, sectionId: memberDraft.sectionId as SectionId, rotationDegrees: parseNumber(memberDraft.rotationDegrees, "截面转角") });
-      activateProject(updated, false); const member = updated.members.at(-1)!; setSelection({ kind: "member", id: member.id }); setMemberDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${member.label}` });
+      const updated = addMember(project, { startNodeId: newMemberDraft.startNodeId as NodeId, endNodeId: newMemberDraft.endNodeId as NodeId, materialId: newMemberDraft.materialId as MaterialId, sectionId: newMemberDraft.sectionId as SectionId, rotationDegrees: parseNumber(newMemberDraft.rotationDegrees, "截面转角") });
+      activateProject(updated, false); const member = updated.members.at(-1)!; setSelection({ kind: "member", id: member.id }); setMemberDraft(newMemberDraft); setMemberDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${member.label}` });
     } catch (error) { setFormError(error instanceof Error ? error.message : "创建杆件失败"); }
   };
   const submitSupport = (event: React.FormEvent) => {
@@ -267,6 +269,7 @@ export function App() {
         <button className="tool-button" aria-label="创建荷载" title="创建节点集中力和力矩" onClick={openLoadDialog}><Plus size={15} />荷载</button>
         {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={runAnalysis}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
+        <button className={`tool-button icon-only ${dataTableOpen ? "active" : ""}`} aria-label="数据表" aria-pressed={dataTableOpen} title="数据表" onClick={() => setDataTableOpen((open) => !open)}><Table2 size={15} /></button>
         <button className="tool-button icon-only" aria-disabled="true" aria-label="撤销（尚未实现）" title="撤销尚未实现"><Undo2 size={15} /></button>
         <button className="tool-button icon-only" aria-disabled="true" aria-label="重做（尚未实现）" title="重做尚未实现"><Redo2 size={15} /></button>
       </div>
@@ -341,15 +344,16 @@ export function App() {
           })}</ul>
         </section>}
         <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+        {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
     </section>
 
     <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>
 
-    {nodeDialogOpen && <Dialog title="创建空间节点" copy="输入全局坐标。长度统一以米（m）保存和显示。" onClose={() => setNodeDialogOpen(false)}><form onSubmit={submitNode}><div className="coordinate-inputs">{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={nodeDraft[axis]} onChange={(value) => setNodeDraft({ ...nodeDraft, [axis]: value })} unit="m" />)}</div><FormFeedback error={formError} /><DialogActions close={() => setNodeDialogOpen(false)} submit="添加到模型" /></form></Dialog>}
+    {nodeDialogOpen && <Dialog title="创建空间节点" copy="输入全局坐标。长度统一以米（m）保存和显示。" onClose={() => { setNodeDialogOpen(false); setFormError(null); }}><form onSubmit={submitNode}><div className="coordinate-inputs">{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={newNodeDraft[axis]} onChange={(value) => setNewNodeDraft({ ...newNodeDraft, [axis]: value })} unit="m" />)}</div><FormFeedback error={formError} /><DialogActions close={() => { setNodeDialogOpen(false); setFormError(null); }} submit="添加到模型" /></form></Dialog>}
     {resourceDialogOpen && <Dialog title="创建材料与截面" copy="参数使用 SI 基准单位；这些值将在 T03 核定单元理论前保持明确含义。" onClose={() => setResourceDialogOpen(false)}><form onSubmit={submitResources}><div className="resource-columns"><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><SectionFields draft={sectionDraft} setDraft={setSectionDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => setResourceDialogOpen(false)} submit="保存材料与截面" /></form></Dialog>}
-    {memberDialogOpen && <Dialog title="连接空间杆件" copy="选择两个不同位置的节点，并指定材料、截面和绕局部 x 轴的截面转角。" onClose={() => setMemberDialogOpen(false)}><form onSubmit={submitMember}><div className="form-grid"><SelectField label="起点节点" value={memberDraft.startNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={memberDraft.endNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={memberDraft.materialId} onChange={(value) => setMemberDraft({ ...memberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={memberDraft.sectionId} onChange={(value) => setMemberDraft({ ...memberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={memberDraft.rotationDegrees} onChange={(value) => setMemberDraft({ ...memberDraft, rotationDegrees: value })} unit="°" /></div><FormFeedback error={formError} /><DialogActions close={() => setMemberDialogOpen(false)} submit="添加杆件" /></form></Dialog>}
+    {memberDialogOpen && <Dialog title="连接空间杆件" copy="选择两个不同位置的节点，并指定材料、截面和绕局部 x 轴的截面转角。" onClose={() => { setMemberDialogOpen(false); setFormError(null); }}><form onSubmit={submitMember}><div className="form-grid"><SelectField label="起点节点" value={newMemberDraft.startNodeId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={newMemberDraft.endNodeId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={newMemberDraft.materialId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={newMemberDraft.sectionId} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={newMemberDraft.rotationDegrees} onChange={(value) => setNewMemberDraft({ ...newMemberDraft, rotationDegrees: value })} unit="°" /></div><FormFeedback error={formError} /><DialogActions close={() => { setMemberDialogOpen(false); setFormError(null); }} submit="添加杆件" /></form></Dialog>}
     {supportDialogOpen && <Dialog title="创建节点支座" copy="支座独立约束节点的六个自由度。固定支座默认约束平移与转动全部分量。" onClose={() => { setSupportDialogOpen(false); selectObject(selection); }}><form onSubmit={submitSupport}><SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><DialogActions close={() => { setSupportDialogOpen(false); selectObject(selection); }} submit="添加支座" /></form></Dialog>}
     {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="输入全局坐标系下的节点力（kN）和节点力矩（kN·m）；零值分量仍会保留在输入记录中。" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
   </main>;
