@@ -39,6 +39,13 @@ export interface UniformLoadProperties {
   intensity: Vector3;
 }
 export interface FrameUniformLoad extends UniformLoadProperties { id: LoadId; label: string; }
+export interface SelfWeightProperties {
+  enabled: boolean;
+  loadCaseId: string;
+  /** Gravitational acceleration in the global frame (m/s^2). */
+  gravity: Vector3;
+}
+export type FrameSelfWeight = SelfWeightProperties;
 
 export interface FrameProject {
   format: typeof PROJECT_FORMAT;
@@ -56,6 +63,7 @@ export interface FrameProject {
   supports: FrameSupport[];
   nodalLoads: FrameNodalLoad[];
   uniformLoads: FrameUniformLoad[];
+  selfWeight: FrameSelfWeight;
   latestAnalysis?: AnalysisResult;
   nextNodeNumber: number;
   nextMaterialNumber: number;
@@ -145,7 +153,7 @@ export function createProject(name = "未命名项目"): FrameProject {
     id: `project_${createIdentity()}` as ProjectId, name: name.trim() || "未命名项目",
     createdAt: now, updatedAt: now, revision: 0,
     units: { length: "m", force: "kN", moment: "kN·m" },
-    nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [], uniformLoads: [],
+    nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [], uniformLoads: [], selfWeight: { ...DEFAULT_SELF_WEIGHT, gravity: { ...DEFAULT_SELF_WEIGHT.gravity } },
     nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1, nextUniformLoadNumber: 1,
   };
 }
@@ -223,6 +231,20 @@ export function validateUniformLoad(input: UniformLoadProperties): UniformLoadPr
   if (!input.intensity || Object.keys(input.intensity).some((key) => !["x", "y", "z"].includes(key))) throw new Error("均布荷载必须是三个有限的力分量（kN/m）");
   if (![input.intensity.x, input.intensity.y, input.intensity.z].every(Number.isFinite)) throw new Error("均布荷载分量必须是有限数值（kN/m）");
   return { kind: "uniform", memberId: input.memberId, coordinateSystem: input.coordinateSystem, loadCaseId: input.loadCaseId, intensity: { ...input.intensity } };
+}
+
+export function validateSelfWeight(input: SelfWeightProperties): SelfWeightProperties {
+  if (!input || typeof input.enabled !== "boolean") throw new Error("自重启用状态无效");
+  if (input.loadCaseId !== DEFAULT_LOAD_CASE) throw new Error("当前自重仅支持工况 LC1");
+  if (!input.gravity || ![input.gravity.x, input.gravity.y, input.gravity.z].every(Number.isFinite)) throw new Error("重力加速度必须是有限数值（m/s²）");
+  if (input.enabled && Math.hypot(input.gravity.x, input.gravity.y, input.gravity.z) <= 0) throw new Error("启用自重时重力加速度不能为零");
+  return { enabled: input.enabled, loadCaseId: input.loadCaseId, gravity: { ...input.gravity } };
+}
+
+export const DEFAULT_SELF_WEIGHT: FrameSelfWeight = Object.freeze({ enabled: false, loadCaseId: DEFAULT_LOAD_CASE, gravity: Object.freeze({ x: 0, y: 0, z: -9.81 }) });
+
+export function updateSelfWeight(project: FrameProject, input: SelfWeightProperties): FrameProject {
+  return { ...project, selfWeight: validateSelfWeight(input), ...nextRevision(project) };
 }
 
 export function addUniformLoad(project: FrameProject, input: UniformLoadProperties): FrameProject {

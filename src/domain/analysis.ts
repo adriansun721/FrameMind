@@ -11,6 +11,7 @@ import type {
   FrameProject,
   FrameSection,
   FrameSupport,
+  FrameSelfWeight,
   Vector3,
 } from "./project";
 
@@ -49,6 +50,7 @@ export interface AnalysisInputSnapshot {
   supports: FrameSupport[];
   nodalLoads: FrameNodalLoad[];
   uniformLoads?: FrameUniformLoad[];
+  selfWeight?: FrameSelfWeight;
 }
 
 export interface NodeAnalysisResult {
@@ -85,7 +87,9 @@ interface MemberMatrices {
   local: Matrix;
   transform: Matrix;
   global: Matrix;
+  uniformIntensity: Vector3;
   intensity: Vector3;
+  selfWeightIntensity: Vector3;
   equivalentLocalForces: number[];
   equivalentGlobalForces: number[];
 }
@@ -106,6 +110,9 @@ export interface MemberAnalysisRecord {
   equivalentLocalForces: number[];
   equivalentGlobalForces: number[];
   localEndForces: MemberAnalysisResult["localEndForces"];
+  uniformIntensity: Vector3;
+  selfWeightIntensity: Vector3;
+  totalIntensity: Vector3;
 }
 
 const zeroMatrix = (rows: number, columns: number): Matrix => Array.from({ length: rows }, () => Array(columns).fill(0));
@@ -210,6 +217,7 @@ export function captureAnalysisInput(project: FrameProject): AnalysisInputSnapsh
     supports: project.supports.map((support) => ({ ...support, restraints: [...support.restraints] as DofRestraints })),
     nodalLoads: project.nodalLoads.map((load) => ({ ...load, force: { ...load.force }, moment: { ...load.moment } })),
     uniformLoads: project.uniformLoads.map((load) => ({ ...load, intensity: { ...load.intensity } })),
+    selfWeight: project.selfWeight ? { ...project.selfWeight, gravity: { ...project.selfWeight.gravity } } : undefined,
   });
 }
 
@@ -223,10 +231,62 @@ function memberMatrices(input: AnalysisInputSnapshot, member: FrameMember): Memb
   const material = input.materials.find((item) => item.id === member.materialId)!; const section = input.sections.find((item) => item.id === member.sectionId)!;
   const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
   const local = localStiffness(geometry.length, material, section); const transform = transformation(geometry);
-  const intensity = memberUniformIntensity(input.uniformLoads ?? [], member.id, geometry);
+  const uniformIntensity = memberUniformIntensity(input.uniformLoads ?? [], member.id, geometry);
+  const selfWeightIntensity = getMemberSelfWeightIntensity(input, member, geometry);
+  const intensity = { x: uniformIntensity.x + selfWeightIntensity.x, y: uniformIntensity.y + selfWeightIntensity.y, z: uniformIntensity.z + selfWeightIntensity.z };
   const equivalentLocalForces = uniformEquivalentForces(intensity, geometry.length);
   const equivalentGlobalForces = transpose(transform).map((row) => row.reduce((sum, value, index) => sum + value * equivalentLocalForces[index], 0));
-  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform), intensity, equivalentLocalForces, equivalentGlobalForces };
+  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform), uniformIntensity, intensity, selfWeightIntensity, equivalentLocalForces, equivalentGlobalForces };
+}
+
+function getMemberSelfWeightIntensity(input: AnalysisInputSnapshot, member: FrameMember, geometry: MemberGeometry): Vector3 {
+  if (!input.selfWeight?.enabled) return { x: 0, y: 0, z: 0 };
+  const material = input.materials.find((item) => item.id === member.materialId)!;
+  const section = input.sections.find((item) => item.id === member.sectionId)!;
+  const scale = material.densityKgM3 * section.areaM2 / 1000;
+  const global = { x: scale * input.selfWeight.gravity.x, y: scale * input.selfWeight.gravity.y, z: scale * input.selfWeight.gravity.z };
+  return {
+    x: global.x * geometry.localX.x + global.y * geometry.localX.y + global.z * geometry.localX.z,
+    y: global.x * geometry.localY.x + global.y * geometry.localY.y + global.z * geometry.localY.z,
+    z: global.x * geometry.localZ.x + global.y * geometry.localZ.y + global.z * geometry.localZ.z,
+  };
+}
+
+export interface SelfWeightMemberSummary {
+  memberId: string;
+  length: number;
+  massKg: number;
+  weightKN: number;
+  globalForce: Vector3;
+}
+
+export interface SelfWeightSummary {
+  enabled: boolean;
+  loadCaseId: string;
+  totalMassKg: number;
+  totalWeightKN: number;
+  totalForce: Vector3;
+  members: SelfWeightMemberSummary[];
+}
+
+export function getSelfWeightSummary(source: FrameProject | AnalysisInputSnapshot): SelfWeightSummary {
+  const selfWeight = source.selfWeight;
+  if (!selfWeight?.enabled) return { enabled: false, loadCaseId: selfWeight?.loadCaseId ?? "LC1", totalMassKg: 0, totalWeightKN: 0, totalForce: { x: 0, y: 0, z: 0 }, members: [] };
+  const members: SelfWeightMemberSummary[] = [];
+  for (const member of source.members) {
+    const start = source.nodes.find((node) => node.id === member.startNodeId)!;
+    const end = source.nodes.find((node) => node.id === member.endNodeId)!;
+    const material = source.materials.find((item) => item.id === member.materialId)!;
+    const section = source.sections.find((item) => item.id === member.sectionId)!;
+    const length = calculateMemberGeometry(start.position, end.position, member.rotationDegrees).length;
+    const massKg = material.densityKgM3 * section.areaM2 * length;
+    const gravityMagnitude = Math.hypot(selfWeight.gravity.x, selfWeight.gravity.y, selfWeight.gravity.z);
+    members.push({ memberId: member.id, length, massKg, weightKN: massKg * gravityMagnitude / 1000, globalForce: { x: massKg * selfWeight.gravity.x / 1000, y: massKg * selfWeight.gravity.y / 1000, z: massKg * selfWeight.gravity.z / 1000 } });
+  }
+  const totalMassKg = members.reduce((sum, item) => sum + item.massKg, 0);
+  const totalWeightKN = members.reduce((sum, item) => sum + item.weightKN, 0);
+  const totalForce = members.reduce((sum, item) => ({ x: sum.x + item.globalForce.x, y: sum.y + item.globalForce.y, z: sum.z + item.globalForce.z }), { x: 0, y: 0, z: 0 });
+  return { enabled: true, loadCaseId: selfWeight.loadCaseId, totalMassKg, totalWeightKN, totalForce, members };
 }
 
 function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
@@ -235,7 +295,7 @@ function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
 
 function requireLoadRecoveryVersion(input: AnalysisInputSnapshot): void {
   requireCurrentSolver(input.solver);
-  if (input.uniformLoads?.length && input.solver?.implementation !== ANALYSIS_SOLVER.implementation) throw new Error("该分析的求解器版本不支持均布荷载恢复");
+  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation) throw new Error("该分析的求解器版本不支持分布荷载恢复");
 }
 
 export interface MemberSectionForces {
@@ -263,7 +323,7 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   requireLoadRecoveryVersion(result.input);
   const input = result.input; const member = input.members.find((item) => item.id === memberId);
   if (!member) throw new Error(`本次分析没有杆件 ${memberId}`);
-  const { geometry, local, transform, global, equivalentLocalForces, equivalentGlobalForces } = memberMatrices(input, member);
+  const { geometry, local, transform, global, equivalentLocalForces, equivalentGlobalForces, uniformIntensity, intensity, selfWeightIntensity } = memberMatrices(input, member);
   const dofs = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((dof, index) => ({ nodeId, dof, globalIndex: input.nodes.findIndex((node) => node.id === nodeId) * 6 + index })));
   const globalDisplacement = [member.startNodeId, member.endNodeId].flatMap((nodeId) => {
     const node = result.nodes.find((item) => item.nodeId === nodeId);
@@ -277,6 +337,9 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
     localDisplacement: transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
     equivalentLocalForces,
     equivalentGlobalForces,
+    uniformIntensity,
+    selfWeightIntensity,
+    totalIntensity: intensity,
     localEndForces: { start: [...stored.localEndForces.start], end: [...stored.localEndForces.end] },
   };
 }
