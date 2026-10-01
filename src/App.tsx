@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Send, Settings2, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Send, Settings2, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
 import { LoadCaseManager } from "./components/LoadCaseManager";
 import { LoadCombinationManager } from "./components/LoadCombinationManager";
+import { ResourceLibraryPanel, type LibraryResource } from "./components/ResourceLibraryPanel";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addMember, addNode, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
@@ -65,6 +66,7 @@ export function App() {
   const [batchDraft, setBatchDraft] = useState({ x: "0", y: "0", z: "0", rotationDegrees: "0" });
   const [dataTableOpen, setDataTableOpen] = useState(false);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
+  const [sidebarModule, setSidebarModule] = useState<"project" | "search" | "library">("project");
   const [assistantPanelOpen, setAssistantPanelOpen] = useState(true);
   const [assistantDraft, setAssistantDraft] = useState("");
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
@@ -172,6 +174,19 @@ export function App() {
   };
 
   const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setSavedRevision(0); setSavedProjectContent(encodeProject(next)); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
+  const switchSidebarModule = (module: typeof sidebarModule) => {
+    setResourcePanelOpen((open) => module === sidebarModule ? !open : true);
+    setSidebarModule(module);
+  };
+  const importLibraryResource = (resource: LibraryResource) => {
+    try {
+      const provenance: ResourceProvenance = resource.catalogId && resource.source
+        ? { kind: "catalog", catalogId: resource.catalogId, source: resource.source } : { kind: "custom" };
+      const updated = resource.kind === "material" ? addMaterial(project, resource.properties, provenance) : addSection(project, resource.properties, provenance);
+      activateProject(updated, false);
+      setStatus({ tone: "success", text: `已加入${resource.kind === "material" ? "材料" : "截面"} ${resource.properties.name}` });
+    } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "加入项目失败" }); }
+  };
   const openProject = async () => {
     if (dirty && !window.confirm("当前项目有未保存修改，确定打开其他项目吗？")) return;
     const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
@@ -387,7 +402,7 @@ export function App() {
       </div>
       <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{filename(projectPath) ?? "未保存项目"}</small></div>
       <div className="layout-controls" role="group" aria-label="面板布局">
-        <button className={`icon-button ${resourcePanelOpen ? "active" : ""}`} aria-label="切换资源管理器" aria-pressed={resourcePanelOpen} aria-controls="resource-panel" title={resourcePanelOpen ? "收起资源管理器" : "展开资源管理器"} onClick={() => setResourcePanelOpen((open) => !open)}><PanelLeft size={15} /></button>
+        <button className={`icon-button ${resourcePanelOpen ? "active" : ""}`} aria-label="切换资源管理器" aria-pressed={resourcePanelOpen} aria-controls={sidebarModule === "project" ? "resource-panel" : `${sidebarModule}-panel`} title={resourcePanelOpen ? "收起资源管理器" : "展开资源管理器"} onClick={() => setResourcePanelOpen((open) => !open)}><PanelLeft size={15} /></button>
         <button className={`icon-button ${assistantPanelOpen ? "active" : ""}`} aria-label="切换 AI 对话" aria-pressed={assistantPanelOpen} aria-controls="assistant-panel" title={assistantPanelOpen ? "收起 AI 对话" : "展开 AI 对话"} onClick={() => setAssistantPanelOpen((open) => !open)}><PanelRight size={15} /></button>
       </div>
     </header>
@@ -414,9 +429,11 @@ export function App() {
 
     <section className={`workspace ${resourcePanelOpen ? "" : "resource-collapsed"} ${assistantPanelOpen ? "" : "assistant-collapsed"}`}>
       <nav className="activity-bar" aria-label="侧边导航">
-        <button className={`activity-button ${resourcePanelOpen ? "active" : ""}`} aria-label="资源管理器" aria-pressed={resourcePanelOpen} aria-controls="resource-panel" title="资源管理器" onClick={() => setResourcePanelOpen((open) => !open)}><Files size={22} strokeWidth={1.5} /></button>
+        <button className={`activity-button ${resourcePanelOpen && sidebarModule === "project" ? "active" : ""}`} aria-label="资源管理器" aria-pressed={resourcePanelOpen && sidebarModule === "project"} aria-controls="resource-panel" title="资源管理器" onClick={() => switchSidebarModule("project")}><Files size={22} strokeWidth={1.5} /></button>
+        <button className={`activity-button ${resourcePanelOpen && sidebarModule === "search" ? "active" : ""}`} aria-label="搜索" aria-pressed={resourcePanelOpen && sidebarModule === "search"} aria-controls="search-panel" title="搜索" onClick={() => switchSidebarModule("search")}><Search size={22} strokeWidth={1.5} /></button>
+        <button className={`activity-button ${resourcePanelOpen && sidebarModule === "library" ? "active" : ""}`} aria-label="资源库" aria-pressed={resourcePanelOpen && sidebarModule === "library"} aria-controls="library-panel" title="资源库" onClick={() => switchSidebarModule("library")}><Library size={22} strokeWidth={1.5} /></button>
       </nav>
-      <aside id="resource-panel" className="project-panel" aria-label="项目与属性" hidden={!resourcePanelOpen}>
+      <aside id="resource-panel" className="project-panel" aria-label="项目与属性" hidden={!resourcePanelOpen || sidebarModule !== "project"}>
         <section className="sidebar-pane project-tree-pane" aria-label="项目树"><div className="panel-heading"><span>项目</span><button className="icon-button" title="添加节点" onClick={openNodeDialog}><Plus size={16} /></button></div>
           <div className="load-case-selector"><label><span>当前工况</span><select aria-label="当前工况" value={activeCombination ? "" : activeCase.id} onChange={(event) => { activateProject(selectLoadCase(project, event.target.value), false); setSelection(null); setFormError(null); setStatus({ tone: "neutral", text: `当前工况 · ${event.target.value}` }); }}>{activeCombination && <option value="" disabled>组合模式</option>}{project.loadCases.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理工况" title="管理荷载工况" onClick={() => setLoadCaseManagerOpen(true)}><Settings2 size={15} /></button></div>
           <div className="load-case-selector"><label><span>当前组合</span><select aria-label="当前组合" value={project.activeLoadCombinationId ?? ""} onChange={(event) => { activateProject(event.target.value ? selectLoadCombination(project, event.target.value) : selectLoadCase(project, activeCase.id), false); setSelection(null); setFormError(null); }}><option value="">独立工况</option>{project.loadCombinations.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理组合" title="管理自定义荷载组合" onClick={() => setLoadCombinationManagerOpen(true)}><Layers3 size={15} /></button></div>
@@ -482,6 +499,14 @@ export function App() {
           {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} />}
           {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </section>
+      </aside>
+
+      <aside id="search-panel" className="module-panel" aria-label="搜索" hidden={!resourcePanelOpen || sidebarModule !== "search"}>
+        <div className="panel-heading"><span>搜索</span></div>
+        <div className="module-empty"><Search size={26} strokeWidth={1.5} /><span>暂未开放</span></div>
+      </aside>
+      <aside id="library-panel" className="module-panel" aria-label="资源库" hidden={!resourcePanelOpen || sidebarModule !== "library"}>
+        <ResourceLibraryPanel onImport={importLibraryResource} />
       </aside>
 
       <section className={`model-area ${analysisFailure ? "has-diagnostics" : ""}`}>
