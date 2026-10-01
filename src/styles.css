@@ -196,6 +196,20 @@ button { color: inherit; }
 .model-summary small { grid-column: 1 / -1; }
 
 .model-area { min-width: 0; min-height: 0; display: grid; background: var(--surface-canvas); }
+.model-area.has-diagnostics { grid-template-rows: auto minmax(0, 1fr); }
+.analysis-diagnostics { max-height: 220px; min-width: 0; overflow: auto; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-strong); background: var(--surface-panel); font-size: var(--text-caption); }
+.analysis-diagnostics header { display: flex; align-items: center; gap: var(--space-3); }
+.analysis-diagnostics header strong { color: var(--status-error); }
+.analysis-diagnostics header span { flex: 1; color: var(--text-muted); }
+.analysis-diagnostics ul { margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+.analysis-diagnostics li { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-top: 1px solid var(--border-subtle); }
+.analysis-diagnostics li > div { flex: 1; min-width: 0; }
+.analysis-diagnostics p { margin: 0; color: var(--text-secondary); line-height: var(--line-height-body); overflow-wrap: anywhere; }
+.analysis-diagnostics small { display: block; margin-top: var(--space-1); color: var(--text-muted); font: var(--text-micro) var(--font-mono); overflow-wrap: anywhere; }
+.diagnostic-location { flex: 0 1 auto; display: flex; align-items: center; gap: var(--space-1); max-width: 40%; padding: var(--space-1) var(--space-2); border: 0; background: transparent; color: var(--text-primary); font: inherit; cursor: pointer; }
+.diagnostic-location svg { flex-shrink: 0; }
+.diagnostic-location span { overflow-wrap: anywhere; text-align: left; }
+.diagnostic-location:hover { background: var(--surface-control-hover); }
 .toolbar-divider { width: 1px; height: 16px; flex: 0 0 auto; background: var(--border-subtle); }
 .coordinate-badge, .view-chip { color: var(--text-muted); font: var(--text-caption) var(--font-mono); white-space: nowrap; }
 

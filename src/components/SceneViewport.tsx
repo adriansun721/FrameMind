@@ -16,6 +16,7 @@ interface SceneViewportProps {
   materials: FrameMaterial[];
   sections: FrameSection[];
   selection: SceneSelection;
+  fitRequest?: number;
   onSelect(selection: SceneSelection): void;
 }
 
@@ -91,7 +92,8 @@ function selectionFromHit(hit: THREE.Intersection): SceneSelection {
     : { kind: "member", id: String(hit.object.userData.id) as MemberId };
 }
 
-export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect }: SceneViewportProps) {
+export function SceneViewport({ projectId, nodes, members, materials, sections, selection, onSelect, fitRequest = 0 }: SceneViewportProps) {
+  const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
@@ -182,6 +184,10 @@ export function SceneViewport({ projectId, nodes, members, materials, sections, 
   }, [projectId, nodes, members]);
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (runtime && fitRequest > 0) applySceneFrame(runtime.camera, runtime.controls, nodesRef.current);
+  }, [fitRequest]);
 
   const fitModel = () => {
     const runtime = runtimeRef.current;

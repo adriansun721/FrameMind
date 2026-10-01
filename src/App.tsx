@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, Box, Calculator, ChevronDown, CircleDot, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Undo2, X } from "lucide-react";
-import { SceneViewport, type SceneSelection } from "./components/SceneViewport";
+import { Anchor, Box, Calculator, ChevronDown, CircleDot, Crosshair, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Undo2, X } from "lucide-react";
+import { SceneViewport } from "./components/SceneViewport";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
-  addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection,
+  addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
   type DofRestraints, type FrameProject, type MaterialId, type NodeId, type SectionId,
 } from "./domain/project";
 import { captureAnalysisInput, solveFrame, type AnalysisResult } from "./domain/analysis";
+import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 
 type StatusTone = "neutral" | "success" | "error";
-type Selection = SceneSelection | { kind: "material"; id: MaterialId } | { kind: "section"; id: SectionId };
+type Selection = AnalysisTarget | null;
 interface StatusMessage { tone: StatusTone; text: string; }
 interface NodeDraft { x: string; y: string; z: string; }
 interface MaterialDraft { name: string; elasticModulusGPa: string; poissonRatio: string; densityKgM3: string; }
@@ -40,6 +41,8 @@ export function App() {
   const [selection, setSelection] = useState<Selection>(null);
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false);
+  const [analysisFailure, setAnalysisFailure] = useState<{ failure: AnalysisFailure; revision: number } | null>(null);
+  const [diagnosticFitRequest, setDiagnosticFitRequest] = useState(0);
   const [nodeDraft, setNodeDraft] = useState<NodeDraft>({ x: "0", y: "0", z: "0" });
   const [materialDraft, setMaterialDraft] = useState<MaterialDraft>(defaultMaterial); const [sectionDraft, setSectionDraft] = useState<SectionDraft>(defaultSection);
   const [memberDraft, setMemberDraft] = useState<MemberDraft>({ startNodeId: "", endNodeId: "", materialId: "", sectionId: "", rotationDegrees: "0" });
@@ -50,26 +53,29 @@ export function App() {
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const dirty = project.revision !== savedRevision;
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
-  const analysisAvailable = project.members.length > 0 && project.supports.length > 0 && project.nodalLoads.length > 0;
 
   const selectedNode = selection?.kind === "node" ? project.nodes.find((item) => item.id === selection.id) ?? null : null;
   const selectedMember = selection?.kind === "member" ? project.members.find((item) => item.id === selection.id) ?? null : null;
   const selectedMaterial = selection?.kind === "material" ? project.materials.find((item) => item.id === selection.id) ?? null : null;
   const selectedSection = selection?.kind === "section" ? project.sections.find((item) => item.id === selection.id) ?? null : null;
-  const currentSelectionLabel = selectedNode?.label ?? selectedMember?.label ?? selectedMaterial?.label ?? selectedSection?.label ?? "无选择";
+  const selectedSupport = selection?.kind === "support" ? project.supports.find((item) => item.id === selection.id) ?? null : null;
+  const selectedLoad = selection?.kind === "load" ? project.nodalLoads.find((item) => item.id === selection.id) ?? null : null;
+  const currentSelectionLabel = selectedNode?.label ?? selectedMember?.label ?? selectedMaterial?.label ?? selectedSection?.label ?? selectedSupport?.label ?? selectedLoad?.label ?? "无选择";
   const memberGeometry = useMemo(() => {
     if (!selectedMember) return null;
     const start = project.nodes.find((item) => item.id === selectedMember.startNodeId); const end = project.nodes.find((item) => item.id === selectedMember.endNodeId);
     return start && end ? calculateMemberGeometry(start.position, end.position, selectedMember.rotationDegrees) : null;
   }, [project.nodes, selectedMember]);
 
-  const activateProject = (next: FrameProject, newSession: boolean) => { if (newSession) activeSessionRef.current += 1; activeProjectRef.current = next; setProject(next); };
+  const activateProject = (next: FrameProject, newSession: boolean) => { if (newSession) { activeSessionRef.current += 1; setAnalysisFailure(null); } activeProjectRef.current = next; setProject(next); };
   const selectObject = (next: Selection) => {
     setSelection(next); setFormError(null); if (!next) return;
     if (next.kind === "node") { const item = project.nodes.find((node) => node.id === next.id); if (item) setNodeDraft({ x: String(item.position.x), y: String(item.position.y), z: String(item.position.z) }); }
     if (next.kind === "member") { const item = project.members.find((member) => member.id === next.id); if (item) setMemberDraft({ startNodeId: item.startNodeId, endNodeId: item.endNodeId, materialId: item.materialId, sectionId: item.sectionId, rotationDegrees: String(item.rotationDegrees) }); }
     if (next.kind === "material") { const item = project.materials.find((material) => material.id === next.id); if (item) setMaterialDraft({ name: item.name, elasticModulusGPa: String(item.elasticModulusGPa), poissonRatio: String(item.poissonRatio), densityKgM3: String(item.densityKgM3) }); }
     if (next.kind === "section") { const item = project.sections.find((section) => section.id === next.id); if (item) setSectionDraft({ name: item.name, areaM2: String(item.areaM2), secondMomentYM4: String(item.secondMomentYM4), secondMomentZM4: String(item.secondMomentZM4), torsionalConstantM4: String(item.torsionalConstantM4) }); }
+    if (next.kind === "support") { const item = project.supports.find((support) => support.id === next.id); if (item) { setSupportNodeId(item.nodeId); setSupportRestraints([...item.restraints]); } }
+    if (next.kind === "load") { const item = project.nodalLoads.find((load) => load.id === next.id); if (item) setLoadDraft({ nodeId: item.nodeId, fx: String(item.force.x), fy: String(item.force.y), fz: String(item.force.z), mx: String(item.moment.x), my: String(item.moment.y), mz: String(item.moment.z) }); }
   };
 
   const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; activateProject(createProject(), true); setProjectPath(null); setSavedRevision(0); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
@@ -115,7 +121,7 @@ export function App() {
   };
   const submitSupport = (event: React.FormEvent) => {
     event.preventDefault();
-    try { const updated = addSupport(project, supportNodeId as NodeId, supportRestraints); activateProject(updated, false); setSupportDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建固定支座 ${updated.supports.at(-1)!.label}` }); }
+    try { const updated = addSupport(project, supportNodeId as NodeId, supportRestraints); activateProject(updated, false); setSelection({ kind: "support", id: updated.supports.at(-1)!.id }); setSupportDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建节点支座 ${updated.supports.at(-1)!.label}` }); }
     catch (error) { setFormError(error instanceof Error ? error.message : "创建支座失败"); }
   };
   const submitLoad = (event: React.FormEvent) => {
@@ -123,18 +129,21 @@ export function App() {
     try {
       const vector = (x: string, y: string, z: string, name: string) => ({ x: parseNumber(x, `${name} X`), y: parseNumber(y, `${name} Y`), z: parseNumber(z, `${name} Z`) });
       const updated = addNodalLoad(project, loadDraft.nodeId as NodeId, vector(loadDraft.fx, loadDraft.fy, loadDraft.fz, "节点力"), vector(loadDraft.mx, loadDraft.my, loadDraft.mz, "节点力矩"));
-      activateProject(updated, false); setLoadDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建节点荷载 ${updated.nodalLoads.at(-1)!.label}` });
+      activateProject(updated, false); setSelection({ kind: "load", id: updated.nodalLoads.at(-1)!.id }); setLoadDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建节点荷载 ${updated.nodalLoads.at(-1)!.label}` });
     } catch (error) { setFormError(error instanceof Error ? error.message : "创建节点荷载失败"); }
   };
   const runAnalysis = async () => {
-    if (analysisBusy || !analysisAvailable) { if (!analysisAvailable) setStatus({ tone: "error", text: "请先创建杆件、支座和节点荷载" }); return; }
-    const inputProject = captureAnalysisInput(project); const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current); setAnalysisBusy(true); setStatus({ tone: "neutral", text: "正在组装刚度矩阵并求解…" });
+    if (analysisBusy) return;
+    const inputProject = captureAnalysisInput(project); const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current); setAnalysisBusy(true); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "正在组装刚度矩阵并求解…" });
     await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
     try {
       const result = solveFrame(inputProject);
       if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
       const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
-    } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" }); }
+    } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) {
+      if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
+      else setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" });
+    } }
     finally { setAnalysisBusy(false); }
   };
 
@@ -142,6 +151,12 @@ export function App() {
   const saveMemberEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMember) return; try { const updated = updateMember(project, selectedMember.id, { startNodeId: memberDraft.startNodeId as NodeId, endNodeId: memberDraft.endNodeId as NodeId, materialId: memberDraft.materialId as MaterialId, sectionId: memberDraft.sectionId as SectionId, rotationDegrees: parseNumber(memberDraft.rotationDegrees, "截面转角") }); activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedMember.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新杆件失败"); } };
   const saveMaterialEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMaterial) return; try { const updated = updateMaterial(project, selectedMaterial.id, materialToNumbers(materialDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新材料 ${selectedMaterial.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新材料失败"); } };
   const saveSectionEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedSection) return; try { const updated = updateSection(project, selectedSection.id, sectionToNumbers(sectionDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新截面 ${selectedSection.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新截面失败"); } };
+  const saveSupportEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedSupport) return; try { activateProject(updateSupport(project, selectedSupport.id, supportNodeId as NodeId, supportRestraints), false); setStatus({ tone: "success", text: `已更新支座 ${selectedSupport.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新支座失败"); } };
+  const saveLoadEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedLoad) return; try {
+    const force = { x: parseNumber(loadDraft.fx, "FX"), y: parseNumber(loadDraft.fy, "FY"), z: parseNumber(loadDraft.fz, "FZ") };
+    const moment = { x: parseNumber(loadDraft.mx, "MX"), y: parseNumber(loadDraft.my, "MY"), z: parseNumber(loadDraft.mz, "MZ") };
+    activateProject(updateNodalLoad(project, selectedLoad.id, loadDraft.nodeId as NodeId, force, moment), false); setStatus({ tone: "success", text: `已更新荷载 ${selectedLoad.label}` }); setFormError(null);
+  } catch (error) { setFormError(error instanceof Error ? error.message : "更新荷载失败"); } };
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -189,7 +204,7 @@ export function App() {
         <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="基础工具栏占位；使用设置支座打开 T03 支座输入"><Anchor size={15} />支座</button>
         <button className="tool-button" aria-label="设置支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />设置支座</button>
         <button className="tool-button" aria-label="创建荷载" title="创建节点集中力和力矩" onClick={openLoadDialog}><Plus size={15} />荷载</button>
-        <button className="tool-button" aria-label="运行分析" title={analysisAvailable ? "运行空间刚架静力分析" : "需要杆件、支座和节点荷载"} aria-disabled={!analysisAvailable || analysisBusy} onClick={() => void runAnalysis()}><Calculator size={15} />{analysisBusy ? "计算中" : "计算"}</button>
+        <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" disabled={analysisBusy} onClick={() => void runAnalysis()}><Calculator size={15} />{analysisBusy ? "计算中" : "计算"}</button>
         <span className="toolbar-divider" />
         <button className="tool-button icon-only" aria-disabled="true" aria-label="撤销（尚未实现）" title="撤销尚未实现"><Undo2 size={15} /></button>
         <button className="tool-button icon-only" aria-disabled="true" aria-label="重做（尚未实现）" title="重做尚未实现"><Redo2 size={15} /></button>
@@ -213,11 +228,11 @@ export function App() {
             {project.sections.map((section) => <button className={`tree-item resource ${selection?.kind === "section" && selection.id === section.id ? "selected" : ""}`} key={section.id} onClick={() => selectObject({ kind: "section", id: section.id })}><span className="section-glyph" /><span>截面 {section.label} · {section.name}</span></button>)}
           </TreeGroup>
           <TreeGroup label="支座" count={project.supports.length} icon={<Anchor size={14} />}>
-            {project.supports.map((support) => <button className="tree-item resource" key={support.id} onClick={() => setSelection(null)}><span className="material-glyph" /><span>{support.label} · {project.nodes.find((node) => node.id === support.nodeId)?.label ?? support.nodeId}</span></button>)}
+            {project.supports.map((support) => <button className={`tree-item resource ${selection?.kind === "support" && selection.id === support.id ? "selected" : ""}`} key={support.id} onClick={() => selectObject({ kind: "support", id: support.id })}><span className="material-glyph" /><span>{support.label} · {project.nodes.find((node) => node.id === support.nodeId)?.label ?? support.nodeId}</span></button>)}
             {project.supports.length === 0 && <p className="tree-empty">暂无支座</p>}
           </TreeGroup>
           <TreeGroup label="节点荷载" count={project.nodalLoads.length} icon={<Plus size={14} />}>
-            {project.nodalLoads.map((load) => <button className="tree-item resource" key={load.id} onClick={() => setSelection(null)}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
+            {project.nodalLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "load", id: load.id })}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
             {project.nodalLoads.length === 0 && <p className="tree-empty">暂无节点荷载</p>}
           </TreeGroup>
           <button className={`tree-item ${project.latestAnalysis && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!project.latestAnalysis} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果</span><small>{project.latestAnalysis?.nodes.length ?? 0}</small></button>
@@ -238,12 +253,34 @@ export function App() {
           </Inspector>}
           {selectedMaterial && <Inspector title="自定义材料" label={`${selectedMaterial.label} · ${selectedMaterial.name}`} icon={<Layers3 size={15} />}><Identity id={selectedMaterial.id} label={selectedMaterial.label} /><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveMaterialEdit(event)}>保存材料属性</button></Inspector>}
           {selectedSection && <Inspector title="自定义截面" label={`${selectedSection.label} · ${selectedSection.name}`} icon={<Box size={15} />}><Identity id={selectedSection.id} label={selectedSection.label} /><SectionFields draft={sectionDraft} setDraft={setSectionDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveSectionEdit(event)}>保存截面属性</button></Inspector>}
-          {project.latestAnalysis && !selectedNode && !selectedMember && !selectedMaterial && !selectedSection && <AnalysisResultPanel result={project.latestAnalysis} project={project} />}
-          {!selectedNode && !selectedMember && !selectedMaterial && !selectedSection && !project.latestAnalysis && <div className="inspector-empty"><strong>未选择对象</strong><p>从项目树或三维视图选择对象以编辑属性。</p></div>}
+          {selectedSupport && <Inspector title="节点支座" label={selectedSupport.label} icon={<Anchor size={15} />}><Identity id={selectedSupport.id} label={selectedSupport.label} /><form className="property-form" onSubmit={saveSupportEdit}>
+            <SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((node) => ({ value: node.id, label: node.label }))} />
+            <RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存支座属性</button>
+          </form></Inspector>}
+          {selectedLoad && <Inspector title="节点集中荷载" label={selectedLoad.label} icon={<Plus size={15} />}><Identity id={selectedLoad.id} label={selectedLoad.label} /><form className="property-form" onSubmit={saveLoadEdit}>
+            <SelectField label="加载节点" value={loadDraft.nodeId} onChange={(nodeId) => setLoadDraft({ ...loadDraft, nodeId })} options={project.nodes.map((node) => ({ value: node.id, label: node.label }))} />
+            <LoadFields draft={loadDraft} onChange={setLoadDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存荷载属性</button>
+          </form></Inspector>}
+          {project.latestAnalysis && !selection && <AnalysisResultPanel result={project.latestAnalysis} project={project} />}
+          {!selection && !project.latestAnalysis && <div className="inspector-empty"><strong>未选择对象</strong><p>从项目树或三维视图选择对象以编辑属性。</p></div>}
         </section>
       </aside>
 
-      <section className="model-area"><SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : null} onSelect={selectObject} /></section>
+      <section className={`model-area ${analysisFailure ? "has-diagnostics" : ""}`}>
+        {analysisFailure && <section className="analysis-diagnostics" aria-label="分析诊断">
+          <header><strong>{ANALYSIS_STAGE_LABELS[analysisFailure.failure.stage]}失败</strong><span>R{analysisFailure.revision} · {analysisFailure.revision === project.revision ? "当前模型" : "模型已修改，待重新检查"}</span><button className="icon-button" aria-label="关闭分析诊断" title="关闭分析诊断" onClick={() => setAnalysisFailure(null)}><X size={15} /></button></header>
+          <ul>{analysisFailure.failure.diagnostics.map((diagnostic, index) => {
+            const target = diagnostic.target;
+            const objects = target?.kind === "node" ? project.nodes : target?.kind === "member" ? project.members : target?.kind === "material" ? project.materials : target?.kind === "section" ? project.sections : target?.kind === "support" ? project.supports : project.nodalLoads;
+            const object = target ? objects.find((item) => item.id === target.id) : undefined;
+            const fieldLabel = diagnostic.field ? ANALYSIS_FIELD_LABELS[diagnostic.field] ?? diagnostic.field : diagnostic.dof?.toUpperCase() ?? "对象";
+            return <li key={index}><div><p>{diagnostic.message}</p>{diagnostic.evidence && <small>主元 {diagnostic.evidence.pivotMagnitude.toExponential(3)} · 阈值 {diagnostic.evidence.threshold.toExponential(3)} · 矩阵尺度 {diagnostic.evidence.matrixScale.toExponential(3)} · 全局索引 {diagnostic.evidence.globalDofIndex}（从 0 起）</small>}</div>
+              {target && object && <button className="diagnostic-location" aria-label={`定位 ${object.label} · ${fieldLabel}`} title={`定位 ${object.label} · ${fieldLabel}`} onClick={() => { selectObject(target); setDiagnosticFitRequest((value) => value + 1); }}><Crosshair size={14} /><span>{object.label} · {fieldLabel}</span></button>}
+            </li>;
+          })}</ul>
+        </section>}
+        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+      </section>
 
     </section>
 
@@ -252,8 +289,8 @@ export function App() {
     {nodeDialogOpen && <Dialog title="创建空间节点" copy="输入全局坐标。长度统一以米（m）保存和显示。" onClose={() => setNodeDialogOpen(false)}><form onSubmit={submitNode}><div className="coordinate-inputs">{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={nodeDraft[axis]} onChange={(value) => setNodeDraft({ ...nodeDraft, [axis]: value })} unit="m" />)}</div><FormFeedback error={formError} /><DialogActions close={() => setNodeDialogOpen(false)} submit="添加到模型" /></form></Dialog>}
     {resourceDialogOpen && <Dialog title="创建材料与截面" copy="参数使用 SI 基准单位；这些值将在 T03 核定单元理论前保持明确含义。" onClose={() => setResourceDialogOpen(false)}><form onSubmit={submitResources}><div className="resource-columns"><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><SectionFields draft={sectionDraft} setDraft={setSectionDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => setResourceDialogOpen(false)} submit="保存材料与截面" /></form></Dialog>}
     {memberDialogOpen && <Dialog title="连接空间杆件" copy="选择两个不同位置的节点，并指定材料、截面和绕局部 x 轴的截面转角。" onClose={() => setMemberDialogOpen(false)}><form onSubmit={submitMember}><div className="form-grid"><SelectField label="起点节点" value={memberDraft.startNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={memberDraft.endNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={memberDraft.materialId} onChange={(value) => setMemberDraft({ ...memberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={memberDraft.sectionId} onChange={(value) => setMemberDraft({ ...memberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={memberDraft.rotationDegrees} onChange={(value) => setMemberDraft({ ...memberDraft, rotationDegrees: value })} unit="°" /></div><FormFeedback error={formError} /><DialogActions close={() => setMemberDialogOpen(false)} submit="添加杆件" /></form></Dialog>}
-    {supportDialogOpen && <Dialog title="创建节点支座" copy="支座独立约束节点的六个自由度。固定支座默认约束平移与转动全部分量。" onClose={() => setSupportDialogOpen(false)}><form onSubmit={submitSupport}><SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><fieldset className="resource-fieldset"><legend>约束自由度</legend><div className="restraint-grid">{(["UX 平移", "UY 平移", "UZ 平移", "RX 转动", "RY 转动", "RZ 转动"] as const).map((label, index) => <label className="check-field" key={label}><input type="checkbox" checked={supportRestraints[index]} onChange={(event) => setSupportRestraints(supportRestraints.map((value, itemIndex) => itemIndex === index ? event.target.checked : value) as DofRestraints)} /><span>{label}</span></label>)}</div></fieldset><FormFeedback error={formError} /><DialogActions close={() => setSupportDialogOpen(false)} submit="添加支座" /></form></Dialog>}
-    {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="输入全局坐标系下的节点力（kN）和节点力矩（kN·m）；零值分量仍会保留在输入记录中。" onClose={() => setLoadDialogOpen(false)}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><div className="load-columns"><fieldset className="resource-fieldset"><legend>节点力（kN）</legend><NumberField label="FX" value={loadDraft.fx} unit="kN" onChange={(value) => setLoadDraft({ ...loadDraft, fx: value })} /><NumberField label="FY" value={loadDraft.fy} unit="kN" onChange={(value) => setLoadDraft({ ...loadDraft, fy: value })} /><NumberField label="FZ" value={loadDraft.fz} unit="kN" onChange={(value) => setLoadDraft({ ...loadDraft, fz: value })} /></fieldset><fieldset className="resource-fieldset"><legend>节点力矩（kN·m）</legend><NumberField label="MX" value={loadDraft.mx} unit="kN·m" onChange={(value) => setLoadDraft({ ...loadDraft, mx: value })} /><NumberField label="MY" value={loadDraft.my} unit="kN·m" onChange={(value) => setLoadDraft({ ...loadDraft, my: value })} /><NumberField label="MZ" value={loadDraft.mz} unit="kN·m" onChange={(value) => setLoadDraft({ ...loadDraft, mz: value })} /></fieldset></div><FormFeedback error={formError} /><DialogActions close={() => setLoadDialogOpen(false)} submit="添加节点荷载" /></form></Dialog>}
+    {supportDialogOpen && <Dialog title="创建节点支座" copy="支座独立约束节点的六个自由度。固定支座默认约束平移与转动全部分量。" onClose={() => { setSupportDialogOpen(false); selectObject(selection); }}><form onSubmit={submitSupport}><SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><DialogActions close={() => { setSupportDialogOpen(false); selectObject(selection); }} submit="添加支座" /></form></Dialog>}
+    {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="输入全局坐标系下的节点力（kN）和节点力矩（kN·m）；零值分量仍会保留在输入记录中。" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
   </main>;
 }
 
@@ -284,6 +321,14 @@ function AnalysisResultPanel({ result, project }: { result: AnalysisResult; proj
 }
 function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) { return <div className="tree-group"><div className="tree-group-label"><ChevronDown size={13} />{icon}<span>{label}</span><em>{count}</em></div><div className="tree-items">{children}</div></div>; }
 function MenuAction({ icon, label, shortcut, onSelect }: { icon: React.ReactNode; label: string; shortcut: string; onSelect(): void }) { return <button className="menu-item" role="menuitem" onClick={onSelect}><span>{icon}{label}</span><kbd>{shortcut}</kbd></button>; }
+function RestraintFields({ restraints, onChange }: { restraints: DofRestraints; onChange: (value: DofRestraints) => void }) {
+  return <fieldset className="resource-fieldset"><legend>约束自由度</legend><div className="restraint-grid">{["UX 平移", "UY 平移", "UZ 平移", "RX 转动", "RY 转动", "RZ 转动"].map((label, index) => <label className="check-field" key={label}><input type="checkbox" checked={restraints[index]} onChange={(event) => onChange(restraints.map((value, itemIndex) => itemIndex === index ? event.target.checked : value) as DofRestraints)} /><span>{label}</span></label>)}</div></fieldset>;
+}
+
+function LoadFields({ draft, onChange }: { draft: LoadDraft; onChange: (value: LoadDraft) => void }) {
+  return <>{([{ title: "节点力（kN）", unit: "kN", fields: ["fx", "fy", "fz"] }, { title: "节点力矩（kN·m）", unit: "kN·m", fields: ["mx", "my", "mz"] }] as const).map((group) => <fieldset className="resource-fieldset" key={group.title}><legend>{group.title}</legend>{group.fields.map((field) => <NumberField key={field} label={field.toUpperCase()} value={draft[field]} unit={group.unit} onChange={(value) => onChange({ ...draft, [field]: value })} />)}</fieldset>)}</>;
+}
+
 function Inspector({ title, label, icon, children }: { title: string; label: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="inspector-content"><div className="selection-title"><span className="selection-icon">{icon}</span><div><small>{title}</small><strong>{label}</strong></div></div>{children}<p className="inspector-note">属性来自当前已应用模型，三维视图与项目文件共享同一对象身份。</p></div>; }
 function Identity({ id, label }: { id: string; label: string }) { return <section className="property-section"><h3>标识</h3><dl><div><dt>稳定 ID</dt><dd>{id}</dd></div><div><dt>显示编号</dt><dd>{label}</dd></div></dl></section>; }
 function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange(value: string): void; options: Array<{ value: string; label: string }> }) { return <label className="field"><span>{label}</span><select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>; }
