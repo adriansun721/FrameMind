@@ -33,6 +33,8 @@ import {
   type LoadId,
   type DofRestraints,
   type FrameSelfWeight,
+  type ResourceProvenance,
+  type CatalogSource,
 } from "./project";
 import { freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
 
@@ -48,6 +50,32 @@ function requireString(value: unknown, message: string): string {
 function requireFinite(value: unknown, message: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(message);
   return value;
+}
+
+function decodeCatalogSource(value: unknown, label: string): CatalogSource {
+  if (!isRecord(value)) throw new Error(`${label}来源信息无效`);
+  return {
+    publisher: requireString(value.publisher, `${label}来源缺少发布者`),
+    title: requireString(value.title, `${label}来源缺少标题`),
+    edition: requireString(value.edition, `${label}来源缺少版本`),
+    url: requireString(value.url, `${label}来源缺少链接`),
+    accessedOn: requireString(value.accessedOn, `${label}来源缺少核对日期`),
+    units: requireString(value.units, `${label}来源缺少单位说明`),
+  };
+}
+
+function decodeProvenance(value: unknown, label: string): ResourceProvenance {
+  if (value === undefined) return { kind: "custom" };
+  if (!isRecord(value) || (value.kind !== "catalog" && value.kind !== "custom")) throw new Error(`${label}来源类型无效`);
+  const catalogId = value.catalogId === undefined ? undefined : requireString(value.catalogId, `${label}库编号无效`);
+  const source = value.source === undefined ? undefined : decodeCatalogSource(value.source, label);
+  if (value.kind === "catalog" && (!catalogId || !source)) throw new Error(`${label}库来源必须包含库编号与来源`);
+  let derivedFrom: ResourceProvenance["derivedFrom"];
+  if (value.derivedFrom !== undefined) {
+    if (!isRecord(value.derivedFrom)) throw new Error(`${label}派生来源无效`);
+    derivedFrom = { catalogId: requireString(value.derivedFrom.catalogId, `${label}派生库编号无效`), source: decodeCatalogSource(value.derivedFrom.source, label) };
+  }
+  return { kind: value.kind, ...(catalogId ? { catalogId } : {}), ...(source ? { source } : {}), ...(derivedFrom ? { derivedFrom } : {}) };
 }
 
 function assertNumberedIdentity(name: string, id: string, label: string, idPrefix: string, labelPrefix: string): void {
@@ -88,6 +116,7 @@ function decodeMaterial(value: unknown): FrameMaterial {
       poissonRatio: requireFinite(value.poissonRatio, `材料 ${label} 的泊松比必须大于 -1 且小于 0.5`),
       densityKgM3: requireFinite(value.densityKgM3, `材料 ${label} 的密度必须为正有限数值`),
     }),
+    provenance: decodeProvenance(value.provenance, `材料 ${label}`),
   };
 }
 
@@ -106,6 +135,7 @@ function decodeSection(value: unknown): FrameSection {
       secondMomentZM4: requireFinite(value.secondMomentZM4, `截面 ${label} 的 Iz 必须为正有限数值`),
       torsionalConstantM4: requireFinite(value.torsionalConstantM4, `截面 ${label} 的扭转常数 J 必须为正有限数值`),
     }),
+    provenance: decodeProvenance(value.provenance, `截面 ${label}`),
   };
 }
 

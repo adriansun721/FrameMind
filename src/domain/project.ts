@@ -22,9 +22,11 @@ export type LoadId = string & { readonly [loadIdBrand]: true };
 export interface Vector3 { x: number; y: number; z: number; }
 export interface FrameNode { id: NodeId; label: string; position: Vector3; }
 export interface MaterialProperties { name: string; elasticModulusGPa: number; poissonRatio: number; densityKgM3: number; }
-export interface FrameMaterial extends MaterialProperties { id: MaterialId; label: string; }
+export interface CatalogSource { publisher: string; title: string; edition: string; url: string; accessedOn: string; units: string; }
+export interface ResourceProvenance { kind: "catalog" | "custom"; catalogId?: string; source?: CatalogSource; derivedFrom?: { catalogId: string; source: CatalogSource; } }
+export interface FrameMaterial extends MaterialProperties { id: MaterialId; label: string; provenance: ResourceProvenance; }
 export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; }
-export interface FrameSection extends SectionProperties { id: SectionId; label: string; }
+export interface FrameSection extends SectionProperties { id: SectionId; label: string; provenance: ResourceProvenance; }
 export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; }
 export interface FrameMember extends MemberProperties { id: MemberId; label: string; }
 export type DofRestraints = [boolean, boolean, boolean, boolean, boolean, boolean];
@@ -194,28 +196,44 @@ export function updateNode(project: FrameProject, id: NodeId, position: Vector3)
   return { ...project, nodes, ...nextRevision(project) };
 }
 
-export function addMaterial(project: FrameProject, input: MaterialProperties): FrameProject {
+export function addMaterial(project: FrameProject, input: MaterialProperties, provenance: ResourceProvenance = { kind: "custom" }): FrameProject {
   assertCounter(project.nextMaterialNumber); const number = project.nextMaterialNumber;
-  const material: FrameMaterial = { id: `material_${String(number).padStart(4, "0")}` as MaterialId, label: `M${number}`, ...validateMaterial(`M${number}`, input) };
+  const material: FrameMaterial = { id: `material_${String(number).padStart(4, "0")}` as MaterialId, label: `M${number}`, ...validateMaterial(`M${number}`, input), provenance };
   return { ...project, materials: [...project.materials, material], nextMaterialNumber: number + 1, ...nextRevision(project) };
+}
+
+export function addCatalogMaterial(project: FrameProject, input: MaterialProperties, provenance: ResourceProvenance): FrameProject {
+  if (provenance.kind !== "catalog" || !provenance.catalogId || !provenance.source) throw new Error("库材料缺少可追溯来源");
+  return addMaterial(project, input, provenance);
 }
 
 export function updateMaterial(project: FrameProject, id: MaterialId, input: MaterialProperties): FrameProject {
   const current = project.materials.find((item) => item.id === id); if (!current) throw new Error(`材料 ${id} 不存在`);
   const properties = validateMaterial(current.label, input);
-  return { ...project, materials: project.materials.map((item) => item.id === id ? { ...item, ...properties } : item), ...nextRevision(project) };
+  const provenance = current.provenance.kind === "catalog" && current.provenance.catalogId && current.provenance.source
+    ? { kind: "custom" as const, derivedFrom: { catalogId: current.provenance.catalogId, source: current.provenance.source } }
+    : current.provenance;
+  return { ...project, materials: project.materials.map((item) => item.id === id ? { ...item, ...properties, provenance } : item), ...nextRevision(project) };
 }
 
-export function addSection(project: FrameProject, input: SectionProperties): FrameProject {
+export function addSection(project: FrameProject, input: SectionProperties, provenance: ResourceProvenance = { kind: "custom" }): FrameProject {
   assertCounter(project.nextSectionNumber); const number = project.nextSectionNumber;
-  const section: FrameSection = { id: `section_${String(number).padStart(4, "0")}` as SectionId, label: `S${number}`, ...validateSection(`S${number}`, input) };
+  const section: FrameSection = { id: `section_${String(number).padStart(4, "0")}` as SectionId, label: `S${number}`, ...validateSection(`S${number}`, input), provenance };
   return { ...project, sections: [...project.sections, section], nextSectionNumber: number + 1, ...nextRevision(project) };
+}
+
+export function addCatalogSection(project: FrameProject, input: SectionProperties, provenance: ResourceProvenance): FrameProject {
+  if (provenance.kind !== "catalog" || !provenance.catalogId || !provenance.source) throw new Error("库截面缺少可追溯来源");
+  return addSection(project, input, provenance);
 }
 
 export function updateSection(project: FrameProject, id: SectionId, input: SectionProperties): FrameProject {
   const current = project.sections.find((item) => item.id === id); if (!current) throw new Error(`截面 ${id} 不存在`);
   const properties = validateSection(current.label, input);
-  return { ...project, sections: project.sections.map((item) => item.id === id ? { ...item, ...properties } : item), ...nextRevision(project) };
+  const provenance = current.provenance.kind === "catalog" && current.provenance.catalogId && current.provenance.source
+    ? { kind: "custom" as const, derivedFrom: { catalogId: current.provenance.catalogId, source: current.provenance.source } }
+    : current.provenance;
+  return { ...project, sections: project.sections.map((item) => item.id === id ? { ...item, ...properties, provenance } : item), ...nextRevision(project) };
 }
 
 export function addMember(project: FrameProject, input: MemberProperties): FrameProject {

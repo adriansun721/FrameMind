@@ -362,6 +362,13 @@ button { color: inherit; }
 .viewport-member-details span { overflow-wrap: anywhere; }
 .resource-fieldset { min-width: 0; margin: 0; padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
 .resource-fieldset legend { padding: 0 var(--space-1); color: var(--text-secondary); font-size: var(--text-caption); font-weight: 600; }
+.catalog-source { display: grid; gap: 3px; margin-top: 8px; color: var(--text-muted); font-size: var(--text-micro); line-height: 1.35; overflow-wrap: anywhere; }
+.catalog-source strong { color: var(--text-secondary); font-weight: 600; }
+.catalog-source a { color: var(--model-selected); text-decoration: none; }
+.catalog-source a:hover { text-decoration: underline; }
+.property-section .catalog-source { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+.catalog-field-notes { display: grid; gap: 3px; margin: 8px 0; padding: 8px; border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); color: var(--text-muted); font-size: var(--text-micro); line-height: 1.35; }
+.catalog-field-notes strong { color: var(--text-secondary); font-weight: 600; }
 .restraint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .check-field { display: flex; align-items: center; gap: var(--space-2); min-height: 26px; color: var(--text-secondary); font-size: var(--text-caption); }
 .check-field input { accent-color: var(--surface-action); }
