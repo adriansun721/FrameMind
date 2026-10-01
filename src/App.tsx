@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, Plus, Redo2, Save, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Send, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
@@ -60,6 +60,9 @@ export function App() {
   const [batchDialog, setBatchDialog] = useState<"node" | "member" | null>(null);
   const [batchDraft, setBatchDraft] = useState({ x: "0", y: "0", z: "0", rotationDegrees: "0" });
   const [dataTableOpen, setDataTableOpen] = useState(false);
+  const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
+  const [assistantPanelOpen, setAssistantPanelOpen] = useState(true);
+  const [assistantDraft, setAssistantDraft] = useState("");
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false); const [analysisPhase, setAnalysisPhase] = useState<AnalysisTaskPhase | null>(null);
   const [analysisFailure, setAnalysisFailure] = useState<{ failure: AnalysisFailure; revision: number } | null>(null);
@@ -349,12 +352,16 @@ export function App() {
             <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
           </div>}
         </div>
-      </div>
-      <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{filename(projectPath) ?? "未保存项目"}</small></div>
-      <nav className="task-tabs" role="tablist" aria-label="工作任务">
+        <nav className="task-tabs" role="tablist" aria-label="工作任务">
         <button className="task-tab active" role="tab" aria-selected="true">建模</button>
         {(["荷载", "分析", "结果"] as const).map((task) => <button className="task-tab" role="tab" aria-selected="false" disabled title={`${task}请使用当前任务工具`} key={task}>{task}</button>)}
-      </nav>
+        </nav>
+      </div>
+      <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{filename(projectPath) ?? "未保存项目"}</small></div>
+      <div className="layout-controls" role="group" aria-label="面板布局">
+        <button className={`icon-button ${resourcePanelOpen ? "active" : ""}`} aria-label="切换资源管理器" aria-pressed={resourcePanelOpen} aria-controls="resource-panel" title={resourcePanelOpen ? "收起资源管理器" : "展开资源管理器"} onClick={() => setResourcePanelOpen((open) => !open)}><PanelLeft size={15} /></button>
+        <button className={`icon-button ${assistantPanelOpen ? "active" : ""}`} aria-label="切换 AI 对话" aria-pressed={assistantPanelOpen} aria-controls="assistant-panel" title={assistantPanelOpen ? "收起 AI 对话" : "展开 AI 对话"} onClick={() => setAssistantPanelOpen((open) => !open)}><PanelRight size={15} /></button>
+      </div>
     </header>
 
     <section className="task-toolbar" aria-label="当前任务工具" aria-busy={analysisBusy} data-analysis-phase={analysisPhase ?? undefined} data-history-version={historyVersion}>
@@ -377,8 +384,11 @@ export function App() {
       </div>
     </section>
 
-    <section className="workspace">
-      <aside className="project-panel" aria-label="项目与属性">
+    <section className={`workspace ${resourcePanelOpen ? "" : "resource-collapsed"} ${assistantPanelOpen ? "" : "assistant-collapsed"}`}>
+      <nav className="activity-bar" aria-label="侧边导航">
+        <button className={`activity-button ${resourcePanelOpen ? "active" : ""}`} aria-label="资源管理器" aria-pressed={resourcePanelOpen} aria-controls="resource-panel" title="资源管理器" onClick={() => setResourcePanelOpen((open) => !open)}><Files size={22} strokeWidth={1.5} /></button>
+      </nav>
+      <aside id="resource-panel" className="project-panel" aria-label="项目与属性" hidden={!resourcePanelOpen}>
         <section className="sidebar-pane project-tree-pane" aria-label="项目树"><div className="panel-heading"><span>项目</span><button className="icon-button" title="添加节点" onClick={openNodeDialog}><Plus size={16} /></button></div>
           <div className="project-tree"><div className="tree-root"><ChevronDown size={14} /><Box size={15} /><span>{project.name}</span></div>
           <TreeGroup label="节点" count={project.nodes.length} icon={<CircleDot size={14} />}>
@@ -410,7 +420,7 @@ export function App() {
           </TreeGroup>
           <button className={`tree-item ${project.latestAnalysis && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!project.latestAnalysis} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果</span><small>{project.latestAnalysis?.nodes.length ?? 0}</small></button>
           <div className="tree-muted"><span className="chevron-placeholder">›</span><Layers3 size={14} /><span>报告</span><em>0</em></div>
-          </div><div className="model-summary"><span>模型版本</span><strong>R{project.revision}</strong><small>格式 v{project.formatVersion}</small></div>
+          </div>
         </section>
         <div className="sidebar-divider" role="separator" aria-orientation="horizontal" />
         <section className="sidebar-pane property-pane" aria-label="对象属性"><div className="panel-heading"><span>属性</span></div>
@@ -457,6 +467,16 @@ export function App() {
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
+      <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!assistantPanelOpen}>
+        <div className="panel-heading"><span>AI 对话</span><button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={() => setAssistantPanelOpen(false)}><X size={15} /></button></div>
+        <div className="assistant-messages" role="log" aria-label="对话消息" />
+        <div className="assistant-composer">
+          <textarea aria-label="AI 消息草稿" placeholder="输入消息…" value={assistantDraft} onChange={(event) => setAssistantDraft(event.target.value)} onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) event.stopPropagation();
+          }} />
+          <div className="assistant-composer-actions"><button className="icon-button" aria-label="发送消息（尚未接入）" title="AI 尚未接入" disabled><Send size={15} /></button></div>
+        </div>
+      </aside>
     </section>
 
     <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>

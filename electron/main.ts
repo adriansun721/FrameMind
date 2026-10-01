@@ -18,6 +18,12 @@ function createWindow(): void {
     minHeight: 680,
     backgroundColor: "#1a1a1a",
     title: "FrameMind",
+    titleBarStyle: "hidden",
+    titleBarOverlay: {
+      color: "#202020",
+      symbolColor: "#b6b6b6",
+      height: 33,
+    },
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

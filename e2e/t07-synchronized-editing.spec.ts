@@ -1,10 +1,17 @@
 import { expect, test, type Page } from "@playwright/test";
 import { launchFrameMind } from "./electron-app";
 import { createNode } from "./modeling-actions";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { _electron as electron } from "@playwright/test";
+
+async function savedProjectContent(page: Page, path: string): Promise<string> {
+  const previousWrite = await stat(path).then((file) => file.mtimeMs, () => -1);
+  await page.keyboard.press("Control+s");
+  await expect.poll(() => stat(path).then((file) => file.mtimeMs, () => -1)).toBeGreaterThan(previousWrite);
+  return readFile(path, "utf8");
+}
 
 test("T07 edits node coordinates through the table and inspector using one selected object", async () => {
   const { app, page } = await launchFrameMind();
@@ -112,7 +119,7 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await expect(table.getByLabel("M1 截面转角")).toHaveValue("-30");
     await expect(properties.getByText("5.000 m", { exact: true })).toBeVisible();
 
-    const version = await page.locator(".model-summary strong").textContent();
+    const appliedContent = await savedProjectContent(page, environment.FRAMEMIND_E2E_PROJECT_PATH!);
     await table.getByLabel("M1 截面转角").fill("");
     await table.getByRole("button", { name: "保存 M1" }).click();
     await expect(table.getByRole("alert")).toHaveText("截面转角不能为空");
@@ -122,7 +129,7 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await table.getByLabel("M1 终点节点").selectOption("node_0002");
     await table.getByRole("button", { name: "保存 M1" }).click();
     await expect(table.getByRole("alert")).toContainText("两个节点不能位于同一位置");
-    await expect(page.locator(".model-summary strong")).toHaveText(version!);
+    expect(await savedProjectContent(page, environment.FRAMEMIND_E2E_PROJECT_PATH!)).toBe(appliedContent);
     await expect(properties.getByText("5.000 m", { exact: true })).toBeVisible();
     await table.getByRole("button", { name: "还原 M1 草稿" }).click();
 
@@ -138,7 +145,7 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await table.getByRole("button", { name: "保存 N3" }).click();
     await expect(table.getByRole("alert")).toHaveText("X 坐标不能为空");
     await expect(table.getByLabel("N3 X 坐标")).toHaveAttribute("aria-invalid", "true");
-    await expect(page.locator(".model-summary strong")).toHaveText(version!);
+    expect(await savedProjectContent(page, environment.FRAMEMIND_E2E_PROJECT_PATH!)).toBe(appliedContent);
     await table.getByRole("button", { name: "还原 N3 草稿" }).click();
     await table.getByLabel("N3 Z 坐标").fill("6");
     await table.getByRole("button", { name: "保存 N3" }).click();

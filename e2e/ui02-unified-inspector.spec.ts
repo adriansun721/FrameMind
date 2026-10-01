@@ -18,7 +18,7 @@ test("UI02 keeps project selection and editable properties in one left sidebar",
   await expect(projectTree).toBeVisible();
   await expect(properties).toContainText("未选择对象");
   await expect(page.locator(".inspector-panel")).toHaveCount(0);
-  await expect(page.locator(".assistant-panel")).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "AI 对话" })).toBeVisible();
 
   const layout = await page.locator(".workspace").evaluate(() => {
     const tree = document.querySelector(".project-tree-pane")!.getBoundingClientRect();
