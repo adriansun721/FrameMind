@@ -1,5 +1,5 @@
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
-import { AnalysisFailure, checkAnalysisInput } from "./analysis-diagnostics";
+import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import type {
   DofRestraints,
   FrameMaterial,
@@ -241,7 +241,8 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   };
 }
 
-export function solveFrame(source: FrameProject | AnalysisInputSnapshot): AnalysisResult {
+export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage?: (stage: AnalysisStage) => void): AnalysisResult {
+  onStage?.("model-check");
   if ("projectId" in source && source.solver) {
     try { requireCurrentSolver(source.solver); }
     catch (error) { throw new AnalysisFailure("model-check", [{ code: "unsupported-solver", message: error instanceof Error ? error.message : "求解配置不支持" }]); }
@@ -252,6 +253,7 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot): Analys
   const nodeIndex = new Map(project.nodes.map((node, index) => [node.id, index])); const size = project.nodes.length * 6;
   const stiffness = zeroMatrix(size, size); const force = zeros(size);
   const memberData: MemberMatrices[] = [];
+  onStage?.("assembly");
   for (const member of project.members) {
     const start = project.nodes.find((node) => node.id === member.startNodeId)!; const end = project.nodes.find((node) => node.id === member.endNodeId)!;
     const data = memberMatrices(input, member); const { global } = data;
@@ -271,9 +273,11 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot): Analys
   const constrained = new Set<number>();
   for (const support of project.supports) { const offset = nodeIndex.get(support.nodeId)! * 6; support.restraints.forEach((restrained, index) => { if (restrained) constrained.add(offset + index); }); }
   const freeDofs = Array.from({ length: size }, (_, index) => index).filter((index) => !constrained.has(index));
+  onStage?.("solve");
   const freeDisplacement = solveLinearSystem(freeDofs.map((row) => freeDofs.map((column) => stiffness[row][column])), freeDofs.map((index) => force[index]), freeDofs, project.nodes);
   const displacement = zeros(size);
   freeDofs.forEach((dof, index) => { displacement[dof] = freeDisplacement[index]; });
+  onStage?.("recovery");
   const residual = zeros(size); for (let row = 0; row < size; row += 1) { let value = -force[row]; for (let column = 0; column < size; column += 1) value += stiffness[row][column] * displacement[column]; residual[row] = value; }
   for (let index = 0; index < size; index += 1) if (!Number.isFinite(residual[index])) throw new AnalysisFailure("recovery", [{ code: "non-finite-reaction", message: "反力恢复包含非有限数值，分析未完成", target: { kind: "node", id: project.nodes[Math.floor(index / 6)].id }, dof: ANALYSIS_DOF_ORDER[index % 6], field: "reaction" }]);
   const nodes: NodeAnalysisResult[] = project.nodes.map((node, index) => ({ nodeId: node.id, displacement: { x: displacement[index * 6], y: displacement[index * 6 + 1], z: displacement[index * 6 + 2] }, rotation: { x: displacement[index * 6 + 3], y: displacement[index * 6 + 4], z: displacement[index * 6 + 5] }, reaction: { x: residual[index * 6], y: residual[index * 6 + 1], z: residual[index * 6 + 2] }, reactionMoment: { x: residual[index * 6 + 3], y: residual[index * 6 + 4], z: residual[index * 6 + 5] } }));

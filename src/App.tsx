@@ -6,10 +6,11 @@ import {
   addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
   type DofRestraints, type FrameProject, type MaterialId, type NodeId, type SectionId,
 } from "./domain/project";
-import { captureAnalysisInput, solveFrame, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
+import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
 
 type StatusTone = "neutral" | "success" | "error";
 type Selection = AnalysisTarget | null;
@@ -33,6 +34,12 @@ const materialToNumbers = (draft: MaterialDraft) => ({ name: draft.name, elastic
 const sectionToNumbers = (draft: SectionDraft) => ({ name: draft.name, areaM2: parseNumber(draft.areaM2, "面积 A"), secondMomentYM4: parseNumber(draft.secondMomentYM4, "惯性矩 Iy"), secondMomentZM4: parseNumber(draft.secondMomentZM4, "惯性矩 Iz"), torsionalConstantM4: parseNumber(draft.torsionalConstantM4, "扭转常数 J") });
 const filename = (path: string | null) => path ? path.split(/[\\/]/).pop() ?? path : null;
 const vectorText = (vector: { x: number; y: number; z: number }) => `(${vector.x.toFixed(3)}, ${vector.y.toFixed(3)}, ${vector.z.toFixed(3)})`;
+const ANALYSIS_PHASE_TEXT: Record<AnalysisTaskPhase, string> = {
+  "model-check": "正在检查模型",
+  assembly: "正在组装刚度矩阵",
+  solve: "正在求解方程",
+  recovery: "正在恢复分析结果",
+};
 
 export function App() {
   const [project, setProject] = useState<FrameProject>(() => createProject());
@@ -40,7 +47,7 @@ export function App() {
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0);
   const [selection, setSelection] = useState<Selection>(null);
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
-  const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false);
+  const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false); const [analysisPhase, setAnalysisPhase] = useState<AnalysisTaskPhase | null>(null);
   const [analysisFailure, setAnalysisFailure] = useState<{ failure: AnalysisFailure; revision: number } | null>(null);
   const [diagnosticFitRequest, setDiagnosticFitRequest] = useState(0);
   const [nodeDraft, setNodeDraft] = useState<NodeDraft>({ x: "0", y: "0", z: "0" });
@@ -51,6 +58,8 @@ export function App() {
   const [formError, setFormError] = useState<string | null>(null);
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
+  const analysisRunRef = useRef(0);
+  const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
   const dirty = project.revision !== savedRevision;
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
 
@@ -67,7 +76,21 @@ export function App() {
     return start && end ? calculateMemberGeometry(start.position, end.position, selectedMember.rotationDegrees) : null;
   }, [project.nodes, selectedMember]);
 
-  const activateProject = (next: FrameProject, newSession: boolean) => { if (newSession) { activeSessionRef.current += 1; setAnalysisFailure(null); } activeProjectRef.current = next; setProject(next); };
+  const activateProject = (next: FrameProject, newSession: boolean) => {
+    if (newSession) {
+      activeSessionRef.current += 1;
+      setAnalysisFailure(null);
+      const activeAnalysis = analysisTaskRef.current;
+      if (activeAnalysis) {
+        analysisRunRef.current += 1;
+        analysisTaskRef.current = null;
+        activeAnalysis.task.cancel();
+        setAnalysisBusy(false);
+        setAnalysisPhase(null);
+      }
+    }
+    activeProjectRef.current = next; setProject(next);
+  };
   const selectObject = (next: Selection) => {
     setSelection(next); setFormError(null); if (!next) return;
     if (next.kind === "node") { const item = project.nodes.find((node) => node.id === next.id); if (item) setNodeDraft({ x: String(item.position.x), y: String(item.position.y), z: String(item.position.z) }); }
@@ -132,19 +155,49 @@ export function App() {
       activateProject(updated, false); setSelection({ kind: "load", id: updated.nodalLoads.at(-1)!.id }); setLoadDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建节点荷载 ${updated.nodalLoads.at(-1)!.label}` });
     } catch (error) { setFormError(error instanceof Error ? error.message : "创建节点荷载失败"); }
   };
-  const runAnalysis = async () => {
-    if (analysisBusy) return;
-    const inputProject = captureAnalysisInput(project); const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current); setAnalysisBusy(true); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "正在组装刚度矩阵并求解…" });
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+  const cancelAnalysis = () => {
+    const activeAnalysis = analysisTaskRef.current;
+    if (!activeAnalysis) return;
+    analysisRunRef.current += 1;
+    analysisTaskRef.current = null;
+    activeAnalysis.task.cancel();
+    setAnalysisBusy(false);
+    setAnalysisPhase(null);
+    if (isProjectCheckpointCurrent(activeAnalysis.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) {
+      setStatus({ tone: "neutral", text: "分析已取消，当前模型和已有结果仍可继续使用" });
+    }
+  };
+
+  const runAnalysis = () => {
+    if (analysisTaskRef.current) return;
+    const inputProject = captureAnalysisInput(project);
+    const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
+    const runId = ++analysisRunRef.current;
+    setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已启动，正在检查模型" });
+    let task: AnalysisTask;
     try {
-      const result = solveFrame(inputProject);
-      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
+      task = startAnalysisTask(inputProject, {
+        onPhase: (phase) => {
+          if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
+          setAnalysisPhase(phase); setStatus({ tone: "neutral", text: `${ANALYSIS_PHASE_TEXT[phase]}…` });
+        },
+      });
+    } catch (error) {
+      setAnalysisBusy(false); setAnalysisPhase(null); setStatus({ tone: "error", text: error instanceof Error ? error.message : "无法启动分析任务" });
+      return;
+    }
+    analysisTaskRef.current = { id: runId, checkpoint, task };
+    void task.promise.then((result) => {
+      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
       const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
-    } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) {
+    }).catch((error) => {
+      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") || error instanceof AnalysisCancelledError) return;
       if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
       else setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" });
-    } }
-    finally { setAnalysisBusy(false); }
+    }).finally(() => {
+      if (runId !== analysisRunRef.current) return;
+      analysisTaskRef.current = null; setAnalysisBusy(false); setAnalysisPhase(null);
+    });
   };
 
   const saveNodeEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedNode) return; try { const updated = updateNode(project, selectedNode.id, { x: parseNumber(nodeDraft.x, "X 坐标"), y: parseNumber(nodeDraft.y, "Y 坐标"), z: parseNumber(nodeDraft.z, "Z 坐标") }); activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedNode.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新节点失败"); } };
@@ -174,6 +227,14 @@ export function App() {
     return () => window.removeEventListener("keydown", handleShortcut);
   });
 
+  useEffect(() => () => {
+    const activeAnalysis = analysisTaskRef.current;
+    if (!activeAnalysis) return;
+    analysisRunRef.current += 1;
+    analysisTaskRef.current = null;
+    activeAnalysis.task.cancel();
+  }, []);
+
   return <main className="app-shell">
     <header className="topbar">
       <div className="brand-and-file">
@@ -194,7 +255,7 @@ export function App() {
       </nav>
     </header>
 
-    <section className="task-toolbar" aria-label="当前任务工具">
+    <section className="task-toolbar" aria-label="当前任务工具" aria-busy={analysisBusy} data-analysis-phase={analysisPhase ?? undefined}>
       <span className="task-context">建模</span><span className="toolbar-divider" />
       <div className="model-toolbar" role="toolbar" aria-label="建模工具">
         <button className="tool-button active" aria-label="选择" aria-pressed="true" title="选择对象" onClick={() => selectObject(null)}><MousePointer2 size={15} />选择</button>
@@ -204,7 +265,7 @@ export function App() {
         <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="基础工具栏占位；使用设置支座打开 T03 支座输入"><Anchor size={15} />支座</button>
         <button className="tool-button" aria-label="设置支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />设置支座</button>
         <button className="tool-button" aria-label="创建荷载" title="创建节点集中力和力矩" onClick={openLoadDialog}><Plus size={15} />荷载</button>
-        <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" disabled={analysisBusy} onClick={() => void runAnalysis()}><Calculator size={15} />{analysisBusy ? "计算中" : "计算"}</button>
+        {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={runAnalysis}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
         <button className="tool-button icon-only" aria-disabled="true" aria-label="撤销（尚未实现）" title="撤销尚未实现"><Undo2 size={15} /></button>
         <button className="tool-button icon-only" aria-disabled="true" aria-label="重做（尚未实现）" title="重做尚未实现"><Redo2 size={15} /></button>
