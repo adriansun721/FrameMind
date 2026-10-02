@@ -1,0 +1,2056 @@
+{
+  "runId": "c474eb6b-ec3b-4587-b24f-8a5d5534d097",
+  "startedAt": "2026-10-02T17:41:53.373Z",
+  "outcome": "failed",
+  "fixtureId": "T33-two-storey-v1",
+  "date": "2026-10-03",
+  "theme": "dark",
+  "mode": "online",
+  "network": "Real DeepSeek HTTPS; no fetch replacement",
+  "environment": {
+    "platform": "win32",
+    "os": "10.0.26200",
+    "architecture": "x64",
+    "runtime": {
+      "electron": "44.5.1",
+      "chrome": "152.0.7977.130",
+      "node": "24.21.0"
+    }
+  },
+  "stage": "conditions-confirmation",
+  "firstUse": "Pending real participant; automation is not AC-20 evidence",
+  "fixtureSHA256": "e0520b9670303173eef3c2a31f409040c049bb167f391004d852e645ff5689ee",
+  "buildIndexSHA256": "e31d0e2d5d3815b53ae44387500f28dc576f985d6870812aca14a9aad1357ca1",
+  "model": "deepseek-flash",
+  "conditionCorrection": "请只补充更新当前分析条件卡片的工况名称。调用 propose_analysis_conditions，loadCases 字段使用 [{\"ref\":\"lc_dead\",\"name\":\"演示外荷载\",\"source\":\"user\",\"description\":\"结构自重\"},{\"ref\":\"lc_demo\",\"name\":\"演示外荷载\",\"source\":\"user\",\"description\":\"屋面均布力和水平节点力\"},{\"ref\":\"LC1\",\"id\":\"LC1\",\"name\":\"恒载\",\"description\":\"结构自重\",\"source\":\"user\"}]。保留原工况别名和其他所有字段，支座、荷载、自重、组合与计算来源均不变。不确认，不计算，不创建框架。",
+  "finishedAt": "2026-10-02T17:42:35.401Z",
+  "turns": [
+    {
+      "prompt": "建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。",
+      "status": "缺少输入 · 方案草稿需要补齐或澄清参数",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "准备建模方案 · 缺少输入",
+          "input": {
+            "parameters": {
+              "storeys": {
+                "value": 2,
+                "source": "user"
+              },
+              "xSpans": {
+                "value": [
+                  6
+                ],
+                "source": "user"
+              },
+              "storeyHeights": {
+                "value": [
+                  3,
+                  3
+                ],
+                "source": "user"
+              },
+              "origin": {
+                "value": [
+                  0,
+                  0,
+                  0
+                ],
+                "source": "user"
+              },
+              "material": {
+                "value": "en10025-s355jr",
+                "source": "user"
+              },
+              "columnSection": {
+                "value": "arcelor-hea200",
+                "source": "user"
+              },
+              "beamSection": {
+                "value": "arcelor-ipe200",
+                "source": "user"
+              },
+              "rotationDegrees": {
+                "value": 0,
+                "source": "user"
+              }
+            }
+          },
+          "output": {
+            "status": "missing-input",
+            "message": "方案草稿需要补齐或澄清参数",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 0,
+              "selection": []
+            },
+            "proposal": {
+              "id": "proposal_ef875a62-e2f9-480e-8093-78672f5686bf",
+              "version": 1,
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              },
+              "changes": [
+                {
+                  "field": "storeys",
+                  "after": 2
+                },
+                {
+                  "field": "xSpans",
+                  "after": [
+                    6
+                  ]
+                },
+                {
+                  "field": "storeyHeights",
+                  "after": [
+                    3,
+                    3
+                  ]
+                },
+                {
+                  "field": "origin",
+                  "after": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "field": "material",
+                  "after": "en10025-s355jr"
+                },
+                {
+                  "field": "columnSection",
+                  "after": "arcelor-hea200"
+                },
+                {
+                  "field": "beamSection",
+                  "after": "arcelor-ipe200"
+                },
+                {
+                  "field": "rotationDegrees",
+                  "after": 0
+                }
+              ]
+            },
+            "data": {
+              "issues": [
+                "尚缺 Y 向跨长 (m)"
+              ],
+              "counts": {
+                "nodes": 0,
+                "members": 0
+              },
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "确认应用建模阶段",
+      "status": "已应用 · 建模阶段已应用，可整组撤销和重做",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "确认建模阶段 · 已应用",
+          "input": {
+            "proposalId": "proposal_ef875a62-e2f9-480e-8093-78672f5686bf",
+            "proposalVersion": 2,
+            "baseRevision": 0
+          },
+          "output": {
+            "status": "applied",
+            "message": "建模阶段已应用，可整组撤销和重做",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "requestId": "confirm_0696ef02-8f78-4450-ac89-a20f78dc63f1",
+              "proposalId": "proposal_ef875a62-e2f9-480e-8093-78672f5686bf",
+              "proposalVersion": 2,
+              "baseRevision": 0,
+              "appliedRevision": 1,
+              "objects": {
+                "nodes": [
+                  {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0003",
+                    "label": "N3",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0004",
+                    "label": "N4",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0005",
+                    "label": "N5",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0006",
+                    "label": "N6",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0007",
+                    "label": "N7",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0008",
+                    "label": "N8",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0009",
+                    "label": "N9",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0010",
+                    "label": "N10",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0011",
+                    "label": "N11",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0012",
+                    "label": "N12",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 6
+                    }
+                  }
+                ],
+                "members": [
+                  {
+                    "id": "member_0001",
+                    "label": "M1",
+                    "startNodeId": "node_0001",
+                    "endNodeId": "node_0005",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0002",
+                    "label": "M2",
+                    "startNodeId": "node_0002",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0003",
+                    "label": "M3",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0004",
+                    "label": "M4",
+                    "startNodeId": "node_0003",
+                    "endNodeId": "node_0007",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0005",
+                    "label": "M5",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0007",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0006",
+                    "label": "M6",
+                    "startNodeId": "node_0004",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0007",
+                    "label": "M7",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0008",
+                    "label": "M8",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0009",
+                    "label": "M9",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0009",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0010",
+                    "label": "M10",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0010",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0011",
+                    "label": "M11",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0010",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0012",
+                    "label": "M12",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0011",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0013",
+                    "label": "M13",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0011",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0014",
+                    "label": "M14",
+                    "startNodeId": "node_0008",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0015",
+                    "label": "M15",
+                    "startNodeId": "node_0011",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0016",
+                    "label": "M16",
+                    "startNodeId": "node_0010",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  }
+                ],
+                "materials": [
+                  {
+                    "id": "material_0001",
+                    "label": "M1",
+                    "name": "S355JR",
+                    "elasticModulusGPa": 210,
+                    "poissonRatio": 0.3,
+                    "densityKgM3": 7850,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "en10025-s355jr",
+                      "source": {
+                        "publisher": "European Committee for Standardization",
+                        "title": "EN 10025-2 Hot rolled products of structural steels",
+                        "edition": "EN 10025-2:2019",
+                        "url": "https://standards.iteh.ai/catalog/standards/cen/8f2a1a15-6f06-4f07-8b43-2c84b7c99f0b/en-10025-2-2019",
+                        "accessedOn": "2026-10-02",
+                        "units": "E in GPa; density in kg/m³; ν dimensionless"
+                      }
+                    }
+                  }
+                ],
+                "sections": [
+                  {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "HEA 200",
+                    "areaM2": 0.00538,
+                    "secondMomentYM4": 0.00003692,
+                    "secondMomentZM4": 0.00001335,
+                    "torsionalConstantM4": 2.104e-7,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-hea200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-02",
+                        "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                      }
+                    }
+                  },
+                  {
+                    "id": "section_0002",
+                    "label": "S2",
+                    "name": "IPE 200",
+                    "areaM2": 0.00285,
+                    "secondMomentYM4": 0.00001943,
+                    "secondMomentZM4": 0.000001423,
+                    "torsionalConstantM4": 6.915e-8,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-ipe200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-02",
+                        "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "原请求：建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。。建模阶段已确认。请读取当前正式节点、杆件、材料截面、支座、荷载和工况，用 propose_analysis_conditions 准备必要分析条件、荷载、自重、工况和用户自定义组合；未知条件保留缺失或标明建议，不要再次创建框架。",
+      "status": "等待确认 · 分析条件预览已准备，尚未应用",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "nodes"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "nodes",
+              "total": 12,
+              "items": [
+                {
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0002",
+                  "label": "N2",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0003",
+                  "label": "N3",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0004",
+                  "label": "N4",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0005",
+                  "label": "N5",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0006",
+                  "label": "N6",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0007",
+                  "label": "N7",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0008",
+                  "label": "N8",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0009",
+                  "label": "N9",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0011",
+                  "label": "N11",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0012",
+                  "label": "N12",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 6
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "members"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "members",
+              "total": 16,
+              "items": [
+                {
+                  "id": "member_0001",
+                  "label": "M1",
+                  "startNodeId": "node_0001",
+                  "endNodeId": "node_0005",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0002",
+                  "label": "M2",
+                  "startNodeId": "node_0002",
+                  "endNodeId": "node_0006",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0003",
+                  "label": "M3",
+                  "startNodeId": "node_0005",
+                  "endNodeId": "node_0006",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0004",
+                  "label": "M4",
+                  "startNodeId": "node_0003",
+                  "endNodeId": "node_0007",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0005",
+                  "label": "M5",
+                  "startNodeId": "node_0005",
+                  "endNodeId": "node_0007",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0006",
+                  "label": "M6",
+                  "startNodeId": "node_0004",
+                  "endNodeId": "node_0008",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0007",
+                  "label": "M7",
+                  "startNodeId": "node_0007",
+                  "endNodeId": "node_0008",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0008",
+                  "label": "M8",
+                  "startNodeId": "node_0006",
+                  "endNodeId": "node_0008",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0009",
+                  "label": "M9",
+                  "startNodeId": "node_0005",
+                  "endNodeId": "node_0009",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0010",
+                  "label": "M10",
+                  "startNodeId": "node_0006",
+                  "endNodeId": "node_0010",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0011",
+                  "label": "M11",
+                  "startNodeId": "node_0009",
+                  "endNodeId": "node_0010",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0012",
+                  "label": "M12",
+                  "startNodeId": "node_0007",
+                  "endNodeId": "node_0011",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0013",
+                  "label": "M13",
+                  "startNodeId": "node_0009",
+                  "endNodeId": "node_0011",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0014",
+                  "label": "M14",
+                  "startNodeId": "node_0008",
+                  "endNodeId": "node_0012",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0015",
+                  "label": "M15",
+                  "startNodeId": "node_0011",
+                  "endNodeId": "node_0012",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0016",
+                  "label": "M16",
+                  "startNodeId": "node_0010",
+                  "endNodeId": "node_0012",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "summary"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型摘要",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "counts": {
+                "nodes": 12,
+                "members": 16,
+                "materials": 1,
+                "sections": 2,
+                "supports": 0,
+                "loads": 0,
+                "loadCases": 1,
+                "loadCombinations": 0
+              },
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "activeLoadCaseId": "LC1",
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "load-cases"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "load-cases",
+              "total": 1,
+              "items": [
+                {
+                  "id": "LC1",
+                  "name": "默认工况",
+                  "description": ""
+                }
+              ],
+              "offset": 0,
+              "limit": 50,
+              "combinations": [],
+              "activeLoadCaseId": "LC1"
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "loads"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "loads",
+              "total": 0,
+              "items": [],
+              "offset": 0,
+              "limit": 50,
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "supports"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "supports",
+              "total": 0,
+              "items": [],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "materials"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "materials",
+              "total": 1,
+              "items": [
+                {
+                  "id": "material_0001",
+                  "label": "M1",
+                  "name": "S355JR",
+                  "elasticModulusGPa": 210,
+                  "poissonRatio": 0.3,
+                  "densityKgM3": 7850,
+                  "provenance": {
+                    "kind": "catalog",
+                    "catalogId": "en10025-s355jr",
+                    "source": {
+                      "publisher": "European Committee for Standardization",
+                      "title": "EN 10025-2 Hot rolled products of structural steels",
+                      "edition": "EN 10025-2:2019",
+                      "url": "https://standards.iteh.ai/catalog/standards/cen/8f2a1a15-6f06-4f07-8b43-2c84b7c99f0b/en-10025-2-2019",
+                      "accessedOn": "2026-10-02",
+                      "units": "E in GPa; density in kg/m³; ν dimensionless"
+                    }
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "sections"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "sections",
+              "total": 2,
+              "items": [
+                {
+                  "id": "section_0001",
+                  "label": "S1",
+                  "name": "HEA 200",
+                  "areaM2": 0.00538,
+                  "secondMomentYM4": 0.00003692,
+                  "secondMomentZM4": 0.00001335,
+                  "torsionalConstantM4": 2.104e-7,
+                  "provenance": {
+                    "kind": "catalog",
+                    "catalogId": "arcelor-hea200",
+                    "source": {
+                      "publisher": "ArcelorMittal Europe - Long Products",
+                      "title": "Sections and Merchant Bars - ArcelorMittal",
+                      "edition": "V2026-1, EN sections sheet",
+                      "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                      "accessedOn": "2026-10-02",
+                      "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                    }
+                  }
+                },
+                {
+                  "id": "section_0002",
+                  "label": "S2",
+                  "name": "IPE 200",
+                  "areaM2": 0.00285,
+                  "secondMomentYM4": 0.00001943,
+                  "secondMomentZM4": 0.000001423,
+                  "torsionalConstantM4": 6.915e-8,
+                  "provenance": {
+                    "kind": "catalog",
+                    "catalogId": "arcelor-ipe200",
+                    "source": {
+                      "publisher": "ArcelorMittal Europe - Long Products",
+                      "title": "Sections and Merchant Bars - ArcelorMittal",
+                      "edition": "V2026-1, EN sections sheet",
+                      "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                      "accessedOn": "2026-10-02",
+                      "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                    }
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "准备分析条件 · 等待确认",
+          "input": {
+            "supports": [
+              {
+                "nodeId": "node_0001",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0002",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0003",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0004",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              }
+            ],
+            "loadCases": [
+              {
+                "ref": "lc_dead",
+                "name": "恒载",
+                "description": "结构自重",
+                "source": "user"
+              },
+              {
+                "ref": "lc_demo",
+                "name": "演示外荷载",
+                "description": "屋面均布力和水平节点力",
+                "source": "user"
+              }
+            ],
+            "nodalLoads": [
+              {
+                "nodeId": "node_0010",
+                "loadCaseId": "lc_demo",
+                "force": {
+                  "x": 5,
+                  "y": 0,
+                  "z": 0
+                },
+                "moment": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "source": "user"
+              }
+            ],
+            "uniformLoads": [
+              {
+                "memberId": "member_0011",
+                "coordinateSystem": "global",
+                "loadCaseId": "lc_demo",
+                "intensity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -2
+                },
+                "source": "user"
+              }
+            ],
+            "selfWeight": {
+              "enabled": true,
+              "loadCaseId": "lc_dead",
+              "gravity": {
+                "x": 0,
+                "y": 0,
+                "z": -9.81
+              },
+              "source": "user"
+            },
+            "loadCombinations": [
+              {
+                "ref": "cb_demo",
+                "name": "演示用户组合",
+                "terms": [
+                  {
+                    "loadCaseId": "lc_dead",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "lc_demo",
+                    "factor": 1.5
+                  }
+                ],
+                "source": "user"
+              }
+            ],
+            "analysisSourceId": "cb_demo"
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "message": "分析条件预览已准备，尚未应用",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "conditions": {
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "lc_demo",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "lc_dead",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "ref": "lc_dead",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "lc_demo",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "屋面均布力和水平节点力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "cb_demo",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "lc_dead",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "lc_demo",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "id": "conditions_699e3d4a-3ef6-4d65-8658-db54ef472d02",
+              "version": 1,
+              "analysisSourceId": "cb_demo",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0010",
+                  "source": "user",
+                  "loadCaseId": "lc_demo",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "issues": [],
+              "analysisSourceId": "cb_demo",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0010",
+                  "source": "user",
+                  "loadCaseId": "lc_demo",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "lc_demo",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "lc_dead",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "ref": "lc_dead",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "lc_demo",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "屋面均布力和水平节点力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "cb_demo",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "lc_dead",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "lc_demo",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "combinationBasis": "用户自定义 · 无量纲系数 · 线弹性"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "请只补充更新当前分析条件卡片的工况名称。调用 propose_analysis_conditions，loadCases 字段使用 [{\"ref\":\"lc_dead\",\"name\":\"演示外荷载\",\"source\":\"user\",\"description\":\"结构自重\"},{\"ref\":\"lc_demo\",\"name\":\"演示外荷载\",\"source\":\"user\",\"description\":\"屋面均布力和水平节点力\"},{\"ref\":\"LC1\",\"id\":\"LC1\",\"name\":\"恒载\",\"description\":\"结构自重\",\"source\":\"user\"}]。保留原工况别名和其他所有字段，支座、荷载、自重、组合与计算来源均不变。不确认，不计算，不创建框架。",
+      "status": "等待确认 · 分析条件预览已准备，尚未应用",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "准备分析条件 · 等待确认",
+          "input": {
+            "loadCases": [
+              {
+                "ref": "lc_dead",
+                "name": "演示外荷载",
+                "source": "user",
+                "description": "结构自重"
+              },
+              {
+                "ref": "lc_demo",
+                "name": "演示外荷载",
+                "source": "user",
+                "description": "屋面均布力和水平节点力"
+              },
+              {
+                "ref": "LC1",
+                "id": "LC1",
+                "name": "恒载",
+                "description": "结构自重",
+                "source": "user"
+              }
+            ]
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "message": "分析条件预览已准备，尚未应用",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "conditions": {
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "lc_demo",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "lc_dead",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "ref": "lc_dead",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "lc_demo",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "屋面均布力和水平节点力"
+                },
+                {
+                  "id": "LC1",
+                  "ref": "LC1",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "cb_demo",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "lc_dead",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "lc_demo",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "id": "conditions_699e3d4a-3ef6-4d65-8658-db54ef472d02",
+              "version": 2,
+              "analysisSourceId": "cb_demo",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0010",
+                  "source": "user",
+                  "loadCaseId": "lc_demo",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "issues": [],
+              "analysisSourceId": "cb_demo",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0010",
+                  "source": "user",
+                  "loadCaseId": "lc_demo",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "lc_demo",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "lc_dead",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "ref": "lc_dead",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "lc_demo",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "屋面均布力和水平节点力"
+                },
+                {
+                  "id": "LC1",
+                  "ref": "LC1",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "cb_demo",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "lc_dead",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "lc_demo",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "combinationBasis": "用户自定义 · 无量纲系数 · 线弹性"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "确认应用分析条件阶段",
+      "status": "已应用 · 分析条件阶段已应用，可整组撤销和重做",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "确认分析条件阶段 · 已应用",
+          "input": {
+            "proposalId": "conditions_699e3d4a-3ef6-4d65-8658-db54ef472d02",
+            "proposalVersion": 2,
+            "baseRevision": 1
+          },
+          "output": {
+            "status": "applied",
+            "message": "分析条件阶段已应用，可整组撤销和重做",
+            "context": {
+              "projectId": "project_e6df0998-dd6b-48c0-b7b6-26e6b9efff65",
+              "projectName": "未命名项目",
+              "modelRevision": 2,
+              "selection": []
+            },
+            "data": {
+              "requestId": "confirm_75a0913e-02ff-46e6-98c0-890416dac3c0",
+              "proposalId": "conditions_699e3d4a-3ef6-4d65-8658-db54ef472d02",
+              "proposalVersion": 2,
+              "baseRevision": 1,
+              "appliedRevision": 2,
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "analysisSourceId": "CB1",
+              "references": {
+                "lc_dead": "LC2",
+                "lc_demo": "LC3",
+                "LC1": "LC1",
+                "cb_demo": "CB1"
+              },
+              "supports": [
+                {
+                  "id": "support_0001",
+                  "label": "B1",
+                  "nodeId": "node_0001",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0002",
+                  "label": "B2",
+                  "nodeId": "node_0002",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0003",
+                  "label": "B3",
+                  "nodeId": "node_0003",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0004",
+                  "label": "B4",
+                  "nodeId": "node_0004",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "id": "load_0001",
+                  "label": "L1",
+                  "nodeId": "node_0010",
+                  "loadCaseId": "LC3",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [
+                {
+                  "id": "uniform_load_0001",
+                  "label": "Q1",
+                  "kind": "uniform",
+                  "memberId": "member_0011",
+                  "coordinateSystem": "global",
+                  "loadCaseId": "LC3",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  }
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "LC2",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              },
+              "loadCases": [
+                {
+                  "id": "LC1",
+                  "name": "恒载",
+                  "description": "结构自重"
+                },
+                {
+                  "id": "LC2",
+                  "name": "演示外荷载",
+                  "description": "结构自重"
+                },
+                {
+                  "id": "LC3",
+                  "name": "演示外荷载",
+                  "description": "屋面均布力和水平节点力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC3",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "combinationBasis": "用户自定义 · 无量纲系数 · 线弹性"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "errorType": "Error"
+}

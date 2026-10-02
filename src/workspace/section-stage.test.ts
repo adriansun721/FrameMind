@@ -71,9 +71,20 @@ it("adds a custom section only at confirmation and rolls back allocation failure
   expect(outcome.result.status).toBe("applied"); expect(outcome.project.sections).toHaveLength(3);
   expect(outcome.project.members.every((m) => m.sectionId === outcome.project.sections[2].id)).toBe(true);
   expect(outcome.project.sections[2].provenance.kind).toBe("custom");
+  // A confirmed resource must survive the same project validation used by report export/reopen.
+  expect(decodeProject(encodeProject(outcome.project)).sections).toEqual(outcome.project.sections);
   const blocked = { ...p, nextSectionNumber: Number.MAX_SAFE_INTEGER };
   const failure = new SectionStageConfirmation().confirm(blocked, selection, prepareSectionConfirmation(blocked, selection, proposal));
   expect(failure.result.status).toBe("failed"); expect(failure.project).toBe(blocked);
   expect(executeAiTool(captureAiSnapshot(p, selection), call("propose_section_change", { ...input, section: { ...input.section, areaM2: -1 } })).status).toBe("missing-input");
+});
+
+it("assigns a project identity to a newly selected catalog section and preserves it through save/reopen", () => {
+  const p = columns(); const selection = [{ kind: "member" as const, id: p.members[0].id }];
+  const proposal = executeAiTool(captureAiSnapshot(p, selection), call("propose_section_change", { sectionId: "arcelor-hea200", source: "user" })).sectionChange!;
+  const outcome = new SectionStageConfirmation().confirm(p, selection, prepareSectionConfirmation(p, selection, proposal));
+  expect(outcome.result.status).toBe("applied");
+  expect(outcome.project.sections[2]).toMatchObject({ id: "section_0003", label: "S3", provenance: { kind: "catalog", catalogId: "arcelor-hea200" } });
+  expect(decodeProject(encodeProject(outcome.project)).sections).toEqual(outcome.project.sections);
 });
 

@@ -23,6 +23,8 @@
     "evidence:t26:online": "npm run build && node scripts/verify-t26-online.cjs",
     "evidence:t31": "node scripts/verify-t31-numerics.mjs",
     "evidence:t32": "npm run build && node scripts/verify-t32-performance.cjs",
+    "evidence:t33": "npm run build && node scripts/run-e2e-isolated.cjs e2e/t33-complete-demo.spec.ts",
+    "evidence:t33:online": "npm run build && node scripts/verify-t33-online.cjs",
     "check": "npm run typecheck && npm test && npm run test:e2e"
   },
   "dependencies": {

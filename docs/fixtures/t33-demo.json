@@ -1,0 +1,196 @@
+{
+  "id": "T33-two-storey-v1",
+  "assumptions": "教学演示假设；尺寸、荷载和组合系数不代表设计建议或规范验算。材料和原截面引用 T13 目录；加大截面为明确自定义参数。",
+  "parameters": {
+    "storeys": {
+      "value": 2,
+      "source": "user"
+    },
+    "xSpans": {
+      "value": [
+        6
+      ],
+      "source": "user"
+    },
+    "ySpans": {
+      "value": [
+        4
+      ],
+      "source": "user"
+    },
+    "storeyHeights": {
+      "value": [
+        3,
+        3
+      ],
+      "source": "user"
+    },
+    "origin": {
+      "value": [
+        0,
+        0,
+        0
+      ],
+      "source": "user"
+    },
+    "material": {
+      "value": "en10025-s355jr",
+      "source": "user"
+    },
+    "columnSection": {
+      "value": "arcelor-hea200",
+      "source": "user"
+    },
+    "beamSection": {
+      "value": "arcelor-ipe200",
+      "source": "user"
+    },
+    "rotationDegrees": {
+      "value": 0,
+      "source": "user"
+    }
+  },
+  "loads": {
+    "supports": [
+      {
+        "nodeId": "node_0001",
+        "restraints": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "source": "user"
+      },
+      {
+        "nodeId": "node_0002",
+        "restraints": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "source": "user"
+      },
+      {
+        "nodeId": "node_0003",
+        "restraints": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "source": "user"
+      },
+      {
+        "nodeId": "node_0004",
+        "restraints": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "source": "user"
+      }
+    ],
+    "loadCases": [
+      {
+        "ref": "dead",
+        "id": "LC1",
+        "name": "恒载",
+        "description": "结构自重",
+        "source": "user"
+      },
+      {
+        "ref": "live",
+        "name": "演示外荷载",
+        "description": "屋面均布力和水平节点力",
+        "source": "user"
+      }
+    ],
+    "nodalLoads": [
+      {
+        "nodeId": "node_0010",
+        "loadCaseId": "live",
+        "force": {
+          "x": 5,
+          "y": 0,
+          "z": 0
+        },
+        "moment": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "source": "user"
+      }
+    ],
+    "uniformLoads": [
+      {
+        "memberId": "member_0011",
+        "loadCaseId": "live",
+        "coordinateSystem": "global",
+        "intensity": {
+          "x": 0,
+          "y": 0,
+          "z": -2
+        },
+        "source": "user"
+      }
+    ],
+    "selfWeight": {
+      "enabled": true,
+      "loadCaseId": "dead",
+      "gravity": {
+        "x": 0,
+        "y": 0,
+        "z": -9.81
+      },
+      "source": "user"
+    },
+    "loadCombinations": [
+      {
+        "ref": "demo",
+        "name": "演示用户组合",
+        "terms": [
+          {
+            "loadCaseId": "dead",
+            "factor": 1
+          },
+          {
+            "loadCaseId": "live",
+            "factor": 1.5
+          }
+        ],
+        "source": "user"
+      }
+    ],
+    "analysisSourceId": "demo"
+  },
+  "sectionChange": {
+    "section": {
+      "name": "演示加大柱截面",
+      "areaM2": 0.01076,
+      "secondMomentYM4": 7.384e-05,
+      "secondMomentZM4": 2.67e-05,
+      "torsionalConstantM4": 4.208e-07
+    },
+    "source": "user"
+  },
+  "selectedColumns": [
+    "M1",
+    "M2"
+  ],
+  "initialPrompt": "建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。",
+  "explainPrompt": "解释当前组合的实际结果。读取结果概况，并逐项引用屋面(6,0,6)节点的全局x位移、底层(0,0,0)节点全局z反力、从(0,0,0)到(0,0,3)柱的起点N杆端内力。核对稳定对象并插入工具返回的结果引用，区分计算事实和原因推断，不作安全或规范符合性结论，不修改或重新计算，300字以内。 对象稳定标识已核对：屋面(6,0,6)是N10/node_0010，不是N12；底层节点是N1/node_0001；柱是M1/member_0001。请分别调用read_result核对node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N，并把三个返回token原样插入说明。",
+  "changePrompt": "只把当前选中的这些柱改为自定义演示加大柱截面：A=0.01076m²，Iy=0.00007384m⁴，Iz=0.0000267m⁴，J=0.0000004208m⁴。这四项均为教学演示假设，原HEA200参数的两倍。保留其他杆件和共享原截面，先预览由我确认，确认后重算当前用户组合并解释前后差异，包括自重变化。",
+  "comparisonPrompt": "只解释已绑定的前后两次分析，不修改或计算。先读取对比概况，再逐项引用屋面(6,0,6)节点全局x位移、底层(0,0,0)节点全局z反力和从(0,0,0)到(0,0,3)柱起点N杆端内力的前值、后值和差值，插入三个工具返回的对比引用。区分计算事实与原因推断，说明刚度与自重同时变化，不提供规范结论，300字以内。 对象稳定标识：node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N；分别调用read_comparison_result并把三个返回token原样插入。"
+}

@@ -285,6 +285,16 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       <button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={onClose}><X size={15} /></button>
     </div></div>
     <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite">
+      {turns.length === 0 && <section className="ai-start-guide" aria-label="首次使用引导">
+        <strong>{project.nodes.length ? "从当前模型继续" : "描述你要建立的空间刚架"}</strong>
+        <p>在下方发送任务，核对参数卡片和三维预览，再确认建模与支座、荷载。确认后才能计算。</p>
+        <p>计算后可查看变形和内力，选中柱修改截面并重算；在项目树“工程计算书”导出 Word 或 PDF。</p>
+        {!project.nodes.length && <button type="button" className="button ghost compact-button" disabled={Boolean(draft.trim()) || busy || analysisBusy} onClick={() => {
+          setDraft("建立一个两层空间钢刚架，请先用参数卡片补齐尺寸、材料和截面，预览并由我确认后再设置支座与荷载、计算。");
+        }}>填写两层刚架任务</button>}
+        <button type="button" className="button ghost compact-button" onClick={onSettings}>设置 DeepSeek 连接</button>
+        <p>未配置连接时，可使用顶部建模工具、属性栏和“计算”完成本地分析。</p>
+      </section>}
       {turns.map((turn) => <article className="ai-turn" key={turn.id}>
         <div className="ai-user-message"><p>{turn.prompt}</p></div>
         <div className="ai-turn-context"><span>R{turn.context.modelRevision}</span><span>{turn.context.selection.map((object) => object.label).join("、") || "整个项目"}</span>

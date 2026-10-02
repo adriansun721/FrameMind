@@ -1,0 +1,2764 @@
+{
+  "runId": "5b0ab910-788f-4f03-846c-89a4a006aa61",
+  "startedAt": "2026-10-02T17:45:28.065Z",
+  "outcome": "failed",
+  "fixtureId": "T33-two-storey-v1",
+  "date": "2026-10-03",
+  "theme": "light",
+  "mode": "online",
+  "network": "Real DeepSeek HTTPS; no fetch replacement",
+  "environment": {
+    "platform": "win32",
+    "os": "10.0.26200",
+    "architecture": "x64",
+    "runtime": {
+      "electron": "44.5.1",
+      "chrome": "152.0.7977.130",
+      "node": "24.21.0"
+    }
+  },
+  "stage": "conditions-confirmation",
+  "firstUse": "Pending real participant; automation is not AC-20 evidence",
+  "fixtureSHA256": "e0520b9670303173eef3c2a31f409040c049bb167f391004d852e645ff5689ee",
+  "buildIndexSHA256": "e31d0e2d5d3815b53ae44387500f28dc576f985d6870812aca14a9aad1357ca1",
+  "model": "deepseek-flash",
+  "finishedAt": "2026-10-02T17:45:37.885Z",
+  "turns": [
+    {
+      "prompt": "建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。",
+      "status": "缺少输入 · 方案草稿需要补齐或澄清参数",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "准备建模方案 · 缺少输入",
+          "input": {
+            "parameters": {
+              "storeys": {
+                "value": 2,
+                "source": "user"
+              },
+              "xSpans": {
+                "value": [
+                  6
+                ],
+                "source": "user"
+              },
+              "storeyHeights": {
+                "value": [
+                  3,
+                  3
+                ],
+                "source": "user"
+              },
+              "origin": {
+                "value": [
+                  0,
+                  0,
+                  0
+                ],
+                "source": "user"
+              },
+              "material": {
+                "value": "en10025-s355jr",
+                "source": "user"
+              },
+              "columnSection": {
+                "value": "arcelor-hea200",
+                "source": "user"
+              },
+              "beamSection": {
+                "value": "arcelor-ipe200",
+                "source": "user"
+              },
+              "rotationDegrees": {
+                "value": 0,
+                "source": "user"
+              }
+            }
+          },
+          "output": {
+            "status": "missing-input",
+            "message": "方案草稿需要补齐或澄清参数",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 0,
+              "selection": []
+            },
+            "proposal": {
+              "id": "proposal_b64e61d4-68e8-4971-8dc8-fef15b161f13",
+              "version": 1,
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              },
+              "changes": [
+                {
+                  "field": "storeys",
+                  "after": 2
+                },
+                {
+                  "field": "xSpans",
+                  "after": [
+                    6
+                  ]
+                },
+                {
+                  "field": "storeyHeights",
+                  "after": [
+                    3,
+                    3
+                  ]
+                },
+                {
+                  "field": "origin",
+                  "after": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "field": "material",
+                  "after": "en10025-s355jr"
+                },
+                {
+                  "field": "columnSection",
+                  "after": "arcelor-hea200"
+                },
+                {
+                  "field": "beamSection",
+                  "after": "arcelor-ipe200"
+                },
+                {
+                  "field": "rotationDegrees",
+                  "after": 0
+                }
+              ]
+            },
+            "data": {
+              "issues": [
+                "尚缺 Y 向跨长 (m)"
+              ],
+              "counts": {
+                "nodes": 0,
+                "members": 0
+              },
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "确认应用建模阶段",
+      "status": "已应用 · 建模阶段已应用，可整组撤销和重做",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "确认建模阶段 · 已应用",
+          "input": {
+            "proposalId": "proposal_b64e61d4-68e8-4971-8dc8-fef15b161f13",
+            "proposalVersion": 2,
+            "baseRevision": 0
+          },
+          "output": {
+            "status": "applied",
+            "message": "建模阶段已应用，可整组撤销和重做",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "requestId": "confirm_6bf0bbc6-8d03-483c-82e1-9bad122978b7",
+              "proposalId": "proposal_b64e61d4-68e8-4971-8dc8-fef15b161f13",
+              "proposalVersion": 2,
+              "baseRevision": 0,
+              "appliedRevision": 1,
+              "objects": {
+                "nodes": [
+                  {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0003",
+                    "label": "N3",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0004",
+                    "label": "N4",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0005",
+                    "label": "N5",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0006",
+                    "label": "N6",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0007",
+                    "label": "N7",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0008",
+                    "label": "N8",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0009",
+                    "label": "N9",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0010",
+                    "label": "N10",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0011",
+                    "label": "N11",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0012",
+                    "label": "N12",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 6
+                    }
+                  }
+                ],
+                "members": [
+                  {
+                    "id": "member_0001",
+                    "label": "M1",
+                    "startNodeId": "node_0001",
+                    "endNodeId": "node_0005",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0002",
+                    "label": "M2",
+                    "startNodeId": "node_0002",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0003",
+                    "label": "M3",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0004",
+                    "label": "M4",
+                    "startNodeId": "node_0003",
+                    "endNodeId": "node_0007",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0005",
+                    "label": "M5",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0007",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0006",
+                    "label": "M6",
+                    "startNodeId": "node_0004",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0007",
+                    "label": "M7",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0008",
+                    "label": "M8",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0009",
+                    "label": "M9",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0009",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0010",
+                    "label": "M10",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0010",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0011",
+                    "label": "M11",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0010",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0012",
+                    "label": "M12",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0011",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0013",
+                    "label": "M13",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0011",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0014",
+                    "label": "M14",
+                    "startNodeId": "node_0008",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0015",
+                    "label": "M15",
+                    "startNodeId": "node_0011",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0016",
+                    "label": "M16",
+                    "startNodeId": "node_0010",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  }
+                ],
+                "materials": [
+                  {
+                    "id": "material_0001",
+                    "label": "M1",
+                    "name": "S355JR",
+                    "elasticModulusGPa": 210,
+                    "poissonRatio": 0.3,
+                    "densityKgM3": 7850,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "en10025-s355jr",
+                      "source": {
+                        "publisher": "European Committee for Standardization",
+                        "title": "EN 10025-2 Hot rolled products of structural steels",
+                        "edition": "EN 10025-2:2019",
+                        "url": "https://standards.iteh.ai/catalog/standards/cen/8f2a1a15-6f06-4f07-8b43-2c84b7c99f0b/en-10025-2-2019",
+                        "accessedOn": "2026-10-02",
+                        "units": "E in GPa; density in kg/m³; ν dimensionless"
+                      }
+                    }
+                  }
+                ],
+                "sections": [
+                  {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "HEA 200",
+                    "areaM2": 0.00538,
+                    "secondMomentYM4": 0.00003692,
+                    "secondMomentZM4": 0.00001335,
+                    "torsionalConstantM4": 2.104e-7,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-hea200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-02",
+                        "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                      }
+                    }
+                  },
+                  {
+                    "id": "section_0002",
+                    "label": "S2",
+                    "name": "IPE 200",
+                    "areaM2": 0.00285,
+                    "secondMomentYM4": 0.00001943,
+                    "secondMomentZM4": 0.000001423,
+                    "torsionalConstantM4": 6.915e-8,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-ipe200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-02",
+                        "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "原请求：建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。。建模阶段已确认。请读取当前正式节点、杆件、材料截面、支座、荷载和工况，用 propose_analysis_conditions 准备必要分析条件、荷载、自重、工况和用户自定义组合；未知条件保留缺失或标明建议，不要再次创建框架。",
+      "status": "等待确认 · 分析条件预览已准备，尚未应用",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "summary"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型摘要",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "counts": {
+                "nodes": 12,
+                "members": 16,
+                "materials": 1,
+                "sections": 2,
+                "supports": 0,
+                "loads": 0,
+                "loadCases": 1,
+                "loadCombinations": 0
+              },
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "activeLoadCaseId": "LC1",
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "nodes"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "nodes",
+              "total": 12,
+              "items": [
+                {
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0002",
+                  "label": "N2",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0003",
+                  "label": "N3",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0004",
+                  "label": "N4",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0005",
+                  "label": "N5",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0006",
+                  "label": "N6",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0007",
+                  "label": "N7",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0008",
+                  "label": "N8",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0009",
+                  "label": "N9",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0011",
+                  "label": "N11",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0012",
+                  "label": "N12",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 6
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "members"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "members",
+              "total": 16,
+              "items": [
+                {
+                  "id": "member_0001",
+                  "label": "M1",
+                  "startNodeId": "node_0001",
+                  "endNodeId": "node_0005",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0002",
+                  "label": "M2",
+                  "startNodeId": "node_0002",
+                  "endNodeId": "node_0006",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0003",
+                  "label": "M3",
+                  "startNodeId": "node_0005",
+                  "endNodeId": "node_0006",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0004",
+                  "label": "M4",
+                  "startNodeId": "node_0003",
+                  "endNodeId": "node_0007",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0005",
+                  "label": "M5",
+                  "startNodeId": "node_0005",
+                  "endNodeId": "node_0007",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0006",
+                  "label": "M6",
+                  "startNodeId": "node_0004",
+                  "endNodeId": "node_0008",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0007",
+                  "label": "M7",
+                  "startNodeId": "node_0007",
+                  "endNodeId": "node_0008",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0008",
+                  "label": "M8",
+                  "startNodeId": "node_0006",
+                  "endNodeId": "node_0008",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0009",
+                  "label": "M9",
+                  "startNodeId": "node_0005",
+                  "endNodeId": "node_0009",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0010",
+                  "label": "M10",
+                  "startNodeId": "node_0006",
+                  "endNodeId": "node_0010",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0011",
+                  "label": "M11",
+                  "startNodeId": "node_0009",
+                  "endNodeId": "node_0010",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0012",
+                  "label": "M12",
+                  "startNodeId": "node_0007",
+                  "endNodeId": "node_0011",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0013",
+                  "label": "M13",
+                  "startNodeId": "node_0009",
+                  "endNodeId": "node_0011",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0014",
+                  "label": "M14",
+                  "startNodeId": "node_0008",
+                  "endNodeId": "node_0012",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0015",
+                  "label": "M15",
+                  "startNodeId": "node_0011",
+                  "endNodeId": "node_0012",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                },
+                {
+                  "id": "member_0016",
+                  "label": "M16",
+                  "startNodeId": "node_0010",
+                  "endNodeId": "node_0012",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0002",
+                  "rotationDegrees": 0
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "materials"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "materials",
+              "total": 1,
+              "items": [
+                {
+                  "id": "material_0001",
+                  "label": "M1",
+                  "name": "S355JR",
+                  "elasticModulusGPa": 210,
+                  "poissonRatio": 0.3,
+                  "densityKgM3": 7850,
+                  "provenance": {
+                    "kind": "catalog",
+                    "catalogId": "en10025-s355jr",
+                    "source": {
+                      "publisher": "European Committee for Standardization",
+                      "title": "EN 10025-2 Hot rolled products of structural steels",
+                      "edition": "EN 10025-2:2019",
+                      "url": "https://standards.iteh.ai/catalog/standards/cen/8f2a1a15-6f06-4f07-8b43-2c84b7c99f0b/en-10025-2-2019",
+                      "accessedOn": "2026-10-02",
+                      "units": "E in GPa; density in kg/m³; ν dimensionless"
+                    }
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "sections"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "sections",
+              "total": 2,
+              "items": [
+                {
+                  "id": "section_0001",
+                  "label": "S1",
+                  "name": "HEA 200",
+                  "areaM2": 0.00538,
+                  "secondMomentYM4": 0.00003692,
+                  "secondMomentZM4": 0.00001335,
+                  "torsionalConstantM4": 2.104e-7,
+                  "provenance": {
+                    "kind": "catalog",
+                    "catalogId": "arcelor-hea200",
+                    "source": {
+                      "publisher": "ArcelorMittal Europe - Long Products",
+                      "title": "Sections and Merchant Bars - ArcelorMittal",
+                      "edition": "V2026-1, EN sections sheet",
+                      "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                      "accessedOn": "2026-10-02",
+                      "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                    }
+                  }
+                },
+                {
+                  "id": "section_0002",
+                  "label": "S2",
+                  "name": "IPE 200",
+                  "areaM2": 0.00285,
+                  "secondMomentYM4": 0.00001943,
+                  "secondMomentZM4": 0.000001423,
+                  "torsionalConstantM4": 6.915e-8,
+                  "provenance": {
+                    "kind": "catalog",
+                    "catalogId": "arcelor-ipe200",
+                    "source": {
+                      "publisher": "ArcelorMittal Europe - Long Products",
+                      "title": "Sections and Merchant Bars - ArcelorMittal",
+                      "edition": "V2026-1, EN sections sheet",
+                      "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                      "accessedOn": "2026-10-02",
+                      "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                    }
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "supports"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "supports",
+              "total": 0,
+              "items": [],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "loads"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "loads",
+              "total": 0,
+              "items": [],
+              "offset": 0,
+              "limit": 50,
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "load-cases"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "load-cases",
+              "total": 1,
+              "items": [
+                {
+                  "id": "LC1",
+                  "name": "默认工况",
+                  "description": ""
+                }
+              ],
+              "offset": 0,
+              "limit": 50,
+              "combinations": [],
+              "activeLoadCaseId": "LC1"
+            }
+          }
+        },
+        {
+          "name": "准备分析条件 · 等待确认",
+          "input": {
+            "loadCases": [
+              {
+                "id": "LC1",
+                "ref": "LC1",
+                "name": "恒载",
+                "description": "结构自重",
+                "source": "user"
+              },
+              {
+                "ref": "demo",
+                "name": "演示外荷载",
+                "description": "教学演示用外荷载：屋面水平节点力与屋面梁竖向均布力",
+                "source": "user"
+              }
+            ],
+            "supports": [
+              {
+                "nodeId": "node_0001",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0002",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0003",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0004",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              }
+            ],
+            "nodalLoads": [
+              {
+                "nodeId": "node_0009",
+                "loadCaseId": "demo",
+                "force": {
+                  "x": 5,
+                  "y": 0,
+                  "z": 0
+                },
+                "moment": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "source": "user"
+              }
+            ],
+            "uniformLoads": [
+              {
+                "memberId": "member_0011",
+                "coordinateSystem": "global",
+                "loadCaseId": "demo",
+                "intensity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -2
+                },
+                "source": "user"
+              }
+            ],
+            "selfWeight": {
+              "enabled": true,
+              "loadCaseId": "LC1",
+              "gravity": {
+                "x": 0,
+                "y": 0,
+                "z": -9.81
+              },
+              "source": "user"
+            },
+            "loadCombinations": [
+              {
+                "ref": "comb1",
+                "name": "演示用户组合",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "demo",
+                    "factor": 1.5
+                  }
+                ],
+                "source": "user"
+              }
+            ],
+            "analysisSourceId": "comb1"
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "message": "分析条件预览已准备，尚未应用",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "conditions": {
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "demo",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "id": "LC1",
+                  "ref": "LC1",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "demo",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "教学演示用外荷载：屋面水平节点力与屋面梁竖向均布力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "comb1",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "demo",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "id": "conditions_3ac49da6-2e0e-4b93-b6f7-c96cda62317f",
+              "version": 1,
+              "analysisSourceId": "comb1",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0009",
+                  "source": "user",
+                  "loadCaseId": "demo",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "issues": [],
+              "analysisSourceId": "comb1",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0009",
+                  "source": "user",
+                  "loadCaseId": "demo",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "demo",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "id": "LC1",
+                  "ref": "LC1",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "demo",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "教学演示用外荷载：屋面水平节点力与屋面梁竖向均布力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "comb1",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "demo",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "combinationBasis": "用户自定义 · 无量纲系数 · 线弹性"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "确认应用分析条件阶段",
+      "status": "已应用 · 分析条件阶段已应用，可整组撤销和重做",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "确认分析条件阶段 · 已应用",
+          "input": {
+            "proposalId": "conditions_3ac49da6-2e0e-4b93-b6f7-c96cda62317f",
+            "proposalVersion": 1,
+            "baseRevision": 1
+          },
+          "output": {
+            "status": "applied",
+            "message": "分析条件阶段已应用，可整组撤销和重做",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 2,
+              "selection": []
+            },
+            "data": {
+              "requestId": "confirm_7d2c72dc-a3bc-413e-a500-5e3256448259",
+              "proposalId": "conditions_3ac49da6-2e0e-4b93-b6f7-c96cda62317f",
+              "proposalVersion": 1,
+              "baseRevision": 1,
+              "appliedRevision": 2,
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "analysisSourceId": "CB1",
+              "references": {
+                "LC1": "LC1",
+                "demo": "LC2",
+                "comb1": "CB1"
+              },
+              "supports": [
+                {
+                  "id": "support_0001",
+                  "label": "B1",
+                  "nodeId": "node_0001",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0002",
+                  "label": "B2",
+                  "nodeId": "node_0002",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0003",
+                  "label": "B3",
+                  "nodeId": "node_0003",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0004",
+                  "label": "B4",
+                  "nodeId": "node_0004",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "id": "load_0001",
+                  "label": "L1",
+                  "nodeId": "node_0009",
+                  "loadCaseId": "LC2",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [
+                {
+                  "id": "uniform_load_0001",
+                  "label": "Q1",
+                  "kind": "uniform",
+                  "memberId": "member_0011",
+                  "coordinateSystem": "global",
+                  "loadCaseId": "LC2",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  }
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              },
+              "loadCases": [
+                {
+                  "id": "LC1",
+                  "name": "恒载",
+                  "description": "结构自重"
+                },
+                {
+                  "id": "LC2",
+                  "name": "演示外荷载",
+                  "description": "教学演示用外荷载：屋面水平节点力与屋面梁竖向均布力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "combinationBasis": "用户自定义 · 无量纲系数 · 线弹性"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "继续已请求的本地分析",
+      "status": "已完成 · 本地分析完成 · 12 个节点、16 根杆件，已展示结果",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "本地空间刚架分析 · 已完成",
+          "input": {
+            "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+            "modelRevision": 2
+          },
+          "output": {
+            "status": "completed",
+            "message": "本地分析完成 · 12 个节点、16 根杆件，已展示结果",
+            "context": {
+              "projectId": "project_fd37ea5d-cb46-4291-836e-0ce3776c597d",
+              "projectName": "未命名项目",
+              "modelRevision": 2,
+              "selection": []
+            },
+            "data": {
+              "analysisId": "analysis_1aa0397f-1902-49c8-ab80-7e6d56179498",
+              "modelRevision": 2,
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "analysisSourceId": "CB1",
+              "combination": {
+                "definition": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "cases": [
+                  {
+                    "loadCase": {
+                      "id": "LC1",
+                      "name": "恒载",
+                      "description": "结构自重"
+                    },
+                    "nodalLoads": [],
+                    "uniformLoads": [],
+                    "selfWeight": {
+                      "enabled": true,
+                      "loadCaseId": "LC1",
+                      "gravity": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -9.81
+                      }
+                    }
+                  },
+                  {
+                    "loadCase": {
+                      "id": "LC2",
+                      "name": "演示外荷载",
+                      "description": "教学演示用外荷载：屋面水平节点力与屋面梁竖向均布力"
+                    },
+                    "nodalLoads": [
+                      {
+                        "id": "load_0001",
+                        "label": "L1",
+                        "nodeId": "node_0009",
+                        "loadCaseId": "LC2",
+                        "force": {
+                          "x": 5,
+                          "y": 0,
+                          "z": 0
+                        },
+                        "moment": {
+                          "x": 0,
+                          "y": 0,
+                          "z": 0
+                        }
+                      }
+                    ],
+                    "uniformLoads": [
+                      {
+                        "id": "uniform_load_0001",
+                        "label": "Q1",
+                        "kind": "uniform",
+                        "memberId": "member_0011",
+                        "coordinateSystem": "global",
+                        "loadCaseId": "LC2",
+                        "intensity": {
+                          "x": 0,
+                          "y": 0,
+                          "z": -2
+                        }
+                      }
+                    ],
+                    "selfWeight": {
+                      "enabled": false,
+                      "loadCaseId": "LC2",
+                      "gravity": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -9.81
+                      }
+                    }
+                  }
+                ]
+              },
+              "nodes": [
+                {
+                  "nodeId": "node_0001",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -4.007844637594164,
+                    "y": 0.2914521874470433,
+                    "z": 9.472469574430953
+                  },
+                  "reactionMoment": {
+                    "x": -0.599554721771079,
+                    "y": -7.510462795151614,
+                    "z": -0.004431852555572799
+                  }
+                },
+                {
+                  "nodeId": "node_0002",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -2.7459847689994845,
+                    "y": -0.20302719991742885,
+                    "z": 17.87439107042034
+                  },
+                  "reactionMoment": {
+                    "x": 0.48137014070737905,
+                    "y": -6.271877151482186,
+                    "z": -0.004471172162432462
+                  }
+                },
+                {
+                  "nodeId": "node_0003",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -0.2762843477701886,
+                    "y": 0.20302719991746293,
+                    "z": 3.9282448881094276
+                  },
+                  "reactionMoment": {
+                    "x": -0.50995537100497,
+                    "y": -0.6300729503418655,
+                    "z": -0.0044318525555727935
+                  }
+                },
+                {
+                  "nodeId": "node_0004",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -0.4698862456354405,
+                    "y": -0.2914521874470092,
+                    "z": 5.447200987039267
+                  },
+                  "reactionMoment": {
+                    "x": 0.570969491473488,
+                    "y": -0.8249543182622348,
+                    "z": -0.004471172162432465
+                  }
+                },
+                {
+                  "nodeId": "node_0005",
+                  "displacement": {
+                    "x": 0.005622180028182104,
+                    "y": -0.000178824408561389,
+                    "z": -0.000023502418957596795
+                  },
+                  "rotation": {
+                    "x": 0.00006282945387730774,
+                    "y": 0.0016037408654471581,
+                    "z": 0.0007823748400658119
+                  },
+                  "reaction": {
+                    "x": -4.973799150320701e-14,
+                    "y": 4.468647674116255e-15,
+                    "z": -3.552713678800501e-15
+                  },
+                  "reactionMoment": {
+                    "x": 2.220446049250313e-16,
+                    "y": 0,
+                    "z": 4.2674197509029455e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0006",
+                  "displacement": {
+                    "x": 0.005659538334643181,
+                    "y": 0.00016155177649935205,
+                    "z": -0.000045812353891185183
+                  },
+                  "rotation": {
+                    "x": -0.00006842181583007114,
+                    "y": 0.0023037988207415296,
+                    "z": 0.0007893161068932918
+                  },
+                  "reaction": {
+                    "x": 1.7075230118734908e-13,
+                    "y": -1.5543122344752192e-15,
+                    "z": 3.552713678800501e-15
+                  },
+                  "reactionMoment": {
+                    "x": -2.7755575615628914e-16,
+                    "y": 3.774758283725532e-15,
+                    "z": -1.5092094240998222e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0007",
+                  "displacement": {
+                    "x": 0.0005678789768405729,
+                    "y": -0.00017814280166818635,
+                    "z": -0.000008780632748564597
+                  },
+                  "rotation": {
+                    "x": 0.00007948249927595407,
+                    "y": 0.0002307612934045828,
+                    "z": 0.0007823748400658109
+                  },
+                  "reaction": {
+                    "x": 3.9968028886505635e-15,
+                    "y": -3.497202527569243e-15,
+                    "z": -8.881784197001252e-16
+                  },
+                  "reactionMoment": {
+                    "x": -4.440892098500626e-16,
+                    "y": 8.881784197001252e-16,
+                    "z": 1.5439038936193583e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0008",
+                  "displacement": {
+                    "x": 0.0005699327008455766,
+                    "y": 0.0001622333833925547,
+                    "z": -0.00001281397342548929
+                  },
+                  "rotation": {
+                    "x": -0.00005176877043142483,
+                    "y": 0.00012854462258862914,
+                    "z": 0.0007893161068932924
+                  },
+                  "reaction": {
+                    "x": -4.107391510244085e-15,
+                    "y": -2.7755575615628914e-17,
+                    "z": 1.7763568394002505e-15
+                  },
+                  "reactionMoment": {
+                    "x": -4.3021142204224816e-16,
+                    "y": 1.1145598333150986e-16,
+                    "z": -1.0408340855860843e-17
+                  }
+                },
+                {
+                  "nodeId": "node_0009",
+                  "displacement": {
+                    "x": 0.013518382870558003,
+                    "y": -0.00042136914263067495,
+                    "z": -0.000047284940024345436
+                  },
+                  "rotation": {
+                    "x": 0.00003680033468290765,
+                    "y": 0.0034521539080928474,
+                    "z": 0.00188963910673825
+                  },
+                  "reaction": {
+                    "x": -1.009969885501505e-12,
+                    "y": -1.4210854715202004e-14,
+                    "z": 7.632783294297951e-15
+                  },
+                  "reactionMoment": {
+                    "x": -4.163336342344337e-16,
+                    "y": 2.294117586870703e-15,
+                    "z": 1.609823385706477e-15
+                  }
+                },
+                {
+                  "nodeId": "node_0010",
+                  "displacement": {
+                    "x": 0.013449757157657385,
+                    "y": 0.00035907039604217645,
+                    "z": -0.0000789231606433921
+                  },
+                  "rotation": {
+                    "x": -0.00005775995058656353,
+                    "y": -0.0006313180666024181,
+                    "z": 0.001876429262082296
+                  },
+                  "reaction": {
+                    "x": 1.1479706074624119e-13,
+                    "y": -2.1316282072803006e-14,
+                    "z": -7.150530167976399e-15
+                  },
+                  "reactionMoment": {
+                    "x": 2.7755575615628914e-16,
+                    "y": 2.6559696384212666e-15,
+                    "z": 9.43689570931383e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0011",
+                  "displacement": {
+                    "x": 0.0012234215166865847,
+                    "y": -0.00042234623820401,
+                    "z": -0.000012541705449149657
+                  },
+                  "rotation": {
+                    "x": 0.00007782247846934033,
+                    "y": 0.00022575474090747274,
+                    "z": 0.0018896391067382513
+                  },
+                  "reaction": {
+                    "x": 0,
+                    "y": -4.9432680171435095e-14,
+                    "z": -1.9810542095655137e-15
+                  },
+                  "reactionMoment": {
+                    "x": -6.965016400000551e-16,
+                    "y": -6.071532165918825e-17,
+                    "z": 1.970645868709653e-15
+                  }
+                },
+                {
+                  "nodeId": "node_0012",
+                  "displacement": {
+                    "x": 0.0012203958907037334,
+                    "y": 0.0003580933004688416,
+                    "z": -0.00001821193318210373
+                  },
+                  "rotation": {
+                    "x": -0.000016737806800130965,
+                    "y": 0.000002007653990672294,
+                    "z": 0.0018764292620822957
+                  },
+                  "reaction": {
+                    "x": -4.757305660518796e-14,
+                    "y": 1.4849232954361469e-15,
+                    "z": -1.0495077029659683e-16
+                  },
+                  "reactionMoment": {
+                    "x": -1.3877787807814457e-16,
+                    "y": 8.552186736565659e-16,
+                    "z": 9.992007221626409e-16
+                  }
+                }
+              ],
+              "members": [
+                {
+                  "memberId": "member_0001",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      9.472469574430953,
+                      -4.007844637594164,
+                      0.2914521874470433,
+                      -0.004431852555572799,
+                      -0.599554721771079,
+                      -7.510462795151614
+                    ],
+                    "end": [
+                      -8.229552384430953,
+                      4.007844637594164,
+                      -0.2914521874470433,
+                      0.004431852555572799,
+                      -0.27480184057005075,
+                      -4.513071117630876
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0002",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      17.87439107042034,
+                      -2.7459847689994845,
+                      -0.20302719991742885,
+                      -0.004471172162432462,
+                      0.48137014070737905,
+                      -6.271877151482186
+                    ],
+                    "end": [
+                      -16.63147388042034,
+                      2.7459847689994845,
+                      0.20302719991742885,
+                      0.004471172162432462,
+                      0.12771145904490733,
+                      -1.9660771555162668
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0003",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -3.72649106949234,
+                      0.0726272556476481,
+                      -1.9938423981754214,
+                      0.00012217726365741681,
+                      6.822298132028326,
+                      0.21753605714860164
+                    ],
+                    "end": [
+                      3.72649106949234,
+                      -0.0726272556476481,
+                      3.3106877481754218,
+                      -0.00012217726365741681,
+                      9.091292307024203,
+                      0.21822747673728693
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0004",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      3.9282448881094276,
+                      -0.2762843477701886,
+                      0.20302719991746293,
+                      -0.0044318525555727935,
+                      -0.50995537100497,
+                      -0.6300729503418655
+                    ],
+                    "end": [
+                      -2.6853276981094276,
+                      0.2762843477701886,
+                      -0.20302719991746293,
+                      0.0044318525555727935,
+                      -0.09912622874741861,
+                      -0.19878009296870025
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0005",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.10198543139544469,
+                      -0.10784784175217328,
+                      0.6454387538688365,
+                      0.0019170887360977168,
+                      -0.6886255524526488,
+                      -0.21569568350434648
+                    ],
+                    "end": [
+                      0.10198543139544469,
+                      0.10784784175217328,
+                      0.23245814613116367,
+                      -0.0019170887360977168,
+                      -0.1373356630226969,
+                      -0.21569568350434662
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0006",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      5.447200987039267,
+                      -0.4698862456354405,
+                      -0.2914521874470092,
+                      -0.004471172162432465,
+                      0.570969491473488,
+                      -0.8249543182622348
+                    ],
+                    "end": [
+                      -4.204283797039267,
+                      0.4698862456354405,
+                      0.2914521874470092,
+                      0.004471172162432465,
+                      0.30338707086753924,
+                      -0.584704418644087
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0007",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.20485896949911364,
+                      0.07262725564764808,
+                      0.4149909779379306,
+                      0.00012217726365741684,
+                      0.14138486317459786,
+                      0.21753605714860152
+                    ],
+                    "end": [
+                      0.20485896949911364,
+                      -0.07262725564764808,
+                      0.9018543720620698,
+                      -0.00012217726365741684,
+                      1.3192053191978195,
+                      0.21822747673728693
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0008",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.10198543139544824,
+                      -0.108270285498009,
+                      0.2297977143637983,
+                      0.0030373032536997443,
+                      0.14265652655742767,
+                      -0.21654057099601814
+                    ],
+                    "end": [
+                      0.10198543139544824,
+                      0.108270285498009,
+                      0.648099185636202,
+                      -0.0030373032536997443,
+                      0.6939464159873796,
+                      -0.21654057099601798
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0009",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      9.577956028737539,
+                      -0.389201409854099,
+                      0.320810363194842,
+                      -0.006272226199827564,
+                      -0.4139458891462553,
+                      -2.3111441031335467
+                    ],
+                    "end": [
+                      -8.335038838737539,
+                      0.389201409854099,
+                      -0.320810363194842,
+                      0.006272226199827564,
+                      -0.5484852004382705,
+                      1.143539873571246
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0010",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      13.090988417881125,
+                      -6.5807461239897,
+                      -0.02841451287433272,
+                      -0.006158077903701405,
+                      0.015067244776177657,
+                      -7.128252454761629
+                    ],
+                    "end": [
+                      -11.848071227881125,
+                      6.5807461239897,
+                      0.02841451287433272,
+                      0.006158077903701405,
+                      0.07017629384681989,
+                      -12.613985917207469
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0011",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      6.845414861836616,
+                      0.1746124380345735,
+                      7.747285118305095,
+                      0.00008802289631670677,
+                      -1.1480448885237688,
+                      0.5244952304168103
+                    ],
+                    "end": [
+                      -6.845414861836616,
+                      -0.1746124380345735,
+                      11.569560231694906,
+                      -0.00008802289631670677,
+                      12.614870228693203,
+                      0.5231793977906307
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0012",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      2.037878574040333,
+                      0.03642246348110123,
+                      0.02841451287436586,
+                      -0.006272226199827578,
+                      -0.03833161153893605,
+                      0.059312318530200914
+                    ],
+                    "end": [
+                      -0.794961384040333,
+                      -0.03642246348110123,
+                      -0.02841451287436586,
+                      0.006272226199827578,
+                      -0.04691192708416114,
+                      0.049955071913102334
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0013",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      0.14619792516025854,
+                      -0.26538372830831813,
+                      0.5877537204324494,
+                      0.004505014952527155,
+                      -0.5483971775419536,
+                      -0.5307674566166363
+                    ],
+                    "end": [
+                      -0.14619792516025854,
+                      0.26538372830831813,
+                      0.2901431795675507,
+                      -0.004505014952527155,
+                      -0.0468239041878441,
+                      -0.5307674566166362
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0014",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      2.6543302393409975,
+                      -0.5664749296365491,
+                      -0.3208103631948088,
+                      -0.006158077903701401,
+                      0.3906815223834974,
+                      -0.7314635973000326
+                    ],
+                    "end": [
+                      -1.4114130493409975,
+                      0.5664749296365491,
+                      0.3208103631948088,
+                      0.006158077903701401,
+                      0.5717495672009292,
+                      -0.967961191609614
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0015",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      0.30180619178942436,
+                      0.17461243803457355,
+                      0.5048182044727818,
+                      0.00008802289631670688,
+                      -0.045450056960574914,
+                      0.5244952304168106
+                    ],
+                    "end": [
+                      -0.30180619178942436,
+                      -0.17461243803457355,
+                      0.8120271455272186,
+                      -0.00008802289631670688,
+                      0.9670768801238853,
+                      0.5231793977906308
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0016",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      0.146197925160223,
+                      -0.26466873784716555,
+                      0.2785109961862212,
+                      -0.000884311485730054,
+                      0.0700882709505029,
+                      -0.5293374756943312
+                    ],
+                    "end": [
+                      -0.146197925160223,
+                      0.26466873784716555,
+                      0.599385903813779,
+                      0.000884311485730054,
+                      0.5716615443046127,
+                      -0.5293374756943313
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "errorType": "AssertionError",
+  "errorCode": "ERR_ASSERTION",
+  "assertion": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   x: 0,\n-   x: 6,\n    y: 0,\n    z: 6\n  }\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   x: 0,\n-   x: 6,\n    y: 0,\n    z: 6\n  }\n\n    at verifyLoads (D:\\FrameMind\\scripts\\t33-workflow.cjs:75:10)\n    at runT33 (D:\\FrameMind\\scripts\\t33-workflow.cjs:238:55)\n    at async verify (D:\\FrameMind\\scripts\\verify-t33-online.cjs:6:20)"
+}

@@ -130,7 +130,7 @@ export function validateMaterial(label: string, material: MaterialProperties): M
     throw new Error(`材料 ${label} 的泊松比必须大于 -1 且小于 0.5`);
   }
   assertPositive(material.densityKgM3, `材料 ${label} 的密度必须为正有限数值`);
-  return { ...material, name };
+  return { name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3 };
 }
 
 export function validateSection(label: string, section: SectionProperties): SectionProperties {
@@ -139,7 +139,7 @@ export function validateSection(label: string, section: SectionProperties): Sect
   assertPositive(section.secondMomentYM4, `截面 ${label} 的 Iy 必须为正有限数值`);
   assertPositive(section.secondMomentZM4, `截面 ${label} 的 Iz 必须为正有限数值`);
   assertPositive(section.torsionalConstantM4, `截面 ${label} 的扭转常数 J 必须为正有限数值`);
-  return { ...section, name };
+  return { name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4 };
 }
 
 function requireNode(project: FrameProject, id: NodeId, label: string, role: "起点" | "终点"): FrameNode {
