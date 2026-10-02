@@ -1,9 +1,8 @@
-import { Paragraph, Table } from "docx";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import { REPORT_APPENDIX_STEPS } from "../domain/report-appendix";
-import { heading, paragraph, table, tableCaption } from "./report-word-layout";
+import { heading, paragraph, table, tableCaption, type ReportBlock } from "./report-content-blocks";
 
-type Content = (Paragraph | Table)[];
+type Content = ReportBlock[];
 function matrixTables(title: string, matrix: number[][], indices: number[]): Content {
   if (!indices.length) return [tableCaption(`${title} · 0 × 0`), paragraph("无自由自由度，不存在待求解的自由子系统矩阵条目。")];
   const content: Content = [];
@@ -16,7 +15,7 @@ function matrixTables(title: string, matrix: number[][], indices: number[]): Con
   return content;
 }
 
-export function reportAppendixWord(report: EngineeringReport): Content {
+export function reportAppendixContent(report: EngineeringReport): Content {
   const appendix = report.appendix;
   if (!appendix) return [];
   const { selection, overall, basis } = appendix;
@@ -24,7 +23,7 @@ export function reportAppendixWord(report: EngineeringReport): Content {
   const memberLabel = (id: string) => input.members.find((member) => member.id === id)!.label;
   const nodeLabel = (id: string) => input.nodes.find((node) => node.id === id)!.label;
   const content: Content = [
-    new Paragraph({ text: "附录 A 所选分析的计算过程", heading: "Heading1", pageBreakBefore: true, keepNext: true }),
+    heading("附录 A 所选分析的计算过程", true),
     paragraph(`正文来源分析 ${result.id}；输入修订 R${result.projectRevision}；${reportSourceLabel(result)}。`),
     paragraph(`所选步骤：${selection.steps.map((step) => REPORT_APPENDIX_STEPS[step]).join("；")}。所选杆件：${selection.memberIds.map((id) => `${memberLabel(id)} · ${id}`).join("；") || "无"}。`),
     paragraph("杆件过程与组装贡献仅输出所选杆件；整体编号、约束及整体矩阵作用于全部模型。索引从 0 起，单元位置 0—5 为起点、6—11 为终点，顺序 ux、uy、uz、rx、ry、rz。未保存完整消元轨迹。"),

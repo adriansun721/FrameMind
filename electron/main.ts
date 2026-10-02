@@ -7,9 +7,11 @@ import {
   type SaveProjectRequest,
   type SaveProjectResult,
   type ExportReportWordRequest,
+  type ExportReportPdfRequest,
 } from "./contracts";
 import { ProjectFileStore } from "./project-files";
 import { DeepSeekConnection } from "./deepseek";
+import { renderReportPdf } from "./report-pdf";
 
 const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
@@ -149,6 +151,23 @@ ipcMain.handle(DesktopChannel.ExportReportWord, async (event, request: ExportRep
   }
   if (!targetPath.toLowerCase().endsWith(".docx")) targetPath += ".docx";
   await projectFiles.save(targetPath, request.base64, "base64");
+  return { status: "saved", path: targetPath };
+});
+
+ipcMain.handle(DesktopChannel.ExportReportPdf, async (event, request: ExportReportPdfRequest): Promise<SaveProjectResult> => {
+  requireTrustedSender(event);
+  if (!request || typeof request.suggestedName !== "string" || typeof request.html !== "string"
+    || request.html.length > 90_000_000 || !request.html.startsWith("<!doctype html>")) throw new Error("PDF 计算书导出内容无效");
+  let targetPath = process.env.FRAMEMIND_E2E_REPORT_PDF_PATH;
+  if (!targetPath) {
+    const name = request.suggestedName.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").slice(0, 120) || "工程计算书";
+    const selection = await dialog.showSaveDialog({ title: "导出 PDF 计算书", defaultPath: `${name}.pdf`, filters: [{ name: "PDF 文档", extensions: ["pdf"] }] });
+    if (selection.canceled || !selection.filePath) return { status: "cancelled" };
+    targetPath = selection.filePath;
+  }
+  if (!targetPath.toLowerCase().endsWith(".pdf")) targetPath += ".pdf";
+  const bytes = await renderReportPdf(request.html);
+  await projectFiles.save(targetPath, bytes.toString("base64"), "base64");
   return { status: "saved", path: targetPath };
 });
 

@@ -9,6 +9,7 @@ export const enum DesktopChannel {
   ChatDeepSeek = "deepseek:chat",
   CancelDeepSeekChat = "deepseek:chat-cancel",
   ExportReportWord = "report:word",
+  ExportReportPdf = "report:pdf",
 }
 
 export type AppTheme = "dark" | "light";
@@ -61,6 +62,11 @@ export interface ExportReportWordRequest {
   base64: string;
 }
 
+export interface ExportReportPdfRequest {
+  suggestedName: string;
+  html: string;
+}
+
 export type SaveProjectResult =
   | { status: "saved"; path: string }
   | { status: "cancelled" };
@@ -70,6 +76,7 @@ export type OpenProjectResult =
   | { status: "cancelled" };
 
 export interface FrameMindDesktopApi {
+  exportReportPdf(request: ExportReportPdfRequest): Promise<SaveProjectResult>;
   exportReportWord(request: ExportReportWordRequest): Promise<SaveProjectResult>;
   setTheme(theme: AppTheme): Promise<void>;
   saveProject(request: SaveProjectRequest): Promise<SaveProjectResult>;

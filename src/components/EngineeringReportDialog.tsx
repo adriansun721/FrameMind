@@ -10,7 +10,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
   project: FrameProject; initialAnalysisId?: string; onClose(): void; onStatus(tone: "neutral" | "success" | "error", text: string): void;
 }) {
   const [analysisId, setAnalysisId] = useState(initialAnalysisId ?? project.analysisResults.at(-1)?.id ?? "");
-  const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState<"Word" | "PDF" | null>(null); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
   const [selection, setSelection] = useState<ReportAppendixSelection>({ memberIds: [], steps: [] });
   const [supplemental, setSupplemental] = useState<AnalysisResult | null>(null);
   const [supplementing, setSupplementing] = useState(false);
@@ -28,7 +28,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
     (selection.steps.includes("member-process") && selection.memberIds.length > preview.members.length) ||
     (selection.steps.some((step) => step !== "member-process") && !preview.overall)
   );
-  const locked = busy || supplementing;
+  const locked = busy !== null || supplementing;
   const changeSource = (id: string) => {
     taskRef.current?.cancel(); taskRef.current = null; setSupplementing(false);
     setAnalysisId(id); setSelection({ memberIds: [], steps: [] }); setSupplemental(null); setNotice(""); setError("");
@@ -50,27 +50,33 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
       } finally { if (taskRef.current === task) { taskRef.current = null; setSupplementing(false); } }
     } catch (failure) { if (!(failure instanceof AnalysisCancelledError)) setError(failure instanceof Error ? failure.message : "附录过程补算失败"); }
   }
-  async function exportWord() {
+  async function exportReport(format: "Word" | "PDF") {
     if (locked) return;
     setError(""); setNotice("");
     try {
       const captured = captureEngineeringReport(project, analysisId, selection);
       const report = supplemental && captured.appendix ? withSupplementalReportProcess(captured, supplemental) : captured;
-      setBusy(true);
-      const { buildReportWord, reportBytesToBase64 } = await import("../workspace/report-word");
-      const bytes = await buildReportWord(report);
-      const outcome = await window.frameMind.exportReportWord({ suggestedName: `${report.projectName}_${reportSourceLabel(report.result).split(" · ")[0]}_R${report.result.projectRevision}_计算书`, base64: reportBytesToBase64(bytes) });
-      if (outcome.status === "cancelled") { setNotice("已取消导出"); onStatus("neutral", "已取消 Word 计算书导出"); }
-      else { setNotice(`已导出 ${outcome.path}`); onStatus("success", `已导出 Word 计算书 · R${report.result.projectRevision} · ${outcome.path}`); }
+      setBusy(format);
+      const suggestedName = `${report.projectName}_${reportSourceLabel(report.result).split(" · ")[0]}_R${report.result.projectRevision}_计算书`;
+      let outcome;
+      if (format === "Word") {
+        const { buildReportWord, reportBytesToBase64 } = await import("../workspace/report-word");
+        outcome = await window.frameMind.exportReportWord({ suggestedName, base64: reportBytesToBase64(await buildReportWord(report)) });
+      } else {
+        const { buildReportPdfHtml } = await import("../workspace/report-pdf");
+        outcome = await window.frameMind.exportReportPdf({ suggestedName, html: buildReportPdfHtml(report) });
+      }
+      if (outcome.status === "cancelled") { setNotice("已取消导出"); onStatus("neutral", `已取消 ${format} 计算书导出`); }
+      else { setNotice(`已导出 ${outcome.path}`); onStatus("success", `已导出 ${format} 计算书 · R${report.result.projectRevision} · ${outcome.path}`); }
     } catch (failure) {
       const message = failure instanceof Error ? failure.message : "计算书导出失败";
-      setError(message); onStatus("error", `Word 计算书导出失败：${message}`);
-    } finally { setBusy(false); }
+      setError(message); onStatus("error", `${format} 计算书导出失败：${message}`);
+    } finally { setBusy(null); }
   }
   return <div className="dialog-backdrop" onMouseDown={onClose}>
     <section className="node-dialog wide-dialog report-dialog" role="dialog" aria-modal="true" aria-label="工程计算书" onMouseDown={(event) => event.stopPropagation()}>
       <header><h2>工程计算书</h2><button className="icon-button" onClick={onClose} aria-label="关闭"><X size={15} /></button></header>
-      <p className="dialog-copy">选择已完成分析，导出含模型、参数、荷载与结果的可编辑 Word 正文。</p>
+      <p className="dialog-copy">选择已完成分析，导出含模型、参数、荷载与结果的 Word 或 PDF 计算书。</p>
       <div className="dialog-form">
         <label className="field"><span>报告分析来源</span><select aria-label="报告分析来源" value={analysisId} disabled={locked} onChange={(event) => changeSource(event.target.value)}>
           {!project.analysisResults.length && <option value="">尚无已完成分析</option>}
@@ -95,7 +101,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
         <p className="dialog-copy">此计算书记录线弹性分析响应，不给出未经验证的规范验算结论。</p>
         {error && <p className="form-error" role="alert">{error}</p>}{notice && <p className="report-notice">{notice}</p>}
       </div>
-      <div className="dialog-actions"><button className="button ghost" onClick={onClose}>关闭</button><button className="button primary" disabled={!selected || locked} onClick={() => void exportWord()}>{busy ? "正在导出 Word…" : "导出 Word"}</button></div>
+      <div className="dialog-actions"><button className="button ghost" onClick={onClose}>关闭</button><button className="button ghost" disabled={!selected || locked} onClick={() => void exportReport("Word")}>{busy === "Word" ? "正在导出 Word…" : "导出 Word"}</button><button className="button primary" disabled={!selected || locked} onClick={() => void exportReport("PDF")}>{busy === "PDF" ? "正在导出 PDF…" : "导出 PDF"}</button></div>
     </section>
   </div>;
 }

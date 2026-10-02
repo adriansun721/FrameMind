@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import { DesktopChannel, type FrameMindDesktopApi } from "./contracts";
 
 const desktopApi: FrameMindDesktopApi = {
+  exportReportPdf: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportPdf, request),
   exportReportWord: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportWord, request),
   setTheme: (theme) => ipcRenderer.invoke(DesktopChannel.SetTheme, theme),
   saveProject: (request: { path: string | null; content: string }) =>

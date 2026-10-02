@@ -20,22 +20,30 @@ export function createReportFigures(report: EngineeringReport): { model: string;
     y: 110 + (projected[index].y - (minY + maxY) / 2) * scale + 205,
   }]));
   let model = "";
+  const labelBounds: { left: number; right: number; top: number; bottom: number }[] = [];
+  const modelLabel = (x: number, y: number, label: string) => {
+    const bounds = { left: x - 10, right: x + label.length * 15 + 10, top: y - 27, bottom: y + 8 };
+    if (bounds.left < 130 || bounds.right > 1130 || bounds.top < 80 || bounds.bottom > 535
+      || labelBounds.some((other) => bounds.left < other.right && bounds.right > other.left && bounds.top < other.bottom && bounds.bottom > other.top)) return "";
+    labelBounds.push(bounds);
+    return text(x, y, label);
+  };
   for (const member of input.members) {
     const a = points.get(member.startNodeId)!; const b = points.get(member.endNodeId)!;
     model += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#245979" stroke-width="4"/>`;
-    if (input.members.length <= 40) model += text((a.x + b.x) / 2 + 8, (a.y + b.y) / 2 - 8, member.label);
+    if (input.members.length <= 40) model += modelLabel((a.x + b.x) / 2 + 8, (a.y + b.y) / 2 - 8, member.label);
   }
   for (const node of input.nodes) {
     const p = points.get(node.id)!;
     model += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#245979"/>`;
-    if (input.nodes.length <= 40) model += text(p.x + 8, p.y - 12, node.label);
+    if (input.nodes.length <= 40) model += modelLabel(p.x + 8, p.y - 12, node.label);
     if (input.supports.some((support) => support.nodeId === node.id && support.restraints.some(Boolean))) {
       model += `<path d="M ${p.x - 11} ${p.y + 14} L ${p.x} ${p.y} L ${p.x + 11} ${p.y + 14} Z" fill="none" stroke="#85572b" stroke-width="2"/>`;
     }
   }
   model += `<g stroke="#777" stroke-width="2"><path d="M60 530 L120 548 M60 530 L24 548 M60 530 L60 470" fill="none"/></g>${text(124, 553, "+X")}${text(8, 567, "+Y")}${text(49, 461, "+Z")}`;
   model += text(200, 577, "蓝线 杆件    蓝点 节点    棕色三角 受约束节点");
-  model += text(200, 607, "示意投影  单位 m    支座自由度及坐标见正文表");
+  model += text(200, 607, "示意投影  单位 m    标签拥挤时省略；完整编号与支座见正文表");
   const values = nodes.map((node) => ({ label: input.nodes.find((item) => item.id === node.nodeId)!.label, value: Math.hypot(node.displacement.x, node.displacement.y, node.displacement.z) }))
     .sort((a, b) => b.value - a.value).slice(0, 12);
   const maximum = Math.max(...values.map((item) => item.value), 1e-30);
