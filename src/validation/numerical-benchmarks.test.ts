@@ -25,3 +25,11 @@ it("T31 isolates a disconnected component without introducing an identity defect
   const report=runInvalidBenchmarks().find(item => item.id === "disconnected-unrestrained")!;
   expect("diagnostics" in report.actual ? report.actual.diagnostics?.map(d => d.code) : []).toEqual(["unrestrained-component"]);
 });
+
+it("T31 converts textbook rotation and moment signs together before comparing printed values", () => {
+  const benchmark=references.cases.find(item => item.id === "textbook-2-1-condensed")!;
+  const node=runNumericalBenchmark(benchmark).actual.nodes[1];
+  expect(node.displacement.x*100).toBeCloseTo(0.00599,5);
+  expect(node.displacement.y*100).toBeCloseTo(-0.0130,4);
+  expect(-node.rotation.z).toBeCloseTo(-0.000409,6);
+});

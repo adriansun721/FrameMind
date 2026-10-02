@@ -156,6 +156,9 @@ function verifyProcess(result: AnalysisResult, benchmark: NumericalBenchmark, ch
   }
   // Compare captured equivalent loads with physical external resultants, not
   // just with another view of the same process snapshot.
-  const loadBalance = globalBalance({ ...result, nodes:result.nodes.map((node,i) => ({...node,reaction:vector(process.loadVector.slice(i*6,i*6+3).map(v => -v)),reactionMoment:vector(process.loadVector.slice(i*6+3,i*6+6).map(v => -v))})) }, benchmark);
+  const loadBalance = globalBalance({ ...result, nodes:result.nodes.map(node => {
+    const i=result.input.nodes.findIndex(inputNode => inputNode.id === node.nodeId);
+    return {...node,reaction:vector(process.loadVector.slice(i*6,i*6+3).map(v => -v)),reactionMoment:vector(process.loadVector.slice(i*6+3,i*6+6).map(v => -v))};
+  }) }, benchmark);
   loadBalance.forEach((actual,k) => checks.push(check(`process.external-load-balance.${k}`, k<3 ? "kN" : "kN·m", actual, 0, true)));
 }
