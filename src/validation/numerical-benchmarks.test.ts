@@ -20,3 +20,8 @@ it("T31 rejects and locates invalid inputs and instability through the public so
   expect(reports).toHaveLength(7);
   expect(reports.filter(report => !report.passed)).toEqual([]);
 });
+
+it("T31 isolates a disconnected component without introducing an identity defect", () => {
+  const report=runInvalidBenchmarks().find(item => item.id === "disconnected-unrestrained")!;
+  expect("diagnostics" in report.actual ? report.actual.diagnostics?.map(d => d.code) : []).toEqual(["unrestrained-component"]);
+});

@@ -58,6 +58,7 @@ function check(quantity: string, unit: Unit, actual: number, reference: number, 
 export function runNumericalBenchmark(benchmark: NumericalBenchmark) {
   const project = makeProject(benchmark);
   const result = solveFrame(project);
+  if (result.nodes.length !== benchmark.reference.nodes.length || result.members.length !== benchmark.reference.members.length) throw new Error("Incomplete result object set");
   const checks: NumericalCheck[] = [];
   for (const [i, inputNode] of result.input.nodes.entries()) {
     const node = result.nodes.find((n) => n.nodeId === inputNode.id);
@@ -72,8 +73,15 @@ export function runNumericalBenchmark(benchmark: NumericalBenchmark) {
     const member = result.members.find((m) => m.memberId === inputMember.id);
     if (!member) throw new Error(`Missing member ${inputMember.id}`);
     const expected = benchmark.reference.members[i];
-    for (const end of ["start","end"] as const) member.localEndForces[end].forEach((actual, k) => checks.push(check(`${member.memberId}.${end}.${k}`, k < 3 ? "kN" : "kN·m", actual, expected[end][k])));
-    for (const station of expected.stations) getMemberSectionForces(result, member.memberId, station.position).forces.forEach((actual, k) => checks.push(check(`${member.memberId}.section@${station.position}.${k}`, k < 3 ? "kN" : "kN·m", actual, station.forces[k])));
+    for (const end of ["start","end"] as const) {
+      if (member.localEndForces[end].length !== 6 || expected[end].length !== 6) throw new Error(`Incomplete end force vector ${member.memberId}.${end}`);
+      expected[end].forEach((reference,k) => checks.push(check(`${member.memberId}.${end}.${k}`, k<3 ? "kN" : "kN·m", member.localEndForces[end][k], reference)));
+    }
+    for (const station of expected.stations) {
+      const actual=getMemberSectionForces(result, member.memberId, station.position).forces;
+      if (actual.length !== 6 || station.forces.length !== 6) throw new Error(`Incomplete section force vector ${member.memberId}@${station.position}`);
+      station.forces.forEach((reference,k) => checks.push(check(`${member.memberId}.section@${station.position}.${k}`, k<3 ? "kN" : "kN·m", actual[k], reference)));
+    }
     for (const [axisIndex, axis] of ["x","y","z"].entries()) xyz(member.localAxes[axis as keyof typeof member.localAxes]).forEach((actual,k) => {
       if (Math.abs(actual - benchmark.input.axes[i][axisIndex][k]) > 1e-12) throw new Error(`Local axis mismatch ${member.memberId}.${axis}`);
     });
@@ -92,7 +100,8 @@ export function runInvalidBenchmarks() {
     { id:"isolated-node", stage:"model-check", code:"isolated-node", field:"connectivity", change:p => addNode(p,{x:8,y:0,z:0}) },
     { id:"disconnected-unrestrained", stage:"model-check", code:"unrestrained-component", change:p => {
       p=addNode(p,{x:0,y:4,z:0}); p=addNode(p,{x:4,y:4,z:0});
-      return addMember(p,{...p.members[0],startNodeId:p.nodes[2].id,endNodeId:p.nodes[3].id});
+      const {materialId,sectionId,rotationDegrees}=p.members[0];
+      return addMember(p,{materialId,sectionId,rotationDegrees,startNodeId:p.nodes[2].id,endNodeId:p.nodes[3].id});
     } },
     { id:"no-support", stage:"model-check", code:"unrestrained-component", change:p => ({...p,supports:[]}) },
     { id:"rotational-mechanism", stage:"solve", code:"singular-system", change:p => { p.supports[0].restraints=[true,true,true,false,false,false]; return p; } },
@@ -132,6 +141,8 @@ function globalBalance(result: AnalysisResult, benchmark: NumericalBenchmark): n
 function verifyProcess(result: AnalysisResult, benchmark: NumericalBenchmark, checks: NumericalCheck[]) {
   const process = getOverallAnalysisProcessRecord(result);
   if (process.analysisId !== result.id || process.origin !== "captured-from-run" || !process.assembledStiffness) throw new Error("Missing actual run process");
+  const size=result.input.nodes.length*6;
+  if (process.dofs.length !== size || new Set(process.dofs.map(d => d.globalIndex)).size !== size || process.dofs.some(d => !Number.isInteger(d.globalIndex) || d.globalIndex<0 || d.globalIndex>=size) || process.loadVector.length !== size || process.assembledStiffness.length !== size || process.assembledStiffness.some(row => row.length !== size)) throw new Error("Incomplete actual DOF/matrix record");
   const displacement = result.input.nodes.flatMap((inputNode) => {
     const node = result.nodes.find((n) => n.nodeId === inputNode.id)!;
     return [...xyz(node.displacement),...xyz(node.rotation)];
