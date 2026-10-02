@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { Scan } from "lucide-react";
+import { Scan, Weight } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { FrameMaterial, FrameMember, FrameNode, FrameNodalLoad, FrameSection, FrameSupport, FrameUniformLoad, LoadId, MemberId, NodeId, ProjectId, SupportId } from "../domain/project";
+import type { FrameMaterial, FrameMember, FrameNode, FrameNodalLoad, FrameSection, FrameSupport, FrameUniformLoad, FrameSelfWeight, LoadId, MemberId, NodeId, ProjectId, SupportId } from "../domain/project";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { uniformLoadVector } from "../domain/uniform-loads";
 import { getMemberResponseSamples, type AnalysisResult } from "../domain/analysis";
@@ -30,6 +30,8 @@ interface SceneViewportProps {
   materials: FrameMaterial[];
   sections: FrameSection[];
   uniformLoads?: FrameUniformLoad[];
+  selfWeight?: FrameSelfWeight;
+  selfWeightLabel?: string;
   sourceLabel?: string;
   selectedUniformLoadId?: LoadId;
   onSelectUniformLoad?(id: LoadId): void;
@@ -191,7 +193,38 @@ function renderConditions(group: THREE.Group, nodes: FrameNode[], supports: Fram
   }
 }
 
-export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
+function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: FrameMember[], uniformLoads: FrameUniformLoad[] | undefined, palette: ScenePalette, selectedUniformLoadId?: LoadId) {
+    const offsets = new Map<string, number>();
+    for (const load of uniformLoads ?? []) {
+      const member = members.find((item) => item.id === load.memberId);
+      const start = nodes.find((item) => item.id === member?.startNodeId);
+      const end = nodes.find((item) => item.id === member?.endNodeId);
+      if (!member || !start || !end) continue;
+      const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+      const globalQ = uniformLoadVector(load, geometry, "global");
+      const direction = new THREE.Vector3(globalQ.x, globalQ.y, globalQ.z);
+      const magnitude = direction.length();
+      if (magnitude === 0 || !Number.isFinite(magnitude)) continue;
+      direction.normalize();
+      const arrowLength = Math.min(0.8, Math.max(0.2, geometry.length * 0.16));
+      const offset = offsets.get(load.memberId) ?? 0;
+      offsets.set(load.memberId, offset + 1);
+      const color = selectedUniformLoadId === load.id ? palette.loadSelected : palette.load;
+      const layer = new THREE.Group();
+      const tails: THREE.Vector3[] = [];
+      for (let station = 0; station < 5; station += 1) {
+        const head = new THREE.Vector3(start.position.x, start.position.y, start.position.z).lerp(new THREE.Vector3(end.position.x, end.position.y, end.position.z), (station + 0.5) / 5);
+        head.addScaledVector(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), offset * arrowLength * 0.3);
+        const tail = head.clone().addScaledVector(direction, -arrowLength); tails.push(tail);
+        layer.add(makeArrow(direction, tail, arrowLength, color));
+      }
+      layer.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([tails[0], tails[4]]), new THREE.LineBasicMaterial({ color })));
+      if (load.label) { const label = makeLabel(load.label, palette); label.position.copy(tails[2]).addScaledVector(direction, -arrowLength * 0.3); layer.add(label); }
+      layer.traverse((object) => { object.userData = { kind: "uniform-load", id: load.id }; }); group.add(layer);
+    }
+}
+
+export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
@@ -318,6 +351,7 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
       const palette = readScenePalette();
       const color = getComputedStyle(document.documentElement).getPropertyValue("--model-preview").trim();
       renderConditions(runtime.preview, preview.conditionNodes, preview.supports, preview.nodalLoads, { ...palette, support: color, load: color, moment: color });
+      renderUniformLoads(runtime.preview, preview.conditionNodes, members, preview.uniformLoads, { ...palette, load: color });
       runtime.preview.traverse((object) => {
         object.userData = {};
         if (object instanceof THREE.Line || object instanceof THREE.Mesh) {
@@ -338,7 +372,7 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
     const dots = new THREE.Points(new THREE.BufferGeometry().setFromPoints(preview.nodes.map((node) => new THREE.Vector3(node.position.x, node.position.y, node.position.z))), new THREE.PointsMaterial({ color, size: 5, sizeAttenuation: false, depthTest: false }));
     dots.renderOrder = 5; runtime.preview.add(dots);
     applySceneFrame(runtime.camera, runtime.controls, [...nodes, ...preview.nodes]);
-  }, [preview, nodes, theme]);
+  }, [preview, nodes, members, theme]);
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
   useEffect(() => {
@@ -350,32 +384,7 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
     const group = runtimeRef.current?.loads;
     if (!group) return;
     for (const child of [...group.children]) disposeObjectTree(child);
-    for (const [index, load] of (uniformLoads ?? []).entries()) {
-      const member = members.find((item) => item.id === load.memberId);
-      const start = nodes.find((item) => item.id === member?.startNodeId);
-      const end = nodes.find((item) => item.id === member?.endNodeId);
-      if (!member || !start || !end) continue;
-      const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
-      const globalQ = uniformLoadVector(load, geometry, "global");
-      const direction = new THREE.Vector3(globalQ.x, globalQ.y, globalQ.z);
-      const magnitude = direction.length();
-      if (magnitude === 0 || !Number.isFinite(magnitude)) continue;
-      direction.normalize();
-      const arrowLength = Math.min(0.8, Math.max(0.2, geometry.length * 0.16));
-      const palette = readScenePalette();
-      const color = selectedUniformLoadId === load.id ? palette.loadSelected : palette.load;
-      const layer = new THREE.Group();
-      const tails: THREE.Vector3[] = [];
-      for (let station = 0; station < 5; station += 1) {
-        const head = new THREE.Vector3(start.position.x, start.position.y, start.position.z).lerp(new THREE.Vector3(end.position.x, end.position.y, end.position.z), (station + 0.5) / 5);
-        head.addScaledVector(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), index * arrowLength * 0.3);
-        const tail = head.clone().addScaledVector(direction, -arrowLength); tails.push(tail);
-        layer.add(makeArrow(direction, tail, arrowLength, color));
-      }
-      layer.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([tails[0], tails[4]]), new THREE.LineBasicMaterial({ color })));
-      const label = makeLabel(load.label, readScenePalette()); label.position.copy(tails[2]).addScaledVector(direction, -arrowLength * 0.3); layer.add(label);
-      layer.traverse((object) => { object.userData = { kind: "uniform-load", id: load.id }; }); group.add(layer);
-    }
+    renderUniformLoads(group, nodes, members, uniformLoads, readScenePalette(), selectedUniformLoadId);
   }, [uniformLoads, nodes, members, selectedUniformLoadId, theme]);
   useEffect(() => {
     const group = runtimeRef.current?.results;
@@ -459,13 +468,20 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
     const corners = [bounds.min, bounds.max].map((point) => ({ ...(nodes[0] ?? preview!.nodes[0]), position: { x: point.x, y: point.y, z: point.z } }));
     applySceneFrame(runtime.camera, runtime.controls, corners);
   };
+  const displayedWeight = preview?.selfWeight ?? (selfWeight?.enabled ? selfWeight : undefined);
+  const weightPending = Boolean(preview?.selfWeight);
 
   return (
     <div className="viewport" ref={hostRef} aria-label="三维模型视图">
       <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">单击选择 · 拖动旋转 · 滚轮缩放</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
-      {preview && (!!preview.nodes.length || !!preview.supports?.length || !!preview.nodalLoads?.length) && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.conditionNodes ? `${preview.supports?.length ?? 0} 支座 / ${preview.nodalLoads?.length ?? 0} 节点荷载 · 半透明` : `${preview.nodes.length} 节点 / ${preview.members.length} 杆件 · 虚线`}</div>}
+      {preview && (!!preview.nodes.length || !!preview.supports?.length || !!preview.nodalLoads?.length || !!preview.loadStageSummary) && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.conditionNodes ? `${preview.supports?.length ?? 0} 支座 / ${preview.nodalLoads?.length ?? 0} 节点荷载${preview.loadStageSummary ? ` / ${preview.loadStageSummary}` : ""} · 半透明` : `${preview.nodes.length} 节点 / ${preview.members.length} 杆件 · 虚线`}</div>}
       {sourceLabel && <div className="viewport-case-source" aria-label="视图工况来源">{sourceLabel}</div>}
+      {displayedWeight && <div className={`viewport-weight-marker${weightPending ? " pending" : ""}`} aria-label={weightPending ? "待确认自重标记" : "自重标记"}>
+        <Weight size={16} /><div><strong>{displayedWeight.enabled ? "结构自重" : "关闭自重"}{weightPending ? " · 待确认" : " · 已启用"}</strong>
+          <span>{weightPending ? preview!.selfWeight!.caseLabel : selfWeightLabel ?? displayedWeight.loadCaseId} · 全结构</span>
+          <small>全局 g ({displayedWeight.gravity.x}, {displayedWeight.gravity.y}, {displayedWeight.gravity.z}) m/s²</small></div>
+      </div>}
       {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m"}`}</div>}
       {selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ ({selectedNode.position.x}, {selectedNode.position.y}, {selectedNode.position.z}) m</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F ({selectedNodalLoad.force.x}, {selectedNodalLoad.force.y}, {selectedNodalLoad.force.z}) kN</span><span>M ({selectedNodalLoad.moment.x}, {selectedNodalLoad.moment.y}, {selectedNodalLoad.moment.z}) kN·m</span></>}</div>}
       {selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q ({selectedLoad.intensity.x}, {selectedLoad.intensity.y}, {selectedLoad.intensity.z}) kN/m</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>分析线模型 · 截面转角 {selectedMember.rotationDegrees}°</small></div>}

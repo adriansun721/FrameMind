@@ -1,4 +1,4 @@
-import type { FrameMaterial, FrameMember, FrameNode, FrameSection, FrameSupport, FrameNodalLoad, MaterialId, MemberId, NodeId, SectionId } from "../domain/project";
+import type { FrameMaterial, FrameMember, FrameNode, FrameSection, FrameSupport, FrameNodalLoad, FrameUniformLoad, FrameSelfWeight, MaterialId, MemberId, NodeId, SectionId } from "../domain/project";
 import { MATERIAL_CATALOG, SECTION_CATALOG } from "../domain/resource-library";
 import type { AiSnapshot, AiStatus } from "./ai-tools";
 
@@ -26,6 +26,9 @@ export interface FramePreview {
   conditionNodes?: FrameNode[];
   supports?: FrameSupport[];
   nodalLoads?: FrameNodalLoad[];
+  uniformLoads?: FrameUniformLoad[];
+  selfWeight?: FrameSelfWeight & { caseLabel: string };
+  loadStageSummary?: string;
 }
 
 function object(value: unknown): Record<string, unknown> {

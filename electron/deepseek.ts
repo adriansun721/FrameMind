@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
+import { LOAD_STAGE_SCHEMA } from "./load-stage-schema";
 import { DEEPSEEK_MODELS, type DeepSeekModel, type DeepSeekSettings, type DeepSeekStatus, type DeepSeekResult,
   type DeepSeekChatRequest, type DeepSeekChatResult, type DeepSeekAssistantMessage, type DeepSeekChatMessage,
   type DeepSeekToolCall } from "./contracts";
@@ -39,10 +40,10 @@ const modelTools = [
           source: { type: "string", enum: ["user", "suggestion"] }, replace: { type: "boolean", description: "Only true for an explicit user correction or clarification." },
         },
       }])) } }, required: ["parameters"], additionalProperties: false } } },
-  { type: "function", function: { name: "discard_analysis_conditions", description: "Discard unapplied support and nodal load conditions. Keeps confirmed work.",
+  { type: "function", function: { name: "discard_analysis_conditions", description: "Discard unapplied analysis conditions, loads, cases and combinations. Keeps confirmed work.",
     parameters: { type: "object", properties: {}, additionalProperties: false } } },
-  { type: "function", function: { name: "propose_analysis_conditions", description: "Prepare a stage preview of supports and nodal forces/moments on applied stable node IDs. Omit unknown collections; empty arrays mean explicitly no changes. Does not apply or solve.",
-    parameters: { type: "object", additionalProperties: false, properties: { analysisSourceId: { type: "string", description: "Existing load case or combination to select and calculate after confirmation. When omitted, a single proposed nodal load case is selected; otherwise the current source is retained." }, ...Object.fromEntries(["supports", "nodalLoads"].map((key) => [key, {
+  { type: "function", function: { name: "propose_analysis_conditions", description: "Preview supports, nodal force/moment, full-member uniform force, self weight, load cases and USER-DEFINED combinations. New cases/combinations use unique ref aliases, resolved only at confirmation. Partial updates retain other stage fields. Does not apply or solve.",
+    parameters: { type: "object", additionalProperties: false, properties: { ...LOAD_STAGE_SCHEMA, analysisSourceId: { type: "string", description: "Existing case/combination ID or draft ref to select and calculate after confirmation. If omitted, a single proposed load case is selected; otherwise current source is retained." }, ...Object.fromEntries(["supports", "nodalLoads"].map((key) => [key, {
       type: "array", maxItems: 100, items: { type: "object", additionalProperties: false,
         required: key === "supports" ? ["nodeId", "restraints", "source"] : ["nodeId", "loadCaseId", "force", "moment", "source"],
         properties: { id: { type: "string", description: "Existing condition ID for updates; omit to create." }, nodeId: { type: "string" }, source: { type: "string", enum: ["user", "suggestion"] },

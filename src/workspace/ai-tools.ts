@@ -2,6 +2,7 @@ import type { FrameProject } from "../domain/project";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { buildFramePreview, proposeFrame, type FrameProposal } from "./frame-proposal";
 import { conditionsIssues, proposeConditions, type ConditionsProposal } from "./analysis-conditions";
+import { loadStageReferences } from "./load-stage";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -110,13 +111,17 @@ export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProp
     if (call.function.name === "propose_analysis_conditions") {
       const conditions = proposeConditions(input, previousConditions);
       if (input.analysisSourceId === undefined && !previousConditions?.analysisSourceId) {
-        const cases = new Set(conditions.nodalLoads?.map((load) => load.loadCaseId));
+        const { references } = loadStageReferences(snapshot.model, conditions);
+        const cases = new Set([...(conditions.nodalLoads ?? []).map((load) => load.loadCaseId),
+          ...(conditions.uniformLoads ?? []).map((load) => load.loadCaseId), ...(conditions.selfWeight?.enabled ? [conditions.selfWeight.loadCaseId] : [])].map((id) => references.get(id) ?? id));
         // A single proposed load case is the natural continuation source, even if it is not currently active.
         conditions.analysisSourceId = cases.size === 1 ? [...cases][0] : snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
       }
       const issues = conditionsIssues(snapshot.model, conditions);
-      return { status: issues.length ? "missing-input" : "awaiting-confirmation", message: issues.length ? "分析条件草稿需要补齐或修正" : "支座与节点荷载预览已准备，尚未应用",
-        context: snapshot.context, conditions, data: { units: snapshot.model.units, issues, analysisSourceId: conditions.analysisSourceId, supports: conditions.supports, nodalLoads: conditions.nodalLoads } };
+      return { status: issues.length ? "missing-input" : "awaiting-confirmation", message: issues.length ? "分析条件草稿需要补齐或修正" : "分析条件预览已准备，尚未应用",
+        context: snapshot.context, conditions, data: { units: snapshot.model.units, issues, analysisSourceId: conditions.analysisSourceId, supports: conditions.supports, nodalLoads: conditions.nodalLoads,
+          uniformLoads: conditions.uniformLoads, selfWeight: conditions.selfWeight, loadCases: conditions.loadCases, loadCombinations: conditions.loadCombinations,
+          combinationBasis: "用户自定义 · 无量纲系数 · 线弹性" } };
     }
     if (call.function.name === "discard_frame_proposal") {
       exactFields(input, []);

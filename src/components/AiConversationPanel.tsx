@@ -7,7 +7,7 @@ import { FrameProposalCard } from "./FrameProposalCard";
 import { buildFramePreview, type FramePreview, type FrameProposal } from "../workspace/frame-proposal";
 import { prepareFrameConfirmation, type FrameConfirmation } from "../workspace/frame-confirmation";
 import { AnalysisConditionsCard } from "./AnalysisConditionsCard";
-import { conditionsIssues, prepareConditionsConfirmation, type ConditionsConfirmation, type ConditionsProposal } from "../workspace/analysis-conditions";
+import { buildConditionsPreview, conditionsIssues, prepareConditionsConfirmation, type ConditionsConfirmation, type ConditionsProposal } from "../workspace/analysis-conditions";
 import { calculationIntent } from "../workspace/analysis-intent";
 
 interface ConversationTurn {
@@ -82,9 +82,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
 
   useEffect(() => {
     if (conditions && conditionsCurrent && !conditionsDirty && !conditionsIssues(project, conditions).length) {
-      previewCallback.current({ status: "awaiting-confirmation", issues: [], nodes: [], members: [], materials: [], sections: [],
-        conditionNodes: project.nodes, supports: (conditions.supports ?? []).map((s, i) => ({ ...s, id: s.id ?? `preview_support_${i}` as typeof project.supports[number]["id"], label: `待确认支座 ${i + 1}` })),
-        nodalLoads: (conditions.nodalLoads ?? []).map((l, i) => ({ ...l, id: l.id ?? `preview_load_${i}` as typeof project.nodalLoads[number]["id"], label: `待确认荷载 ${i + 1}` })) });
+      previewCallback.current(buildConditionsPreview(project, conditions));
     } else previewCallback.current(proposal && proposalCurrent && !proposalDirty ? buildFramePreview(snapshot, proposal) : null);
   }, [proposal, proposalCurrent, proposalDirty, snapshot, conditions, conditionsCurrent, conditionsDirty, project]);
   useEffect(() => () => previewCallback.current(null), []);
@@ -212,7 +210,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
     continuationRef.current = null;
     if (!calculationRequestedRef.current) return;
     if (continuation === "analyze") void analyze();
-    else void submit(`原请求：${requestPromptRef.current}。建模阶段已确认。请读取当前正式节点、支座、荷载和工况，用 propose_analysis_conditions 准备支座与节点荷载阶段；未知条件保留缺失或标明建议，不要再次创建框架。`, true);
+    else void submit(`原请求：${requestPromptRef.current}。建模阶段已确认。请读取当前正式节点、杆件、材料截面、支座、荷载和工况，用 propose_analysis_conditions 准备必要分析条件、荷载、自重、工况和用户自定义组合；未知条件保留缺失或标明建议，不要再次创建框架。`, true);
   }, [project, busy, analysisBusy, conditions, proposal]);
 
   return <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!open}>

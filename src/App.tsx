@@ -239,8 +239,9 @@ export function App() {
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" }); }
   };
   const saveProject = async () => {
-    const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
-    const content = encodeProject(project);
+    const source = activeProjectRef.current;
+    const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
+    const content = encodeProject(source);
     try {
       const result = await window.frameMind.saveProject({ path: projectPath, content }); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
       setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProjectContent(content); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
@@ -341,7 +342,10 @@ export function App() {
       const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
       if (showResults) { setResultView("deformation"); setDataTableOpen(true); }
       return { status: "completed", message: `本地分析完成 · ${result.nodes.length} 个节点、${result.members.length} 根杆件，已展示结果`, context,
-        data: { analysisId: result.id, modelRevision: checkpoint.revision, units: source.units, loadCase: result.input.loadCase, nodes: result.nodes, members: result.members } };
+        data: { analysisId: result.id, modelRevision: checkpoint.revision, units: source.units,
+          analysisSourceId: result.input.combination?.definition.id ?? result.input.loadCase?.id,
+          loadCase: result.input.combination ? undefined : result.input.loadCase, combination: result.input.combination,
+          nodes: result.nodes, members: result.members } };
     }).catch((error): AiToolResult => {
       if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") || error instanceof AnalysisCancelledError) return { status: "cancelled", message: "本地分析已取消，已确认模型和已有结果保留；可继续计算或修改条件后再次确认", context };
       if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
@@ -587,6 +591,7 @@ export function App() {
           })}</ul>
         </section>}
         <SceneViewport theme={theme} supports={project.supports} nodalLoads={activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
+          selfWeight={activeCombination ? combinationInput?.selfWeight : caseSelfWeightEnabled ? project.selfWeight : undefined} selfWeightLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 组合加权" : ""}`}
           preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
