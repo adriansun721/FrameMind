@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, createProject } from "./project";
+import { addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, createProject, updateNode } from "./project";
 import { getMemberAnalysisRecord, solveFrame, supplementMemberAnalysisRecord } from "./analysis";
 
 function cantilever() {
@@ -49,5 +49,26 @@ describe("T17 member analysis process", () => {
     expect(record.sourceAnalysisId).toBe(result.id);
     expect(record.analysisId).not.toBe(result.id);
     expect(record.localStiffness.flat().every(Number.isFinite)).toBe(true);
+  });
+
+  it("rebuilds an unsupported legacy solver with the current verified configuration", () => {
+    const result = solveFrame(cantilever());
+    const legacy = { ...result, input: { ...result.input, solver: { implementation: "future-frame/99", algorithm: "partial-pivot-gaussian" as const, constraints: "free-dof-elimination" as const, relativePivotTolerance: 1e-12 } } };
+
+    const record = supplementMemberAnalysisRecord(legacy, result.members[0].memberId);
+    expect(record.origin).toBe("supplemental-reconstruction");
+    expect(record.solver.implementation).toBe("framemind-frame/3");
+  });
+
+  it("uses nontrivial member axes in the public transformation record", () => {
+    const base = cantilever();
+    const project = updateNode(base, base.nodes[1].id, { x: 0, y: 4, z: 3 });
+    const result = solveFrame(project);
+    const record = getMemberAnalysisRecord(result, result.members[0].memberId);
+
+    expect(record.transformation[0][0]).toBeCloseTo(0, 12);
+    expect(record.transformation[0][1]).toBeCloseTo(0.8, 12);
+    expect(record.transformation[0][2]).toBeCloseTo(0.6, 12);
+    expect(record.transformation[0][0]).not.toBe(1);
   });
 });

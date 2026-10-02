@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getMemberAnalysisRecord, type AnalysisResult, type MemberAnalysisRecord } from "../domain/analysis";
+import { createSupplementalAnalysisInput, getMemberAnalysisRecord, type AnalysisResult, type MemberAnalysisRecord } from "../domain/analysis";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask } from "../workspace/analysis-task";
 
 interface MemberAnalysisProcessProps {
@@ -22,12 +22,25 @@ function MatrixView({ label, matrix, order }: { label: string; matrix: number[][
   return <details className="member-process-matrix"><summary>{label} · 12 × 12</summary><div className="member-process-matrix-note">行 / 列顺序：{order.join(" · ")}。矩阵按 m-kN-kN·m 基础显示，平移与转动自由度组合时量纲随行列变化。</div><div className="member-process-matrix-scroll"><table aria-label={label}><thead><tr><th scope="col">行＼列</th>{order.map((item) => <th scope="col" key={item}>{item}</th>)}</tr></thead><tbody>{matrix.map((row, rowIndex) => <tr key={rowIndex}><th scope="row">{order[rowIndex]}</th>{row.map((value, columnIndex) => <td key={columnIndex}>{formatNumber(value)}</td>)}</tr>)}</tbody></table></div></details>;
 }
 
+function SavedMemberResult({ result, memberId }: { result: AnalysisResult; memberId: string }) {
+  const saved = result.members.find((member) => member.memberId === memberId);
+  if (!saved) return null;
+  return <section className="property-section member-process-saved"><h3>已保存的杆件结果</h3><dl>
+    <div><dt>杆长</dt><dd>{saved.length.toFixed(6)} m</dd></div>
+    <div><dt>局部 x</dt><dd>{axisText(saved.localAxes.x)}</dd></div>
+    <div><dt>局部 y</dt><dd>{axisText(saved.localAxes.y)}</dd></div>
+    <div><dt>局部 z</dt><dd>{axisText(saved.localAxes.z)}</dd></div>
+    <div><dt>起点杆端力</dt><dd>{vectorText(saved.localEndForces.start, "kN / kN·m")}</dd></div>
+    <div><dt>终点杆端力</dt><dd>{vectorText(saved.localEndForces.end, "kN / kN·m")}</dd></div>
+  </dl></section>;
+}
+
 function MemberProcessDetails({ record, result }: { record: MemberAnalysisRecord; result: AnalysisResult }) {
   const nodeLabel = (id: string) => result.input.nodes.find((node) => node.id === id)?.label ?? id;
   const matrixOrder = record.dofs.map(({ nodeId, dof }) => `${nodeLabel(nodeId)}.${dof}`);
   const origin = record.origin === "supplemental-reconstruction"
-    ? `补算任务 ${record.analysisId.slice(-8)} · 来源分析 ${record.sourceAnalysisId.slice(-8)}`
-    : `按 ${record.sourceAnalysisId.slice(-8)} 的冻结输入重建 · 未保存消元轨迹`;
+    ? `补算任务 ${record.analysisId} · 来源分析 ${record.sourceAnalysisId}`
+    : `按 ${record.sourceAnalysisId} 的冻结输入重建 · 未保存消元轨迹`;
   return <>
     <section className="property-section member-process-summary"><h3>过程来源</h3><dl>
       <div><dt>记录</dt><dd>{origin}</dd></div>
@@ -80,7 +93,7 @@ export function MemberAnalysisProcess({ result, memberId, memberLabel, resultIsC
   const supplement = () => {
     if (supplementTaskRef.current) return;
     setSupplementing(true);
-    const task = startAnalysisTask(result.input);
+    const task = startAnalysisTask(createSupplementalAnalysisInput(result));
     supplementTaskRef.current = task;
     void task.promise.then((supplemental) => {
       const next = getMemberAnalysisRecord(supplemental, memberId);
@@ -98,7 +111,7 @@ export function MemberAnalysisProcess({ result, memberId, memberLabel, resultIsC
 
   return <section className="property-section member-process" data-testid="member-analysis-process" aria-label={`${memberLabel}计算过程`}>
     <div className="result-section-heading"><h3>本次杆件计算过程</h3><span className="member-process-badge">{resultIsCurrent ? "结果当前" : "结果已过期"}</span></div>
-    <p className="member-process-intro">过程绑定分析 {result.id.slice(-8)} · 对象 {memberLabel}。展开矩阵可核对行列自由度、局部轴、单位和转换关系。</p>
-    {record ? <MemberProcessDetails record={record} result={result} /> : <div className="member-process-missing" role="alert"><strong>本次分析未保存可直接重建的过程配置</strong><span>{error}</span><button type="button" className="button ghost compact-button" onClick={supplement} disabled={supplementing}>{supplementing ? "正在补算过程…" : "基于冻结输入补算过程"}</button><small>补算会生成新的过程分析 ID，仅用于查看当前杆件过程，不修改原结果的来源记录。</small></div>}
+    <p className="member-process-intro">过程绑定分析 {result.id} · 对象 {memberLabel}。展开矩阵可核对行列自由度、局部轴、单位和转换关系。</p>
+    {record ? <MemberProcessDetails record={record} result={result} /> : <><SavedMemberResult result={result} memberId={memberId} /><div className="member-process-missing" role="alert"><strong>本次分析未保存可直接重建的过程配置</strong><span>{error}</span><button type="button" className="button ghost compact-button" onClick={supplement} disabled={supplementing}>{supplementing ? "正在补算过程…" : "基于冻结输入补算过程"}</button><small>补算会生成新的过程分析 ID，仅用于查看当前杆件过程，不修改原结果的来源记录。</small></div></>}
   </section>;
 }

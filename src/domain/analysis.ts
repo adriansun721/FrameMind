@@ -500,9 +500,14 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   };
 }
 
+export function createSupplementalAnalysisInput(result: AnalysisResult): AnalysisInputSnapshot {
+  const input = structuredClone(result.input);
+  return freezeAnalysisInput({ ...input, solver: { ...ANALYSIS_SOLVER } });
+}
+
 /** Recomputes a member process for an older result that did not retain a supported solver configuration. */
 export function supplementMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {
-  const supplemental = solveFrame(result.input);
+  const supplemental = solveFrame(createSupplementalAnalysisInput(result));
   const record = getMemberAnalysisRecord(supplemental, memberId);
   return { ...record, sourceAnalysisId: result.id, origin: "supplemental-reconstruction" };
 }

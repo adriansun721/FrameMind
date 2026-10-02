@@ -9,7 +9,7 @@
 ## 数值和来源核对
 
 - `src/domain/analysis-t17.test.ts` 从公开建模操作和 `solveFrame` 构造输入，读取 `getMemberAnalysisRecord`。记录绑定分析 ID、项目修订号、M1 的 12 个自由度、局部轴、12×12 局部/整体矩阵、转换矩阵、位移和杆端力；轴向刚度首项 `EA/L=500000 kN/m`、起点到终点转换及终点轴力 8 kN 均通过独立常数核对。
-- 旧结果删除求解器配置后，原记录入口明确拒绝重建；`supplementMemberAnalysisRecord` 调用当前求解器产生不同的分析 ID，并保留原来源分析 ID，标记为 `supplemental-reconstruction`。
+- 旧结果删除或替换求解器配置后，原记录入口明确拒绝重建，但面板仍显示该结果已保存的杆长、局部轴和杆端力；`supplementMemberAnalysisRecord` 先强制当前验证配置，再产生不同的分析 ID，保留原来源分析 ID并标记为 `supplemental-reconstruction`。
 - 面板默认显示局部轴、自由度映射、位移/转角、等效荷载及端力；局部刚度、转换和整体刚度矩阵需要逐个展开，行列标题包含节点稳定 ID、自由度和整体索引，数值保持冻结输入的单位基础。
 
 ## 教材核查
@@ -20,7 +20,7 @@
 
 ## 桌面验收
 
-`e2e/t17-member-process.spec.ts` 通过：过程面板显示来源分析 ID、局部 x/y/z、N1/N2 稳定 ID、`u_local = T · u_global`、教材第 5 章依据；展开局部刚度矩阵后可见 12×12 表格及 `500000` 轴向刚度项。截图见 [T17-member-process.png](T17-member-process.png)。
+`e2e/t17-member-process.spec.ts` 通过：过程面板显示完整来源分析 ID、局部 x/y/z、N1/N2 稳定 ID、`u_local = T · u_global`、教材第 5 章依据；展开局部刚度矩阵后可见 12×12 表格及轴向刚度项。另有斜向杆件领域测试核对非单位转换矩阵。截图见 [T17-member-process.png](T17-member-process.png)。
 
 ## 验证命令
 
