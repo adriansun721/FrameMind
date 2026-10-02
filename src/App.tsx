@@ -1,3 +1,4 @@
+import { PagedItems } from "./components/ProcessDisclosure";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport, type ForceComponent, type ResultViewMode } from "./components/SceneViewport";
@@ -31,7 +32,7 @@ import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECT
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
-import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, sameInputValue, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisComparison, type AnalysisForceVector } from "./domain/analysis-comparison";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
@@ -85,7 +86,7 @@ export function App() {
   const [project, setProject] = useState<FrameProject>(() => createProject());
   const [aiPreview, setAiPreview] = useState<FramePreview | null>(null);
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
-  const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProjectContent, setSavedProjectContent] = useState<string | null>(null);
+  const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProject, setSavedProject] = useState<FrameProject | null>(null);
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
@@ -132,7 +133,7 @@ export function App() {
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const analysisRunRef = useRef(0);
   const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
-  const dirty = savedProjectContent === null ? project.revision !== savedRevision : encodeProject(project) !== savedProjectContent;
+  const dirty = useMemo(() => savedProject === null ? project.revision !== savedRevision : !sameInputValue(project, savedProject), [project, savedProject, savedRevision]);
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
   const activeCase = project.loadCases.find((item) => item.id === project.activeLoadCaseId)!;
   const activeCombination = project.loadCombinations.find((item) => item.id === project.activeLoadCombinationId);
@@ -146,6 +147,8 @@ export function App() {
   const caseSelfWeightEnabled = project.selfWeight.enabled && project.selfWeight.loadCaseId === activeCase.id;
   const referenceAnalysis = resultReference ? project.analysisResults.find((result) => result.id === resultReference.analysisId) : undefined;
   const caseResult = referenceAnalysis ?? getActiveAnalysisResult(project);
+  const resultCurrency = useMemo(() => new Map(project.analysisResults.map((result) => [result.id, isAnalysisResultCurrent(project, result)])), [project]);
+  const resultIsCurrent = (result: AnalysisResult) => resultCurrency.get(result.id) ?? false;
   const resultSources = [
     ...project.loadCases.map((source) => ({ id: source.id, combination: false })),
     ...project.loadCombinations.map((source) => ({ id: source.id, combination: true })),
@@ -229,7 +232,7 @@ export function App() {
     activateProject(deleteUniformLoad(project, selectedUniform.id), false); setSelection(null); setFormError(null); setStatus({ tone: "success", text: "已删除均布荷载" });
   };
 
-  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setSavedRevision(0); setSavedProjectContent(encodeProject(next)); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
+  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setSavedRevision(0); setSavedProject(next); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
   const switchSidebarModule = (module: typeof sidebarModule) => {
     setResourcePanelOpen((open) => module === sidebarModule ? !open : true);
     setSidebarModule(module);
@@ -248,7 +251,7 @@ export function App() {
     const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
     try {
       const result = await window.frameMind.openProject(); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
-      const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProjectContent(encodeProject(opened)); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
+      const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProject(opened); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" }); }
   };
   const saveProject = async () => {
@@ -257,7 +260,7 @@ export function App() {
     const content = encodeProject(source);
     try {
       const result = await window.frameMind.saveProject({ path: projectPath, content }); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
-      setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProjectContent(content); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
+      setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProject(source); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" }); }
   };
 
@@ -508,11 +511,11 @@ export function App() {
           <div className="load-case-selector"><label><span>当前组合</span><select aria-label="当前组合" value={project.activeLoadCombinationId ?? ""} onChange={(event) => { activateProject(event.target.value ? selectLoadCombination(project, event.target.value) : selectLoadCase(project, activeCase.id), false); setSelection(null); setFormError(null); }}><option value="">独立工况</option>{project.loadCombinations.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理组合" title="管理自定义荷载组合" onClick={() => setLoadCombinationManagerOpen(true)}><Layers3 size={15} /></button></div>
           <div className="project-tree"><div className="tree-root"><ChevronDown size={14} /><Box size={15} /><span>{project.name}</span></div>
           <TreeGroup label="节点" count={project.nodes.length} icon={<CircleDot size={14} />}>
-            {project.nodes.map((node) => <div className="tree-object" key={node.id}><input type="checkbox" aria-label={`选择节点 ${node.label}`} checked={selectedNodeIds.has(node.id)} onChange={() => { toggleMultiSelection("node", node.id); setPropertyPanelOpen(true); }} /><button className={`tree-item ${selection?.kind === "node" && selection.id === node.id || selectedNodeIds.has(node.id) ? "selected" : ""}`} onClick={() => selectObject({ kind: "node", id: node.id })}><span className="node-glyph" /><span>{node.label}</span><small>{node.position.x}, {node.position.y}, {node.position.z}</small></button></div>)}
+            <PagedItems items={project.nodes} label="节点列表">{(items) => <>{items.map((node) => <div className="tree-object" key={node.id}><input type="checkbox" aria-label={`选择节点 ${node.label}`} checked={selectedNodeIds.has(node.id)} onChange={() => { toggleMultiSelection("node", node.id); setPropertyPanelOpen(true); }} /><button className={`tree-item ${selection?.kind === "node" && selection.id === node.id || selectedNodeIds.has(node.id) ? "selected" : ""}`} onClick={() => selectObject({ kind: "node", id: node.id })}><span className="node-glyph" /><span>{node.label}</span><small>{node.position.x}, {node.position.y}, {node.position.z}</small></button></div>)}</>}</PagedItems>
             {project.nodes.length === 0 && <p className="tree-empty">暂无节点</p>}
           </TreeGroup>
           <TreeGroup label="杆件" count={project.members.length} icon={<Link2 size={14} />}>
-            {project.members.map((member) => <div className="tree-object" key={member.id}><input type="checkbox" aria-label={`选择杆件 ${member.label}`} checked={selectedMemberIds.has(member.id)} onChange={() => { toggleMultiSelection("member", member.id); setPropertyPanelOpen(true); }} /><button className={`tree-item ${selection?.kind === "member" && selection.id === member.id || selectedMemberIds.has(member.id) ? "selected" : ""}`} onClick={() => selectObject({ kind: "member", id: member.id })}><span className="member-glyph" /><span>{member.label}</span><small>{member.startNodeId.replace("node_", "N")} → {member.endNodeId.replace("node_", "N")}</small></button></div>)}
+            <PagedItems items={project.members} label="杆件列表">{(items) => <>{items.map((member) => <div className="tree-object" key={member.id}><input type="checkbox" aria-label={`选择杆件 ${member.label}`} checked={selectedMemberIds.has(member.id)} onChange={() => { toggleMultiSelection("member", member.id); setPropertyPanelOpen(true); }} /><button className={`tree-item ${selection?.kind === "member" && selection.id === member.id || selectedMemberIds.has(member.id) ? "selected" : ""}`} onClick={() => selectObject({ kind: "member", id: member.id })}><span className="member-glyph" /><span>{member.label}</span><small>{member.startNodeId.replace("node_", "N")} → {member.endNodeId.replace("node_", "N")}</small></button></div>)}</>}</PagedItems>
             {project.members.length === 0 && <p className="tree-empty">暂无杆件</p>}
           </TreeGroup>
           <TreeGroup label="材料与截面" count={project.materials.length + project.sections.length} icon={<Layers3 size={14} />}>
@@ -520,17 +523,17 @@ export function App() {
             {project.sections.map((section) => <button className={`tree-item resource ${selection?.kind === "section" && selection.id === section.id ? "selected" : ""}`} key={section.id} onClick={() => selectObject({ kind: "section", id: section.id })}><span className="section-glyph" /><span>截面 {section.label} · {section.name}</span></button>)}
           </TreeGroup>
           <TreeGroup label="支座" count={project.supports.length} icon={<Anchor size={14} />}>
-            {project.supports.map((support) => <button className={`tree-item resource ${selection?.kind === "support" && selection.id === support.id ? "selected" : ""}`} key={support.id} onClick={() => selectObject({ kind: "support", id: support.id })}><span className="material-glyph" /><span>{support.label} · {project.nodes.find((node) => node.id === support.nodeId)?.label ?? support.nodeId}</span></button>)}
+            <PagedItems items={project.supports} label="支座列表">{(items) => <>{items.map((support) => <button className={`tree-item resource ${selection?.kind === "support" && selection.id === support.id ? "selected" : ""}`} key={support.id} onClick={() => selectObject({ kind: "support", id: support.id })}><span className="material-glyph" /><span>{support.label} · {project.nodes.find((node) => node.id === support.nodeId)?.label ?? support.nodeId}</span></button>)}</>}</PagedItems>
             {project.supports.length === 0 && <p className="tree-empty">暂无支座</p>}
           </TreeGroup>
           {activeCombination ? <TreeGroup label={`用户定义 · ${activeCombination.id}`} count={activeCombination.terms.length} icon={<Layers3 size={14} />}>
             {activeCombination.terms.map((term) => <button className="tree-item combination-case" key={term.loadCaseId} title={`查看 ${term.loadCaseId} 工况输入`} onClick={() => { activateProject(selectLoadCase(project, term.loadCaseId), false); setSelection(null); }}><Layers3 size={13} /><span>{term.loadCaseId} · {project.loadCases.find((item) => item.id === term.loadCaseId)?.name}</span><small>× {term.factor}</small></button>)}
           </TreeGroup> : <><TreeGroup label={`节点荷载 · ${activeCase.id}`} count={caseLoads.length} icon={<Plus size={14} />}>
-            {caseLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "load", id: load.id })}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}
+            <PagedItems items={caseLoads} label="节点荷载列表">{(items) => <>{items.map((load) => <button className={`tree-item resource ${selection?.kind === "load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "load", id: load.id })}><span className="section-glyph" /><span>{load.label} · {project.nodes.find((node) => node.id === load.nodeId)?.label ?? load.nodeId}</span></button>)}</>}</PagedItems>
             {caseLoads.length === 0 && <p className="tree-empty">暂无节点荷载</p>}
           </TreeGroup>
           <TreeGroup label={`杆件均布荷载 · ${activeCase.id}`} count={caseUniformLoads.length} icon={<ArrowDownToLine size={14} />}>
-            {caseUniformLoads.map((load) => <button className={`tree-item resource ${selection?.kind === "uniform-load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "uniform-load", id: load.id })}><ArrowDownToLine size={14} /><span>{load.label} · {project.members.find((member) => member.id === load.memberId)?.label}</span></button>)}
+            <PagedItems items={caseUniformLoads} label="均布荷载列表">{(items) => <>{items.map((load) => <button className={`tree-item resource ${selection?.kind === "uniform-load" && selection.id === load.id ? "selected" : ""}`} key={load.id} onClick={() => selectObject({ kind: "uniform-load", id: load.id })}><ArrowDownToLine size={14} /><span>{load.label} · {project.members.find((member) => member.id === load.memberId)?.label}</span></button>)}</>}</PagedItems>
             {caseUniformLoads.length === 0 && <p className="tree-empty">暂无均布荷载</p>}
           </TreeGroup>
           <TreeGroup label={`结构自重 · ${activeCase.id}`} count={caseSelfWeightEnabled ? 1 : 0} icon={<Weight size={14} />}>
@@ -542,11 +545,11 @@ export function App() {
             {project.loadCombinations.map((item) => <button key={item.id} className={`tree-item resource ${activeCombination?.id === item.id ? "active-source" : ""}`} aria-label={`切换组合 ${item.id}`} onClick={() => { activateProject(selectLoadCombination(project, item.id), false); selectObject(null); }}><Layers3 size={14} /><span>{item.id} · {item.name} · 用户定义</span></button>)}
           </TreeGroup>
           <TreeGroup label="计算结果" count={project.analysisResults.length} icon={<Calculator size={14} />}>
-            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { setResultReference(null); setResultFocus(null); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? isAnalysisResultCurrent(project, caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
+            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { setResultReference(null); setResultFocus(null); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? resultIsCurrent(caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
             <button className="tree-item resource" disabled={project.analysisResults.length < 2} onClick={() => setComparisonOpen(true)}><Files size={14} /><span>历史分析与前后对比</span></button>
             {resultSources.map((source) => {
               const result = getAnalysisResultForSource(project, source.id);
-              return result && <button key={source.id} className="tree-item resource" aria-label={`查看 ${source.id} 结果`} onClick={() => { activateProject(source.combination ? selectLoadCombination(project, source.id) : selectLoadCase(project, source.id), false); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>{source.id} · {isAnalysisResultCurrent(project, result) ? "当前" : "已过期"} · R{result.projectRevision}</span></button>;
+              return result && <button key={source.id} className="tree-item resource" aria-label={`查看 ${source.id} 结果`} onClick={() => { activateProject(source.combination ? selectLoadCombination(project, source.id) : selectLoadCase(project, source.id), false); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>{source.id} · {resultIsCurrent(result) ? "当前" : "已过期"} · R{result.projectRevision}</span></button>;
             })}
             {project.analysisResults.length === 0 && <p className="tree-empty">尚无已完成分析</p>}
           </TreeGroup>
@@ -579,13 +582,13 @@ export function App() {
         </section>}
         <SceneViewport theme={theme} supports={project.supports} nodalLoads={activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
           selfWeight={activeCombination ? combinationInput?.selfWeight : caseSelfWeightEnabled ? project.selfWeight : undefined} selfWeightLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 组合加权" : ""}`}
-          preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${caseResult ? analysisSourceLabel(caseResult) : `${activeSource.id} · ${activeSource.name}`} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+          preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${caseResult ? analysisSourceLabel(caseResult) : `${activeSource.id} · ${activeSource.name}`} · ${caseResult ? resultIsCurrent(caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         <BottomProperties open={propertyPanelOpen} label={currentSelectionLabel} onClose={() => setPropertyPanelOpen(false)}>
           {(selectedNodeIds.size > 0 || selectedMemberIds.size > 0) && <div className="property-selection-actions">{(["node", "member"] as const).map((kind) => {
             const count = kind === "node" ? selectedNodeIds.size : selectedMemberIds.size;
             return count > 0 && <div key={kind} role="group" aria-label={kind === "node" ? "选中节点操作" : "选中杆件操作"}><span>{kind === "node" ? "节点" : "杆件"} · {count} 已选</span><button className="selection-action" onClick={() => openBatchEdit(kind)}>批量修改</button><button className="selection-action" onClick={() => duplicateSelected(kind)}>复制选中</button><button className="selection-action danger" onClick={() => deleteSelected(kind)}>删除选中</button></div>;
           })}</div>}
-          {resultReference && referenceAnalysis && <ResultReferenceDetails reference={resultReference} current={isAnalysisResultCurrent(project, referenceAnalysis)}
+          {resultReference && referenceAnalysis && <ResultReferenceDetails reference={resultReference} current={resultIsCurrent(referenceAnalysis)}
             exists={(resultReference.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === resultReference.object.id)}
             onClose={() => { setResultReference(null); setResultFocus(null); }} />}
           {selectedNode && <Inspector title="空间节点" label={selectedNode.label} icon={<CircleDot size={15} />} id={selectedNode.id}>
@@ -596,7 +599,7 @@ export function App() {
             <section className="property-section"><h3>几何</h3><dl><div><dt>长度</dt><dd>{memberGeometry.length.toFixed(3)} m</dd></div></dl><details><summary>局部坐标与参考轴</summary><dl><div><dt>局部 x</dt><dd>{vectorText(memberGeometry.localX)}</dd></div><div><dt>局部 y</dt><dd>{vectorText(memberGeometry.localY)}</dd></div><div><dt>局部 z</dt><dd>{vectorText(memberGeometry.localZ)}</dd></div><div><dt>参考轴</dt><dd>{memberGeometry.referenceAxis === "global-z" ? "全局 Z" : "全局 Y（竖杆回退）"}</dd></div></dl></details></section>
 
             <form className="property-form" onSubmit={saveMemberEdit}><h3>连接与朝向</h3><SelectField label="起点节点" value={memberDraft.startNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={memberDraft.endNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={memberDraft.materialId} onChange={(value) => setMemberDraft({ ...memberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={memberDraft.sectionId} onChange={(value) => setMemberDraft({ ...memberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={memberDraft.rotationDegrees} onChange={(value) => setMemberDraft({ ...memberDraft, rotationDegrees: value })} unit="°" /><div className="assignment-summary"><span>{project.materials.find((item) => item.id === selectedMember.materialId)?.name}</span><span>{project.sections.find((item) => item.id === selectedMember.sectionId)?.name}</span></div><FormFeedback error={formError} /><button className="button primary" type="submit">保存杆件属性</button></form>
-            {caseResult && <MemberAnalysisProcess result={caseResult} memberId={selectedMember.id} memberLabel={selectedMember.label} resultIsCurrent={isAnalysisResultCurrent(project, caseResult)} />}
+            {caseResult && <MemberAnalysisProcess result={caseResult} memberId={selectedMember.id} memberLabel={selectedMember.label} resultIsCurrent={resultIsCurrent(caseResult)} />}
           </Inspector>}
           {selectedMaterial && <Inspector title={selectedMaterial.provenance.kind === "catalog" ? "库材料" : "自定义材料"} label={`${selectedMaterial.label} · ${selectedMaterial.name}`} icon={<Layers3 size={15} />} id={selectedMaterial.id}><ResourceProvenanceView provenance={selectedMaterial.provenance} /><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveMaterialEdit(event)}>保存材料属性</button></Inspector>}
           {selectedSection && <Inspector title={selectedSection.provenance.kind === "catalog" ? "库截面" : "自定义截面"} label={`${selectedSection.label} · ${selectedSection.name}`} icon={<Box size={15} />} id={selectedSection.id}><ResourceProvenanceView provenance={selectedSection.provenance} /><SectionFieldNotes /><SectionFields draft={sectionDraft} setDraft={setSectionDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveSectionEdit(event)}>保存截面属性</button></Inspector>}
@@ -690,13 +693,13 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
   onOpenComparison(): void;
   onSelect(next: Selection, focus?: { memberId: string; position: number }, preferredView?: ResultViewMode): void;
 }) {
-  const stale = !isAnalysisResultCurrent(project, result);
-  const selfWeight = getSelfWeightSummary(result.input);
+  const stale = useMemo(() => !isAnalysisResultCurrent(project, result), [project, result]);
+  const selfWeight = useMemo(() => getSelfWeightSummary(result.input), [result]);
   const combination = result.input.combination;
   const forceLabels: Record<ForceComponent, string> = { N: "轴力 N", Vy: "剪力 Vy", Vz: "剪力 Vz", T: "扭矩 T", My: "弯矩 My", Mz: "弯矩 Mz" };
   const forceUnits: Record<ForceComponent, string> = { N: "kN", Vy: "kN", Vz: "kN", T: "kN·m", My: "kN·m", Mz: "kN·m" };
   const forceIndex: Record<ForceComponent, number> = { N: 0, Vy: 1, Vz: 2, T: 3, My: 4, Mz: 5 };
-  const maxForceRecord = view === "forces" ? result.members.reduce<{ value: number; memberId: string; position: number } | null>((best, member) => {
+  const maxForceRecord = useMemo(() => view === "forces" ? result.members.reduce<{ value: number; memberId: string; position: number } | null>((best, member) => {
     try {
       for (const sample of getMemberResponseSamples(result, member.memberId, 17)) {
         const value = Math.abs(sample.forces[forceIndex[forceComponent]]);
@@ -704,7 +707,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
       }
     } catch { /* incompatible historic results remain visible in the table */ }
     return best;
-  }, null) : null;
+  }, null) : null, [view, result, forceComponent]);
   const maxForce = maxForceRecord?.value ?? 0;
   const formatEndForces = (values: number[]) => `Fx ${values[0].toFixed(3)} kN · Fy ${values[1].toFixed(3)} kN · Fz ${values[2].toFixed(3)} kN · Mx ${values[3].toFixed(3)} kN·m · My ${values[4].toFixed(3)} kN·m · Mz ${values[5].toFixed(3)} kN·m`;
   const preciseVector = (vector: { x: number; y: number; z: number }) => `(${[vector.x, vector.y, vector.z].map((value) => value.toPrecision(10)).join(", ")})`;
@@ -731,13 +734,13 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
       {view !== "model" && <p className="result-view-note">图形、表格和图例均来自 {combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase?.id ?? "当前工况"} 的冻结分析结果；点击杆件结果可定位对象。</p>}
     </section>
     {view === "model" && <>
-      <section className="property-section"><h3>节点结果 · 位移、转动与支座反力</h3><div className="analysis-table">{result.nodes.map((node) => { const sourceNode = result.input.nodes.find((item) => item.id === node.nodeId); return <div className="analysis-row result-select-row" key={node.nodeId} role="button" tabIndex={0} onClick={() => sourceNode && onSelect({ kind: "node", id: sourceNode.id })} onKeyDown={(event) => { if (event.key === "Enter") sourceNode && onSelect({ kind: "node", id: sourceNode.id }); }}>
+      <section className="property-section"><h3>节点结果 · 位移、转动与支座反力</h3><PagedItems items={result.nodes} label="节点结果">{(nodes) => <div className="analysis-table">{nodes.map((node) => { const sourceNode = result.input.nodes.find((item) => item.id === node.nodeId); return <div className="analysis-row result-select-row" key={node.nodeId} role="button" tabIndex={0} onClick={() => sourceNode && onSelect({ kind: "node", id: sourceNode.id })} onKeyDown={(event) => { if (event.key === "Enter") sourceNode && onSelect({ kind: "node", id: sourceNode.id }); }}>
         <strong>{sourceNode?.label ?? node.nodeId}</strong>
         <span title={`${preciseVector(node.displacement)} m`}>位移 {vectorText(node.displacement)} m</span><span title={`${preciseVector(node.rotation)} rad`}>转角 {vectorText(node.rotation)} rad</span><span title={`${preciseVector(node.reaction)} kN`}>反力 {vectorText(node.reaction)} kN</span><span title={`${preciseVector(node.reactionMoment)} kN·m`}>反力矩 {vectorText(node.reactionMoment)} kN·m</span>
-      </div>; })}</div></section>
-      <section className="property-section"><h3>杆端内力（局部轴）</h3><div className="analysis-table">{result.members.map((member) => { const sourceMember = result.input.members.find((item) => item.id === member.memberId); return <div className="analysis-row result-select-row" key={member.memberId} role="button" tabIndex={0} onClick={() => sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 })} onKeyDown={(event) => { if (event.key === "Enter") sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 }); }}>
+      </div>; })}</div>}</PagedItems></section>
+      <section className="property-section"><h3>杆端内力（局部轴）</h3><PagedItems items={result.members} label="杆端内力">{(members) => <div className="analysis-table">{members.map((member) => { const sourceMember = result.input.members.find((item) => item.id === member.memberId); return <div className="analysis-row result-select-row" key={member.memberId} role="button" tabIndex={0} onClick={() => sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 })} onKeyDown={(event) => { if (event.key === "Enter") sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 }); }}>
         <strong>{sourceMember?.label ?? member.memberId} · L {member.length.toFixed(3)} m</strong><span>局部轴分量顺序 N · Vy · Vz · T · My · Mz</span><span>起点 {formatEndForces(member.localEndForces.start)}</span><span>终点 {formatEndForces(member.localEndForces.end)}</span>{(() => { try { const start = getMemberSectionForces(result, member.memberId, 0).forces; const end = getMemberSectionForces(result, member.memberId, member.length).forces; return <><span>起点截面 {localSectionText(start)}</span><span>终点截面 {localSectionText(end)}</span></>; } catch { return null; } })()}<MemberSectionQuery key={result.id} result={result} member={member} onLocate={(position) => sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position })} />
-      </div>; })}</div></section>
+      </div>; })}</div>}</PagedItems></section>
     </>}
   </div>;
 }

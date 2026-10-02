@@ -4,6 +4,8 @@ import { captureEngineeringReport, withSupplementalReportProcess } from "../doma
 import { createSupplementalAnalysisInput, solveFrame } from "../domain/analysis";
 import { reportFixture } from "../domain/engineering-report.fixture";
 import { buildReportWord } from "./report-word";
+import { createPerformanceModel, PERFORMANCE_MODELS } from "../validation/performance-models";
+import { attachAnalysisResult } from "../domain/project";
 
 const png = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4e0AAAAASUVORK5CYII="), (char) => char.charCodeAt(0));
 async function wordXml(combination = false) {
@@ -14,6 +16,21 @@ async function wordXml(combination = false) {
   return { zip, xml: await zip.file("word/document.xml")!.async("string"), report };
 }
 describe("editable report Word", () => {
+  it("retains every large-model row, editable tables, figures and report styles", async () => {
+    const model = { ...createPerformanceModel(PERFORMANCE_MODELS[0]), name: "FRAMEMIND_TABLE_0_PLACEHOLDER" };
+    const project = attachAnalysisResult(model, solveFrame(model));
+    const report = captureEngineeringReport(project, project.analysisResults[0].id, { memberIds: ["member_0001"], steps: ["member-process", "dof-mapping", "constraints"] });
+    const zip = await JSZip.loadAsync(await buildReportWord(report, async () => png));
+    const xml = await zip.file("word/document.xml")!.async("string");
+    const document = new DOMParser().parseFromString(xml, "application/xml");
+    expect(document.querySelector("parsererror")).toBeNull();
+    for (const value of ["node_0036", "member_0058", "整体自由度映射表", "约束处理与整体荷载", "200", "7850", "0.02", report.result.id]) expect(xml).toContain(value);
+    expect(document.getElementsByTagName("w:body")[0].firstElementChild?.textContent).toBe("FRAMEMIND_TABLE_0_PLACEHOLDER 工程计算书");
+    expect(document.getElementsByTagName("w:tblHeader").length).toBeGreaterThan(10);
+    expect(document.getElementsByTagName("w:drawing")).toHaveLength(2);
+    expect(await zip.file("word/styles.xml")!.async("string")).toContain('w:eastAsia="Microsoft YaHei"');
+    expect(await zip.file("word/footer1.xml")!.async("string")).toContain("FrameMind");
+  });
   it("exports exactly the selected process steps and splits matrices into readable editable bands", async () => {
     const project = reportFixture(true); const result = project.analysisResults[0];
     const report = captureEngineeringReport(project, result.id, { memberIds: ["member_0001"], steps: ["member-process", "assembly", "constraints"] });

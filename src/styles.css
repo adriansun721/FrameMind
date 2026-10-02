@@ -684,3 +684,5 @@ button { color: inherit; }
 .report-member-list { display: grid; gap: 8px; max-height: 180px; overflow: auto; }
 .report-member-list small { display: block; margin-top: 3px; color: var(--text-muted); }
 .report-missing { padding: 12px; border: 1px solid var(--border-strong); border-radius: 6px; }
+.process-pagination { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 12px; }
+.viewport-label-policy { position: absolute; left: 12px; bottom: 10px; pointer-events: none; color: var(--text-muted); font-size: 11px; }

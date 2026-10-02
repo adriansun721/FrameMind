@@ -342,7 +342,9 @@ function decodeCounter(value: unknown, fallback: number, label: string, highest:
 }
 
 export function encodeProject(project: FrameProject): string {
-  return `${JSON.stringify(project, null, 2)}\n`;
+  // Compact JSON avoids repeating indentation across every captured 12×12 matrix.
+  // The schema and legacy latestAnalysis field remain compatible.
+  return `${JSON.stringify(project)}\n`;
 }
 
 export function decodeProject(source: string): FrameProject {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createSupplementalAnalysisInput, getMemberAnalysisRecord, type AnalysisResult, type MemberAnalysisRecord } from "../domain/analysis";
+import { ProcessDisclosure } from "./ProcessDisclosure";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask } from "../workspace/analysis-task";
 
 interface MemberAnalysisProcessProps {
@@ -19,7 +20,7 @@ function ProcessVector({ label, values, units, order }: { label: string; values:
 }
 
 function MatrixView({ label, matrix, order }: { label: string; matrix: number[][]; order: string[] }) {
-  return <details className="member-process-matrix"><summary>{label} · 12 × 12</summary><div className="member-process-matrix-note">行 / 列顺序：{order.join(" · ")}。矩阵按 m-kN-kN·m 基础显示，平移与转动自由度组合时量纲随行列变化。</div><div className="member-process-matrix-scroll"><table aria-label={label}><thead><tr><th scope="col">行＼列</th>{order.map((item) => <th scope="col" key={item}>{item}</th>)}</tr></thead><tbody>{matrix.map((row, rowIndex) => <tr key={rowIndex}><th scope="row">{order[rowIndex]}</th>{row.map((value, columnIndex) => <td key={columnIndex}>{formatNumber(value)}</td>)}</tr>)}</tbody></table></div></details>;
+  return <ProcessDisclosure className="member-process-matrix" summary={<>{label} · 12 × 12</>}>{() => <><div className="member-process-matrix-note">行 / 列顺序：{order.join(" · ")}。矩阵按 m-kN-kN·m 基础显示，平移与转动自由度组合时量纲随行列变化。</div><div className="member-process-matrix-scroll"><table aria-label={label}><thead><tr><th scope="col">行＼列</th>{order.map((item) => <th scope="col" key={item}>{item}</th>)}</tr></thead><tbody>{matrix.map((row, rowIndex) => <tr key={rowIndex}><th scope="row">{order[rowIndex]}</th>{row.map((value, columnIndex) => <td key={columnIndex}>{formatNumber(value)}</td>)}</tr>)}</tbody></table></div></>}</ProcessDisclosure>;
 }
 
 function SavedMemberResult({ result, memberId }: { result: AnalysisResult; memberId: string }) {

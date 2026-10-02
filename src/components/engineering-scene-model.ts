@@ -48,6 +48,8 @@ export class EngineeringSceneModel {
   private selection: EngineeringSceneSelection = null;
   private hover: EngineeringSceneSelection = null;
   private renderedAnnotationFingerprint = "";
+  private readonly batchGroup = new THREE.Group();
+  private batched = false;
 
   constructor(
     private readonly parent: THREE.Group,
@@ -56,6 +58,7 @@ export class EngineeringSceneModel {
   ) {
     this.annotationGroup.name = "selection-annotations";
     this.parent.add(this.annotationGroup);
+    this.parent.add(this.batchGroup);
   }
 
   sync(nodes: FrameNode[], members: FrameMember[]): void {
@@ -97,6 +100,10 @@ export class EngineeringSceneModel {
       this.memberRecords.set(member.id, this.createMember(member, start, end, fingerprint));
     }
 
+    this.batched = nodes.length + members.length > 100;
+    for (const record of this.nodeRecords.values()) record.display.visible = !this.batched;
+    for (const record of this.memberRecords.values()) record.display.visible = !this.batched;
+    this.rebuildBatch();
     this.applyInteractionState();
   }
 
@@ -129,6 +136,8 @@ export class EngineeringSceneModel {
     for (const [id, record] of this.memberRecords) this.removeMember(id, record);
     for (const [id, record] of this.nodeRecords) this.removeNode(id, record);
     this.clearAnnotations();
+    for (const child of [...this.batchGroup.children]) disposeObjectTree(child);
+    this.batchGroup.removeFromParent();
     this.annotationGroup.removeFromParent();
   }
 
@@ -143,6 +152,7 @@ export class EngineeringSceneModel {
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     );
     hitTarget.position.set(node.position.x, node.position.y, node.position.z);
+    hitTarget.visible = false;
     hitTarget.userData = { kind: "node", id: node.id };
     this.parent.add(display, hitTarget);
     return { fingerprint, display, hitTarget, node };
@@ -161,6 +171,7 @@ export class EngineeringSceneModel {
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     );
     placeCylinderBetween(hitTarget, startVector, endVector);
+    hitTarget.visible = false;
     hitTarget.userData = { kind: "member", id: member.id };
     this.parent.add(display, hitTarget);
     return { fingerprint, display, hitTarget, member, start, end };
@@ -187,7 +198,45 @@ export class EngineeringSceneModel {
       const hovered = this.hover?.kind === "member" && this.hover.id === record.member.id;
       (record.display.material as THREE.LineBasicMaterial).color.set(selected ? this.palette.selected : hovered ? this.palette.hovered : this.palette.member);
     }
+    if (this.batched) this.colorBatch();
     this.refreshAnnotations();
+  }
+
+  private rebuildBatch(): void {
+    for (const child of [...this.batchGroup.children]) disposeObjectTree(child);
+    if (!this.batched) return;
+    const memberPoints = Array.from(this.memberRecords.values()).flatMap((record) => [record.start.position, record.end.position]).flatMap((p) => [p.x, p.y, p.z]);
+    const nodePoints = Array.from(this.nodeRecords.values()).flatMap((record) => [record.node.position.x, record.node.position.y, record.node.position.z]);
+    const geometry = (points: number[]) => {
+      const result = new THREE.BufferGeometry();
+      result.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+      result.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(points.length), 3));
+      return result;
+    };
+    this.batchGroup.add(new THREE.LineSegments(geometry(memberPoints), new THREE.LineBasicMaterial({ vertexColors: true })));
+    const dots = new THREE.Points(geometry(nodePoints), new THREE.PointsMaterial({ vertexColors: true, size: 4.5, sizeAttenuation: false }));
+    dots.renderOrder = 2;
+    this.batchGroup.add(dots);
+  }
+
+  private colorBatch(): void {
+    const [lines, dots] = this.batchGroup.children as [THREE.LineSegments, THREE.Points];
+    if (!lines || !dots) return;
+    const color = new THREE.Color();
+    const selectedColor = (kind: "node" | "member", id: string, fallback: string) => this.selection?.kind === kind && this.selection.id === id ? this.palette.selected : this.hover?.kind === kind && this.hover.id === id ? this.palette.hovered : fallback;
+    const lineColors = lines.geometry.getAttribute("color");
+    let index = 0;
+    for (const record of this.memberRecords.values()) {
+      color.set(selectedColor("member", record.member.id, this.palette.member));
+      lineColors.setXYZ(index++, color.r, color.g, color.b); lineColors.setXYZ(index++, color.r, color.g, color.b);
+    }
+    lineColors.needsUpdate = true;
+    const dotColors = dots.geometry.getAttribute("color"); index = 0;
+    for (const record of this.nodeRecords.values()) {
+      color.set(selectedColor("node", record.node.id, this.palette.node));
+      dotColors.setXYZ(index++, color.r, color.g, color.b);
+    }
+    dotColors.needsUpdate = true;
   }
 
   private refreshAnnotations(): void {

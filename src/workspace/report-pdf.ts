@@ -5,16 +5,35 @@ const escape = (text: string) => text.replaceAll("&", "&amp;").replaceAll("<", "
 
 /** Self-contained local print document: escaped text and inline same-source figures. */
 export function buildReportPdfHtml(report: EngineeringReport): string {
-  const body = createReportContent(report).map((block) => {
+  let cells = 0;
+  const blocks: string[] = [];
+  let pending: string[] = [];
+  const append = (html: string, cost: number) => {
+    if (cells > 0 && cells + cost > 6000) { blocks.push("<!--FRAMEMIND_PRINT_PART-->"); cells = 0; }
+    blocks.push(html); cells += cost;
+  };
+  for (const block of createReportContent(report)) {
+    if (block.kind === "table") {
+      for (let offset = 0; offset < Math.max(1, block.rows.length); offset += 150) {
+        const rows = block.rows.slice(offset, offset + 150);
+        append(pending.join("\n") + `<table><thead><tr>${block.headers.map((value) => `<th>${escape(value)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((value) => `<td>${escape(value)}</td>`).join("")}</tr>`).join("")}</tbody></table>`, (rows.length + 1) * block.headers.length + pending.length);
+        pending = [];
+      }
+      continue;
+    }
+    const html = (() => {
     switch (block.kind) {
       case "title": return `<h1>${escape(block.text)}</h1>`;
       case "heading": return `<h2${block.newPage ? ' class="new-page"' : ""}>${escape(block.text)}</h2>`;
       case "paragraph": return `<p>${escape(block.text)}</p>`;
       case "caption": return `<p class="caption">${escape(block.text)}</p>`;
-      case "table": return `<table><thead><tr>${block.headers.map((value) => `<th>${escape(value)}</th>`).join("")}</tr></thead><tbody>${block.rows.map((row) => `<tr>${row.map((value) => `<td>${escape(value)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
       case "image": return `<figure><img alt="${escape(block.description)}" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(block.svg)}" style="height:${block.height / 600 * 170}mm" /></figure>`;
     }
-  }).join("\n");
+    })();
+    pending.push(html);
+  }
+  if (pending.length) append(pending.join("\n"), pending.length);
+  const body = blocks.join("\n");
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'" />
 <title>${escape(report.projectName)} 工程计算书</title><style>

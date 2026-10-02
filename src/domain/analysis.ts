@@ -553,7 +553,7 @@ export function getMemberResponseSamples(result: AnalysisResult, memberId: strin
       analysisId: result.id,
       memberId,
       position,
-      forces: getMemberSectionForces(result, memberId, position).forces,
+      forces: sectionForces(record.localEndForces.start, record.totalIntensity, position),
       localDisplacement: { x: localX, y: localY, z: localZ },
       globalDisplacement,
     };
@@ -566,12 +566,20 @@ export function getMemberSectionForces(result: AnalysisResult, memberId: string,
   const member = result.input.members.find((item) => item.id === memberId);
   const stored = result.members.find((item) => item.memberId === memberId);
   if (!member || !stored) throw new Error(`本次分析没有杆件 ${memberId}`);
-  const { geometry, intensity: q } = memberMatrices(result.input, member);
+  const start = result.input.nodes.find((node) => node.id === member.startNodeId)!;
+  const end = result.input.nodes.find((node) => node.id === member.endNodeId)!;
+  const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+  const uniform = memberUniformIntensity(result.input.uniformLoads ?? [], member.id, geometry);
+  const selfWeight = getMemberSelfWeightIntensity(result.input, member, geometry);
+  const q = { x: uniform.x + selfWeight.x, y: uniform.y + selfWeight.y, z: uniform.z + selfWeight.z };
   if (!Number.isFinite(position) || position < 0 || position > geometry.length) throw new Error("沿杆位置必须在起点 0 与杆长之间（m）");
-  const s = stored.localEndForces.start; const x = position;
+  return { analysisId: result.id, memberId, position, forces: sectionForces(stored.localEndForces.start, q, position) };
+}
+
+function sectionForces(s: MemberAnalysisResult["localEndForces"]["start"], q: Vector3, x: number): MemberSectionForces["forces"] {
   const forces: MemberSectionForces["forces"] = [-s[0] - q.x * x, -s[1] - q.y * x, -s[2] - q.z * x, -s[3], -s[4] - s[2] * x - q.z * x ** 2 / 2, -s[5] + s[1] * x + q.y * x ** 2 / 2];
   if (!forces.every(Number.isFinite)) throw new Error("沿杆内力包含非有限数值");
-  return { analysisId: result.id, memberId, position, forces };
+  return forces;
 }
 
 export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {

@@ -6,6 +6,24 @@ import { buildReportPdfHtml } from "./report-pdf";
 import { buildReportWord } from "./report-word";
 import { addMember, addNode, attachAnalysisResult } from "../domain/project";
 import { solveFrame } from "../domain/analysis";
+import { createPerformanceModel, PERFORMANCE_MODELS } from "../validation/performance-models";
+
+it("bounds large print batches while preserving all rows and attaching captions to their tables", () => {
+  const model = createPerformanceModel(PERFORMANCE_MODELS[1]);
+  const project = attachAnalysisResult(model, solveFrame(model));
+  const report = captureEngineeringReport(project, project.analysisResults[0].id, { memberIds: [], steps: ["dof-mapping", "constraints"] });
+  const html = buildReportPdfHtml(report);
+  const parts = html.split("<!--FRAMEMIND_PRINT_PART-->");
+  expect(parts.length).toBeGreaterThan(2);
+  for (const part of parts) {
+    const document = new DOMParser().parseFromString(part, "text/html");
+    expect(document.querySelectorAll("td,th").length).toBeLessThanOrEqual(6000);
+    for (const table of document.querySelectorAll("table")) expect(table.querySelectorAll("tbody tr").length).toBeLessThanOrEqual(150);
+    const last = document.body.lastElementChild;
+    if (last?.matches("p.caption,h1,h2")) throw new Error("Orphaned print heading or caption");
+  }
+  for (const value of ["node_0196", "member_0399", "1175", report.result.id]) expect(html).toContain(value);
+});
 
 it("exports the same frozen combination and selected process content in PDF and Word", async () => {
   const project = reportFixture(true);

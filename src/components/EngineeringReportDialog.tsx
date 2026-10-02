@@ -5,6 +5,7 @@ import { captureEngineeringReport, reportSourceLabel, withSupplementalReportProc
 import type { FrameProject } from "../domain/project";
 import { REPORT_APPENDIX_STEPS, type ReportAppendixSelection, type ReportAppendixStep } from "../domain/report-appendix";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask } from "../workspace/analysis-task";
+import { prepareProjectReport } from "../workspace/report-task";
 
 export function EngineeringReportDialog({ project, initialAnalysisId, onClose, onStatus }: {
   project: FrameProject; initialAnalysisId?: string; onClose(): void; onStatus(tone: "neutral" | "success" | "error", text: string): void;
@@ -54,20 +55,22 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
     if (locked) return;
     setError(""); setNotice("");
     try {
-      const captured = captureEngineeringReport(project, analysisId, selection);
-      const report = supplemental && captured.appendix ? withSupplementalReportProcess(captured, supplemental) : captured;
+      if (!selected) throw new Error("请选择本项目已完成且可对应的分析结果");
       setBusy(format);
-      const suggestedName = `${report.projectName}_${reportSourceLabel(report.result).split(" · ")[0]}_R${report.result.projectRevision}_计算书`;
+      const revision = selected.projectRevision;
+      const suggestedName = `${project.name}_${reportSourceLabel(selected).split(" · ")[0]}_R${revision}_计算书`;
       let outcome;
+      const prepared = await prepareProjectReport(project, analysisId, selection, supplemental, format);
       if (format === "Word") {
-        const { buildReportWord, reportBytesToBase64 } = await import("../workspace/report-word");
-        outcome = await window.frameMind.exportReportWord({ suggestedName, base64: reportBytesToBase64(await buildReportWord(report)) });
+        if (prepared.format !== "Word") throw new Error("计算书导出格式不一致");
+        const { reportBytesToBase64 } = await import("../workspace/report-word");
+        outcome = await window.frameMind.exportReportWord({ suggestedName, base64: reportBytesToBase64(prepared.bytes) });
       } else {
-        const { buildReportPdfHtml } = await import("../workspace/report-pdf");
-        outcome = await window.frameMind.exportReportPdf({ suggestedName, html: buildReportPdfHtml(report) });
+        if (prepared.format !== "PDF") throw new Error("计算书导出格式不一致");
+        outcome = await window.frameMind.exportReportPdf({ suggestedName, html: prepared.html });
       }
       if (outcome.status === "cancelled") { setNotice("已取消导出"); onStatus("neutral", `已取消 ${format} 计算书导出`); }
-      else { setNotice(`已导出 ${outcome.path}`); onStatus("success", `已导出 ${format} 计算书 · R${report.result.projectRevision} · ${outcome.path}`); }
+      else { setNotice(`已导出 ${outcome.path}`); onStatus("success", `已导出 ${format} 计算书 · R${revision} · ${outcome.path}`); }
     } catch (failure) {
       const message = failure instanceof Error ? failure.message : "计算书导出失败";
       setError(message); onStatus("error", `${format} 计算书导出失败：${message}`);

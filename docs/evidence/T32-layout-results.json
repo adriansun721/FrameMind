@@ -1,0 +1,185 @@
+{
+  "T32-S": {
+    "pages": 43,
+    "fonts": [
+      [
+        "AAAAAA+MicrosoftYaHei-Bold",
+        true
+      ],
+      [
+        "BAAAAA+MicrosoftYaHei",
+        true
+      ],
+      [
+        "CAAAAA+TimesNewRomanPSMT",
+        true
+      ],
+      [
+        "DAAAAA+ArialMT",
+        true
+      ]
+    ],
+    "out_of_page": [],
+    "word_layout": {
+      "pages": 56,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDGEE+DengXian-Bold",
+          true
+        ],
+        [
+          "BCDHEE+DengXian",
+          true
+        ],
+        [
+          "BCDIEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDJEE+ArialMT",
+          true
+        ],
+        [
+          "BCDKEE+MicrosoftYaHei-Bold",
+          true
+        ]
+      ],
+      "out_of_page": []
+    },
+    "missing_content": {
+      "pdf": [],
+      "word": []
+    },
+    "global_pdf_page_numbers": true
+  },
+  "T32-M": {
+    "pages": 211,
+    "fonts": [
+      [
+        "AAAAAA+MicrosoftYaHei",
+        true
+      ],
+      [
+        "AAAAAA+MicrosoftYaHei-Bold",
+        true
+      ],
+      [
+        "BAAAAA+MicrosoftYaHei",
+        true
+      ],
+      [
+        "BAAAAA+MicrosoftYaHei-Bold",
+        true
+      ],
+      [
+        "CAAAAA+TimesNewRomanPSMT",
+        true
+      ],
+      [
+        "Helvetica",
+        false
+      ]
+    ],
+    "out_of_page": [],
+    "word_layout": {
+      "pages": 285,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDGEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDHEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDIEE+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": []
+    },
+    "missing_content": {
+      "pdf": [],
+      "word": []
+    },
+    "global_pdf_page_numbers": true
+  },
+  "T32-L": {
+    "pages": 544,
+    "fonts": [
+      [
+        "AAAAAA+MicrosoftYaHei",
+        true
+      ],
+      [
+        "AAAAAA+MicrosoftYaHei-Bold",
+        true
+      ],
+      [
+        "BAAAAA+MicrosoftYaHei",
+        true
+      ],
+      [
+        "BAAAAA+MicrosoftYaHei-Bold",
+        true
+      ],
+      [
+        "CAAAAA+TimesNewRomanPSMT",
+        true
+      ],
+      [
+        "Helvetica",
+        false
+      ]
+    ],
+    "out_of_page": [],
+    "word_layout": {
+      "pages": 746,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDGEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDHEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDIEE+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": []
+    },
+    "missing_content": {
+      "pdf": [],
+      "word": []
+    },
+    "global_pdf_page_numbers": true
+  }
+}

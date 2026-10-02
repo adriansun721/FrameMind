@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { getMemberResponseSamples, getMemberSectionForces, solveFrame } from "./analysis";
-import { createProject, addMaterial, addMember, addNode, addSection, addSupport, addNodalLoad } from "./project";
+import { createProject, addMaterial, addMember, addNode, addSection, addSupport, addNodalLoad, addUniformLoad } from "./project";
 
 function cantilever() {
   let project = createProject();
@@ -31,4 +31,17 @@ it("samples verified cubic deformation and section force recovery along a member
 it("rejects invalid result sampling requests", () => {
   const result = solveFrame(cantilever());
   expect(() => getMemberResponseSamples(result, result.members[0].memberId, 1)).toThrow(/采样数量/);
+});
+
+it("recovers each distributed-load station against the cantilever equilibrium reference", () => {
+  const unloaded = { ...cantilever(), nodalLoads: [] };
+  const project = addUniformLoad(unloaded, { kind: "uniform", memberId: unloaded.members[0].id, loadCaseId: "LC1", coordinateSystem: "global", intensity: { x: 0, y: -2, z: 0 } });
+  const result = solveFrame(project);
+  // Independent equilibrium: Vy=-2(4-x); Mz=-(4-x)^2 on the positive-x face.
+  const samples = getMemberResponseSamples(result, project.members[0].id, 5);
+  for (const [index, expected] of [[0, [-8, -16]], [1, [-6, -9]], [2, [-4, -4]], [3, [-2, -1]], [4, [0, 0]]] as const) {
+    expect(samples[index].forces[1]).toBeCloseTo(expected[0], 10);
+    expect(samples[index].forces[5]).toBeCloseTo(expected[1], 10);
+    expect(samples[index].forces).toEqual(getMemberSectionForces(result, project.members[0].id, index).forces);
+  }
 });

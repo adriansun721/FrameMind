@@ -22,13 +22,16 @@
     "evidence:t25:online": "npm run build && node scripts/verify-t25-online.cjs",
     "evidence:t26:online": "npm run build && node scripts/verify-t26-online.cjs",
     "evidence:t31": "node scripts/verify-t31-numerics.mjs",
+    "evidence:t32": "npm run build && node scripts/verify-t32-performance.cjs",
     "check": "npm run typecheck && npm test && npm run test:e2e"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "docx": "^9.7.1",
     "electron": "latest",
+    "jszip": "^3.10.2",
     "lucide-react": "latest",
+    "pdf-lib": "^1.17.1",
     "react": "latest",
     "react-dom": "latest",
     "three": "latest",
@@ -45,7 +48,6 @@
     "concurrently": "latest",
     "cross-env": "latest",
     "jsdom": "latest",
-    "jszip": "^3.10.1",
     "typescript": "latest",
     "vitest": "latest",
     "wait-on": "latest"
