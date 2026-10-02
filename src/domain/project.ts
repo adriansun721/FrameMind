@@ -367,7 +367,10 @@ export function attachAnalysisResult(project: FrameProject, result: AnalysisResu
   const sourceId = getAnalysisSourceId(result.input);
   if (result.input.combination) requireLoadCombination(project, sourceId);
   else requireLoadCase(project, sourceId);
-  return { ...project, latestAnalysis: result, analysisResults: [...project.analysisResults.filter((item) => getAnalysisSourceId(item.input) !== sourceId), result], ...nextRevision(project) };
+  // Keep every completed run so a later model revision can be compared with its predecessor.
+  // Replaying the same run id replaces only that immutable record.
+  const analysisResults = [...project.analysisResults.filter((item) => item.id !== result.id), result];
+  return { ...project, latestAnalysis: result, analysisResults, ...nextRevision(project) };
 }
 
 export function getAnalysisSourceId(input: AnalysisResult["input"]): string {

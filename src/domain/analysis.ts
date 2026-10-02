@@ -292,14 +292,16 @@ export function getLoadCaseResult(project: FrameProject, id = project.activeLoad
 }
 
 export function getAnalysisResultForSource(project: FrameProject, id: string): AnalysisResult | undefined {
-  return project.analysisResults.find((result) => getAnalysisSourceId(result.input) === id);
+  // Results are append-only by run. The last matching record is the active result
+  // for a source while earlier records remain available for comparison.
+  return [...project.analysisResults].reverse().find((result) => getAnalysisSourceId(result.input) === id);
 }
 
 export function getActiveAnalysisResult(project: FrameProject): AnalysisResult | undefined {
   return getAnalysisResultForSource(project, project.activeLoadCombinationId ?? project.activeLoadCaseId);
 }
 
-function sameInputValue(left: unknown, right: unknown): boolean {
+export function sameInputValue(left: unknown, right: unknown): boolean {
   if (left === right) return true;
   if (left === null || right === null || typeof left !== "object" || typeof right !== "object") return false;
   if (Array.isArray(left) || Array.isArray(right)) return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => sameInputValue(value, right[index]));

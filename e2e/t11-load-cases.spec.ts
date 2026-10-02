@@ -63,7 +63,7 @@ test("T11 manages, solves, compares and reopens two independent load cases", asy
     await solve(page);
     await fileAction(page, "保存项目"); await expect(page.getByRole("status")).toContainText("已保存");
     const saved = JSON.parse(await readFile(path, "utf8"));
-    expect(saved.analysisResults).toHaveLength(2); expect(saved.nodalLoads[0].loadCaseId).toBe("LC1"); expect(saved.uniformLoads[0].loadCaseId).toBe("LC2");
+    expect(saved.analysisResults).toHaveLength(3); expect(saved.nodalLoads[0].loadCaseId).toBe("LC1"); expect(saved.uniformLoads[0].loadCaseId).toBe("LC2");
     await app.close(); app = await electron.launch({ args: ["."], env }); page = await app.firstWindow();
     await fileAction(page, "打开项目"); await expect(page.getByLabel("当前工况")).toHaveValue("LC2");
     await page.getByRole("button", { name: "查看分析结果" }).click();

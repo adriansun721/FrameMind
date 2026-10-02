@@ -17,6 +17,7 @@ import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
 import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
+import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisComparison, type AnalysisForceVector } from "./domain/analysis-comparison";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
@@ -70,6 +71,7 @@ export function App() {
   const [forceComponent, setForceComponent] = useState<ForceComponent>("N");
   const [deformationScale, setDeformationScale] = useState(100);
   const [resultFocus, setResultFocus] = useState<{ memberId: string; position: number } | null>(null);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
   const [sidebarModule, setSidebarModule] = useState<"project" | "search" | "library">("project");
   const [assistantPanelOpen, setAssistantPanelOpen] = useState(true);
@@ -501,7 +503,7 @@ export function App() {
             <LoadFields draft={loadDraft} onChange={setLoadDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存荷载属性</button>
           </form></Inspector>}
           {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />}><Identity id={selectedUniform.id} label={selectedUniform.label} /><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>{selectedUniform.loadCaseId}</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q (kN/m)</dt><dd title={vectorText(selectedUniform.intensity)}>{vectorText(selectedUniform.intensity)}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
-          {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
+          {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onOpenComparison={() => setComparisonOpen(true)} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
           {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </section>
       </aside>
@@ -555,10 +557,11 @@ export function App() {
     {selfWeightDialogOpen && <Dialog title="设置结构自重" copy={`材料密度 ρ (kg/m³) · 截面面积 A (m²) · 重力加速度 g (m/s²) · ${selfWeightDraft.loadCaseId}`} onClose={() => { setSelfWeightDialogOpen(false); setFormError(null); }}><form onSubmit={submitSelfWeight}><label className="check-field self-weight-toggle"><input type="checkbox" checked={selfWeightDraft.enabled} onChange={(event) => setSelfWeightDraft({ ...selfWeightDraft, enabled: event.target.checked })} /><span>启用结构自重</span></label><LoadCaseField project={project} value={selfWeightDraft.loadCaseId} onChange={(loadCaseId) => setSelfWeightDraft({ ...selfWeightDraft, loadCaseId })} /><div className="coordinate-inputs"><NumberField label="重力 X" value={selfWeightDraft.gx} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gx: value })} /><NumberField label="重力 Y" value={selfWeightDraft.gy} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gy: value })} /><NumberField label="重力 Z" value={selfWeightDraft.gz} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gz: value })} /></div><SelfWeightReferences project={project} /><FormFeedback error={formError} /><DialogActions close={() => { setSelfWeightDialogOpen(false); setFormError(null); }} submit="保存自重设置" /></form></Dialog>}
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
+    {comparisonOpen && <AnalysisComparisonDialog project={project} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
   </main>;
 }
 
-function AnalysisResultPanel({ result, project, view, forceComponent, deformationScale, onViewChange, onForceComponentChange, onDeformationScaleChange, onSelect }: {
+function AnalysisResultPanel({ result, project, view, forceComponent, deformationScale, onViewChange, onForceComponentChange, onDeformationScaleChange, onOpenComparison, onSelect }: {
   result: AnalysisResult;
   project: FrameProject;
   view: ResultViewMode;
@@ -567,6 +570,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
   onViewChange(value: ResultViewMode): void;
   onForceComponentChange(value: ForceComponent): void;
   onDeformationScaleChange(value: number): void;
+  onOpenComparison(): void;
   onSelect(next: Selection, focus?: { memberId: string; position: number }, preferredView?: ResultViewMode): void;
 }) {
   const stale = !isAnalysisResultCurrent(project, result);
@@ -589,13 +593,14 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
   const preciseVector = (vector: { x: number; y: number; z: number }) => `(${[vector.x, vector.y, vector.z].map((value) => value.toPrecision(10)).join(", ")})`;
   return <div className="analysis-result-panel">
     <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>最近一次分析</small><strong>3D 线弹性静力</strong></div></div>
-    <section className="property-section"><h3>计算输入</h3><dl>
+    <section className="property-section"><div className="result-section-heading"><h3>计算输入</h3><button type="button" className="button ghost compact-button" onClick={onOpenComparison} disabled={project.analysisResults.length < 2} title={project.analysisResults.length < 2 ? "至少需要两份已完成分析" : "选择两份已完成分析"}><Files size={14} />前后结果对比</button></div><dl>
       <div><dt>{combination ? "用户定义组合" : "来源工况"}</dt><dd>{combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入"}</dd></div>
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
       <div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div>
       <div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div>
       <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length + (result.input.uniformLoads?.length ?? 0)}</dd></div>
       <div><dt>{combination ? "加权自重" : "自重"}</dt><dd>{selfWeight.enabled ? `${selfWeight.totalWeightKN.toFixed(3)} kN${combination ? "" : ` · ${selfWeight.loadCaseId}`}` : "未启用"}</dd></div>
+      <div><dt>历史结果</dt><dd>{project.analysisResults.length} 份 · 本结果 {result.id.slice(-8)}</dd></div>
     </dl></section>
     {combination && <section className="property-section"><h3>组合依据 · 无量纲系数</h3><ul className="combination-source-terms">{combination.definition.terms.map((term) => <li key={term.loadCaseId}>{term.loadCaseId} · {combination.cases.find((item) => item.loadCase.id === term.loadCaseId)?.loadCase.name} × {term.factor}</li>)}</ul><p className="combination-basis">用户定义 · 线弹性 · m / kN / kN·m</p></section>}
     <section className="property-section result-view-controls" aria-label="结果视图">
@@ -620,6 +625,48 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
     </>}
   </div>;
 }
+
+function analysisSourceLabel(result: AnalysisResult): string {
+  if (result.input.combination) return `${result.input.combination.definition.id} · ${result.input.combination.definition.name}（组合）`;
+  return result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入";
+}
+
+function comparisonNumber(value: number): string {
+  if (Math.abs(value) < 1e-12) return "0";
+  return value.toPrecision(6);
+}
+
+function comparisonVector(value: { x: number; y: number; z: number }, unit: string): string {
+  return `(${comparisonNumber(value.x)}, ${comparisonNumber(value.y)}, ${comparisonNumber(value.z)}) ${unit}`;
+}
+
+function comparisonForce(values: AnalysisForceVector): string {
+  return values.map((value, index) => `${ANALYSIS_FORCE_COMPONENTS[index].label} ${comparisonNumber(value)} ${ANALYSIS_FORCE_COMPONENTS[index].unit}`).join(" · ");
+}
+
+function AnalysisComparisonDialog({ project, onClose, onLocate }: { project: FrameProject; onClose(): void; onLocate(kind: "node" | "member", id: string): void }) {
+  const results = project.analysisResults;
+  const latest = project.latestAnalysis ?? results.at(-1);
+  const defaultAfter = latest?.id ?? results.at(-1)?.id ?? "";
+  const defaultBefore = results.slice(0, Math.max(0, results.findIndex((item) => item.id === defaultAfter))).filter((item) => latest && item.input.loadCase?.id === latest.input.loadCase?.id && item.input.combination?.definition.id === latest.input.combination?.definition.id).at(-1)?.id ?? results.find((item) => item.id !== defaultAfter)?.id ?? "";
+  const [beforeId, setBeforeId] = useState(defaultBefore);
+  const [afterId, setAfterId] = useState(defaultAfter);
+  const before = results.find((item) => item.id === beforeId);
+  const after = results.find((item) => item.id === afterId);
+  const comparison: AnalysisComparison | null = before && after && before.id !== after.id ? compareAnalysisResults(before, after) : null;
+  const changeLabels: Record<string, string> = { node: "节点", member: "杆件", material: "材料", section: "截面", support: "支座", load: "节点荷载", "uniform-load": "均布荷载", "self-weight": "结构自重" };
+  return <Dialog title="前后结果对比" copy="选择两份已完成分析。所有数值来自各自冻结输入；来源、单位或对象无法匹配时不会强行比较。" onClose={onClose}>
+    <div className="comparison-pickers"><SelectField label="前一份结果" value={beforeId} onChange={setBeforeId} options={results.map((item) => ({ value: item.id, label: `R${item.projectRevision} · ${analysisSourceLabel(item)} · ${item.id.slice(-8)}` }))} /><SelectField label="后一份结果" value={afterId} onChange={setAfterId} options={results.map((item) => ({ value: item.id, label: `R${item.projectRevision} · ${analysisSourceLabel(item)} · ${item.id.slice(-8)}` }))} /></div>
+    {before && after && <section className="comparison-source-grid"><div><strong>前一份</strong><span>{analysisSourceLabel(before)}</span><small>模型版本 R{before.projectRevision} · {new Date(before.createdAt).toLocaleString()}</small></div><div><strong>后一份</strong><span>{analysisSourceLabel(after)}</span><small>模型版本 R{after.projectRevision} · {new Date(after.createdAt).toLocaleString()}</small></div></section>}
+    {!before || !after ? <p className="comparison-empty">请选择两份不同的已完成分析。</p> : before.id === after.id ? <p className="comparison-empty">前后结果必须是两份不同的分析。</p> : comparison && !comparison.compatible ? <section className="comparison-incompatible" role="alert"><strong>无法比较</strong><ul>{comparison.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul></section> : comparison && <>
+      <section className="comparison-section"><h3>模型变化 · {comparison.changes.length} 项</h3>{comparison.changes.length === 0 ? <p className="comparison-empty">两份分析的模型参数没有变化。</p> : <div className="comparison-table-wrap"><table className="comparison-table"><thead><tr><th>对象</th><th>稳定 ID</th><th>变化参数</th></tr></thead><tbody>{comparison.changes.map((change) => <tr key={`${change.kind}-${change.id}`}><td>{changeLabels[change.kind] ?? change.kind} · {change.label}</td><td>{change.id}</td><td>{change.changes.join("、")}</td></tr>)}</tbody></table></div>}</section>
+      <section className="comparison-section"><h3>节点响应变化 · 位移 / 支座反力</h3><div className="comparison-table-wrap"><table className="comparison-table"><thead><tr><th>节点</th><th>位移（后一份 - 前一份）</th><th>反力（后一份 - 前一份）</th><th>定位</th></tr></thead><tbody>{comparison.nodes.map((row) => <tr key={row.id}><td>{row.label}<small>{row.id}</small></td><td>{comparisonVector(row.displacementDelta, "m")}</td><td>{comparisonVector(row.reactionDelta, "kN")}</td><td><button type="button" className="query-locate-button" onClick={() => onLocate("node", row.id)}>定位</button></td></tr>)}</tbody></table></div></section>
+      <section className="comparison-section"><h3>杆件内力变化 · 局部轴</h3><div className="comparison-table-wrap"><table className="comparison-table"><thead><tr><th>杆件</th><th>起点 ΔN / ΔVy / ΔVz / ΔT / ΔMy / ΔMz</th><th>终点 ΔN / ΔVy / ΔVz / ΔT / ΔMy / ΔMz</th><th>定位</th></tr></thead><tbody>{comparison.members.map((row) => <tr key={row.id}><td>{row.label}<small>{row.id}</small></td><td>{comparisonForce(row.startDelta)}</td><td>{comparisonForce(row.endDelta)}</td><td><button type="button" className="query-locate-button" onClick={() => onLocate("member", row.id)}>定位</button></td></tr>)}</tbody></table></div></section>
+    </>}
+    <div className="dialog-actions"><button type="button" className="button primary" onClick={onClose}>完成</button></div>
+  </Dialog>;
+}
+
 function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) { return <div className="tree-group"><div className="tree-group-label"><ChevronDown size={13} />{icon}<span>{label}</span><em>{count}</em></div><div className="tree-items">{children}</div></div>; }
 function MenuAction({ icon, label, shortcut, onSelect }: { icon: React.ReactNode; label: string; shortcut: string; onSelect(): void }) { return <button className="menu-item" role="menuitem" onClick={onSelect}><span>{icon}{label}</span><kbd>{shortcut}</kbd></button>; }
 function RestraintFields({ restraints, onChange }: { restraints: DofRestraints; onChange: (value: DofRestraints) => void }) {

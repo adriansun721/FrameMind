@@ -346,7 +346,7 @@ export function decodeProject(source: string): FrameProject {
   const nextLoadNumber = decodeCounter(value.nextLoadNumber, 1, "节点荷载", highestNumber(nodalLoads, /^load_(\d+)$/, /^L(\d+)$/), true);
   const latestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
   const analysisResults = value.analysisResults === undefined ? (latestAnalysis ? [latestAnalysis] : []) : decodeOptionalArray(value.analysisResults, "工况结果", decodeAnalysisResult);
-  if (new Set(analysisResults.map((result) => getAnalysisSourceId(result.input))).size !== analysisResults.length) throw new Error("工况或组合结果来源重复");
+  if (new Set(analysisResults.map((result) => result.id)).size !== analysisResults.length) throw new Error("分析结果稳定标识重复");
   const nextUniformLoadNumber = decodeCounter(value.nextUniformLoadNumber, 1, "均布荷载", highestNumber(uniformLoads, /^uniform_load_(\d+)$/, /^Q(\d+)$/), true);
   const project: FrameProject = {
     format: PROJECT_FORMAT, formatVersion: PROJECT_FORMAT_VERSION,
