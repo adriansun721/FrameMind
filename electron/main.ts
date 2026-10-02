@@ -34,6 +34,12 @@ ipcMain.handle(DesktopChannel.RemoveDeepSeekCredential, (event) => {
 ipcMain.handle(DesktopChannel.TestDeepSeekConnection, (event) => {
   requireTrustedSender(event); return deepSeek.testConnection();
 });
+ipcMain.handle(DesktopChannel.ChatDeepSeek, (event, request) => {
+  requireTrustedSender(event); return deepSeek.chat(request);
+});
+ipcMain.handle(DesktopChannel.CancelDeepSeekChat, (event, requestId: unknown) => {
+  requireTrustedSender(event); return deepSeek.cancelChat(requestId);
+});
 
 ipcMain.handle(DesktopChannel.SetTheme, (event, theme: unknown) => {
   if (theme !== "dark" && theme !== "light") throw new Error("不支持的主题");

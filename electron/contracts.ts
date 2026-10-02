@@ -6,6 +6,8 @@ export const enum DesktopChannel {
   SaveDeepSeekSettings = "deepseek:save",
   RemoveDeepSeekCredential = "deepseek:remove",
   TestDeepSeekConnection = "deepseek:test",
+  ChatDeepSeek = "deepseek:chat",
+  CancelDeepSeekChat = "deepseek:chat-cancel",
 }
 
 export type AppTheme = "dark" | "light";
@@ -26,6 +28,26 @@ export interface DeepSeekResult {
   status: DeepSeekStatus;
   message: string;
   settings: DeepSeekSettings;
+}
+export interface DeepSeekToolCall {
+  id: string;
+  type: "function";
+  function: { name: string; arguments: string };
+}
+export interface DeepSeekAssistantMessage {
+  role: "assistant";
+  content: string | null;
+  tool_calls?: DeepSeekToolCall[];
+}
+export type DeepSeekChatMessage =
+  | { role: "system" | "user"; content: string }
+  | DeepSeekAssistantMessage
+  | { role: "tool"; content: string; tool_call_id: string };
+export interface DeepSeekChatRequest { requestId: string; messages: DeepSeekChatMessage[]; }
+export interface DeepSeekChatResult {
+  status: DeepSeekStatus;
+  message: string;
+  assistant?: DeepSeekAssistantMessage;
 }
 
 export interface SaveProjectRequest {
@@ -49,4 +71,6 @@ export interface FrameMindDesktopApi {
   saveDeepSeekSettings(request: SaveDeepSeekSettingsRequest): Promise<DeepSeekResult>;
   removeDeepSeekCredential(): Promise<DeepSeekResult>;
   testDeepSeekConnection(): Promise<DeepSeekResult>;
+  chatDeepSeek(request: DeepSeekChatRequest): Promise<DeepSeekChatResult>;
+  cancelDeepSeekChat(requestId: string): Promise<void>;
 }

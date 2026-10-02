@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, PanelRightClose, Plus, Redo2, Save, Search, Send, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, PanelRightClose, Plus, Redo2, Save, Search, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport, type ForceComponent, type ResultViewMode } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
@@ -9,6 +9,8 @@ import { ResourceLibraryPanel, type LibraryResource } from "./components/Resourc
 import { MemberAnalysisProcess } from "./components/MemberAnalysisProcess";
 import { AnalysisProcess } from "./components/AnalysisProcess";
 import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
+import { AiConversationPanel } from "./components/AiConversationPanel";
+import type { AiObjectRef } from "./workspace/ai-tools";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addMember, addNode, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
@@ -91,7 +93,6 @@ export function App() {
   const [sidebarModule, setSidebarModule] = useState<"project" | "search" | "library">("project");
   const [assistantPanelOpen, setAssistantPanelOpen] = useState(true);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  const [assistantDraft, setAssistantDraft] = useState("");
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false); const [resourceDialogOpen, setResourceDialogOpen] = useState(false); const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [supportDialogOpen, setSupportDialogOpen] = useState(false); const [loadDialogOpen, setLoadDialogOpen] = useState(false); const [analysisBusy, setAnalysisBusy] = useState(false); const [analysisPhase, setAnalysisPhase] = useState<AnalysisTaskPhase | null>(null);
   const [analysisFailure, setAnalysisFailure] = useState<{ failure: AnalysisFailure; revision: number } | null>(null);
@@ -141,6 +142,10 @@ export function App() {
   const selectedLoad = selection?.kind === "load" ? project.nodalLoads.find((item) => item.id === selection.id) ?? null : null;
   const selectedUniform = selection?.kind === "uniform-load" ? project.uniformLoads.find((item) => item.id === selection.id) ?? null : null;
   const currentSelectionLabel = selectedNode?.label ?? selectedMember?.label ?? selectedMaterial?.label ?? selectedSection?.label ?? selectedSupport?.label ?? selectedLoad?.label ?? selectedUniform?.label ?? "无选择";
+  const aiSelection: AiObjectRef[] = selectedNodeIds.size + selectedMemberIds.size > 0
+    ? [...project.nodes.filter((node) => selectedNodeIds.has(node.id)).map((node) => ({ kind: "node" as const, id: node.id })),
+      ...project.members.filter((member) => selectedMemberIds.has(member.id)).map((member) => ({ kind: "member" as const, id: member.id }))]
+    : selection?.kind === "node" || selection?.kind === "member" ? [selection] : [];
   const memberGeometry = useMemo(() => {
     if (!selectedMember) return null;
     const start = project.nodes.find((item) => item.id === selectedMember.startNodeId); const end = project.nodes.find((item) => item.id === selectedMember.endNodeId);
@@ -568,16 +573,11 @@ export function App() {
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
-      <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!assistantPanelOpen}>
-        <div className="panel-heading"><span>AI 对话 · 尚未接入</span><button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={() => setAssistantPanelOpen(false)}><X size={15} /></button></div>
-        <div className="assistant-messages" role="log" aria-label="对话消息" />
-        <div className="assistant-composer">
-          <textarea aria-label="AI 消息草稿" placeholder="输入消息…" value={assistantDraft} onChange={(event) => setAssistantDraft(event.target.value)} onKeyDown={(event) => {
-            if ((event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) event.stopPropagation();
-          }} />
-          <div className="assistant-composer-actions"><button className="icon-button" aria-label="发送消息（尚未接入）" title="AI 尚未接入" disabled><Send size={15} /></button></div>
-        </div>
-      </aside>
+      <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onSelect={(object) => {
+        if (object.kind === "node") { const node = project.nodes.find((item) => item.id === object.id); if (node) selectObject({ kind: "node", id: node.id }); }
+        else { const member = project.members.find((item) => item.id === object.id); if (member) selectObject({ kind: "member", id: member.id }); }
+        setDiagnosticFitRequest((value) => value + 1);
+      }} />
     </section>
 
     <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>

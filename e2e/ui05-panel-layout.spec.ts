@@ -70,7 +70,7 @@ test("UI05 synchronizes panel controls and preserves selection, drafts, scroll a
     await expect(page.locator("#resource-panel")).toBeVisible();
     await assistantToggle.click();
     await expect(page.getByLabel("AI 消息草稿")).toHaveValue("检查当前模型");
-    await expect(page.getByRole("button", { name: "发送消息（尚未接入）" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "发送消息", exact: true })).toBeEnabled();
     expect(await page.evaluate(() => document.querySelector(".viewport canvas") === (window as Window & { layoutCanvas?: Element }).layoutCanvas)).toBe(true);
     await expect(properties.getByText("1.000 m", { exact: true })).toBeVisible();
     await expect(page.locator(".model-summary")).toHaveCount(0);
