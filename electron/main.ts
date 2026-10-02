@@ -1,5 +1,6 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, safeStorage, type IpcMainInvokeEvent } from "electron";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   DesktopChannel,
   type OpenProjectResult,
@@ -7,9 +8,32 @@ import {
   type SaveProjectResult,
 } from "./contracts";
 import { ProjectFileStore } from "./project-files";
+import { DeepSeekConnection } from "./deepseek";
 
 const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
+
+let deepSeek: DeepSeekConnection;
+const productionUrl = pathToFileURL(join(__dirname, "../dist/index.html")).href;
+const trustedUrl = process.env.VITE_DEV_SERVER_URL ?? productionUrl;
+function requireTrustedSender(event: IpcMainInvokeEvent): void {
+  if (!BrowserWindow.fromWebContents(event.sender) || event.senderFrame !== event.sender.mainFrame
+    || event.senderFrame.url !== trustedUrl && event.senderFrame.url !== `${trustedUrl}/`) {
+    throw new Error("不允许访问本机连接设置");
+  }
+}
+ipcMain.handle(DesktopChannel.GetDeepSeekSettings, (event) => {
+  requireTrustedSender(event); return deepSeek.getSettings();
+});
+ipcMain.handle(DesktopChannel.SaveDeepSeekSettings, (event, request: unknown) => {
+  requireTrustedSender(event); return deepSeek.save(request);
+});
+ipcMain.handle(DesktopChannel.RemoveDeepSeekCredential, (event) => {
+  requireTrustedSender(event); return deepSeek.remove();
+});
+ipcMain.handle(DesktopChannel.TestDeepSeekConnection, (event) => {
+  requireTrustedSender(event); return deepSeek.testConnection();
+});
 
 ipcMain.handle(DesktopChannel.SetTheme, (event, theme: unknown) => {
   if (theme !== "dark" && theme !== "light") throw new Error("不支持的主题");
@@ -45,6 +69,10 @@ function createWindow(): void {
   });
 
   window.once("ready-to-show", () => window.show());
+  window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.on("will-navigate", (event, url) => {
+    if (url !== trustedUrl && url !== `${trustedUrl}/`) event.preventDefault();
+  });
 
   const developmentUrl = process.env.VITE_DEV_SERVER_URL;
   if (developmentUrl) {
@@ -98,6 +126,11 @@ ipcMain.handle(DesktopChannel.OpenProject, async (): Promise<OpenProjectResult> 
 });
 
 app.whenReady().then(() => {
+  deepSeek = new DeepSeekConnection(join(app.getPath("userData"), "deepseek.credentials"), {
+    isAvailable: () => process.platform === "win32" && safeStorage.isEncryptionAvailable(),
+    encrypt: (value) => safeStorage.encryptString(value),
+    decrypt: (value) => safeStorage.decryptString(value),
+  });
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

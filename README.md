@@ -6,6 +6,8 @@ T16 完整工作台：左侧可折叠项目树、模型右缘可独立收起的�
 
 ## 本地运行
 
+T19 已实现 DeepSeek 连接设置：填写、更新和移除本机 API Key，保存后测试连接。默认使用 DeepSeek-V4.1-Flash（官方请求标识 `deepseek-flash`），凭据通过 Windows DPAPI 加密，独立于项目文件。认证、限流、超时和网络失败提供脱敏反馈，不影响本地编辑与求解。真实在线验收待用户自备凭据，记录见 [T19 验收记录](docs/evidence/T19-validation.md)。AI 对话与工具接入仍属于 T20 后续任务。
+
 ```powershell
 npm install
 npm run dev
