@@ -15,6 +15,7 @@
     "evidence:t01": "npm run build && node scripts/capture-t01.cjs",
     "evidence:t02": "npm run build && node scripts/capture-t02.cjs",
     "evidence:t20:online": "npm run build && node scripts/verify-t20-online.cjs",
+    "evidence:t21:online": "npm run build && node scripts/verify-t21-online.cjs",
     "check": "npm run typecheck && npm test && npm run test:e2e"
   },
   "dependencies": {

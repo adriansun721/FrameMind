@@ -42,7 +42,7 @@ test("a selected-object conversation receives read-only tool calls and sends the
   } });
   const firstBody = JSON.parse(requests[0].init!.body as string);
   expect(firstBody).toMatchObject({ model: "deepseek-flash", thinking: { type: "disabled" }, stream: false, max_tokens: 2048, tool_choice: "auto" });
-  expect(firstBody.tools.map((tool: { function: { name: string } }) => tool.function.name)).toEqual(["read_model", "read_selection", "read_objects"]);
+  expect(firstBody.tools.map((tool: { function: { name: string } }) => tool.function.name)).toEqual(["discard_frame_proposal", "read_model", "read_selection", "read_objects", "propose_frame"]);
   expect(JSON.parse(requests[1].init!.body as string).messages[2]).toEqual({ role: "tool", tool_call_id: "call-selection", content: toolContent });
   expect(JSON.stringify([first, second])).not.toContain("sk-private-t20");
 });

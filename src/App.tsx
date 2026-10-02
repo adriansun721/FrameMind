@@ -11,6 +11,7 @@ import { AnalysisProcess } from "./components/AnalysisProcess";
 import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
 import { AiConversationPanel } from "./components/AiConversationPanel";
 import type { AiObjectRef } from "./workspace/ai-tools";
+import type { FramePreview } from "./workspace/frame-proposal";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addMember, addNode, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
@@ -73,6 +74,7 @@ export function App() {
     void window.frameMind?.setTheme(theme).catch(() => setStatus({ tone: "error", text: "无法更新窗口主题" }));
   }, [theme]);
   const [project, setProject] = useState<FrameProject>(() => createProject());
+  const [aiPreview, setAiPreview] = useState<FramePreview | null>(null);
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProjectContent, setSavedProjectContent] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>(null);
@@ -569,11 +571,11 @@ export function App() {
           })}</ul>
         </section>}
         <SceneViewport theme={theme} supports={project.supports} nodalLoads={activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
-          projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+          preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
-      <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} />
+      <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview} />
     </section>
 
     <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>

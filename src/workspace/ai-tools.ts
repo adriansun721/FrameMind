@@ -1,5 +1,6 @@
 import type { FrameProject } from "../domain/project";
 import { calculateMemberGeometry } from "../domain/member-geometry";
+import { buildFramePreview, proposeFrame, type FrameProposal } from "./frame-proposal";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -10,7 +11,7 @@ export interface AiContext {
   selection: readonly AiSelectedObject[];
 }
 export type AiStatus = "completed" | "missing-input" | "awaiting-confirmation" | "failed" | "cancelled";
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; }
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; proposal?: FrameProposal | null; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
@@ -91,12 +92,22 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown): AiToolResult {
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (call.function.name === "discard_frame_proposal") {
+      exactFields(input, []);
+      return { status: "completed", message: "建模方案已拒绝，正式模型保持可用", context: snapshot.context, proposal: null };
+    }
+    if (call.function.name === "propose_frame") {
+      const proposal = proposeFrame(input, previousProposal);
+      const preview = buildFramePreview(snapshot, proposal);
+      return { status: preview.status, message: preview.issues.length ? "方案草稿需要补齐或澄清参数" : "三维方案已生成，尚未应用", context: snapshot.context, proposal,
+        data: { issues: preview.issues, counts: { nodes: preview.nodes.length, members: preview.members.length }, parameters: proposal.parameters } };
+    }
     if (mutationTools.has(call.function.name)) {
       if (Object.keys(input).some((key) => ["script", "code", "command"].includes(key))) throw new Error("不允许执行脚本或命令");
       return { status: "awaiting-confirmation", message: "模型修改尚未确认，本阶段只读；请使用手动编辑", context: snapshot.context };

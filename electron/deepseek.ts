@@ -13,7 +13,9 @@ export interface CredentialEncryption {
 interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
-const readOnlyTools = [
+const modelTools = [
+  { type: "function", function: { name: "discard_frame_proposal", description: "Discard the current unapplied frame proposal when the user rejects or cancels it. Never changes the applied model.",
+    parameters: { type: "object", properties: {}, additionalProperties: false } } },
   { type: "function", function: { name: "read_model", description: "Read the applied model summary or a paginated collection. All values come from the current model snapshot.",
     parameters: { type: "object", properties: {
       collection: { type: "string", enum: ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases"] },
@@ -25,6 +27,16 @@ const readOnlyTools = [
     parameters: { type: "object", properties: { objects: { type: "array", minItems: 1, maxItems: 100,
       items: { type: "object", properties: { kind: { type: "string", enum: ["node", "member"] }, id: { type: "string" } }, required: ["kind", "id"], additionalProperties: false },
     } }, required: ["objects"], additionalProperties: false } } },
+  { type: "function", function: { name: "propose_frame", description: "Create or update an unapplied parameter card and batch preview for an orthogonal spatial frame. Missing fields remain missing. Never applies changes.",
+    parameters: { type: "object", properties: { parameters: { type: "object", additionalProperties: false,
+      properties: Object.fromEntries(["storeys", "xSpans", "ySpans", "storeyHeights", "origin", "material", "columnSection", "beamSection", "rotationDegrees"].map((name) => [name, {
+        type: "object", additionalProperties: false, required: ["value", "source"], properties: {
+          value: ["material", "columnSection", "beamSection"].includes(name) ? { type: "string" }
+            : name === "storeys" ? { type: "integer", minimum: 1, maximum: 100 }
+            : name === "rotationDegrees" ? { type: "number" } : { type: "array", items: { type: "number" }, minItems: 1, maxItems: 100 },
+          source: { type: "string", enum: ["user", "suggestion"] }, replace: { type: "boolean", description: "Only true for an explicit user correction or clarification." },
+        },
+      }])) } }, required: ["parameters"], additionalProperties: false } } },
 ];
 const MAX_CHAT_BYTES = 1_048_576;
 const MAX_TOOL_CALLS = 16;
@@ -257,7 +269,7 @@ export class DeepSeekConnection {
         const response = await this.fetcher("https://api.deepseek.com/chat/completions", {
           method: "POST", redirect: "error", signal: controller.signal,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${credential.apiKey}` },
-          body: JSON.stringify({ model: credential.model, messages: request.messages, tools: readOnlyTools,
+          body: JSON.stringify({ model: credential.model, messages: request.messages, tools: modelTools,
             tool_choice: "auto", thinking: { type: "disabled" }, stream: false, max_tokens: 2048 }),
         });
         if (controller.signal.aborted || !response.ok) {

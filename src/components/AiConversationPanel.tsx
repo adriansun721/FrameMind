@@ -3,6 +3,8 @@ import { RotateCcw, Send, Settings2, Square, Trash2, X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
 import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiStatus } from "../workspace/ai-tools";
 import { startAiTask, type AiProgress, type AiTaskResult } from "../workspace/ai-task";
+import { FrameProposalCard } from "./FrameProposalCard";
+import { buildFramePreview, type FramePreview, type FrameProposal } from "../workspace/frame-proposal";
 
 interface ConversationTurn {
   id: string;
@@ -19,6 +21,7 @@ interface Props {
   open: boolean;
   onClose(): void;
   onSettings(): void;
+  onPreview(preview: FramePreview | null): void;
 }
 
 const STATUS_LABELS: Record<AiStatus, string> = {
@@ -27,12 +30,20 @@ const STATUS_LABELS: Record<AiStatus, string> = {
 };
 const TOOL_LABELS: Record<string, string> = {
   read_model: "读取模型", read_selection: "读取选中对象", read_objects: "读取指定对象",
+  propose_frame: "准备建模方案",
+  discard_frame_proposal: "拒绝建模方案",
 };
 
-export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings }: Props) {
+export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings, onPreview }: Props) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [busy, setBusy] = useState(false);
+  const [proposal, setProposal] = useState<FrameProposal | undefined>();
+  const [proposalDirty, setProposalDirty] = useState(false);
+  const proposalRef = useRef(proposal); proposalRef.current = proposal;
+  const [proposalSource, setProposalSource] = useState(project);
+  const proposalCurrent = proposalSource === project;
+  const previewCallback = useRef(onPreview); previewCallback.current = onPreview;
   const taskRef = useRef<ReturnType<typeof startAiTask> | null>(null);
   const generationRef = useRef(0);
   const selectionKey = JSON.stringify(selection);
@@ -40,6 +51,13 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
   const currentRef = useRef({ project, sessionId, selectionKey });
   currentRef.current = { project, sessionId, selectionKey };
   const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    previewCallback.current(proposal && proposalCurrent && !proposalDirty ? buildFramePreview(snapshot, proposal) : null);
+  }, [proposal, proposalCurrent, proposalDirty, snapshot]);
+  useEffect(() => () => previewCallback.current(null), []);
+  const rejectProposal = () => { proposalRef.current = undefined; taskRef.current?.cancel(); setProposal(undefined); setProposalDirty(false); };
+  const changeProposal = (next: FrameProposal) => { proposalRef.current = next; taskRef.current?.cancel(); setProposal(next); setProposalSource(project); setProposalDirty(false); };
 
   useEffect(() => {
     taskRef.current?.cancel();
@@ -53,7 +71,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
   }, [turns, open]);
 
   const submit = async (prompt = draft) => {
-    if (!prompt.trim() || busy) return;
+    if (!prompt.trim() || busy || proposalDirty) return;
     const text = prompt.trim();
     const id = crypto.randomUUID();
     const generation = generationRef.current;
@@ -80,13 +98,20 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
     const task = startAiTask(snapshot, text, {
       transport: window.frameMind,
       history,
+      proposal,
       isCurrent: () => currentRef.current.project === project && currentRef.current.sessionId === sessionId
-        && currentRef.current.selectionKey === selectionKey && generationRef.current === generation,
+        && currentRef.current.selectionKey === selectionKey && generationRef.current === generation && proposalRef.current === proposal,
       onProgress: (progress) => update({ progress }),
     });
     taskRef.current = task;
     try {
-      update({ result: await task.promise });
+      const result = await task.promise;
+      update({ result });
+      if (result.proposal !== undefined && result.status !== "cancelled" && result.status !== "failed"
+        && result.records.some((record) => record.result.proposal !== undefined)
+        && currentRef.current.project === project && generationRef.current === generation && proposalRef.current === proposal) {
+        setProposal(result.proposal ?? undefined); setProposalSource(project); setProposalDirty(false);
+      }
     } catch {
       update({ result: { status: "failed", message: "对话未完成，请检查连接设置后重试。", context, records: [] } });
     } finally {
@@ -99,7 +124,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
 
   return <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!open}>
     <div className="panel-heading"><span>AI 对话</span><div className="ai-heading-actions">
-      <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || turns.length === 0} onClick={() => setTurns([])}><Trash2 size={14} /></button>
+      <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || turns.length === 0} onClick={() => { setTurns([]); rejectProposal(); }}><Trash2 size={14} /></button>
       <button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={onClose}><X size={15} /></button>
     </div></div>
     <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite">
@@ -126,6 +151,10 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
           ? `正在${TOOL_LABELS[turn.progress.toolCall?.function.name ?? ""] ?? "读取模型"}`
           : turn.progress?.phase === "responding" ? "正在整理回复" : "正在请求 DeepSeek"}</div>}
       </article>)}
+      {proposal && <>
+        {!proposalCurrent && <p className="frame-draft-notice">正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。</p>}
+        <FrameProposalCard key={`${proposal.id}:${proposal.version}`} snapshot={snapshot} proposal={proposal} busy={busy} onChange={changeProposal} onDirty={setProposalDirty} onReject={rejectProposal} />
+      </>}
     </div>
     <form className="assistant-composer" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
       <textarea aria-label="AI 消息草稿" placeholder="输入消息…" rows={1} maxLength={8000} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
@@ -133,7 +162,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       }} />
       <div className="assistant-composer-actions">
         {busy ? <button type="button" className="icon-button" aria-label="取消对话" title="取消对话" onClick={() => taskRef.current?.cancel()}><Square size={14} /></button>
-          : <button className="icon-button" type="submit" aria-label="发送消息" title="发送消息" disabled={!draft.trim()}><Send size={15} /></button>}
+          : <button className="icon-button" type="submit" aria-label="发送消息" title="发送消息" disabled={!draft.trim() || proposalDirty}><Send size={15} /></button>}
       </div>
     </form>
   </aside>;

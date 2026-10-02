@@ -291,6 +291,20 @@ button { color: inherit; }
 .ai-turn-status.completed { color: var(--status-success); }
 .ai-turn-status.failed { color: var(--status-error); }
 .ai-turn-status.missing-input, .ai-turn-status.awaiting-confirmation { color: var(--status-warning); }
+.frame-proposal-card { margin: var(--space-4); padding: var(--space-4); border: 1px solid var(--model-preview); border-radius: 4px; font-size: var(--text-caption); }
+.frame-proposal-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); }
+.frame-proposal-heading span, .frame-parameter small { color: var(--text-muted); }
+.frame-proposal-card p { line-height: 1.6; }
+.frame-parameter { margin-block: var(--space-3); }
+.frame-parameter label { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); }
+.frame-parameter input, .frame-parameter select { grid-column: 1 / -1; width: 100%; min-width: 0; box-sizing: border-box; padding: var(--space-2); background: var(--surface-control); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; }
+.frame-conflict { margin-top: var(--space-2); color: var(--status-error); }
+.frame-draft-notice, .frame-issues { color: var(--status-warning); margin: var(--space-4); }
+.frame-proposal-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.frame-proposal-actions button { font-size: inherit; padding: var(--space-2); }
+.frame-object-list { max-height: 240px; overflow: auto; line-height: 1.8; }
+.viewport-preview-legend { position: absolute; left: var(--space-4); top: 94px; z-index: 2; padding: var(--space-2) var(--space-3); background: var(--surface-panel); border: 1px solid var(--model-preview); color: var(--text-primary); font-size: var(--text-caption); pointer-events: none; }
+.viewport-preview-legend span { display: inline-block; width: 18px; border-top: 2px dashed var(--model-preview); margin-right: var(--space-2); vertical-align: middle; }
 .ai-recovery-actions { display: flex; justify-content: flex-end; }
 .assistant-composer { flex: none; display: flex; align-items: flex-end; margin: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--space-7); background: var(--surface-panel-muted); }
 .assistant-composer textarea { display: block; flex: 1; min-width: 0; width: 100%; field-sizing: content; min-height: calc(1lh + 2 * var(--space-4)); max-height: calc(4lh + 2 * var(--space-4)); resize: none; padding: var(--space-4); border: 0; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: var(--text-body); line-height: var(--line-height-body); }

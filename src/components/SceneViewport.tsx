@@ -10,6 +10,7 @@ import { EngineeringSceneModel, type EngineeringScenePalette, type EngineeringSc
 import { calculateSceneFrame } from "./scene-camera";
 import { disposeObjectTree } from "./three-resources";
 import type { AppTheme } from "../../electron/contracts";
+import type { FramePreview } from "../workspace/frame-proposal";
 
 export type SceneSelection = EngineeringSceneSelection;
 export type ResultViewMode = "model" | "deformation" | "forces";
@@ -17,6 +18,7 @@ export type ForceComponent = "N" | "Vy" | "Vz" | "T" | "My" | "Mz";
 export type SceneConditionSelection = { kind: "support"; id: SupportId } | { kind: "load"; id: LoadId };
 
 interface SceneViewportProps {
+  preview?: FramePreview | null;
   theme?: AppTheme;
   supports?: FrameSupport[];
   nodalLoads?: FrameNodalLoad[];
@@ -70,6 +72,7 @@ interface SceneRuntime {
   loads: THREE.Group;
   results: THREE.Group;
   conditions: THREE.Group;
+  preview: THREE.Group;
 }
 
 function readScenePalette(): ScenePalette {
@@ -144,7 +147,7 @@ function selectionFromHit(hit: THREE.Intersection): SceneSelection {
     : { kind: "member", id: String(hit.object.userData.id) as MemberId };
 }
 
-export function SceneViewport({ theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
+export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
@@ -182,7 +185,8 @@ export function SceneViewport({ theme = "dark", supports, nodalLoads, conditionS
     const loads = new THREE.Group(); scene.add(loads);
     const results = new THREE.Group(); results.name = "analysis-results"; scene.add(results);
     const conditions = new THREE.Group(); scene.add(conditions);
-    runtimeRef.current = { scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, projectId: null, hasFramedModel: false };
+    const previewGroup = new THREE.Group(); previewGroup.name = "unapplied-frame-preview"; scene.add(previewGroup);
+    runtimeRef.current = { scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, preview: previewGroup, projectId: null, hasFramedModel: false };
 
     const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.04;
     const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
@@ -261,6 +265,22 @@ export function SceneViewport({ theme = "dark", supports, nodalLoads, conditionS
       runtime.hasFramedModel = true;
     }
   }, [projectId, nodes, members]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current; if (!runtime) return;
+    for (const child of [...runtime.preview.children]) disposeObjectTree(child);
+    if (!preview?.nodes.length) return;
+    const color = getComputedStyle(document.documentElement).getPropertyValue("--model-preview").trim();
+    const nodesById = new Map(preview.nodes.map((node) => [node.id, node]));
+    const points = preview.members.flatMap((member) => [member.startNodeId, member.endNodeId].map((id) => {
+      const p = nodesById.get(id)!.position; return new THREE.Vector3(p.x, p.y, p.z);
+    }));
+    const lines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineDashedMaterial({ color, dashSize: 0.22, gapSize: 0.12, transparent: true, opacity: 0.9, depthTest: false }));
+    lines.computeLineDistances(); lines.renderOrder = 4; runtime.preview.add(lines);
+    const dots = new THREE.Points(new THREE.BufferGeometry().setFromPoints(preview.nodes.map((node) => new THREE.Vector3(node.position.x, node.position.y, node.position.z))), new THREE.PointsMaterial({ color, size: 5, sizeAttenuation: false, depthTest: false }));
+    dots.renderOrder = 5; runtime.preview.add(dots);
+    applySceneFrame(runtime.camera, runtime.controls, [...nodes, ...preview.nodes]);
+  }, [preview, nodes, theme]);
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
   useEffect(() => {
@@ -415,11 +435,11 @@ export function SceneViewport({ theme = "dark", supports, nodalLoads, conditionS
 
   const fitModel = () => {
     const runtime = runtimeRef.current;
-    if (!runtime || nodes.length === 0) return;
+    if (!runtime || nodes.length + (preview?.nodes.length ?? 0) === 0) return;
     const bounds = new THREE.Box3();
-    for (const node of nodes) bounds.expandByPoint(new THREE.Vector3(node.position.x, node.position.y, node.position.z));
+    for (const node of [...nodes, ...(preview?.nodes ?? [])]) bounds.expandByPoint(new THREE.Vector3(node.position.x, node.position.y, node.position.z));
     for (const group of [runtime.loads, runtime.conditions, runtime.results]) bounds.expandByObject(group);
-    const corners = [bounds.min, bounds.max].map((point) => ({ ...nodes[0], position: { x: point.x, y: point.y, z: point.z } }));
+    const corners = [bounds.min, bounds.max].map((point) => ({ ...(nodes[0] ?? preview!.nodes[0]), position: { x: point.x, y: point.y, z: point.z } }));
     applySceneFrame(runtime.camera, runtime.controls, corners);
   };
 
@@ -427,11 +447,12 @@ export function SceneViewport({ theme = "dark", supports, nodalLoads, conditionS
     <div className="viewport" ref={hostRef} aria-label="三维模型视图">
       <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">单击选择 · 拖动旋转 · 滚轮缩放</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
+      {!!preview?.nodes.length && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.nodes.length} 节点 / {preview.members.length} 杆件 · 虚线</div>}
       {sourceLabel && <div className="viewport-case-source" aria-label="视图工况来源">{sourceLabel}</div>}
       {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m"}`}</div>}
       {selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ ({selectedNode.position.x}, {selectedNode.position.y}, {selectedNode.position.z}) m</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F ({selectedNodalLoad.force.x}, {selectedNodalLoad.force.y}, {selectedNodalLoad.force.z}) kN</span><span>M ({selectedNodalLoad.moment.x}, {selectedNodalLoad.moment.y}, {selectedNodalLoad.moment.z}) kN·m</span></>}</div>}
       {selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q ({selectedLoad.intensity.x}, {selectedLoad.intensity.y}, {selectedLoad.intensity.z}) kN/m</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>分析线模型 · 截面转角 {selectedMember.rotationDegrees}°</small></div>}
-      {nodes.length === 0 && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
+      {nodes.length === 0 && !preview?.nodes.length && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
     </div>
   );
 }
