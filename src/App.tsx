@@ -12,6 +12,7 @@ import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
 import { AiConversationPanel } from "./components/AiConversationPanel";
 import type { AiObjectRef } from "./workspace/ai-tools";
 import type { FramePreview } from "./workspace/frame-proposal";
+import { FrameStageConfirmation } from "./workspace/frame-confirmation";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addMember, addNode, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
@@ -79,6 +80,7 @@ export function App() {
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProjectContent, setSavedProjectContent] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
+  const frameConfirmationRef = useRef(new FrameStageConfirmation());
   const [historyVersion, setHistoryVersion] = useState(0);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(() => new Set());
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(() => new Set());
@@ -156,7 +158,10 @@ export function App() {
 
   const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record") => {
     const previous = activeProjectRef.current;
-    if (historyMode === "reset") projectHistoryRef.current.reset();
+    if (historyMode === "reset") {
+      projectHistoryRef.current.reset();
+      frameConfirmationRef.current = new FrameStageConfirmation();
+    }
     if (historyMode === "record") projectHistoryRef.current.record(previous, next);
     setHistoryVersion((value) => value + 1);
     if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId) {
@@ -575,7 +580,14 @@ export function App() {
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
-      <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview} />
+      <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+        onConfirm={(confirmation) => {
+          const current = activeProjectRef.current;
+          const outcome = frameConfirmationRef.current.confirm(current, confirmation);
+          if (outcome.project !== current) activateProject(outcome.project, false);
+          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
+          return outcome.result;
+        }} />
     </section>
 
     <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>

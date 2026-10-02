@@ -288,7 +288,7 @@ button { color: inherit; }
 .ai-context-details pre, .ai-tool-record pre { white-space: pre-wrap; overflow-wrap: anywhere; font: var(--text-micro)/1.5 var(--font-mono); background: var(--surface-panel-muted); padding: var(--space-2); }
 .ai-tool-record p { margin: var(--space-2) 0; color: var(--text-secondary); }
 .ai-turn-status { margin-top: var(--space-3); font-size: var(--text-caption); color: var(--text-secondary); }
-.ai-turn-status.completed { color: var(--status-success); }
+.ai-turn-status.completed, .ai-turn-status.applied { color: var(--status-success); }
 .ai-turn-status.failed { color: var(--status-error); }
 .ai-turn-status.missing-input, .ai-turn-status.awaiting-confirmation { color: var(--status-warning); }
 .frame-proposal-card { margin: var(--space-4); padding: var(--space-4); border: 1px solid var(--model-preview); border-radius: 4px; font-size: var(--text-caption); }

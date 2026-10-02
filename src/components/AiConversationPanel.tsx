@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Send, Settings2, Square, Trash2, X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
-import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiStatus } from "../workspace/ai-tools";
+import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiStatus, type AiToolResult } from "../workspace/ai-tools";
 import { startAiTask, type AiProgress, type AiTaskResult } from "../workspace/ai-task";
 import { FrameProposalCard } from "./FrameProposalCard";
 import { buildFramePreview, type FramePreview, type FrameProposal } from "../workspace/frame-proposal";
+import { prepareFrameConfirmation, type FrameConfirmation } from "../workspace/frame-confirmation";
 
 interface ConversationTurn {
   id: string;
+  origin: "chat" | "confirmation";
   prompt: string;
   context: AiContext;
   sourceProject: FrameProject;
@@ -22,19 +24,21 @@ interface Props {
   onClose(): void;
   onSettings(): void;
   onPreview(preview: FramePreview | null): void;
+  onConfirm(confirmation: FrameConfirmation): AiToolResult;
 }
 
 const STATUS_LABELS: Record<AiStatus, string> = {
-  completed: "已完成", "missing-input": "缺少输入", "awaiting-confirmation": "等待确认",
+  completed: "已完成", applied: "已应用", "missing-input": "缺少输入", "awaiting-confirmation": "等待确认",
   failed: "失败", cancelled: "已取消",
 };
 const TOOL_LABELS: Record<string, string> = {
   read_model: "读取模型", read_selection: "读取选中对象", read_objects: "读取指定对象",
   propose_frame: "准备建模方案",
   discard_frame_proposal: "拒绝建模方案",
+  confirm_frame_stage: "确认建模阶段",
 };
 
-export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings, onPreview }: Props) {
+export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings, onPreview, onConfirm }: Props) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -43,6 +47,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
   const proposalRef = useRef(proposal); proposalRef.current = proposal;
   const [proposalSource, setProposalSource] = useState(project);
   const proposalCurrent = proposalSource === project;
+  const confirmation = useMemo(() => proposal ? prepareFrameConfirmation(proposalSource, proposal) : undefined, [proposalSource, proposal]);
   const previewCallback = useRef(onPreview); previewCallback.current = onPreview;
   const taskRef = useRef<ReturnType<typeof startAiTask> | null>(null);
   const generationRef = useRef(0);
@@ -58,6 +63,16 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
   useEffect(() => () => previewCallback.current(null), []);
   const rejectProposal = () => { proposalRef.current = undefined; taskRef.current?.cancel(); setProposal(undefined); setProposalDirty(false); };
   const changeProposal = (next: FrameProposal) => { proposalRef.current = next; taskRef.current?.cancel(); setProposal(next); setProposalSource(project); setProposalDirty(false); };
+  const confirmProposal = () => {
+    if (!confirmation || busy || proposalDirty || !proposalCurrent || proposalRef.current !== proposal) return;
+    const result = onConfirm(confirmation);
+    setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), origin: "confirmation", prompt: "确认应用建模阶段",
+      context: confirmation.context, sourceProject: confirmation.baseProject,
+      result: { ...result, records: [{ round: 0, call: { id: confirmation.requestId, type: "function",
+        function: { name: "confirm_frame_stage", arguments: JSON.stringify({ proposalId: confirmation.proposal.id,
+          proposalVersion: confirmation.proposal.version, baseRevision: confirmation.context.modelRevision }) } }, result }] } }]);
+    if (result.status === "applied") rejectProposal();
+  };
 
   useEffect(() => {
     taskRef.current?.cancel();
@@ -84,7 +99,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       ]);
     setDraft("");
     setBusy(true);
-    setTurns((previous) => [...previous.slice(-19), { id, prompt: text, context, sourceProject: project }]);
+    setTurns((previous) => [...previous.slice(-19), { id, origin: "chat", prompt: text, context, sourceProject: project }]);
     const update = (changes: Partial<ConversationTurn>) => {
       if (generationRef.current === generation) {
         setTurns((previous) => previous.map((turn) => turn.id === id ? { ...turn, ...changes } : turn));
@@ -143,7 +158,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
             <details><summary>工具输出</summary><pre className="ai-tool-output">{JSON.stringify(record.result, null, 2)}</pre></details>
           </details>)}
           {turn.result.assistant && <p className="ai-assistant-message">{turn.result.assistant}</p>}
-          {turn.result.status !== "completed" && <div className="ai-recovery-actions">
+          {turn.origin === "chat" && turn.result.status !== "completed" && turn.result.status !== "applied" && <div className="ai-recovery-actions">
             <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy} onClick={() => void submit(turn.prompt)}><RotateCcw size={14} /></button>
             {turn.result.status === "failed" && <button className="icon-button" aria-label="打开连接设置" title="打开连接设置" onClick={onSettings}><Settings2 size={14} /></button>}
           </div>}
@@ -153,7 +168,8 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       </article>)}
       {proposal && <>
         {!proposalCurrent && <p className="frame-draft-notice">正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。</p>}
-        <FrameProposalCard key={`${proposal.id}:${proposal.version}`} snapshot={snapshot} proposal={proposal} busy={busy} onChange={changeProposal} onDirty={setProposalDirty} onReject={rejectProposal} />
+        <FrameProposalCard key={`${proposal.id}:${proposal.version}`} snapshot={snapshot} proposal={proposal} busy={busy} current={proposalCurrent}
+          baseRevision={confirmation!.context.modelRevision} onConfirm={confirmProposal} onChange={changeProposal} onDirty={setProposalDirty} onReject={rejectProposal} />
       </>}
     </div>
     <form className="assistant-composer" onSubmit={(event) => { event.preventDefault(); void submit(); }}>

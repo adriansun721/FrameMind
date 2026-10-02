@@ -4,11 +4,12 @@ import { buildFramePreview, editFrameParameter, FRAME_FIELDS, frameResourceOptio
 
 interface Props {
   snapshot: AiSnapshot; proposal: FrameProposal; busy: boolean;
+  current: boolean; baseRevision: number; onConfirm(): void;
   onChange(proposal: FrameProposal): void; onDirty(dirty: boolean): void; onReject(): void;
 }
 const valueText = (value: ParameterValue | undefined) => Array.isArray(value) ? value.join(", ") : value === undefined ? "" : String(value);
 
-export function FrameProposalCard({ snapshot, proposal, busy, onChange, onDirty, onReject }: Props) {
+export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevision, onConfirm, onChange, onDirty, onReject }: Props) {
   const fields = Object.keys(FRAME_FIELDS) as FrameField[];
   const [texts, setTexts] = useState(() => Object.fromEntries(fields.map((field) => [field, valueText(proposal.parameters[field]?.value)])) as Record<FrameField, string>);
   const [dirty, setDirty] = useState(false);
@@ -29,7 +30,7 @@ export function FrameProposalCard({ snapshot, proposal, busy, onChange, onDirty,
     } catch (reason) { setError(reason instanceof Error ? reason.message : "参数无效"); }
   };
   return <section className="frame-proposal-card" aria-label="建模参数卡片">
-    <div className="frame-proposal-heading"><strong>空间刚架 · 建模方案</strong><span>V{proposal.version} · 未应用</span></div>
+    <div className="frame-proposal-heading"><strong>空间刚架 · 建模方案</strong><span>V{proposal.version} · 基础 R{baseRevision} · 未应用</span></div>
     <p>正交网格 · Z 向分层 · 各层双向梁、连续柱 · 所有杆端刚接</p>
     <form onSubmit={(event) => { event.preventDefault(); update(); }}>
       {fields.map((field) => {
@@ -53,6 +54,7 @@ export function FrameProposalCard({ snapshot, proposal, busy, onChange, onDirty,
         <button type="button" disabled={busy || dirty} onClick={() => onChange({ ...proposal, version: proposal.version + 1, changes: [] })}>重新生成预览</button>
         <button type="button" onClick={onReject}>拒绝方案</button></div>
     </form>
+    <div className="frame-proposal-actions"><button type="button" disabled={busy || dirty || !current || preview.status !== "awaiting-confirmation"} onClick={onConfirm}>确认应用建模阶段</button></div>
     {preview.issues.length ? <ul className="frame-issues">{preview.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : <>
       <p data-testid="frame-proposal-counts">将创建 {preview.nodes.length} 个节点、{preview.members.filter((member) => member.role === "column").length} 根柱、{preview.members.filter((member) => member.role === "beam").length} 根梁。</p>
       <p>支座与荷载尚未设置。此方案未进入正式模型或分析输入。</p>

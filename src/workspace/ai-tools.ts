@@ -10,7 +10,7 @@ export interface AiContext {
   modelRevision: number;
   selection: readonly AiSelectedObject[];
 }
-export type AiStatus = "completed" | "missing-input" | "awaiting-confirmation" | "failed" | "cancelled";
+export type AiStatus = "completed" | "applied" | "missing-input" | "awaiting-confirmation" | "failed" | "cancelled";
 export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; proposal?: FrameProposal | null; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
