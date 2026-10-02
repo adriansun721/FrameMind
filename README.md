@@ -45,6 +45,7 @@ npm run test:e2e
 
 T04 的独立数值参考及验收证据见 [T04 验收记录](docs/evidence/T04-validation.md)。T05 增加失败阶段、对象/字段定位及支座和节点荷载属性修正，见 [T05 验收记录](docs/evidence/T05-validation.md)。T06 的任务隔离、阶段状态和取消证据见 [T06 验收记录](docs/evidence/T06-validation.md)。T07 的双向编辑、输入校验及保存重开证据见 [T07 验收记录](docs/evidence/T07-validation.md)。T08 的批量事务、复制删除及撤销重做证据见 [T08 验收记录](docs/evidence/T08-validation.md)。T09 的均布荷载解析参考、内力恢复与桌面流程见 [T09 验收记录](docs/evidence/T09-validation.md)。T10 的自重闭环见 [T10 验收记录](docs/evidence/T10-validation.md)。T11 的多工况数值参考和切换、保存重开证据见 [T11 验收记录](docs/evidence/T11-validation.md)。T12 的自定义组合解析基准、原始输入追溯与桌面验收见 [T12 验收记录](docs/evidence/T12-validation.md)。T13 的常用钢材与型钢目录、来源元数据和自定义派生规则见 [T13 验收记录](docs/evidence/T13-validation.md)。操作历史只在当前应用会话内保留，项目文件只保存模型与分析结果。求解采用小变形 Euler-Bernoulli 空间刚接单元；组合完全由用户定义，不提供规范合规结论。规模性能验收属于后续任务。
 T29 的工程计算书可选择历史杆件及计算步骤，追加局部过程、自由度映射、组装贡献、约束向量和分别勾选的 K/Kff。缺少记录时明确提示；显式冻结输入补算标注新旧分析 ID，正文保持原结果。三份 Word 样本共 66 页逐页核验，见 [T29 验收记录](docs/evidence/T29-validation.md)。
+T30 支持从同一分析与附录选择导出 Word 或 PDF，共用正文、数值、图表和教材引用。PDF 使用 Electron 自带排版，无需本机 Word 或额外开发工具；字体嵌入，中文路径、重复导出、取消与失败文件保护已验证。三组双格式样本共 153 页逐页核验，见 [T30 验收记录](docs/evidence/T30-validation.md)。正式安装包的干净环境复验仍在 T34。
 T17 的杆件过程面板展示指定分析的局部轴、自由度映射、位移/荷载、局部与整体单元矩阵及教材依据；旧结果无法重建时可从冻结输入补算并保留新的过程分析 ID，见 [T17 验收记录](docs/evidence/T17-validation.md)。
 T18 的整体过程面板展示本次运行快照中的自由度编号、成员整体刚度贡献、约束/自由子系统和按需矩阵；旧项目缺少快照时明确标记冻结输入重建。教材引用同时记录印刷页与 PDF 页序，见 [T18 验收记录](docs/evidence/T18-validation.md)。
 

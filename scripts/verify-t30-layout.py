@@ -8,6 +8,7 @@ import argparse
 import importlib.util
 import json
 import re
+import shutil
 import tempfile
 from pathlib import Path
 from zipfile import ZipFile
@@ -76,16 +77,21 @@ def main():
         for sample in args.samples:
             stem = f"T30-{sample}"
             docx = root / "docs" / "evidence" / f"{stem}.docx"
-            product_pdf = docx.with_suffix(".pdf")
+            # Word may lock its read-only document. Render a private copy so
+            # desktop evidence restoration and the user's originals stay free.
+            source_docx = output / f"{stem}-source.docx"
+            product_pdf = output / f"{stem}-source.pdf"
+            shutil.copy2(docx, source_docx)
+            shutil.copy2(docx.with_suffix(".pdf"), product_pdf)
             word_pdf = output / f"{stem}-word.pdf"
-            document = word.Documents.Open(str(docx), ReadOnly=True, AddToRecentFiles=False)
+            document = word.Documents.Open(str(source_docx), ReadOnly=True, AddToRecentFiles=False)
             try:
                 document.Repaginate()
                 document.ExportAsFixedFormat(str(word_pdf), 17)
             finally:
                 document.Close(False)
             info, pdf_text = inspect_pdf(product_pdf)
-            with ZipFile(docx) as archive:
+            with ZipFile(source_docx) as archive:
                 xml = ET.fromstring(archive.read("word/document.xml"))
             ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
             missing = []
