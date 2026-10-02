@@ -1,27 +1,12 @@
-import { AlignmentType, Document, Footer, HeadingLevel, ImageRun, PageNumber, Packer, Paragraph, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType } from "docx";
+import { AlignmentType, Document, Footer, HeadingLevel, ImageRun, PageNumber, Packer, Paragraph, Table, TextRun } from "docx";
 import { getSelfWeightSummary } from "../domain/analysis";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import type { ResourceProvenance, Vector3 } from "../domain/project";
 import { createReportFigures, reportSvgToPng } from "./report-figures";
+import { reportAppendixWord } from "./report-word-appendix";
+import { heading, paragraph, table, tableCaption } from "./report-word-layout";
 
 const vector = (value: Vector3) => [n(value.x), n(value.y), n(value.z)];
-const paragraph = (text: string) => new Paragraph({ children: [new TextRun(text)], spacing: { after: 130 } });
-const tableCaption = (text: string) => new Paragraph({ text, keepNext: true, spacing: { before: 160, after: 100 } });
-const heading = (text: string) => new Paragraph({ text, heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 160 }, keepNext: true });
-function table(headers: string[], rows: string[][]): Table {
-  const width = Math.floor(9638 / headers.length);
-  return new Table({
-    width: { size: 9638, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: headers.map(() => width),
-    rows: [headers, ...rows].map((row, index) => new TableRow({
-      tableHeader: index === 0, cantSplit: true,
-      children: row.map((value) => new TableCell({
-        width: { size: width, type: WidthType.DXA }, margins: { top: 80, bottom: 80, left: 80, right: 80 },
-        shading: index === 0 ? { fill: "E8EEF2" } : undefined,
-        children: [new Paragraph({ children: [new TextRun({ text: value, bold: index === 0, size: 18 })], spacing: { after: 0 } })],
-      })),
-    })),
-  });
-}
 function provenance(label: string, value: ResourceProvenance): Paragraph {
   const source = value.source ?? value.derivedFrom?.source;
   return paragraph(`${label}：${value.kind === "catalog" ? "库资源" : value.derivedFrom ? "由库资源修改的自定义参数" : "用户自定义参数"}${source ? `；${source.publisher}，${source.title}，${source.edition}；${source.url}；核对日期 ${source.accessedOn}；${source.units}` : ""}`);
@@ -109,6 +94,7 @@ export async function buildReportWord(report: EngineeringReport, renderPng = rep
     ])),
     paragraph("以上数值保留七位有效数字供逐项核对；内部计算未按报告显示精度舍入。杆端表不代表杆件全长极值，也不构成强度或稳定性结论。"),
   );
+  children.push(...reportAppendixWord(report));
   const doc = new Document({
     creator: "FrameMind", title: `${report.projectName} 工程计算书`, description: `${source} · ${result.id}`,
     styles: { default: { document: { run: { font: { ascii: "Microsoft YaHei", hAnsi: "Microsoft YaHei", eastAsia: "Microsoft YaHei", cs: "Microsoft YaHei" }, size: 21, color: "000000" }, paragraph: { spacing: { line: 320 } } } },

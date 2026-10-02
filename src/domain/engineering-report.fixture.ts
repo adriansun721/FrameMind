@@ -20,3 +20,15 @@ export function reportFixture(combination = false) {
   }
   return attachAnalysisResult(project, solveFrame(project));
 }
+
+/** Three independent cantilevers sharing one fixed base, aligned with X/Y/Z. */
+export function reportAppendixFixture() {
+  let project = reportFixture();
+  for (const direction of [{ x: 0, y: 4, z: 0 }, { x: 0, y: 0, z: 4 }]) {
+    project = addNode(project, direction);
+    const end = project.nodes.at(-1)!;
+    project = addMember(project, { startNodeId: project.nodes[0].id, endNodeId: end.id, materialId: project.materials[0].id, sectionId: project.sections[0].id, rotationDegrees: 0 });
+    project = addNodalLoad(project, end.id, { x: 0, y: direction.y ? 10 : 0, z: direction.z ? 10 : 0 }, { x: 0, y: 0, z: 0 });
+  }
+  return attachAnalysisResult(project, solveFrame(project));
+}

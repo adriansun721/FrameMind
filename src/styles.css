@@ -670,3 +670,17 @@ button { color: inherit; }
 .report-source { padding: 12px; border: 1px solid var(--border-subtle); border-radius: 6px; overflow-wrap: anywhere; }
 .report-source p { margin: 8px 0 0; font-size: 12px; color: var(--text-secondary); }
 .report-notice { overflow-wrap: anywhere; font-size: 12px; }
+.report-dialog { display: flex; flex-direction: column; overflow: hidden; }
+.report-dialog > .dialog-form { min-height: 0; overflow: auto; }
+.report-dialog > .dialog-actions { flex: none; margin: 0; padding: 12px 24px; }
+.report-appendix { min-width: 0; margin: 16px 0; padding: 12px; border: 1px solid var(--border-subtle); }
+.report-appendix legend { font-weight: 600; }
+.report-appendix p, .report-missing p { margin: 8px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+.report-step-list { display: grid; gap: 8px; }
+.report-step-list label, .report-member-list label { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; overflow-wrap: anywhere; }
+.report-step-list input, .report-member-list input { flex: none; accent-color: var(--accent); }
+.report-member-picker summary { cursor: pointer; font-size: 12px; }
+.report-member-actions { display: flex; gap: 8px; margin: 8px 0; }
+.report-member-list { display: grid; gap: 8px; max-height: 180px; overflow: auto; }
+.report-member-list small { display: block; margin-top: 3px; color: var(--text-muted); }
+.report-missing { padding: 12px; border: 1px solid var(--border-strong); border-radius: 6px; }

@@ -2,11 +2,13 @@ import { decodeAnalysisResult } from "./project-file";
 import { freezeAnalysisInput, type AnalysisResult } from "./analysis";
 import { calculateMemberGeometry } from "./member-geometry";
 import type { FrameProject } from "./project";
+import { captureReportAppendix, freezeReportData, type ReportAppendix, type ReportAppendixSelection } from "./report-appendix";
 
 export interface EngineeringReport {
   projectName: string;
   generatedAt: string;
   result: AnalysisResult;
+  appendix?: ReportAppendix;
 }
 
 export function reportSourceLabel(result: AnalysisResult): string {
@@ -15,7 +17,7 @@ export function reportSourceLabel(result: AnalysisResult): string {
 }
 
 /** Capture once, before any await. All document content and figures use this copy. */
-export function captureEngineeringReport(project: FrameProject, analysisId: string): EngineeringReport {
+export function captureEngineeringReport(project: FrameProject, analysisId: string, selection: ReportAppendixSelection = { memberIds: [], steps: [] }): EngineeringReport {
   const selected = project.analysisResults.find((result) => result.id === analysisId);
   if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
   const result = decodeAnalysisResult(structuredClone(selected));
@@ -39,7 +41,22 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
     Object.freeze(member.localEndForces.start); Object.freeze(member.localEndForces.end); Object.freeze(member.localEndForces); Object.freeze(member);
   });
   Object.freeze(result.nodes); Object.freeze(result.members); Object.freeze(result);
-  return Object.freeze({ projectName: project.name, generatedAt: new Date().toISOString(), result });
+  return freezeReportData({ projectName: project.name, generatedAt: new Date().toISOString(), result, appendix: captureReportAppendix(result, selection) });
 }
 
 export const reportNumber = (value: number): string => value === 0 ? "0" : Number(value.toPrecision(7)).toString();
+
+/** Supplement only the appendix, preserving the body and its historical output. */
+export function withSupplementalReportProcess(report: EngineeringReport, supplementalResult: AnalysisResult): EngineeringReport {
+  if (!report.appendix) throw new Error("请先选择要补算的过程附录步骤");
+  const supplemental = decodeAnalysisResult(structuredClone(supplementalResult));
+  const { solver: originalSolver, ...originalInput } = report.result.input;
+  const { solver: supplementalSolver, ...supplementalInput } = supplemental.input;
+  if (supplemental.id === report.result.id || JSON.stringify(originalInput) !== JSON.stringify(supplementalInput)) throw new Error("补算过程必须来自所选分析的同一冻结输入并具有独立分析 ID");
+  const appendix = captureReportAppendix(supplemental, report.appendix.selection)!;
+  for (const record of [...appendix.members, ...(appendix.overall ? [appendix.overall] : [])]) {
+    record.origin = "supplemental-reconstruction";
+    record.sourceAnalysisId = report.result.id;
+  }
+  return freezeReportData({ ...report, appendix });
+}
