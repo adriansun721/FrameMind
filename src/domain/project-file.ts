@@ -36,7 +36,7 @@ import {
   type ResourceProvenance,
   type CatalogSource,
 } from "./project";
-import { freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
+import { ANALYSIS_DOF_ORDER, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -241,6 +241,47 @@ function decodeLoadCombination(value: unknown, loadCases: FrameLoadCase[]): Fram
   return validateLoadCombination({ loadCases }, value as unknown as FrameLoadCombination);
 }
 
+function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): AnalysisProcessSnapshot | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value) || !isRecord(value.solver) || value.solver.algorithm !== "partial-pivot-gaussian" || value.solver.constraints !== "free-dof-elimination") throw new Error("分析整体过程配置无效");
+  const solver = value.solver;
+  if (typeof solver.implementation !== "string" || solver.implementation.length === 0 || typeof solver.relativePivotTolerance !== "number" || !Number.isFinite(solver.relativePivotTolerance) || solver.relativePivotTolerance <= 0 || solver.relativePivotTolerance >= 1) throw new Error("分析整体过程求解器配置无效");
+  if (!Array.isArray(value.dofOrder) || value.dofOrder.join(",") !== ANALYSIS_DOF_ORDER.join(",") || !Array.isArray(value.dofs) || value.dofs.length !== input.nodes.length * 6) throw new Error("分析整体过程自由度记录无效");
+  const inputNodeIds = new Set(input.nodes.map((node) => node.id));
+  const dofs = value.dofs.map((item, index) => {
+    if (!isRecord(item) || typeof item.nodeId !== "string" || !ANALYSIS_DOF_ORDER.includes(item.dof as typeof ANALYSIS_DOF_ORDER[number]) || item.globalIndex !== index || typeof item.restrained !== "boolean") throw new Error("分析整体过程自由度映射无效");
+    const nodeId = item.nodeId as typeof input.nodes[number]["id"];
+    if (!inputNodeIds.has(nodeId)) throw new Error("分析整体过程自由度映射无效");
+    return { nodeId, dof: item.dof as typeof ANALYSIS_DOF_ORDER[number], globalIndex: index, restrained: item.restrained };
+  });
+  const matrix = (matrixValue: unknown, label: string, size: number): number[][] | null => {
+    if (matrixValue === null) return null;
+    if (!Array.isArray(matrixValue) || matrixValue.length !== size || matrixValue.some((row) => !Array.isArray(row) || row.length !== size || !row.every((entry) => typeof entry === "number" && Number.isFinite(entry)))) throw new Error(`${label}矩阵无效`);
+    return matrixValue.map((row) => [...row] as number[]);
+  };
+  if (!Array.isArray(value.members) || !Array.isArray(value.loadVector) || !value.loadVector.every((entry) => typeof entry === "number" && Number.isFinite(entry)) || value.loadVector.length !== input.nodes.length * 6 || !Array.isArray(value.constrainedDofs) || !Array.isArray(value.freeDofs) || typeof value.matrixLimit !== "number" || !Number.isSafeInteger(value.matrixLimit) || value.matrixLimit <= 0) throw new Error("分析整体过程组装记录无效");
+  const loadVector = value.loadVector as number[];
+  const matrixLimit = value.matrixLimit as number;
+  const memberIds = new Set(input.members.map((member) => member.id));
+  const members = value.members.map((item) => {
+    if (!isRecord(item) || typeof item.memberId !== "string" || !Array.isArray(item.globalDofIndices) || item.globalDofIndices.length !== 12 || !item.globalDofIndices.every((index) => Number.isSafeInteger(index) && index >= 0 && index < input.nodes.length * 6) || !Array.isArray(item.dofs) || item.dofs.length !== 12 || !Array.isArray(item.equivalentGlobalForces) || item.equivalentGlobalForces.length !== 12 || !item.equivalentGlobalForces.every((entry) => typeof entry === "number" && Number.isFinite(entry))) throw new Error("分析整体过程杆件组装记录无效");
+    const memberId = item.memberId as typeof input.members[number]["id"];
+    if (!memberIds.has(memberId)) throw new Error("分析整体过程杆件组装记录无效");
+    const memberDofs = item.dofs.map((dof) => {
+      if (!isRecord(dof) || typeof dof.nodeId !== "string" || !ANALYSIS_DOF_ORDER.includes(dof.dof as typeof ANALYSIS_DOF_ORDER[number]) || !Number.isSafeInteger(dof.globalIndex) || typeof dof.restrained !== "boolean") throw new Error("分析整体过程杆件自由度映射无效");
+      const nodeId = dof.nodeId as typeof input.nodes[number]["id"]; const globalIndex = dof.globalIndex as number;
+      if (!inputNodeIds.has(nodeId)) throw new Error("分析整体过程杆件自由度映射无效");
+      return { nodeId, dof: dof.dof as typeof ANALYSIS_DOF_ORDER[number], globalIndex, restrained: dof.restrained };
+    });
+    const globalStiffness = matrix(item.globalStiffness, "分析整体过程单元刚度", 12);
+    if (!globalStiffness) throw new Error("分析整体过程单元刚度矩阵无效");
+    return { memberId, dofs: memberDofs, globalDofIndices: [...item.globalDofIndices] as number[], globalStiffness, equivalentGlobalForces: [...item.equivalentGlobalForces] as number[] };
+  });
+  const indices = (items: unknown[], label: string) => { if (!items.every((index) => Number.isSafeInteger(index) && (index as number) >= 0 && (index as number) < input.nodes.length * 6)) throw new Error(`${label}索引无效`); return [...items] as number[]; };
+  const constrainedDofs = indices(value.constrainedDofs, "分析整体过程约束自由度"); const freeDofs = indices(value.freeDofs, "分析整体过程自由自由度");
+  return { solver: { implementation: solver.implementation, algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: solver.relativePivotTolerance }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs, members, loadVector: [...loadVector], constrainedDofs, freeDofs, assembledStiffness: matrix(value.assembledStiffness, "分析整体过程整体刚度", input.nodes.length * 6), reducedStiffness: matrix(value.reducedStiffness, "分析整体过程约束后刚度", freeDofs.length), matrixLimit };
+}
+
 function decodeAnalysisResult(value: unknown): AnalysisResult {
   if (!isRecord(value) || value.status !== "complete") throw new Error("项目包含无效分析结果");
   const id = requireString(value.id, "分析结果缺少稳定标识"); const projectId = requireString(value.projectId, "分析结果缺少项目标识"); const createdAt = requireString(value.createdAt, "分析结果缺少创建时间");
@@ -268,7 +309,7 @@ function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members };
+  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process: decodeAnalysisProcess(value.process, input) };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {

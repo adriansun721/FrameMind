@@ -7,6 +7,7 @@ import { LoadCaseManager } from "./components/LoadCaseManager";
 import { LoadCombinationManager } from "./components/LoadCombinationManager";
 import { ResourceLibraryPanel, type LibraryResource } from "./components/ResourceLibraryPanel";
 import { MemberAnalysisProcess } from "./components/MemberAnalysisProcess";
+import { AnalysisProcess } from "./components/AnalysisProcess";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addMember, addNode, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
@@ -635,6 +636,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
       <div><dt>历史结果</dt><dd>{project.analysisResults.length} 份 · 本结果 {result.id.slice(-8)}</dd></div>
     </dl><details><summary>求解与输入详情</summary><dl><div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div><div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div></dl></details></section>
     {combination && <section className="property-section"><h3>组合依据 · 无量纲系数</h3><ul className="combination-source-terms">{combination.definition.terms.map((term) => <li key={term.loadCaseId}>{term.loadCaseId} · {combination.cases.find((item) => item.loadCase.id === term.loadCaseId)?.loadCase.name} × {term.factor}</li>)}</ul><p className="combination-basis">用户定义 · 线弹性 · m / kN / kN·m</p></section>}
+    <AnalysisProcess result={result} resultIsCurrent={!stale} />
     <section className="property-section result-view-controls" aria-label="结果视图">
       <h3>结果视图</h3>
       <div className="result-view-tabs" role="tablist">

@@ -89,6 +89,8 @@ export interface AnalysisResult {
   input: AnalysisInputSnapshot;
   nodes: NodeAnalysisResult[];
   members: MemberAnalysisResult[];
+  /** Compact process data captured by the run; older files may omit it. */
+  process?: AnalysisProcessSnapshot;
 }
 
 type Matrix = number[][];
@@ -127,6 +129,103 @@ export interface MemberAnalysisRecord {
   selfWeightIntensity: Vector3;
   totalIntensity: Vector3;
 }
+
+export interface AnalysisProcessDof {
+  nodeId: string;
+  dof: AnalysisDof;
+  globalIndex: number;
+  restrained: boolean;
+}
+
+export interface AnalysisAssemblyMemberRecord {
+  memberId: string;
+  dofs: AnalysisProcessDof[];
+  globalDofIndices: number[];
+  globalStiffness: Matrix;
+  equivalentGlobalForces: number[];
+}
+
+export interface AnalysisProcessReference {
+  section: string;
+  topic: string;
+  formula: string;
+  printedPage: number;
+  pdfPage: number | null;
+}
+
+export interface AnalysisProcessDifference {
+  topic: string;
+  implementation: string;
+  textbook: string;
+  reason: string;
+  validation: string;
+}
+
+export interface AnalysisProcessBasis {
+  title: string;
+  authors: string;
+  publisher: string;
+  year: number;
+  references: AnalysisProcessReference[];
+  differences: AnalysisProcessDifference[];
+}
+
+export interface AnalysisProcessSnapshot {
+  solver: AnalysisSolverConfig;
+  dofOrder: readonly AnalysisDof[];
+  dofs: AnalysisProcessDof[];
+  members: AnalysisAssemblyMemberRecord[];
+  loadVector: number[];
+  constrainedDofs: number[];
+  freeDofs: number[];
+  assembledStiffness: Matrix | null;
+  reducedStiffness: Matrix | null;
+  matrixLimit: number;
+}
+
+export interface OverallAnalysisProcessRecord extends AnalysisProcessSnapshot {
+  analysisId: string;
+  sourceAnalysisId: string;
+  projectRevision: number;
+  origin: "captured-from-run" | "reconstructed-from-frozen-input" | "supplemental-reconstruction";
+  basis: AnalysisProcessBasis;
+}
+
+/**
+ * The page numbers are the printed pages in the scanned book. PDF page numbers
+ * are kept separately because the scan has front matter and does not use the
+ * book's printed numbering.
+ */
+export const ANALYSIS_PROCESS_BASIS: AnalysisProcessBasis = Object.freeze({
+  title: "计算结构力学",
+  authors: "阎军、杨春秋",
+  publisher: "科学出版社",
+  year: 2014,
+  references: [
+    { section: "第 5 章", topic: "空间刚架直接刚度法流程", formula: "K · u = F", printedPage: 117, pdfPage: 126 },
+    { section: "5.2", topic: "局部与总体坐标转换", formula: "u_local = T · u_global", printedPage: 118, pdfPage: 127 },
+    { section: "5.3", topic: "空间刚架单元刚度与六分量向量", formula: "EA/l；12EJ/l³；6EJ/l²；4EJ/l；2EJ/l；GJ/l", printedPage: 122, pdfPage: 131 },
+    { section: "5.4—5.5", topic: "端部自由度对号与整体刚度阵集合", formula: "K_global = Tᵀ · K_local · T；K = Σ kᵢ", printedPage: 127, pdfPage: 136 },
+    { section: "5.6", topic: "荷载向量形成", formula: "F = F_node + F_equivalent", printedPage: 129, pdfPage: 138 },
+    { section: "附录 IV", topic: "程序组织线索", formula: "整体组装与方程求解步骤", printedPage: 180, pdfPage: 189 },
+  ],
+  differences: [
+    {
+      topic: "坐标转换矩阵方向",
+      implementation: "局部轴作为 T 的行向量，使用 u_local = T · u_global；K_global = Tᵀ · K_local · T。",
+      textbook: "5.2 节以总体到局部的转置记法展开 [T]。",
+      reason: "矩阵存储约定采用局部轴行向量，避免把同一正交转换的转置误认为不同理论。",
+      validation: "T17 斜向杆件转换矩阵与局部/总体刚度数值对照通过。",
+    },
+    {
+      topic: "约束处理",
+      implementation: "按支座自由度从整体方程中消除约束列和行，仅对自由自由度子系统进行部分主元高斯消元。",
+      textbook: "教材给出自由度对号、总刚度阵集合和约束处理的流程线索。",
+      reason: "首版支座是零位移约束；自由度消元保留真实刚度尺度，避免引入人为单位对角线。",
+      validation: "T04 约束尺度回归和整体平衡测试通过，受限自由度位移保持为零。",
+    },
+  ],
+});
 
 const zeroMatrix = (rows: number, columns: number): Matrix => Array.from({ length: rows }, () => Array(columns).fill(0));
 const zeros = (length: number) => Array(length).fill(0) as number[];
@@ -500,6 +599,78 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   };
 }
 
+const PROCESS_MATRIX_LIMIT = 72;
+
+function restrainedDofSet(input: AnalysisInputSnapshot): Set<number> {
+  const nodeIndex = new Map(input.nodes.map((node, index) => [node.id, index]));
+  const restrained = new Set<number>();
+  for (const support of input.supports) {
+    const offset = nodeIndex.get(support.nodeId);
+    if (offset === undefined) continue;
+    support.restraints.forEach((isRestrained, index) => { if (isRestrained) restrained.add(offset * 6 + index); });
+  }
+  return restrained;
+}
+
+function processDofList(input: AnalysisInputSnapshot, restrained: Set<number>): AnalysisProcessDof[] {
+  return input.nodes.flatMap((node, nodeIndex) => ANALYSIS_DOF_ORDER.map((dof, dofIndex) => {
+    const globalIndex = nodeIndex * 6 + dofIndex;
+    return { nodeId: node.id, dof, globalIndex, restrained: restrained.has(globalIndex) };
+  }));
+}
+
+function buildProcessSnapshot(input: AnalysisInputSnapshot, nodeIndex: Map<string, number>, memberData: MemberMatrices[], stiffness: Matrix | null, loadVector: number[], restrained: Set<number>, freeDofs: number[]): AnalysisProcessSnapshot {
+  const size = input.nodes.length * 6;
+  const members = memberData.map((data) => {
+    const start = nodeIndex.get(data.member.startNodeId); const end = nodeIndex.get(data.member.endNodeId);
+    if (start === undefined || end === undefined) throw new Error(`整体过程缺少 ${data.member.label} 的节点索引`);
+    const globalDofIndices = [...Array.from({ length: 6 }, (_, index) => start * 6 + index), ...Array.from({ length: 6 }, (_, index) => end * 6 + index)];
+    return { memberId: data.member.id, dofs: globalDofIndices.map((globalIndex) => ({ nodeId: input.nodes[Math.floor(globalIndex / 6)].id, dof: ANALYSIS_DOF_ORDER[globalIndex % 6], globalIndex, restrained: restrained.has(globalIndex) })), globalDofIndices, globalStiffness: data.global, equivalentGlobalForces: data.equivalentGlobalForces };
+  });
+  const boundedMatrix = (indices: number[]): Matrix | null => stiffness && indices.length <= PROCESS_MATRIX_LIMIT ? indices.map((row) => indices.map((column) => stiffness![row][column])) : null;
+  const allIndices = Array.from({ length: size }, (_, index) => index);
+  return { solver: { ...input.solver! }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs: processDofList(input, restrained), members, loadVector: [...loadVector], constrainedDofs: [...restrained].sort((left, right) => left - right), freeDofs: [...freeDofs], assembledStiffness: boundedMatrix(allIndices), reducedStiffness: boundedMatrix(freeDofs), matrixLimit: PROCESS_MATRIX_LIMIT };
+}
+
+function reconstructProcessSnapshot(input: AnalysisInputSnapshot): AnalysisProcessSnapshot {
+  const nodeIndex = new Map(input.nodes.map((node, index) => [node.id, index]));
+  const size = input.nodes.length * 6;
+  const stiffness = size <= PROCESS_MATRIX_LIMIT ? zeroMatrix(size, size) : null;
+  const loadVector = zeros(size);
+  const restrained = restrainedDofSet(input);
+  const memberData = input.members.map((member) => memberMatrices(input, member));
+  for (const data of memberData) {
+    const start = nodeIndex.get(data.member.startNodeId); const end = nodeIndex.get(data.member.endNodeId);
+    if (start === undefined || end === undefined) throw new Error(`整体过程缺少 ${data.member.label} 的节点索引`);
+    const indices = [...Array.from({ length: 6 }, (_, index) => start * 6 + index), ...Array.from({ length: 6 }, (_, index) => end * 6 + index)];
+    for (let row = 0; row < 12; row += 1) {
+      loadVector[indices[row]] += data.equivalentGlobalForces[row];
+      if (stiffness) for (let column = 0; column < 12; column += 1) stiffness[indices[row]][indices[column]] += data.global[row][column];
+    }
+  }
+  for (const load of input.nodalLoads) {
+    const node = nodeIndex.get(load.nodeId);
+    if (node === undefined) throw new Error(`整体过程缺少荷载 ${load.label} 的节点索引`);
+    [load.force.x, load.force.y, load.force.z, load.moment.x, load.moment.y, load.moment.z].forEach((value, index) => { loadVector[node * 6 + index] += value; });
+  }
+  const freeDofs = Array.from({ length: size }, (_, index) => index).filter((index) => !restrained.has(index));
+  return buildProcessSnapshot(input, nodeIndex, memberData, stiffness, loadVector, restrained, freeDofs);
+}
+
+/** Uses the process captured by the run, falling back to frozen-input reconstruction for older files. */
+export function getOverallAnalysisProcessRecord(result: AnalysisResult): OverallAnalysisProcessRecord {
+  requireLoadRecoveryVersion(result.input);
+  const snapshot = result.process ?? reconstructProcessSnapshot(result.input);
+  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: result.process ? "captured-from-run" : "reconstructed-from-frozen-input", ...structuredClone(snapshot), basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
+}
+
+/** Rebuilds the overall process for a legacy result without relabelling the original analysis. */
+export function supplementOverallAnalysisProcessRecord(result: AnalysisResult): OverallAnalysisProcessRecord {
+  const supplemental = solveFrame(createSupplementalAnalysisInput(result));
+  const record = getOverallAnalysisProcessRecord(supplemental);
+  return { ...record, sourceAnalysisId: result.id, origin: "supplemental-reconstruction" };
+}
+
 export function createSupplementalAnalysisInput(result: AnalysisResult): AnalysisInputSnapshot {
   const input = structuredClone(result.input);
   return freezeAnalysisInput({ ...input, solver: { ...ANALYSIS_SOLVER } });
@@ -565,5 +736,7 @@ export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage
     if (![...localDisplacement, ...localForce].every(Number.isFinite)) throw new AnalysisFailure("recovery", [{ code: "non-finite-member-result", message: `${member.label} 的杆件结果包含非有限数值，分析未完成`, target: { kind: "member", id: member.id }, field: "localEndForces" }]);
     return { memberId: member.id, length: geometry.length, localAxes: { x: { ...geometry.localX }, y: { ...geometry.localY }, z: { ...geometry.localZ } }, localEndForces: { start: localForce.slice(0, 6) as MemberAnalysisResult["localEndForces"]["start"], end: localForce.slice(6, 12) as MemberAnalysisResult["localEndForces"]["end"] } };
   });
-  return { id: `analysis_${globalThis.crypto.randomUUID()}`, projectId: input.projectId, projectRevision: input.projectRevision, createdAt: new Date().toISOString(), status: "complete", input, nodes, members };
+  const id = `analysis_${globalThis.crypto.randomUUID()}`;
+  const process = buildProcessSnapshot(input, nodeIndex, memberData, stiffness, force, constrained, freeDofs);
+  return { id, projectId: input.projectId, projectRevision: input.projectRevision, createdAt: new Date().toISOString(), status: "complete", input, nodes, members, process };
 }

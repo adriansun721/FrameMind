@@ -1,0 +1,85 @@
+import { useEffect, useRef, useState } from "react";
+import { createSupplementalAnalysisInput, getOverallAnalysisProcessRecord, type AnalysisProcessDof, type AnalysisResult, type OverallAnalysisProcessRecord } from "../domain/analysis";
+import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask } from "../workspace/analysis-task";
+
+interface AnalysisProcessProps {
+  result: AnalysisResult;
+  resultIsCurrent: boolean;
+}
+
+const formatNumber = (value: number) => Math.abs(value) < 1e-12 ? "0" : value.toPrecision(6);
+const dofLabel = (dof: AnalysisProcessDof) => `${dof.nodeId}.${dof.dof}`;
+
+function MatrixView({ label, matrix, indices, limit }: { label: string; matrix: number[][] | null; indices: number[]; limit: number }) {
+  if (!matrix) return <p className="analysis-process-note">整体矩阵共有 {indices.length} 行，超过单次查看上限 {limit}；按成员贡献或自由度索引局部查看。</p>;
+  return <details className="member-process-matrix analysis-process-matrix"><summary>{label} · {matrix.length} × {matrix.length}</summary><div className="member-process-matrix-note">行 / 列为整体自由度索引（从 0 起），按需展开以避免默认渲染大矩阵。</div><div className="member-process-matrix-scroll"><table aria-label={label}><thead><tr><th scope="col">行＼列</th>{indices.map((index) => <th scope="col" key={index}>{index}</th>)}</tr></thead><tbody>{matrix.map((row, rowIndex) => <tr key={indices[rowIndex]}><th scope="row">{indices[rowIndex]}</th>{row.map((value, columnIndex) => <td key={indices[columnIndex]}>{formatNumber(value)}</td>)}</tr>)}</tbody></table></div></details>;
+}
+
+function DofTable({ record }: { record: OverallAnalysisProcessRecord }) {
+  return <details className="analysis-process-disclosure"><summary>节点自由度与约束状态 · {record.dofs.length} 个</summary><div className="member-process-dof-table"><table aria-label="整体自由度编号"><thead><tr><th>整体索引</th><th>节点</th><th>自由度</th><th>状态</th></tr></thead><tbody>{record.dofs.map((dof) => <tr key={dof.globalIndex}><td>{dof.globalIndex}</td><td>{dof.nodeId}</td><td>{dof.dof}</td><td>{dof.restrained ? "约束" : "自由"}</td></tr>)}</tbody></table></div></details>;
+}
+
+function AssemblyTable({ record, result }: { record: OverallAnalysisProcessRecord; result: AnalysisResult }) {
+  const memberLabel = (id: string) => result.input.members.find((member) => member.id === id)?.label ?? id;
+  return <details className="analysis-process-disclosure"><summary>单元组装条目 · {record.members.length} 根杆件</summary><div className="analysis-process-assembly-list">{record.members.map((member) => <details className="member-process-matrix" key={member.memberId}><summary>{memberLabel(member.memberId)} · {member.memberId} · 整体索引 {member.globalDofIndices.join(", ")}</summary><div className="member-process-matrix-note">局部 12 个条目映射到整体自由度后加入整体刚度阵；荷载向量为等效整体荷载。</div><div className="member-process-dof-table"><table aria-label={`${memberLabel(member.memberId)}整体自由度映射`}><thead><tr><th>局部位置</th><th>稳定对象 / 自由度</th><th>整体索引</th><th>状态</th></tr></thead><tbody>{member.dofs.map((dof, index) => <tr key={`${member.memberId}-${dof.globalIndex}`}><td>{index < 6 ? "起点" : "终点"} · {index + 1}</td><td>{dofLabel(dof)}</td><td>{dof.globalIndex}</td><td>{dof.restrained ? "约束" : "自由"}</td></tr>)}</tbody></table></div><p className="analysis-process-vector"><strong>等效整体荷载</strong><span>[{member.equivalentGlobalForces.map(formatNumber).join(", ")}] kN / kN·m</span></p><MatrixView label={`${memberLabel(member.memberId)} · 单元整体刚度贡献`} matrix={member.globalStiffness} indices={member.globalDofIndices} limit={record.matrixLimit} /></details>)}</div></details>;
+}
+
+function ProcessDetails({ record, result }: { record: OverallAnalysisProcessRecord; result: AnalysisResult }) {
+  const nodeLabel = (id: string) => result.input.nodes.find((node) => node.id === id)?.label ?? id;
+  const allIndices = record.dofs.map((dof) => dof.globalIndex);
+  return <>
+    <section className="property-section analysis-process-summary"><h3>整体过程来源</h3><dl>
+      <div><dt>记录</dt><dd>{record.origin === "supplemental-reconstruction" ? `补算 ${record.analysisId} · 来源分析 ${record.sourceAnalysisId}` : record.origin === "captured-from-run" ? `本次运行实际快照 · ${record.sourceAnalysisId}` : `按冻结输入重建 · ${record.sourceAnalysisId}`}</dd></div>
+      <div><dt>项目版本</dt><dd>R{record.projectRevision}</dd></div>
+      <div><dt>自由度 / 约束 / 自由</dt><dd>{record.dofs.length} / {record.constrainedDofs.length} / {record.freeDofs.length}</dd></div>
+      <div><dt>求解器</dt><dd>{record.solver.implementation} · {record.solver.algorithm} · {record.solver.constraints}</dd></div>
+      <div><dt>矩阵策略</dt><dd>{record.assembledStiffness ? `整体 ${record.assembledStiffness.length} × ${record.assembledStiffness.length} 可按需查看` : `整体矩阵超过 ${record.matrixLimit} 阶，仅显示索引与成员贡献`}</dd></div>
+    </dl></section>
+    <section className="property-section"><h3>编号与系统状态</h3><p className="analysis-process-equation"><code>K · u = F</code><code>自由自由度子系统：Kff · uf = Ff</code><code>约束自由度：u = 0</code></p><p className="analysis-process-note">节点标签 {record.dofs.map((dof) => nodeLabel(dof.nodeId)).filter((label, index, labels) => labels.indexOf(label) === index).join("、")}；索引从 0 起。支座只约束标记的节点自由度，约束后的方程使用自由自由度子系统。</p><DofTable record={record} /></section>
+    <section className="property-section"><h3>整体组装</h3><AssemblyTable record={record} result={result} /><div className="analysis-process-matrices"><MatrixView label="整体刚度 K" matrix={record.assembledStiffness} indices={allIndices} limit={record.matrixLimit} /><MatrixView label="约束后刚度 Kff" matrix={record.reducedStiffness} indices={record.freeDofs} limit={record.matrixLimit} /></div><p className="analysis-process-vector"><strong>整体荷载向量 F</strong><span>[{record.loadVector.map(formatNumber).join(", ")}] kN / kN·m</span></p></section>
+    <section className="property-section analysis-process-basis"><h3>教材依据（印刷页 / PDF 页）</h3><p>{record.basis.title}（{record.basis.authors}，{record.basis.publisher}，{record.basis.year}）扫描版。PDF 页序含前置页，不等同书内页码。</p><div className="member-process-dof-table"><table aria-label="教材页码依据"><thead><tr><th>章节</th><th>核查主题</th><th>书内印刷页</th><th>PDF 页序</th></tr></thead><tbody>{record.basis.references.map((reference) => <tr key={reference.section}><td>{reference.section}</td><td>{reference.topic}</td><td>{reference.printedPage}</td><td>{reference.pdfPage ?? "未记录"}</td></tr>)}</tbody></table></div>{record.basis.differences.map((difference) => <details className="analysis-process-disclosure" key={difference.topic}><summary>{difference.topic} · 实现与教材差异</summary><dl><div><dt>实现</dt><dd>{difference.implementation}</dd></div><div><dt>教材</dt><dd>{difference.textbook}</dd></div><div><dt>原因</dt><dd>{difference.reason}</dd></div><div><dt>验证</dt><dd>{difference.validation}</dd></div></dl></details>)}</section>
+  </>;
+}
+
+export function AnalysisProcess({ result, resultIsCurrent }: AnalysisProcessProps) {
+  const [record, setRecord] = useState<OverallAnalysisProcessRecord | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [supplementing, setSupplementing] = useState(false);
+  const taskRef = useRef<AnalysisTask | null>(null);
+
+  useEffect(() => {
+    taskRef.current?.cancel();
+    taskRef.current = null;
+    setSupplementing(false);
+    try {
+      setRecord(getOverallAnalysisProcessRecord(result));
+      setError(null);
+    } catch (cause) {
+      setRecord(null);
+      setError(cause instanceof Error ? cause.message : "本次分析没有可用的整体过程记录");
+    }
+    return () => { taskRef.current?.cancel(); taskRef.current = null; };
+  }, [result]);
+
+  const supplement = () => {
+    if (taskRef.current) return;
+    setSupplementing(true);
+    const task = startAnalysisTask(createSupplementalAnalysisInput(result));
+    taskRef.current = task;
+    void task.promise.then((supplemental) => {
+      const next = getOverallAnalysisProcessRecord(supplemental);
+      setRecord({ ...next, sourceAnalysisId: result.id, origin: "supplemental-reconstruction" });
+      setError(null);
+    }).catch((cause) => {
+      if (!(cause instanceof AnalysisCancelledError)) setError(cause instanceof Error ? cause.message : "无法基于冻结输入补算整体过程");
+    }).finally(() => {
+      if (taskRef.current === task) { taskRef.current = null; setSupplementing(false); }
+    });
+  };
+
+  return <section className="property-section analysis-process" data-testid="analysis-process" aria-label="整体求解过程">
+    <div className="result-section-heading"><h3>整体求解过程</h3><span className="member-process-badge">{resultIsCurrent ? "结果当前" : "结果已过期"}</span></div>
+    <p className="member-process-intro">过程绑定分析 {result.id} 的冻结输入，展示自由度编号、单元组装和约束后系统；矩阵按需展开。</p>
+    {record ? <ProcessDetails record={record} result={result} /> : <div className="member-process-missing" role="alert"><strong>本次分析未保存可直接重建的整体过程配置</strong><span>{error}</span><button type="button" className="button ghost compact-button" onClick={supplement} disabled={supplementing}>{supplementing ? "正在补算过程…" : "基于冻结输入补算过程"}</button><small>补算生成新的过程分析 ID，仅用于查看，不修改原结果来源。</small></div>}
+  </section>;
+}
