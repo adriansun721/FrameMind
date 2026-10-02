@@ -5,9 +5,11 @@ import { createNode } from "./modeling-actions";
 async function settledCameraState(viewport: Locator): Promise<string> {
   let previous = ""; let stableReads = 0;
   for (let attempt = 0; attempt < 50; attempt += 1) {
-    const current = await viewport.getAttribute("data-camera-state");
+    const current = await viewport.evaluate((element) => new Promise<string | null>((resolve) => {
+      requestAnimationFrame(() => resolve(element.getAttribute("data-camera-state")));
+    }));
     if (current && current === previous) stableReads += 1; else stableReads = 0;
-    if (current && stableReads >= 2) return current;
+    if (current && stableReads >= 4) return current;
     previous = current ?? "";
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
@@ -44,32 +46,49 @@ test("UI04 keeps the Three.js canvas alive while selection changes", async () =>
 });
 
 test("UI04 preserves the rotated and zoomed camera across consecutive tree selections", async () => {
+  test.setTimeout(60_000);
   const { app, page } = await launchFrameMind();
+  try {
+    await app.evaluate(({ BrowserWindow }) => {
+      const window = BrowserWindow.getAllWindows()[0]!;
+      window.webContents.setBackgroundThrottling(false);
+      window.focus();
+    });
+    await createNode(page, ["0", "0", "0"]);
+    await createNode(page, ["4", "2", "1"]);
+    const viewport = page.getByLabel("三维模型视图");
+    const tree = page.getByRole("region", { name: "项目树" });
+    for (const [width, height] of [[1440, 900], [1080, 680]]) {
+      await app.evaluate(({ BrowserWindow }, size) => {
+        BrowserWindow.getAllWindows()[0]!.setContentSize(size.width, size.height);
+      }, { width, height });
+      await page.getByRole("button", { name: "适合模型", exact: true }).click();
+      const initialCamera = await settledCameraState(viewport);
+      const box = await viewport.locator("canvas").boundingBox();
+      expect(box).not.toBeNull();
+      const center = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+      await page.mouse.move(center.x, center.y);
+      await page.mouse.down();
+      // Keep the orbit gesture proportional to the shorter viewport above properties.
+      await page.mouse.move(center.x + box!.width * 0.05, center.y - box!.height * 0.025, { steps: 8 });
+      await page.mouse.up();
+      await expect.poll(() => viewport.getAttribute("data-camera-state")).not.toBe(initialCamera);
+      const rotatedCamera = await settledCameraState(viewport);
+      await page.mouse.wheel(0, -420);
+      await expect.poll(() => viewport.getAttribute("data-camera-state")).not.toBe(rotatedCamera);
+      const cameraBeforeSelection = await settledCameraState(viewport);
 
-  await createNode(page, ["0", "0", "0"]);
-  await createNode(page, ["4", "2", "1"]);
-  const viewport = page.getByLabel("三维模型视图");
-  const canvas = viewport.locator("canvas");
-  const box = await canvas.boundingBox();
-  expect(box).not.toBeNull();
-  const center = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
-  await page.mouse.move(center.x, center.y);
-  await page.mouse.down();
-  await page.mouse.move(center.x + 110, center.y - 55, { steps: 8 });
-  await page.mouse.up();
-  await page.mouse.wheel(0, -420);
-  const cameraBeforeSelection = await settledCameraState(viewport);
-
-  const tree = page.getByRole("region", { name: "项目树" });
-  await tree.getByText("N1", { exact: true }).click();
-  await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N1");
-  await expect(page.getByRole("status")).toContainText("当前选择 N1");
-  await tree.getByText("N2", { exact: true }).click();
-  await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N2");
-  await expect(page.getByRole("status")).toContainText("当前选择 N2");
-
-  await expect(viewport).toHaveAttribute("data-camera-state", cameraBeforeSelection);
-  await app.close();
+      await tree.getByText("N1", { exact: true }).click();
+      await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N1");
+      await expect(page.getByRole("status")).toContainText("当前选择 N1");
+      await tree.getByText("N2", { exact: true }).click();
+      await expect(page.getByRole("region", { name: "对象属性" })).toContainText("N2");
+      await expect(page.getByRole("status")).toContainText("当前选择 N2");
+      await expect(viewport).toHaveAttribute("data-camera-state", cameraBeforeSelection);
+    }
+  } finally {
+    await app.close();
+  }
 });
 
 test("UI04 presents members as an analysis-line model without rebuilding the viewport", async () => {

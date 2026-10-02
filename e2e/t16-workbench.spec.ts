@@ -32,13 +32,13 @@ test("T16 independently collapses properties without losing selection or edits",
     await createNode(page, ["1", "2", "3"]);
     const properties = page.getByRole("region", { name: "对象属性" });
     await properties.getByLabel("X 坐标").fill("4.5");
-    const initialWidth = await page.locator(".viewport canvas").evaluate((canvas) => canvas.getBoundingClientRect().width);
+    const initialHeight = await page.locator(".viewport canvas").evaluate((canvas) => canvas.getBoundingClientRect().height);
     await page.getByRole("button", { name: "收起属性面板", exact: true }).click();
     await expect(properties).toBeHidden();
     await expect(page.getByRole("region", { name: "项目树" })).toBeVisible();
     await expect(page.getByRole("complementary", { name: "AI 对话" })).toBeVisible();
     await expect(page.getByRole("status")).toContainText("当前选择 N1");
-    await expect.poll(() => page.locator(".viewport canvas").evaluate((canvas) => canvas.getBoundingClientRect().width)).toBeGreaterThan(initialWidth);
+    await expect.poll(() => page.locator(".viewport canvas").evaluate((canvas) => canvas.getBoundingClientRect().height)).toBeGreaterThan(initialHeight);
     await page.getByRole("button", { name: "切换属性面板", exact: true }).click();
     await expect(properties.getByLabel("X 坐标")).toHaveValue("4.5");
     const nodesGroup = page.getByRole("button", { name: "节点", exact: true });
@@ -52,11 +52,13 @@ test("T16 independently collapses properties without losing selection or edits",
     const layout = await page.evaluate(() => {
       const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
       return { treeRight: rect(".project-panel").right, viewLeft: rect(".model-area").left,
-        viewRight: rect(".model-area").right, propertyLeft: rect(".property-pane").left,
+        viewRight: rect(".model-area").right, propertyLeft: rect(".property-pane").left, viewportBottom: rect(".viewport").bottom, propertyTop: rect(".property-pane").top,
         propertyRight: rect(".property-pane").right, assistantLeft: rect(".assistant-panel").left };
     });
     expect(layout.treeRight).toBeLessThanOrEqual(layout.viewLeft);
-    expect(layout.viewRight).toBeLessThanOrEqual(layout.propertyLeft);
+    expect(layout.viewLeft).toBe(layout.propertyLeft);
+    expect(layout.viewRight).toBe(layout.propertyRight);
+    expect(layout.viewportBottom).toBeLessThanOrEqual(layout.propertyTop);
     expect(layout.propertyRight).toBeLessThanOrEqual(layout.assistantLeft);
   } finally { await app.close(); }
 });
@@ -157,7 +159,7 @@ test("T16 renders a spatial model, loads and actual results in both themes", asy
           expect(pixels.counts["--model-moment"]).toBeGreaterThan(3);
           if (mode !== "model") expect(pixels.counts[mode === "forces" ? "--model-force" : "--model-deformation"]).toBeGreaterThan(3);
           const rects = await page.evaluate(() => {
-            const selectors = [".project-panel", ".model-area", ".property-pane", ".assistant-panel"];
+            const selectors = [".project-panel", ".model-area", ".assistant-panel"];
             return selectors.map((selector) => { const rect = document.querySelector(selector)!.getBoundingClientRect(); return { left: rect.left, right: rect.right, width: rect.width }; });
           });
           for (let i = 1; i < rects.length; i++) expect(rects[i].left).toBeGreaterThanOrEqual(rects[i - 1].right);

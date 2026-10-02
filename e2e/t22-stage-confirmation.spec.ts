@@ -28,11 +28,9 @@ test("T22 confirms one stage, synchronizes AI reads and restores the complete sa
     expect(applied!.nodes).toHaveLength(13); expect(applied!.members).toHaveLength(16);
     expect(applied!.nodes.at(-1).position).toEqual({ x: 8, y: 4, z: 6 });
     expect(applied!.materials).toHaveLength(1); expect(applied!.sections).toHaveLength(2);
-    await page.getByRole("button", { name: "数据表", exact: true }).click();
-    const table = page.getByRole("region", { name: "模型数据表" });
-    await table.getByRole("tab", { name: /节点/ }).click();
-    await expect(table.getByRole("button", { name: "定位节点 N13", exact: true })).toBeVisible();
-    await table.getByRole("button", { name: "定位节点 N13", exact: true }).click();
+    const properties = page.getByRole("region", { name: "对象属性" });
+    await expect(page.getByRole("region", { name: "项目树" }).getByText("N13", { exact: true })).toBeVisible();
+    await page.getByRole("region", { name: "项目树" }).getByText("N13", { exact: true }).click();
     await expect(page.getByRole("region", { name: "对象属性" }).getByLabel("X 坐标", { exact: true })).toHaveValue("8");
     await replay(app, { collection: "summary" }, "read_model"); await send(page, "读取已应用模型摘要");
     const turn = page.locator(".ai-turn").last();
@@ -40,7 +38,7 @@ test("T22 confirms one stage, synchronizes AI reads and restores the complete sa
     await expect(turn.locator(".ai-tool-output")).toContainText('"members": 16');
     await page.getByRole("button", { name: "撤销", exact: true }).click();
     await expect(page.getByTestId("viewport-node-count")).toHaveText("1 个节点");
-    await expect(table.getByRole("button", { name: "定位节点 N13", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "项目树" }).getByText("N13", { exact: true })).toHaveCount(0);
     await page.keyboard.press("Control+s");
     await expect.poll(async () => {
       try { return JSON.parse(await readFile(path, "utf8")); }

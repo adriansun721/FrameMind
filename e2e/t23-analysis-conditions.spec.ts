@@ -54,7 +54,7 @@ test("T23 continues a requested computation after two reviewed stages, and previ
     expect(computed.supports).toHaveLength(4); expect(computed.nodalLoads).toHaveLength(1); expect(computed.analysisResults).toHaveLength(1);
     expect(computed.nodalLoads[0].force.x).toBe(8);
     expect(computed.analysisResults[0].input.nodalLoads[0].force.x).toBe(8);
-    await expect(page.getByRole("region", { name: "模型数据表" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "对象属性" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "变形图", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.screenshot({ path: "docs/evidence/T23-result.png" });
     const update = { supports: [], nodalLoads: [{ ...computed.nodalLoads[0], label: undefined, force: { x: 16, y: -2, z: -10 }, source: "user" }] };

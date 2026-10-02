@@ -8,7 +8,7 @@ async function expectRequiredPropertyError(properties: Locator, field: string, s
   await expect(properties.getByRole("alert")).toHaveText(message);
 }
 
-test("UI02 synchronizes the project tree and the independent right inspector", async () => {
+test("UI02 synchronizes the project tree and the bottom inspector", async () => {
   const { app, page } = await launchFrameMind();
 
   const sidebar = page.getByRole("complementary", { name: "项目资源" });
@@ -24,10 +24,12 @@ test("UI02 synchronizes the project tree and the independent right inspector", a
     const tree = document.querySelector(".project-tree-pane")!.getBoundingClientRect();
     const property = document.querySelector(".property-pane")!.getBoundingClientRect();
     const viewport = document.querySelector(".model-area")!.getBoundingClientRect();
-    return { treeRight: tree.right, propertyLeft: property.left, viewportRight: viewport.right, viewportLeft: viewport.left };
+    return { treeRight: tree.right, propertyLeft: property.left, viewportBottom: viewport.bottom, propertyBottom: property.bottom, propertyTop: property.top, propertyRight: property.right, viewportRight: viewport.right, viewportLeft: viewport.left };
   });
   expect(layout.treeRight).toBeLessThanOrEqual(layout.viewportLeft);
-  expect(layout.viewportRight).toBeLessThanOrEqual(layout.propertyLeft);
+  expect(layout.propertyLeft).toBe(layout.viewportLeft);
+  expect(layout.propertyRight).toBe(layout.viewportRight);
+  expect(layout.propertyBottom).toBe(layout.viewportBottom);
 
   await createNode(page, ["1", "2", "3"]);
 

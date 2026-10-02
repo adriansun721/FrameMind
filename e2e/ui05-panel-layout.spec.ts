@@ -80,6 +80,67 @@ test("UI05 synchronizes panel controls and preserves selection, drafts, scroll a
   }
 });
 
+test("UI05 docks horizontal properties below the viewport and resizes without losing drafts", async ({}, testInfo) => {
+  const { app, page } = await launchFrameMind();
+  try {
+    await createNode(page, ["1", "2", "3"]);
+    const properties = page.getByRole("region", { name: "对象属性" });
+    const toggle = page.locator(".layout-controls button").nth(1);
+    const separator = page.getByRole("separator", { name: "调整属性面板高度" });
+    await expect(toggle).toHaveAttribute("aria-label", "切换属性面板");
+    await expect(toggle.locator(".lucide-table-2")).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "数据表", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "模型数据表" })).toHaveCount(0);
+    await properties.getByLabel("X 坐标").fill("9.5");
+
+    for (const [width, height] of [[1440, 900], [1080, 680]]) {
+      await app.evaluate(({ BrowserWindow }, size) => {
+        BrowserWindow.getAllWindows()[0]!.setContentSize(size.width, size.height);
+      }, { width, height });
+      const layout = await page.evaluate(() => {
+        const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+        const viewport = rect(".viewport"); const property = rect("#property-panel");
+        const identity = rect(".inspector-overview"); const form = rect(".property-form");
+        return { viewLeft: viewport.left, viewRight: viewport.right, viewBottom: viewport.bottom,
+          propertyLeft: property.left, propertyRight: property.right, propertyTop: property.top,
+          propertyBottom: property.bottom, areaBottom: rect(".model-area").bottom,
+          identityTop: identity.top, formTop: form.top, identityRight: identity.right, formLeft: form.left };
+      });
+      expect(layout.propertyLeft).toBe(layout.viewLeft);
+      expect(layout.propertyRight).toBe(layout.viewRight);
+      expect(layout.viewBottom).toBeLessThanOrEqual(layout.propertyTop);
+      expect(layout.propertyBottom).toBe(layout.areaBottom);
+      expect(layout.identityTop).toBe(layout.formTop);
+      expect(layout.identityRight).toBeLessThanOrEqual(layout.formLeft);
+      await page.screenshot({ path: testInfo.outputPath(`bottom-properties-${width}.png`) });
+    }
+
+    await separator.focus();
+    await separator.press("Home");
+    await expect(separator).toHaveAttribute("aria-valuenow", "160");
+    const handle = await separator.boundingBox();
+    await page.mouse.move(handle!.x + handle!.width / 2, handle!.y + handle!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(handle!.x + handle!.width / 2, handle!.y - 60, { steps: 5 });
+    await page.mouse.up();
+    await expect.poll(async () => Number(await separator.getAttribute("aria-valuenow"))).toBeGreaterThan(210);
+    const resizedHeight = await separator.getAttribute("aria-valuenow");
+    const initialCanvasHeight = await page.locator(".viewport canvas").evaluate((canvas) => canvas.getBoundingClientRect().height);
+    await properties.getByRole("button", { name: "收起属性面板", exact: true }).click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect.poll(() => page.locator(".viewport canvas").evaluate((canvas) => canvas.getBoundingClientRect().height)).toBeGreaterThan(initialCanvasHeight);
+    await toggle.click();
+    await expect(properties.getByLabel("X 坐标")).toHaveValue("9.5");
+    await expect(separator).toHaveAttribute("aria-valuenow", resizedHeight!);
+    await expect(properties.getByText("1.000 m", { exact: true })).toBeVisible();
+    await properties.getByRole("button", { name: "保存节点属性" }).click();
+    await expect(properties.getByText("9.500 m", { exact: true })).toBeVisible();
+    await expectRenderedCanvas(page);
+  } finally {
+    await app.close();
+  }
+});
+
 test("UI05 keeps the merged titlebar and every panel combination inside supported window sizes", async ({}, testInfo) => {
   const { app, page } = await launchFrameMind();
   try {

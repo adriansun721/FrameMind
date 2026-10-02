@@ -58,8 +58,7 @@ async function verify() {
     await page.getByRole("button", { name: "保存材料与截面", exact: true }).click();
     await page.getByRole("button", { name: "创建杆件", exact: true }).click();
     await page.getByRole("button", { name: "添加杆件", exact: true }).click();
-    await page.getByRole("button", { name: "数据表", exact: true }).click();
-    const table = page.getByRole("region", { name: "模型数据表" });
+    const properties = page.getByRole("region", { name: "对象属性" });
     const panel = page.getByRole("complementary", { name: "AI 对话", exact: true });
     async function ask(prompt) {
       diagnostic.stage = `conversation-${report.conversations.length + 1}`;
@@ -86,16 +85,14 @@ async function verify() {
     const objects = (evidence) => evidence.tools.flatMap((tool) => tool.output.data?.objects ?? []);
     const replyText = (evidence) => evidence.assistant.replace(/\u2212/g, "-").replace(/\\_/g, "_");
 
-    await table.getByRole("tab", { name: "节点 (2)", exact: true }).click();
-    await table.getByRole("button", { name: "定位节点 N1", exact: true }).click();
+    await page.getByRole("region", { name: "项目树" }).getByText("N1", { exact: true }).click();
     const selectedNode = await ask("请调用 read_selection 读取这个节点，回复它的稳定 ID 和真实三维坐标（m），不要猜测或修改模型。");
     assert.equal(selectedNode.context.selection[0].id, "node_0001");
     assert.deepEqual(objects(selectedNode)[0].position, { x: 1.25, y: -2, z: 3.5 });
     assert.ok(replyText(selectedNode).includes("node_0001"));
     for (const value of ["1.25", "-2", "3.5"]) assert.ok(replyText(selectedNode).includes(value));
 
-    await table.getByRole("tab", { name: "杆件 (1)", exact: true }).click();
-    await table.getByRole("button", { name: "定位杆件 M1", exact: true }).click();
+    await page.getByRole("region", { name: "项目树" }).getByText("M1", { exact: true }).click();
     const selectedMember = await ask("请调用 read_selection 读取这根梁，回复稳定 ID、两端节点 ID、长度（m）、截面转角（度）、材料弹性模量（GPa）和截面面积（m²）。所有数值必须来自工具，不修改模型。");
     const member = objects(selectedMember)[0];
     assert.equal(member.id, "member_0001");
@@ -107,15 +104,15 @@ async function verify() {
       assert.ok(replyText(selectedMember).includes(value));
     }
 
-    await table.getByLabel("M1 截面转角", { exact: true }).fill("45");
-    await table.getByRole("button", { name: "保存 M1", exact: true }).click();
+    await properties.getByLabel("截面转角（°）", { exact: true }).fill("45");
+    await properties.getByRole("button", { name: "保存杆件属性", exact: true }).click();
     await expect(page.getByTestId("viewport-member-details")).toContainText("45°");
     const editedMember = await ask("请重新调用 read_selection 读取这根梁的当前已应用参数，回复稳定 ID、截面转角（度）和长度（m）。使用本次工具输出，不沿用之前的回答。");
     assert.equal(objects(editedMember)[0].rotationDegrees, 45);
     assert.equal(objects(editedMember)[0].geometry.length, 4);
     assert.ok(editedMember.context.modelRevision > selectedMember.context.modelRevision);
     assert.ok(replyText(editedMember).includes("45"));
-    await expect(table.getByLabel("M1 截面转角", { exact: true })).toHaveValue("45");
+    await expect(properties.getByLabel("截面转角（°）", { exact: true })).toHaveValue("45");
     await expect(panel.locator(".ai-turn").nth(1).locator(".ai-stale")).toHaveText("历史版本");
 
     const output = resolve("docs/evidence");

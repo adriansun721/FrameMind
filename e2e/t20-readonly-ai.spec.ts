@@ -48,12 +48,11 @@ test("T20 replays selected model reads, distinguishes committed edits and preser
     await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click();
     await page.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "数据表", exact: true }).click();
-    const table = page.getByRole("region", { name: "模型数据表" });
-    await table.getByRole("button", { name: "定位杆件 M1" }).click();
+    const properties = page.getByRole("region", { name: "对象属性" });
+    await page.getByRole("region", { name: "项目树" }).getByText("M1", { exact: true }).click();
     const panel = page.getByRole("complementary", { name: "AI 对话", exact: true });
     await expect(panel.getByRole("region", { name: "当前对话对象" })).toHaveCount(0);
-    await table.getByLabel("M1 截面转角").fill("45");
+    await properties.getByLabel("截面转角（°）").fill("45");
     await replay(app, [{ name: "read_selection", arguments: "{}" }], "M1 的已应用截面转角是 0 度。");
     await send(page, "这根梁的转角是多少？");
     await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已完成");
@@ -62,7 +61,7 @@ test("T20 replays selected model reads, distinguishes committed edits and preser
     await panel.getByText("工具输出", { exact: true }).last().click();
     await expect(panel.locator(".ai-tool-output").last()).toContainText('"rotationDegrees": 0');
     await expect(panel.locator(".ai-tool-output").last()).toContainText('"x": 4');
-    await table.getByRole("button", { name: "保存 M1", exact: true }).click();
+    await properties.getByRole("button", { name: "保存杆件属性", exact: true }).click();
     await expect(page.getByTestId("viewport-member-details")).toContainText("45°");
     await replay(app, [{ name: "read_objects", arguments: JSON.stringify({ objects: [{ kind: "member", id: "member_0001" }] }) }], "M1 当前转角为 45 度。");
     await send(page, "再读取这根梁");
@@ -110,9 +109,9 @@ test("T20 replays selected model reads, distinguishes committed edits and preser
     }
     // Undo restores R5; editing again reuses R6 with different model contents.
     await page.getByRole("button", { name: "撤销", exact: true }).click();
-    await table.getByRole("button", { name: "定位杆件 M1", exact: true }).click();
-    await table.getByLabel("M1 截面转角").fill("30");
-    await table.getByRole("button", { name: "保存 M1", exact: true }).click();
+    await page.getByRole("region", { name: "项目树" }).getByText("M1", { exact: true }).click();
+    await properties.getByLabel("截面转角（°）").fill("30");
+    await properties.getByRole("button", { name: "保存杆件属性", exact: true }).click();
     await expect(panel.locator(".ai-turn").last().locator(".ai-stale")).toHaveText("历史版本");
   } finally {
     await app.close();

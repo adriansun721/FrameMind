@@ -123,12 +123,10 @@ test("T20 reads a mixed batch of nodes and members through their stable identiti
     await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click();
     await page.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "数据表", exact: true }).click();
-    const table = page.getByRole("region", { name: "模型数据表" });
-    await table.getByLabel("选择杆件 M1", { exact: true }).check();
-    await table.getByRole("tab", { name: "节点 (2)", exact: true }).click();
-    await table.getByLabel("选择节点 N1", { exact: true }).check();
-    await table.getByLabel("选择节点 N2", { exact: true }).check();
+    const properties = page.getByRole("region", { name: "对象属性" });
+    await page.getByRole("region", { name: "项目树" }).getByLabel("选择杆件 M1", { exact: true }).check();
+    await page.getByRole("region", { name: "项目树" }).getByLabel("选择节点 N1", { exact: true }).check();
+    await page.getByRole("region", { name: "项目树" }).getByLabel("选择节点 N2", { exact: true }).check();
     const panel = page.getByRole("complementary", { name: "AI 对话", exact: true });
     await expect(panel.getByRole("region", { name: "当前对话对象" })).toHaveCount(0);
     await replay(app, "read_selection", {}, "已读取两个节点与一根杆件。");
@@ -151,10 +149,9 @@ test("T20 cancels pending responses when the user cancels, changes context or re
     await configure(page);
     await createNode(page, ["0", "0", "0"]);
     await createNode(page, ["4", "0", "0"]);
-    await page.getByRole("button", { name: "数据表", exact: true }).click();
-    const table = page.getByRole("region", { name: "模型数据表" });
+    const properties = page.getByRole("region", { name: "对象属性" });
     const panel = page.getByRole("complementary", { name: "AI 对话", exact: true });
-    await table.getByRole("button", { name: "定位节点 N1", exact: true }).click();
+    await page.getByRole("region", { name: "项目树" }).getByText("N1", { exact: true }).click();
 
     await pending(app, page, "请求将由用户取消");
     await panel.getByRole("button", { name: "取消对话", exact: true }).click();
@@ -163,13 +160,13 @@ test("T20 cancels pending responses when the user cancels, changes context or re
     await releaseLate(app, "late-user-cancel-response");
 
     await pending(app, page, "请求期间切换选择");
-    await table.getByRole("button", { name: "定位节点 N2", exact: true }).click();
+    await page.getByRole("region", { name: "项目树" }).getByText("N2", { exact: true }).click();
     await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已取消");
     await releaseLate(app, "late-selection-response");
 
     await pending(app, page, "请求期间修改模型");
-    await table.getByLabel("N2 X 坐标", { exact: true }).fill("7");
-    await table.getByRole("button", { name: "保存 N2", exact: true }).click();
+    await properties.getByLabel("X 坐标", { exact: true }).fill("7");
+    await properties.getByRole("button", { name: "保存节点属性", exact: true }).click();
     await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已取消");
     await releaseLate(app, "late-model-response");
 
