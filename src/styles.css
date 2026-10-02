@@ -297,7 +297,7 @@ button { color: inherit; }
 .frame-proposal-card p { line-height: 1.6; }
 .frame-parameter { margin-block: var(--space-3); }
 .frame-parameter label { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); }
-.frame-parameter input, .frame-parameter select { grid-column: 1 / -1; width: 100%; min-width: 0; box-sizing: border-box; padding: var(--space-2); background: var(--surface-control); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; }
+.frame-parameter input, .frame-parameter select, .condition-entry input:not([type="checkbox"]), .condition-entry select { grid-column: 1 / -1; width: 100%; min-width: 0; box-sizing: border-box; padding: var(--space-2); background: var(--surface-control); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; }
 .frame-conflict { margin-top: var(--space-2); color: var(--status-error); }
 .frame-draft-notice, .frame-issues { color: var(--status-warning); margin: var(--space-4); }
 .frame-proposal-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
@@ -638,3 +638,13 @@ button { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+/* T23 condition cards use the existing proposal panel and responsive controls. */
+.condition-entry { margin: 10px 0; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); min-width: 0; }
+.condition-entry > label { display: grid; gap: 4px; margin: 8px 0; }
+.condition-entry select, .condition-entry input { max-width: 100%; min-width: 0; }
+.condition-dofs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
+.condition-dofs label { display: flex; gap: 4px; align-items: center; }
+.condition-vectors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.condition-vectors label { display: grid; gap: 4px; }
+.condition-entry p { overflow-wrap: anywhere; }
+.frame-proposal-card fieldset { min-width: 0; margin: 10px 0; border: 1px solid var(--border-subtle); }

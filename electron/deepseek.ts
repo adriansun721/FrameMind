@@ -14,6 +14,8 @@ interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
 const modelTools = [
+  { type: "function", function: { name: "request_analysis", description: "Queue a local analysis only when the user explicitly requests computation of the applied model. Does not compute itself; unconfirmed changes still require stage confirmation.",
+    parameters: { type: "object", properties: {}, additionalProperties: false } } },
   { type: "function", function: { name: "discard_frame_proposal", description: "Discard the current unapplied frame proposal when the user rejects or cancels it. Never changes the applied model.",
     parameters: { type: "object", properties: {}, additionalProperties: false } } },
   { type: "function", function: { name: "read_model", description: "Read the applied model summary or a paginated collection. All values come from the current model snapshot.",
@@ -37,6 +39,18 @@ const modelTools = [
           source: { type: "string", enum: ["user", "suggestion"] }, replace: { type: "boolean", description: "Only true for an explicit user correction or clarification." },
         },
       }])) } }, required: ["parameters"], additionalProperties: false } } },
+  { type: "function", function: { name: "discard_analysis_conditions", description: "Discard unapplied support and nodal load conditions. Keeps confirmed work.",
+    parameters: { type: "object", properties: {}, additionalProperties: false } } },
+  { type: "function", function: { name: "propose_analysis_conditions", description: "Prepare a stage preview of supports and nodal forces/moments on applied stable node IDs. Omit unknown collections; empty arrays mean explicitly no changes. Does not apply or solve.",
+    parameters: { type: "object", additionalProperties: false, properties: { analysisSourceId: { type: "string", description: "Existing load case or combination to select and calculate after confirmation. When omitted, a single proposed nodal load case is selected; otherwise the current source is retained." }, ...Object.fromEntries(["supports", "nodalLoads"].map((key) => [key, {
+      type: "array", maxItems: 100, items: { type: "object", additionalProperties: false,
+        required: key === "supports" ? ["nodeId", "restraints", "source"] : ["nodeId", "loadCaseId", "force", "moment", "source"],
+        properties: { id: { type: "string", description: "Existing condition ID for updates; omit to create." }, nodeId: { type: "string" }, source: { type: "string", enum: ["user", "suggestion"] },
+          ...(key === "supports" ? { restraints: { type: "array", minItems: 6, maxItems: 6, items: { type: "boolean" }, description: "UX UY UZ RX RY RZ; true means restrained." } }
+            : { loadCaseId: { type: "string" }, ...Object.fromEntries(["force", "moment"].map((kind) => [kind, { type: "object", additionalProperties: false, required: ["x", "y", "z"], properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } }, description: kind === "force" ? "Global XYZ kN" : "Global XYZ kN*m right hand rule" }])) }),
+        },
+      },
+    }])) } } } },
 ];
 const MAX_CHAT_BYTES = 1_048_576;
 const MAX_TOOL_CALLS = 16;

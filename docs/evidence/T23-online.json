@@ -1,0 +1,2170 @@
+{
+  "date": "2026-10-02",
+  "model": "deepseek-flash",
+  "network": "real DeepSeek HTTPS; no fetch replacement",
+  "turns": [
+    {
+      "prompt": "建立两层空间钢刚架并计算：X向一跨6米，Y向一跨4米，两层层高均3米，原点(0,0,0)米；钢材S355JR，柱HEA200，梁IPE200，截面转角0度。底层z=0的四个节点UX/UY/UZ/RX/RY/RZ全部约束。只在顶层坐标(6,4,6)米的节点施加FX=5、FY=-2、FZ=-10 kN，MX=1、MY=2、MZ=-3 kN·m，归属默认工况。先生成建模卡片，按阶段等我确认，然后自动计算。",
+      "status": "等待确认 · 三维方案已生成，尚未应用",
+      "tools": [
+        {
+          "name": "准备建模方案 · 等待确认",
+          "input": {
+            "parameters": {
+              "storeys": {
+                "value": 2,
+                "source": "user"
+              },
+              "storeyHeights": {
+                "value": [
+                  3,
+                  3
+                ],
+                "source": "user"
+              },
+              "xSpans": {
+                "value": [
+                  6
+                ],
+                "source": "user"
+              },
+              "ySpans": {
+                "value": [
+                  4
+                ],
+                "source": "user"
+              },
+              "origin": {
+                "value": [
+                  0,
+                  0,
+                  0
+                ],
+                "source": "user"
+              },
+              "material": {
+                "value": "en10025-s355jr",
+                "source": "user"
+              },
+              "columnSection": {
+                "value": "arcelor-hea200",
+                "source": "user"
+              },
+              "beamSection": {
+                "value": "arcelor-ipe200",
+                "source": "user"
+              },
+              "rotationDegrees": {
+                "value": 0,
+                "source": "user"
+              }
+            }
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "message": "三维方案已生成，尚未应用",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 0,
+              "selection": []
+            },
+            "proposal": {
+              "id": "proposal_175c9dc2-eeb2-4886-ac75-acb429291c56",
+              "version": 1,
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "ySpans": {
+                  "value": [
+                    4
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              },
+              "changes": [
+                {
+                  "field": "storeys",
+                  "after": 2
+                },
+                {
+                  "field": "storeyHeights",
+                  "after": [
+                    3,
+                    3
+                  ]
+                },
+                {
+                  "field": "xSpans",
+                  "after": [
+                    6
+                  ]
+                },
+                {
+                  "field": "ySpans",
+                  "after": [
+                    4
+                  ]
+                },
+                {
+                  "field": "origin",
+                  "after": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "field": "material",
+                  "after": "en10025-s355jr"
+                },
+                {
+                  "field": "columnSection",
+                  "after": "arcelor-hea200"
+                },
+                {
+                  "field": "beamSection",
+                  "after": "arcelor-ipe200"
+                },
+                {
+                  "field": "rotationDegrees",
+                  "after": 0
+                }
+              ]
+            },
+            "data": {
+              "issues": [],
+              "counts": {
+                "nodes": 12,
+                "members": 16
+              },
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "ySpans": {
+                  "value": [
+                    4
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "确认应用建模阶段",
+      "status": "已应用 · 建模阶段已应用，可整组撤销和重做",
+      "tools": [
+        {
+          "name": "确认建模阶段 · 已应用",
+          "input": {
+            "proposalId": "proposal_175c9dc2-eeb2-4886-ac75-acb429291c56",
+            "proposalVersion": 1,
+            "baseRevision": 0
+          },
+          "output": {
+            "status": "applied",
+            "message": "建模阶段已应用，可整组撤销和重做",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "requestId": "confirm_7516135b-ac5c-4843-b506-9e7f876ae27b",
+              "proposalId": "proposal_175c9dc2-eeb2-4886-ac75-acb429291c56",
+              "proposalVersion": 1,
+              "baseRevision": 0,
+              "appliedRevision": 1,
+              "objects": {
+                "nodes": [
+                  {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0003",
+                    "label": "N3",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0004",
+                    "label": "N4",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0005",
+                    "label": "N5",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0006",
+                    "label": "N6",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0007",
+                    "label": "N7",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0008",
+                    "label": "N8",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0009",
+                    "label": "N9",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0010",
+                    "label": "N10",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0011",
+                    "label": "N11",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0012",
+                    "label": "N12",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 6
+                    }
+                  }
+                ],
+                "members": [
+                  {
+                    "id": "member_0001",
+                    "label": "M1",
+                    "startNodeId": "node_0001",
+                    "endNodeId": "node_0005",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0002",
+                    "label": "M2",
+                    "startNodeId": "node_0002",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0003",
+                    "label": "M3",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0004",
+                    "label": "M4",
+                    "startNodeId": "node_0003",
+                    "endNodeId": "node_0007",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0005",
+                    "label": "M5",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0007",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0006",
+                    "label": "M6",
+                    "startNodeId": "node_0004",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0007",
+                    "label": "M7",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0008",
+                    "label": "M8",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0008",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0009",
+                    "label": "M9",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0009",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0010",
+                    "label": "M10",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0010",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0011",
+                    "label": "M11",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0010",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0012",
+                    "label": "M12",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0011",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0013",
+                    "label": "M13",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0011",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0014",
+                    "label": "M14",
+                    "startNodeId": "node_0008",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0015",
+                    "label": "M15",
+                    "startNodeId": "node_0011",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  },
+                  {
+                    "id": "member_0016",
+                    "label": "M16",
+                    "startNodeId": "node_0010",
+                    "endNodeId": "node_0012",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0002",
+                    "rotationDegrees": 0
+                  }
+                ],
+                "materials": [
+                  {
+                    "id": "material_0001",
+                    "label": "M1",
+                    "name": "S355JR",
+                    "elasticModulusGPa": 210,
+                    "poissonRatio": 0.3,
+                    "densityKgM3": 7850,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "en10025-s355jr",
+                      "source": {
+                        "publisher": "European Committee for Standardization",
+                        "title": "EN 10025-2 Hot rolled products of structural steels",
+                        "edition": "EN 10025-2:2019",
+                        "url": "https://standards.iteh.ai/catalog/standards/cen/8f2a1a15-6f06-4f07-8b43-2c84b7c99f0b/en-10025-2-2019",
+                        "accessedOn": "2026-10-02",
+                        "units": "E in GPa; density in kg/m³; ν dimensionless"
+                      }
+                    }
+                  }
+                ],
+                "sections": [
+                  {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "HEA 200",
+                    "areaM2": 0.00538,
+                    "secondMomentYM4": 0.00003692,
+                    "secondMomentZM4": 0.00001335,
+                    "torsionalConstantM4": 2.104e-7,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-hea200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-02",
+                        "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                      }
+                    }
+                  },
+                  {
+                    "id": "section_0002",
+                    "label": "S2",
+                    "name": "IPE 200",
+                    "areaM2": 0.00285,
+                    "secondMomentYM4": 0.00001943,
+                    "secondMomentZM4": 0.000001423,
+                    "torsionalConstantM4": 6.915e-8,
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-ipe200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-02",
+                        "units": "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "原请求：建立两层空间钢刚架并计算：X向一跨6米，Y向一跨4米，两层层高均3米，原点(0,0,0)米；钢材S355JR，柱HEA200，梁IPE200，截面转角0度。底层z=0的四个节点UX/UY/UZ/RX/RY/RZ全部约束。只在顶层坐标(6,4,6)米的节点施加FX=5、FY=-2、FZ=-10 kN，MX=1、MY=2、MZ=-3 kN·m，归属默认工况。先生成建模卡片，按阶段等我确认，然后自动计算。。建模阶段已确认。请读取当前正式节点、支座、荷载和工况，用 propose_analysis_conditions 准备支座与节点荷载阶段；未知条件保留缺失或标明建议，不要再次创建框架。",
+      "status": "等待确认 · 支座与节点荷载预览已准备，尚未应用",
+      "tools": [
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "nodes",
+            "limit": 50
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "nodes",
+              "total": 12,
+              "items": [
+                {
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0002",
+                  "label": "N2",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0003",
+                  "label": "N3",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0004",
+                  "label": "N4",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 0
+                  }
+                },
+                {
+                  "id": "node_0005",
+                  "label": "N5",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0006",
+                  "label": "N6",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0007",
+                  "label": "N7",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0008",
+                  "label": "N8",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 3
+                  }
+                },
+                {
+                  "id": "node_0009",
+                  "label": "N9",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0011",
+                  "label": "N11",
+                  "position": {
+                    "x": 0,
+                    "y": 4,
+                    "z": 6
+                  }
+                },
+                {
+                  "id": "node_0012",
+                  "label": "N12",
+                  "position": {
+                    "x": 6,
+                    "y": 4,
+                    "z": 6
+                  }
+                }
+              ],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "supports",
+            "limit": 50
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "supports",
+              "total": 0,
+              "items": [],
+              "offset": 0,
+              "limit": 50
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "loads",
+            "limit": 50
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "loads",
+              "total": 0,
+              "items": [],
+              "offset": 0,
+              "limit": 50,
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "load-cases",
+            "limit": 50
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "collection": "load-cases",
+              "total": 1,
+              "items": [
+                {
+                  "id": "LC1",
+                  "name": "默认工况",
+                  "description": ""
+                }
+              ],
+              "offset": 0,
+              "limit": 50,
+              "combinations": [],
+              "activeLoadCaseId": "LC1"
+            }
+          }
+        },
+        {
+          "name": "读取模型 · 已完成",
+          "input": {
+            "collection": "summary"
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取已应用模型摘要",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "data": {
+              "counts": {
+                "nodes": 12,
+                "members": 16,
+                "materials": 1,
+                "sections": 2,
+                "supports": 0,
+                "loads": 0,
+                "loadCases": 1,
+                "loadCombinations": 0
+              },
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "activeLoadCaseId": "LC1",
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "准备分析条件 · 等待确认",
+          "input": {
+            "supports": [
+              {
+                "nodeId": "node_0001",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0002",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0003",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0004",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              }
+            ],
+            "nodalLoads": [
+              {
+                "nodeId": "node_0012",
+                "loadCaseId": "LC1",
+                "force": {
+                  "x": 5,
+                  "y": -2,
+                  "z": -10
+                },
+                "moment": {
+                  "x": 1,
+                  "y": 2,
+                  "z": -3
+                },
+                "source": "user"
+              }
+            ],
+            "analysisSourceId": "LC1"
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "message": "支座与节点荷载预览已准备，尚未应用",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": []
+            },
+            "conditions": {
+              "id": "conditions_83d0a6c8-c021-47d7-ba49-fed8350dd474",
+              "version": 1,
+              "analysisSourceId": "LC1",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0012",
+                  "source": "user",
+                  "loadCaseId": "LC1",
+                  "force": {
+                    "x": 5,
+                    "y": -2,
+                    "z": -10
+                  },
+                  "moment": {
+                    "x": 1,
+                    "y": 2,
+                    "z": -3
+                  }
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "issues": [],
+              "analysisSourceId": "LC1",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0012",
+                  "source": "user",
+                  "loadCaseId": "LC1",
+                  "force": {
+                    "x": 5,
+                    "y": -2,
+                    "z": -10
+                  },
+                  "moment": {
+                    "x": 1,
+                    "y": 2,
+                    "z": -3
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "确认应用分析条件阶段",
+      "status": "已应用 · 分析条件阶段已应用，可整组撤销和重做",
+      "tools": [
+        {
+          "name": "确认分析条件阶段 · 已应用",
+          "input": {
+            "proposalId": "conditions_83d0a6c8-c021-47d7-ba49-fed8350dd474",
+            "proposalVersion": 1,
+            "baseRevision": 1
+          },
+          "output": {
+            "status": "applied",
+            "message": "分析条件阶段已应用，可整组撤销和重做",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 2,
+              "selection": []
+            },
+            "data": {
+              "requestId": "confirm_0a58701f-32f6-49c2-afae-eb34ad3304a6",
+              "proposalId": "conditions_83d0a6c8-c021-47d7-ba49-fed8350dd474",
+              "proposalVersion": 1,
+              "baseRevision": 1,
+              "appliedRevision": 2,
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "analysisSourceId": "LC1",
+              "supports": [
+                {
+                  "id": "support_0001",
+                  "label": "B1",
+                  "nodeId": "node_0001",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0002",
+                  "label": "B2",
+                  "nodeId": "node_0002",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0003",
+                  "label": "B3",
+                  "nodeId": "node_0003",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "id": "support_0004",
+                  "label": "B4",
+                  "nodeId": "node_0004",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "id": "load_0001",
+                  "label": "L1",
+                  "nodeId": "node_0012",
+                  "loadCaseId": "LC1",
+                  "force": {
+                    "x": 5,
+                    "y": -2,
+                    "z": -10
+                  },
+                  "moment": {
+                    "x": 1,
+                    "y": 2,
+                    "z": -3
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "继续已请求的本地分析",
+      "status": "已完成 · 本地分析完成 · 12 个节点、16 根杆件，已展示结果",
+      "tools": [
+        {
+          "name": "本地空间刚架分析 · 已完成",
+          "input": {
+            "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+            "modelRevision": 2
+          },
+          "output": {
+            "status": "completed",
+            "message": "本地分析完成 · 12 个节点、16 根杆件，已展示结果",
+            "context": {
+              "projectId": "project_32deec26-f765-4508-83f0-6683dca1c113",
+              "projectName": "未命名项目",
+              "modelRevision": 2,
+              "selection": []
+            },
+            "data": {
+              "analysisId": "analysis_bd942ec7-f95b-4a61-b0fa-fd42083eff9f",
+              "modelRevision": 2,
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "loadCase": {
+                "id": "LC1",
+                "name": "默认工况",
+                "description": ""
+              },
+              "nodes": [
+                {
+                  "nodeId": "node_0001",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -0.035761755772868525,
+                    "y": -0.2731801806414342,
+                    "z": -0.4186183903812642
+                  },
+                  "reactionMoment": {
+                    "x": 0.6119075067031544,
+                    "y": -0.05359369934662707,
+                    "z": 0.004193861617638186
+                  }
+                },
+                {
+                  "nodeId": "node_0002",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -0.03661871619488713,
+                    "y": 1.225795099619876,
+                    "z": 2.4822465783788763
+                  },
+                  "reactionMoment": {
+                    "x": -2.9385390218281002,
+                    "y": -0.0544244443699467,
+                    "z": 0.0036192794182765393
+                  }
+                },
+                {
+                  "nodeId": "node_0003",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -2.386094250708767,
+                    "y": -0.27239243350496684,
+                    "z": -3.2102014219511568
+                  },
+                  "reactionMoment": {
+                    "x": 0.6111530463983216,
+                    "y": -4.983004407575464,
+                    "z": 0.0036976050170968258
+                  }
+                },
+                {
+                  "nodeId": "node_0004",
+                  "displacement": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "reaction": {
+                    "x": -2.5415252773231547,
+                    "y": 1.3197775145264186,
+                    "z": 11.146573233953541
+                  },
+                  "reactionMoment": {
+                    "x": -3.030008779282285,
+                    "y": -5.136058574711544,
+                    "z": 0.004575456940022726
+                  }
+                },
+                {
+                  "nodeId": "node_0005",
+                  "displacement": {
+                    "x": 0.00002862270236558354,
+                    "y": 0.00019659920642802224,
+                    "z": 0.000001111572996232778
+                  },
+                  "rotation": {
+                    "x": -0.0000782143769312039,
+                    "y": -5.2364165517089065e-8,
+                    "z": -0.0007403612307074474
+                  },
+                  "reaction": {
+                    "x": 1.4224732503009818e-16,
+                    "y": -2.886579864025407e-15,
+                    "z": 0
+                  },
+                  "reactionMoment": {
+                    "x": 3.885780586188048e-16,
+                    "y": 3.469446951953614e-18,
+                    "z": -1.9081958235744878e-17
+                  }
+                },
+                {
+                  "nodeId": "node_0006",
+                  "displacement": {
+                    "x": 0.00002858062307393189,
+                    "y": -0.0009940860096395055,
+                    "z": -0.00000659120174821794
+                  },
+                  "rotation": {
+                    "x": 0.00042557126311650186,
+                    "y": -5.389298259860853e-7,
+                    "z": -0.0006389276539597367
+                  },
+                  "reaction": {
+                    "x": -3.2612801348363973e-16,
+                    "y": -1.4432899320127035e-14,
+                    "z": 0
+                  },
+                  "reactionMoment": {
+                    "x": 6.661338147750939e-16,
+                    "y": 0,
+                    "z": -1.3010426069826053e-18
+                  }
+                },
+                {
+                  "nodeId": "node_0007",
+                  "displacement": {
+                    "x": 0.004168395115355854,
+                    "y": 0.00019661852628851268,
+                    "z": 0.000008524167344533077
+                  },
+                  "rotation": {
+                    "x": -0.00007837966109769051,
+                    "y": 0.0015022611359147284,
+                    "z": -0.0006527548237677721
+                  },
+                  "reaction": {
+                    "x": -7.593925488436071e-14,
+                    "y": 3.608224830031759e-15,
+                    "z": 0
+                  },
+                  "reactionMoment": {
+                    "x": -1.1102230246251565e-16,
+                    "y": 2.220446049250313e-15,
+                    "z": -1.5585406229479126e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0008",
+                  "displacement": {
+                    "x": 0.004164579931602553,
+                    "y": -0.000992627649409457,
+                    "z": -0.00002959791087082725
+                  },
+                  "rotation": {
+                    "x": 0.0004064163858120484,
+                    "y": 0.0014165550120137113,
+                    "z": -0.0008077259671414372
+                  },
+                  "reaction": {
+                    "x": 8.126832540256146e-14,
+                    "y": 3.1530333899354446e-14,
+                    "z": 0
+                  },
+                  "reactionMoment": {
+                    "x": -8.881784197001252e-16,
+                    "y": -3.9968028886505635e-15,
+                    "z": 5.551115123125783e-17
+                  }
+                },
+                {
+                  "nodeId": "node_0009",
+                  "displacement": {
+                    "x": -0.000013303913027406963,
+                    "y": 0.00046714685457552383,
+                    "z": 0.0000015775555874882356
+                  },
+                  "rotation": {
+                    "x": -0.00005932427804088869,
+                    "y": -0.000008700989872334541,
+                    "z": -0.0026638050895465976
+                  },
+                  "reaction": {
+                    "x": 2.3418766925686896e-16,
+                    "y": 4.263256414560601e-14,
+                    "z": -1.3877787807814457e-16
+                  },
+                  "reactionMoment": {
+                    "x": 1.7486012637846216e-15,
+                    "y": 4.466912950640278e-17,
+                    "z": -6.071532165918825e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0010",
+                  "displacement": {
+                    "x": -0.000016340135639160056,
+                    "y": -0.0025420582469852884,
+                    "z": -0.000009761033533760733
+                  },
+                  "rotation": {
+                    "x": 0.0003365073254133627,
+                    "y": -0.000009500534620426543,
+                    "z": 0.0005114372362434018
+                  },
+                  "reaction": {
+                    "x": 8.881784197001252e-16,
+                    "y": 2.8421709430404007e-13,
+                    "z": 1.1102230246251565e-16
+                  },
+                  "reactionMoment": {
+                    "x": 4.440892098500626e-16,
+                    "y": 3.0010716134398763e-16,
+                    "z": 6.661338147750939e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0011",
+                  "displacement": {
+                    "x": 0.010234573528021863,
+                    "y": 0.0004682437331838494,
+                    "z": 0.0000124518882339761
+                  },
+                  "rotation": {
+                    "x": -0.000059698201430153444,
+                    "y": 0.0010209918137284747,
+                    "z": -0.00007766278187141378
+                  },
+                  "reaction": {
+                    "x": -4.547473508864641e-13,
+                    "y": 1.3378187446733136e-14,
+                    "z": 0
+                  },
+                  "reactionMoment": {
+                    "x": -4.204536024898786e-16,
+                    "y": 2.886579864025407e-15,
+                    "z": -2.220446049250313e-16
+                  }
+                },
+                {
+                  "nodeId": "node_0012",
+                  "displacement": {
+                    "x": 0.010265746271888915,
+                    "y": -0.0025509994885177614,
+                    "z": -0.000057375154844262275
+                  },
+                  "rotation": {
+                    "x": 0.0004296320174435599,
+                    "y": 0.0014574223817298557,
+                    "z": -0.008687166487401513
+                  },
+                  "reaction": {
+                    "x": 2.9976021664879227e-14,
+                    "y": -1.251776460264864e-13,
+                    "z": -2.220446049250313e-15
+                  },
+                  "reactionMoment": {
+                    "x": -3.552713678800501e-15,
+                    "y": 3.552713678800501e-15,
+                    "z": -8.881784197001252e-16
+                  }
+                }
+              ],
+              "members": [
+                {
+                  "memberId": "member_0001",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.4186183903812642,
+                      -0.035761755772868525,
+                      -0.2731801806414342,
+                      0.004193861617638186,
+                      0.6119075067031544,
+                      -0.05359369934662707
+                    ],
+                    "end": [
+                      0.4186183903812642,
+                      0.035761755772868525,
+                      0.2731801806414342,
+                      -0.004193861617638186,
+                      0.20763303522114773,
+                      -0.05369156797197851
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0002",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      2.4822465783788763,
+                      -0.03661871619488713,
+                      1.225795099619876,
+                      0.0036192794182765393,
+                      -2.9385390218281002,
+                      -0.0544244443699467
+                    ],
+                    "end": [
+                      -2.4822465783788763,
+                      0.03661871619488713,
+                      -1.225795099619876,
+                      -0.0036192794182765393,
+                      -0.7388462770315254,
+                      -0.05543170421471469
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0003",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      0.004197409342252101,
+                      -0.04892812383876803,
+                      0.0021482001339096376,
+                      -0.0004689566135867153,
+                      -0.006113711424326971,
+                      -0.1518362708062238
+                    ],
+                    "end": [
+                      -0.004197409342252101,
+                      0.04892812383876803,
+                      -0.0021482001339096376,
+                      0.0004689566135867153,
+                      -0.006775489379130853,
+                      -0.14173247222638435
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0004",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -3.2102014219511568,
+                      -2.386094250708767,
+                      -0.27239243350496684,
+                      0.0036976050170968258,
+                      0.6111530463983216,
+                      -4.983004407575464
+                    ],
+                    "end": [
+                      3.2102014219511568,
+                      2.386094250708767,
+                      0.27239243350496684,
+                      -0.0036976050170968258,
+                      0.20602425411657888,
+                      -2.1752783445508364
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0005",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.0028907341258808117,
+                      0.07583970919804178,
+                      -0.2452775466483685,
+                      -0.0020976774510976237,
+                      0.49038649105060816,
+                      0.1451345627496378
+                    ],
+                    "end": [
+                      0.0028907341258808117,
+                      -0.07583970919804178,
+                      0.2452775466483685,
+                      0.0020976774510976237,
+                      0.4907236955428658,
+                      0.15822427404252942
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0006",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      11.146573233953541,
+                      -2.5415252773231547,
+                      1.3197775145264186,
+                      0.004575456940022726,
+                      -3.030008779282285,
+                      -5.136058574711544
+                    ],
+                    "end": [
+                      -11.146573233953541,
+                      2.5415252773231547,
+                      -1.3197775145264186,
+                      -0.004575456940022726,
+                      -0.929323764296969,
+                      -2.488517257257918
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0007",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      0.38056457939177335,
+                      -0.052995777197687374,
+                      -1.9762992816352836,
+                      -0.00045127985866665217,
+                      5.987182294464737,
+                      -0.15126899379733671
+                    ],
+                    "end": [
+                      -0.38056457939177335,
+                      0.052995777197687374,
+                      1.9762992816352836,
+                      0.00045127985866665217,
+                      5.870613395346964,
+                      -0.1667056693887875
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0008",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.21820714942100494,
+                      0.06962881315880254,
+                      1.2906361280773706,
+                      -0.001978685545810112,
+                      -2.6008116676210817,
+                      0.151868126299627
+                    ],
+                    "end": [
+                      0.21820714942100494,
+                      -0.06962881315880254,
+                      -1.2906361280773706,
+                      0.001978685545810112,
+                      -2.5617328446884007,
+                      0.12664712633558323
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0009",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.17548904386680536,
+                      0.03588054408292146,
+                      -0.22136132267678543,
+                      0.010895569674224233,
+                      0.2832224124430475,
+                      0.061902956847403115
+                    ],
+                    "end": [
+                      0.17548904386680536,
+                      -0.03588054408292146,
+                      0.22136132267678543,
+                      -0.010895569674224233,
+                      0.38086155558730883,
+                      0.04573867540136129
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0010",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      1.1937586504354156,
+                      0.03720750630616737,
+                      1.3950741252020913,
+                      -0.006516374654966086,
+                      -1.8624343472031424,
+                      0.06418587913965566
+                    ],
+                    "end": [
+                      -1.1937586504354156,
+                      -0.03720750630616737,
+                      -1.3950741252020913,
+                      0.006516374654966086,
+                      -2.3227880284031284,
+                      0.04743663977884644
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0011",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      0.302863205522371,
+                      -0.057240860906020236,
+                      0.01494821590860396,
+                      -0.0003684659377923661,
+                      -0.04430091731987192,
+                      -0.3298655267540317
+                    ],
+                    "end": [
+                      -0.302863205522371,
+                      0.057240860906020236,
+                      -0.01494821590860396,
+                      0.0003684659377923661,
+                      -0.04538837813175185,
+                      -0.01357963868208982
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0012",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -1.4791796869642426,
+                      -2.8424985392987003,
+                      -0.22228739043315765,
+                      -0.0032576752280959864,
+                      0.28515072128495345,
+                      -3.8140016273649944
+                    ],
+                    "end": [
+                      1.4791796869642426,
+                      2.8424985392987003,
+                      0.22228739043315765,
+                      0.0032576752280959864,
+                      0.3817114500145189,
+                      -4.713493990531103
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0013",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -0.1641204617707075,
+                      0.2669826614394496,
+                      -0.19043725977540954,
+                      -0.0014377580814893415,
+                      0.3804930896495148,
+                      0.3407610964282554
+                    ],
+                    "end": [
+                      0.1641204617707075,
+                      -0.2669826614394496,
+                      0.19043725977540954,
+                      0.0014377580814893415,
+                      0.38125594945212327,
+                      0.727169549329543
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0014",
+                  "length": 3,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "y": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      10.460910080395633,
+                      -2.230589511090081,
+                      1.0485745879077473,
+                      0.04463399999322707,
+                      -1.6328603602500982,
+                      -3.3840748236348586
+                    ],
+                    "end": [
+                      -10.460910080395633,
+                      2.230589511090081,
+                      -1.0485745879077473,
+                      -0.04463399999322707,
+                      -1.5128634034731423,
+                      -3.3076937096353847
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0015",
+                  "length": 6,
+                  "localAxes": {
+                    "x": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      -3.1094812007385144,
+                      -0.3864078522038552,
+                      -1.6696169467396522,
+                      -0.0004555005623958095,
+                      4.712056232449617,
+                      -0.7304272245576391
+                    ],
+                    "end": [
+                      3.1094812007385144,
+                      0.3864078522038552,
+                      1.6696169467396522,
+                      0.0004555005623958095,
+                      5.3056454479882955,
+                      -1.5880198886654924
+                    ]
+                  }
+                },
+                {
+                  "memberId": "member_0016",
+                  "length": 4,
+                  "localAxes": {
+                    "x": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "y": {
+                      "x": -1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "z": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    }
+                  },
+                  "localEndForces": {
+                    "start": [
+                      1.3378332642962505,
+                      -0.3400707118285391,
+                      1.2087068663440204,
+                      -0.0020482616470942905,
+                      -2.3224195624653374,
+                      0.007063264027124427
+                    ],
+                    "end": [
+                      -1.3378332642962505,
+                      0.3400707118285391,
+                      -1.2087068663440204,
+                      0.0020482616470942905,
+                      -2.512407902910744,
+                      -1.3673461113412804
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "verified": {
+    "previewIsolation": true,
+    "stableReferences": true,
+    "sixDirections": true,
+    "twoConfirmations": true,
+    "automaticLocalSolve": true,
+    "analysisId": "analysis_bd942ec7-f95b-4a61-b0fa-fd42083eff9f"
+  }
+}

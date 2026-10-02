@@ -1,6 +1,7 @@
 import type { FrameProject } from "../domain/project";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { buildFramePreview, proposeFrame, type FrameProposal } from "./frame-proposal";
+import { conditionsIssues, proposeConditions, type ConditionsProposal } from "./analysis-conditions";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -11,7 +12,7 @@ export interface AiContext {
   selection: readonly AiSelectedObject[];
 }
 export type AiStatus = "completed" | "applied" | "missing-input" | "awaiting-confirmation" | "failed" | "cancelled";
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; proposal?: FrameProposal | null; }
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; analysisRequested?: boolean; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
@@ -92,12 +93,31 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal): AiToolResult {
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (call.function.name === "request_analysis") {
+      exactFields(input, []);
+      return { status: "completed", message: "已准备本地分析请求，等待应用核对用户请求及未确认阶段；本工具尚未计算", context: snapshot.context, analysisRequested: true };
+    }
+    if (call.function.name === "discard_analysis_conditions") {
+      exactFields(input, []);
+      return { status: "completed", message: "分析条件方案已拒绝，已确认模型保留", context: snapshot.context, conditions: null };
+    }
+    if (call.function.name === "propose_analysis_conditions") {
+      const conditions = proposeConditions(input, previousConditions);
+      if (input.analysisSourceId === undefined && !previousConditions?.analysisSourceId) {
+        const cases = new Set(conditions.nodalLoads?.map((load) => load.loadCaseId));
+        // A single proposed load case is the natural continuation source, even if it is not currently active.
+        conditions.analysisSourceId = cases.size === 1 ? [...cases][0] : snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
+      }
+      const issues = conditionsIssues(snapshot.model, conditions);
+      return { status: issues.length ? "missing-input" : "awaiting-confirmation", message: issues.length ? "分析条件草稿需要补齐或修正" : "支座与节点荷载预览已准备，尚未应用",
+        context: snapshot.context, conditions, data: { units: snapshot.model.units, issues, analysisSourceId: conditions.analysisSourceId, supports: conditions.supports, nodalLoads: conditions.nodalLoads } };
+    }
     if (call.function.name === "discard_frame_proposal") {
       exactFields(input, []);
       return { status: "completed", message: "建模方案已拒绝，正式模型保持可用", context: snapshot.context, proposal: null };

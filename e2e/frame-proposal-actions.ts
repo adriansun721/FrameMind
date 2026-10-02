@@ -49,7 +49,10 @@ export async function send(page: Page, prompt: string) {
 }
 export async function save(page: Page, path: string) {
   await page.keyboard.press("Control+s");
-  await expect(page.getByRole("status")).toContainText("已保存");
+  await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+  // The previous save feedback can remain visible while a newer atomic write is in flight.
+  // Wait for the public dirty marker to clear before reading the newly saved project.
+  await expect(page.getByLabel("未保存修改", { exact: true })).toHaveCount(0);
   // A repeated save may retain the prior feedback while the atomic file replacement is still in flight.
   let saved = "";
   await expect.poll(async () => {

@@ -11,6 +11,8 @@ import { AnalysisProcess } from "./components/AnalysisProcess";
 import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
 import { AiConversationPanel } from "./components/AiConversationPanel";
 import type { AiObjectRef } from "./workspace/ai-tools";
+import { captureAiSnapshot, type AiToolResult } from "./workspace/ai-tools";
+import { ConditionsStageConfirmation } from "./workspace/analysis-conditions";
 import type { FramePreview } from "./workspace/frame-proposal";
 import { FrameStageConfirmation } from "./workspace/frame-confirmation";
 import { calculateMemberGeometry } from "./domain/member-geometry";
@@ -81,6 +83,7 @@ export function App() {
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
+  const conditionsConfirmationRef = useRef(new ConditionsStageConfirmation());
   const [historyVersion, setHistoryVersion] = useState(0);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(() => new Set());
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(() => new Set());
@@ -156,16 +159,17 @@ export function App() {
     return start && end ? calculateMemberGeometry(start.position, end.position, selectedMember.rotationDegrees) : null;
   }, [project.nodes, selectedMember]);
 
-  const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record") => {
+  const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record", preserveConversation = false) => {
     const previous = activeProjectRef.current;
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
+      conditionsConfirmationRef.current = new ConditionsStageConfirmation();
     }
     if (historyMode === "record") projectHistoryRef.current.record(previous, next);
     setHistoryVersion((value) => value + 1);
     if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId) {
-      activeSessionRef.current += 1;
+      if (newSession || !preserveConversation) activeSessionRef.current += 1;
       setAnalysisFailure(null);
       const activeAnalysis = analysisTaskRef.current;
       if (activeAnalysis) {
@@ -311,14 +315,16 @@ export function App() {
     }
   };
 
-  const runAnalysis = () => {
-    if (analysisTaskRef.current) return;
-    const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
+  const runAnalysis = async (showResults = false): Promise<AiToolResult> => {
+    const source = activeProjectRef.current;
+    const context = captureAiSnapshot(source, []).context;
+    if (analysisTaskRef.current) return { status: "failed", message: "已有本地分析正在执行", context };
+    const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
     const runId = ++analysisRunRef.current;
     setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已启动，正在检查模型" });
     let task: AnalysisTask;
     try {
-      const inputProject = captureAnalysisInput(project);
+      const inputProject = captureAnalysisInput(source);
       task = startAnalysisTask(inputProject, {
         onPhase: (phase) => {
           if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
@@ -327,16 +333,21 @@ export function App() {
       });
     } catch (error) {
       setAnalysisBusy(false); setAnalysisPhase(null); setStatus({ tone: "error", text: error instanceof Error ? error.message : "无法启动分析任务" });
-      return;
+      return { status: "failed", message: error instanceof Error ? error.message : "无法启动分析任务", context };
     }
     analysisTaskRef.current = { id: runId, checkpoint, task };
-    void task.promise.then((result) => {
-      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
+    return task.promise.then((result): AiToolResult => {
+      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
       const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
-    }).catch((error) => {
-      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") || error instanceof AnalysisCancelledError) return;
+      if (showResults) { setResultView("deformation"); setDataTableOpen(true); }
+      return { status: "completed", message: `本地分析完成 · ${result.nodes.length} 个节点、${result.members.length} 根杆件，已展示结果`, context,
+        data: { analysisId: result.id, modelRevision: checkpoint.revision, units: source.units, loadCase: result.input.loadCase, nodes: result.nodes, members: result.members } };
+    }).catch((error): AiToolResult => {
+      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") || error instanceof AnalysisCancelledError) return { status: "cancelled", message: "本地分析已取消，已确认模型和已有结果保留；可继续计算或修改条件后再次确认", context };
       if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
       else setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" });
+      return { status: "failed", message: `${error instanceof Error ? error.message : "分析失败"}。已确认模型保留；请检查诊断并准备新的条件阶段或继续计算`, context,
+        data: error instanceof AnalysisFailure ? { stage: error.stage, diagnostics: error.diagnostics } : undefined };
     }).finally(() => {
       if (runId !== analysisRunRef.current) return;
       analysisTaskRef.current = null; setAnalysisBusy(false); setAnalysisPhase(null);
@@ -459,7 +470,7 @@ export function App() {
         <button className="tool-button" aria-label="创建荷载" title={activeCombination ? "选择工况后创建荷载" : "创建节点集中力和力矩"} disabled={!!activeCombination} onClick={openLoadDialog}><Plus size={15} />荷载</button>
         <button className="tool-button" aria-label="创建均布荷载" title={activeCombination ? "选择工况后创建荷载" : "整根杆件均布力 · kN/m"} disabled={!!activeCombination || project.members.length === 0} onClick={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}><ArrowDownToLine size={15} />均布荷载</button>
         <button className={`tool-button ${!activeCombination && caseSelfWeightEnabled ? "active" : ""}`} aria-label="设置自重" aria-pressed={!activeCombination && caseSelfWeightEnabled} title={activeCombination ? "选择工况后设置自重" : `设置结构自重 · ${project.selfWeight.loadCaseId}`} disabled={!!activeCombination} onClick={openSelfWeightDialog}><Weight size={15} />自重</button>
-        {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={runAnalysis}><Calculator size={15} />计算</button>}
+        {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={() => void runAnalysis()}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
         <button className={`tool-button icon-only ${dataTableOpen ? "active" : ""}`} aria-label="数据表" aria-pressed={dataTableOpen} title="数据表" onClick={() => setDataTableOpen((open) => !open)}><Table2 size={15} /></button>
         <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canUndo} aria-label={projectHistoryRef.current.canUndo ? "撤销" : "撤销（尚未实现）"} title="撤销（Ctrl+Z）" onClick={() => restoreHistory("undo")}><Undo2 size={15} /></button>
@@ -581,6 +592,15 @@ export function App() {
       </section>
 
       <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+        analysisBusy={analysisBusy} onAnalyze={() => runAnalysis(true)} onCancelAnalysis={cancelAnalysis}
+        onConditionsConfirm={(confirmation) => {
+          const current = activeProjectRef.current;
+          const outcome = conditionsConfirmationRef.current.confirm(current, confirmation);
+          // This reviewed source selection belongs to the same confirmed task and must keep its continuation.
+          if (outcome.project !== current) activateProject(outcome.project, false, "record", true);
+          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
+          return outcome.result;
+        }}
         onConfirm={(confirmation) => {
           const current = activeProjectRef.current;
           const outcome = frameConfirmationRef.current.confirm(current, confirmation);
