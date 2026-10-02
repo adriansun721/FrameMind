@@ -6,9 +6,9 @@ T16 完整工作台：左侧可折叠项目树、模型右缘可独立收起的�
 
 ## 本地运行
 
-T19 已实现 DeepSeek 连接设置：填写、更新和移除本机 API Key，保存后测试连接。默认使用 DeepSeek-V4.1-Flash（官方请求标识 `deepseek-flash`），凭据通过 Windows DPAPI 加密，独立于项目文件。认证、限流、超时和网络失败提供脱敏反馈，不影响本地编辑与求解。真实在线验收待用户自备凭据，记录见 [T19 验收记录](docs/evidence/T19-validation.md)。
+T19 已实现 DeepSeek 连接设置：填写、更新和移除本机 API Key，保存后测试连接。默认使用 DeepSeek-V4.1-Flash（官方请求标识 `deepseek-flash`），凭据通过 Windows DPAPI 加密，独立于项目文件。认证、限流、超时和网络失败提供脱敏反馈，不影响本地编辑与求解。真实连接已使用用户配置的凭据验证成功，记录见 [T19 验收记录](docs/evidence/T19-validation.md)。
 
-T20 已实现只读 AI 对话：选中节点、杆件或混合对象组后，使用稳定 ID 读取当前已应用模型，展示工具输入、输出、执行状态和错误原因。模型草稿不进入读取；取消、模型或选择变化使旧请求失效，未知工具和脚本不会执行，修改请求保持未应用。对话保留在当前会话中，不随项目保存。按用户选择，先完成离线验收，真实 DeepSeek 对话延后配置 Key 再验证。见 [T20 验收记录](docs/evidence/T20-validation.md)。
+T20 已实现只读 AI 对话：选中节点、杆件或混合对象组后，使用稳定 ID 读取当前已应用模型，展示工具输入、输出、执行状态和错误原因。模型草稿不进入读取；取消、模型或选择变化使旧请求失效，未知工具和脚本不会执行，修改请求保持未应用。对话保留在当前会话中，不随项目保存。固定回放与三次真实 DeepSeek 工具对话均通过，见 [T20 验收记录](docs/evidence/T20-validation.md)。
 
 ```powershell
 npm install
@@ -22,6 +22,8 @@ npm run typecheck
 npm test
 npm run test:e2e
 ```
+
+配置真实 Key 后，可运行 `npm run evidence:t20:online` 重验连接、选中节点/杆件及提交修改后的重新读取。该命令会产生 DeepSeek API 用量；使用临时目录和本机加密配置，证据只保存示例模型、工具输出和回复。
 
 项目文件使用 `.framemind` 扩展名和带版本号的 UTF-8 JSON 格式。架构及兼容规则见 `docs/decisions/`。
 

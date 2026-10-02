@@ -68,6 +68,23 @@ test("malformed, injected and excessive chat inputs fail before a network reques
   expect(fetcher).not.toHaveBeenCalled();
 });
 
+test("DeepSeek indexed tool responses are normalized before replay while IPC input stays strict", async () => {
+  const call = { id: "call-selected", type: "function", function: { name: "read_selection", arguments: "{}" } };
+  const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ choices: [{ message: {
+    role: "assistant", content: "Reading the selected object.", tool_calls: [{ ...call, index: 0 }],
+  } }] })));
+  const connection = await setup(fetcher);
+  const user = { role: "user", content: "Read the selection." };
+  const response = await connection.chat({ requestId: "request-1", messages: [user] });
+  expect(response).toMatchObject({ status: "success", assistant: { tool_calls: [call] } });
+  expect(response.assistant!.tool_calls![0]).not.toHaveProperty("index");
+  expect((await connection.chat({ requestId: "request-2", messages: [user,
+    { role: "assistant", content: null, tool_calls: [{ ...call, index: 0 }] },
+    { role: "tool", tool_call_id: call.id, content: "{}" },
+  ] })).status).toBe("invalid-input");
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
 test.each([
   "not json", "null", "{}",
   JSON.stringify({ choices: [{ message: { role: "assistant", content: "" } }] }),

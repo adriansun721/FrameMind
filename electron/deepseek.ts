@@ -38,8 +38,10 @@ function hasOnlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
 function isIdentifier(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9_.:-]{1,128}$/.test(value);
 }
-function parseToolCall(value: unknown): DeepSeekToolCall | null {
-  if (!isRecord(value) || !hasOnlyKeys(value, ["id", "type", "function"]) || !isIdentifier(value.id)
+function parseToolCall(value: unknown, allowResponseIndex: boolean): DeepSeekToolCall | null {
+  if (!isRecord(value) || !hasOnlyKeys(value, allowResponseIndex ? ["id", "type", "function", "index"] : ["id", "type", "function"])
+    || allowResponseIndex && value.index !== undefined && (typeof value.index !== "number" || !Number.isSafeInteger(value.index) || value.index < 0)
+    || !isIdentifier(value.id)
     || value.type !== "function" || !isRecord(value.function) || !hasOnlyKeys(value.function, ["name", "arguments"])
     || typeof value.function.name !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(value.function.name)
     || typeof value.function.arguments !== "string" || Buffer.byteLength(value.function.arguments) > 16_384) return null;
@@ -51,7 +53,8 @@ function parseAssistant(value: unknown, strictKeys = false): DeepSeekAssistantMe
   let toolCalls: DeepSeekToolCall[] | undefined;
   if (value.tool_calls !== undefined && value.tool_calls !== null) {
     if (!Array.isArray(value.tool_calls) || value.tool_calls.length === 0 || value.tool_calls.length > MAX_TOOL_CALLS) return null;
-    const parsed = value.tool_calls.map(parseToolCall);
+    // DeepSeek may attach index metadata even to non-streaming tool calls; omit it from replay.
+    const parsed = value.tool_calls.map((call) => parseToolCall(call, !strictKeys));
     if (parsed.some((call) => !call) || new Set(parsed.map((call) => call!.id)).size !== parsed.length) return null;
     toolCalls = parsed as DeepSeekToolCall[];
   }

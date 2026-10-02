@@ -1,0 +1,467 @@
+{
+  "date": "2026-10-02",
+  "baseline": "78145f9 + response-index normalization",
+  "model": "deepseek-flash",
+  "platform": "win32",
+  "network": "real DeepSeek HTTPS; no replay or fetch replacement",
+  "connection": {
+    "status": "success",
+    "message": "连接成功"
+  },
+  "conversations": [
+    {
+      "prompt": "请调用 read_selection 读取这个节点，回复它的稳定 ID 和真实三维坐标（m），不要猜测或修改模型。",
+      "context": {
+        "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+        "projectName": "未命名项目",
+        "modelRevision": 5,
+        "selection": [
+          {
+            "kind": "node",
+            "id": "node_0001",
+            "label": "N1",
+            "exists": true
+          }
+        ]
+      },
+      "status": "已完成 · 已根据当前已应用模型完成回复",
+      "assistant": "已读取当前选中的节点（模型快照 revision 5，未做任何修改）：\n\n| 项目 | 值 |\n|---|---|\n| 稳定 ID | `node_0001` |\n| 标签 | N1 |\n| 存在性 | exists: true |\n| 坐标 X | 1.25 m |\n| 坐标 Y | -2 m |\n| 坐标 Z | 3.5 m |\n\n即该节点真实三维坐标为 **(1.25, −2, 3.5) m**（长度单位 m，来自模型已应用数据的单位声明）。\n\n说明：以上数值来自 read_selection / read_objects 返回的模型数据，未作猜测或改动。如需查看该节点关联的构件或其他集合（members、supports、loads 等），可继续告诉我。",
+      "tools": [
+        {
+          "label": "读取选中对象 · 已完成",
+          "input": {},
+          "output": {
+            "status": "completed",
+            "message": "已读取对象及其已应用参数",
+            "context": {
+              "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "selection": [
+                {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "exists": true
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "objects": [
+                {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 1.25,
+                    "y": -2,
+                    "z": 3.5
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "读取指定对象 · 已完成",
+          "input": {
+            "objects": [
+              {
+                "kind": "node",
+                "id": "node_0001"
+              }
+            ]
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取对象及其已应用参数",
+            "context": {
+              "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "selection": [
+                {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "exists": true
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "objects": [
+                {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 1.25,
+                    "y": -2,
+                    "z": 3.5
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "请调用 read_selection 读取这根梁，回复稳定 ID、两端节点 ID、长度（m）、截面转角（度）、材料弹性模量（GPa）和截面面积（m²）。所有数值必须来自工具，不修改模型。",
+      "context": {
+        "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+        "projectName": "未命名项目",
+        "modelRevision": 5,
+        "selection": [
+          {
+            "kind": "member",
+            "id": "member_0001",
+            "label": "M1",
+            "exists": true
+          }
+        ]
+      },
+      "status": "已完成 · 已根据当前已应用模型完成回复",
+      "assistant": "以下数值均来自 read_selection 的已应用模型数据（modelRevision 5），未做任何修改：\n\n**构件 M1（梁）**\n\n| 项目 | 数值 | 来源 |\n|---|---|---|\n| 稳定 ID | `member_0001`（标签 M1） | objects[0].id |\n| 起点节点 ID | `node_0001`（N1） | startNodeId |\n| 终点节点 ID | `node_0002`（N2） | endNodeId |\n| 长度 | **4 m** | geometry.length |\n| 截面转角 | **0 度** | rotationDegrees |\n| 材料弹性模量 | **206 GPa** | material.elasticModulusGPa（材料 material_0001，Q355） |\n| 截面面积 | **0.01 m²** | section.areaM2（截面 section_0001，箱形截面） |\n\n单位制：长度 m、力 kN、弯矩 kN·m。\n\n补充说明（同样来自工具）：\n- 两端节点坐标：N1 (1.25, −2, 3.5)，N2 (5.25, −2, 3.5)；两点在 Y、Z 相同、X 相差 4.0 m，与 geometry.length = 4 m 及局部轴 localX = (1,0,0) 一致。\n- 参考轴为 global-z。\n- 截面其他属性：Iy = Iz = 0.0001 m⁴，J = 0.00015 m⁴；材料泊松比 0.3、密度 7850 kg/m³。\n\n如需查看该梁的截面库定义、支座或荷载数据，可继续读取 sections / supports / loads 集合。本回复不涉及任何模型修改或计算。",
+      "tools": [
+        {
+          "label": "读取选中对象 · 已完成",
+          "input": {},
+          "output": {
+            "status": "completed",
+            "message": "已读取对象及其已应用参数",
+            "context": {
+              "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "startNodeId": "node_0001",
+                  "endNodeId": "node_0002",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 0,
+                  "startNode": {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 1.25,
+                      "y": -2,
+                      "z": 3.5
+                    }
+                  },
+                  "endNode": {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 5.25,
+                      "y": -2,
+                      "z": 3.5
+                    }
+                  },
+                  "material": {
+                    "id": "material_0001",
+                    "label": "M1",
+                    "name": "Q355",
+                    "elasticModulusGPa": 206,
+                    "poissonRatio": 0.3,
+                    "densityKgM3": 7850,
+                    "provenance": {
+                      "kind": "custom"
+                    }
+                  },
+                  "section": {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "箱形截面",
+                    "areaM2": 0.01,
+                    "secondMomentYM4": 0.0001,
+                    "secondMomentZM4": 0.0001,
+                    "torsionalConstantM4": 0.00015,
+                    "provenance": {
+                      "kind": "custom"
+                    }
+                  },
+                  "geometry": {
+                    "length": 4,
+                    "localX": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "localY": {
+                      "x": 0,
+                      "y": 1,
+                      "z": 0
+                    },
+                    "localZ": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 1
+                    },
+                    "referenceAxis": "global-z"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "请重新调用 read_selection 读取这根梁的当前已应用参数，回复稳定 ID、截面转角（度）和长度（m）。使用本次工具输出，不沿用之前的回答。",
+      "context": {
+        "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+        "projectName": "未命名项目",
+        "modelRevision": 6,
+        "selection": [
+          {
+            "kind": "member",
+            "id": "member_0001",
+            "label": "M1",
+            "exists": true
+          }
+        ]
+      },
+      "status": "已完成 · 已根据当前已应用模型完成回复",
+      "assistant": "本次工具输出（模型快照 modelRevision 6）如下：\n\n- **稳定 ID**：`member_0001`（标签 M1）\n- **截面转角**：`45` 度\n- **长度**：`4` m\n\n补充的当前已应用参数：\n- 端节点：`node_0001`（N1）→ `node_0002`（N2），节点坐标分别为 (1.25, -2, 3.5) 和 (5.25, -2, 3.5)\n- 材料：`material_0001`（Q355，弹性模量 206 GPa）\n- 截面：`section_0001`（箱形截面，面积 0.01 m²）\n- 单位：长度 m、力 kN、弯矩 kN·m\n\n以上均来自本次读取结果，未沿用之前的回答。",
+      "tools": [
+        {
+          "label": "读取选中对象 · 已完成",
+          "input": {},
+          "output": {
+            "status": "completed",
+            "message": "已读取对象及其已应用参数",
+            "context": {
+              "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+              "projectName": "未命名项目",
+              "modelRevision": 6,
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "startNodeId": "node_0001",
+                  "endNodeId": "node_0002",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 45,
+                  "startNode": {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 1.25,
+                      "y": -2,
+                      "z": 3.5
+                    }
+                  },
+                  "endNode": {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 5.25,
+                      "y": -2,
+                      "z": 3.5
+                    }
+                  },
+                  "material": {
+                    "id": "material_0001",
+                    "label": "M1",
+                    "name": "Q355",
+                    "elasticModulusGPa": 206,
+                    "poissonRatio": 0.3,
+                    "densityKgM3": 7850,
+                    "provenance": {
+                      "kind": "custom"
+                    }
+                  },
+                  "section": {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "箱形截面",
+                    "areaM2": 0.01,
+                    "secondMomentYM4": 0.0001,
+                    "secondMomentZM4": 0.0001,
+                    "torsionalConstantM4": 0.00015,
+                    "provenance": {
+                      "kind": "custom"
+                    }
+                  },
+                  "geometry": {
+                    "length": 4,
+                    "localX": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "localY": {
+                      "x": 0,
+                      "y": 0.7071067811865476,
+                      "z": 0.7071067811865475
+                    },
+                    "localZ": {
+                      "x": 0,
+                      "y": -0.7071067811865475,
+                      "z": 0.7071067811865476
+                    },
+                    "referenceAxis": "global-z"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "读取指定对象 · 已完成",
+          "input": {
+            "objects": [
+              {
+                "kind": "member",
+                "id": "member_0001"
+              }
+            ]
+          },
+          "output": {
+            "status": "completed",
+            "message": "已读取对象及其已应用参数",
+            "context": {
+              "projectId": "project_5b604c3e-310f-4941-8973-995d83e1af68",
+              "projectName": "未命名项目",
+              "modelRevision": 6,
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "startNodeId": "node_0001",
+                  "endNodeId": "node_0002",
+                  "materialId": "material_0001",
+                  "sectionId": "section_0001",
+                  "rotationDegrees": 45,
+                  "startNode": {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 1.25,
+                      "y": -2,
+                      "z": 3.5
+                    }
+                  },
+                  "endNode": {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 5.25,
+                      "y": -2,
+                      "z": 3.5
+                    }
+                  },
+                  "material": {
+                    "id": "material_0001",
+                    "label": "M1",
+                    "name": "Q355",
+                    "elasticModulusGPa": 206,
+                    "poissonRatio": 0.3,
+                    "densityKgM3": 7850,
+                    "provenance": {
+                      "kind": "custom"
+                    }
+                  },
+                  "section": {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "箱形截面",
+                    "areaM2": 0.01,
+                    "secondMomentYM4": 0.0001,
+                    "secondMomentZM4": 0.0001,
+                    "torsionalConstantM4": 0.00015,
+                    "provenance": {
+                      "kind": "custom"
+                    }
+                  },
+                  "geometry": {
+                    "length": 4,
+                    "localX": {
+                      "x": 1,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "localY": {
+                      "x": 0,
+                      "y": 0.7071067811865476,
+                      "z": 0.7071067811865475
+                    },
+                    "localZ": {
+                      "x": 0,
+                      "y": -0.7071067811865475,
+                      "z": 0.7071067811865476
+                    },
+                    "referenceAxis": "global-z"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

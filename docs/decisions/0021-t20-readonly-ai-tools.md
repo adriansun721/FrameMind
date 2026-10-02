@@ -18,7 +18,7 @@
 
 官方资料于实施时核对：[Tool Calls](https://api-docs.deepseek.com/guides/tool_calls/)、[Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/)、[Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode/)。非思考模式避免引入需要逐轮回传 `reasoning_content` 的思考协议；未采用 beta strict 模式，本地仍独立校验输入。
 
-主进程校验消息角色、调用 ID/类型、工具输出匹配、消息数和字节数。请求/响应正文上限 1 MiB，每轮至多 16 个调用，单个参数字符串至多 16 KiB。响应增量读取且超时覆盖整个正文；密钥原文或 JSON 解码后的完整密钥出现在返回内容时拒绝响应。底层异常和服务错误正文不传给渲染进程。凭据始终由 T19 服务读取，不进入工具上下文、项目或对话记录。
+主进程校验消息角色、调用 ID/类型、工具输出匹配、消息数和字节数。请求/响应正文上限 1 MiB，每轮至多 16 个调用，单个参数字符串至多 16 KiB。真实 DeepSeek 非流式响应也会携带工具调用 `index`：只接受非负安全整数元数据，规范化后丢弃，不参与工具执行或下一轮回传；渲染进程入站消息仍按原严格契约拒绝 `index`。响应增量读取且超时覆盖整个正文；密钥原文或 JSON 解码后的完整密钥出现在返回内容时拒绝响应。底层异常和服务错误正文不传给渲染进程。凭据始终由 T19 服务读取，不进入工具上下文、项目或对话记录。
 
 本地执行入口严格校验 JSON 对象、已定义字段、分页值和对象引用。未知工具、脚本和命令失败；识别到模型修改名称时只返回 `awaiting-confirmation`，说明当前只读并引导手动编辑，不保存或应用修改，也不提供伪造的确认按钮。
 
