@@ -35,7 +35,7 @@ export class ProjectFileStore {
     return this.files.readFile(path, "utf8");
   }
 
-  async save(path: string, content: string): Promise<void> {
+  async save(path: string, content: string, encoding: BufferEncoding = "utf8"): Promise<void> {
     const suffix = randomUUID();
     const directory = dirname(path);
     const filename = basename(path);
@@ -44,7 +44,7 @@ export class ProjectFileStore {
     let originalMoved = false;
 
     try {
-      await this.files.writeFile(temporaryPath, content, "utf8");
+      await this.files.writeFile(temporaryPath, content, encoding);
       if (await this.exists(path)) {
         await this.files.rename(path, backupPath);
         originalMoved = true;

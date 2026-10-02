@@ -666,3 +666,7 @@ button { color: inherit; }
 .frame-proposal-card fieldset button { margin: 4px 4px 4px 0; padding: var(--space-2); border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-control); color: var(--text-primary); font-size: inherit; }
 .condition-term { display: grid; gap: 8px; margin: 12px 0; }
 .condition-term > label { display: grid; gap: 4px; }
+/* Engineering report follows the existing dialog and theme tokens. */
+.report-source { padding: 12px; border: 1px solid var(--border-subtle); border-radius: 6px; overflow-wrap: anywhere; }
+.report-source p { margin: 8px 0 0; font-size: 12px; color: var(--text-secondary); }
+.report-notice { overflow-wrap: anywhere; font-size: 12px; }

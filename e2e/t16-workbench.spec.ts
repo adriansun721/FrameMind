@@ -120,7 +120,7 @@ test("T16 renders a spatial model, loads and actual results in both themes", asy
     await page.getByRole("button", { name: "运行分析" }).click();
     await expect(page.getByRole("status")).toContainText("分析完成");
     await page.getByRole("button", { name: "适合模型" }).click();
-    await expect(page.getByLabel("报告尚未实现")).toBeVisible();
+    await expect(page.getByRole("button", { name: "工程计算书", exact: true })).toBeVisible();
     for (const [width, height] of [[1440, 900], [1080, 680]]) {
       await app.evaluate(({ BrowserWindow }, size) => BrowserWindow.getAllWindows()[0]!.setContentSize(size.width, size.height), { width, height });
       for (const theme of ["dark", "light"]) {

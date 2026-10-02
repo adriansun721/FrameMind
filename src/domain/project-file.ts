@@ -282,7 +282,7 @@ function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): An
   return { solver: { implementation: solver.implementation, algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: solver.relativePivotTolerance }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs, members, loadVector: [...loadVector], constrainedDofs, freeDofs, assembledStiffness: matrix(value.assembledStiffness, "分析整体过程整体刚度", input.nodes.length * 6), reducedStiffness: matrix(value.reducedStiffness, "分析整体过程约束后刚度", freeDofs.length), matrixLimit };
 }
 
-function decodeAnalysisResult(value: unknown): AnalysisResult {
+export function decodeAnalysisResult(value: unknown): AnalysisResult {
   if (!isRecord(value) || value.status !== "complete") throw new Error("项目包含无效分析结果");
   const id = requireString(value.id, "分析结果缺少稳定标识"); const projectId = requireString(value.projectId, "分析结果缺少项目标识"); const createdAt = requireString(value.createdAt, "分析结果缺少创建时间");
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");

@@ -9,6 +9,7 @@ import { LoadCombinationManager } from "./components/LoadCombinationManager";
 import { ResourceLibraryPanel, type LibraryResource } from "./components/ResourceLibraryPanel";
 import { MemberAnalysisProcess } from "./components/MemberAnalysisProcess";
 import { AnalysisProcess } from "./components/AnalysisProcess";
+import { EngineeringReportDialog } from "./components/EngineeringReportDialog";
 import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
 import { AiConversationPanel } from "./components/AiConversationPanel";
 import { ResultReferenceDetails } from "./components/AiResultReferences";
@@ -101,6 +102,7 @@ export function App() {
   const [resultFocus, setResultFocus] = useState<{ memberId: string; position: number } | null>(null);
   const [comparisonPair, setComparisonPair] = useState<AnalysisPairIds>();
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [resultReference, setResultReference] = useState<ResultReference | null>(null);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
   const [propertyPanelOpen, setPropertyPanelOpen] = useState(true);
@@ -548,7 +550,7 @@ export function App() {
             })}
             {project.analysisResults.length === 0 && <p className="tree-empty">尚无已完成分析</p>}
           </TreeGroup>
-          <div className="tree-muted" aria-label="报告尚未实现"><Files size={14} /><span>报告 · 尚未实现</span></div>
+          <button className="tree-item resource" onClick={() => setReportOpen(true)}><Files size={14} /><span>工程计算书</span></button>
           </div>
         </section>
       </aside>
@@ -672,6 +674,7 @@ export function App() {
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
     {comparisonOpen && <AnalysisComparisonDialog key={`${comparisonPair?.beforeId ?? ""}:${comparisonPair?.afterId ?? ""}`} project={project} pair={comparisonPair} onPairChange={setComparisonPair} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
+    {reportOpen && <EngineeringReportDialog key={project.id} project={project} initialAnalysisId={caseResult?.id} onClose={() => setReportOpen(false)} onStatus={(tone, text) => setStatus({ tone, text })} />}
   </main>;
 }
 

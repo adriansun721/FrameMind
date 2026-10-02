@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "docx": "^9.7.1",
     "electron": "latest",
     "lucide-react": "latest",
     "react": "latest",
@@ -43,6 +44,7 @@
     "concurrently": "latest",
     "cross-env": "latest",
     "jsdom": "latest",
+    "jszip": "^3.10.1",
     "typescript": "latest",
     "vitest": "latest",
     "wait-on": "latest"

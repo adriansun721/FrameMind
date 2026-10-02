@@ -6,6 +6,7 @@ import {
   type OpenProjectResult,
   type SaveProjectRequest,
   type SaveProjectResult,
+  type ExportReportWordRequest,
 } from "./contracts";
 import { ProjectFileStore } from "./project-files";
 import { DeepSeekConnection } from "./deepseek";
@@ -129,6 +130,26 @@ ipcMain.handle(DesktopChannel.OpenProject, async (): Promise<OpenProjectResult> 
     path: targetPath,
     content: await projectFiles.open(targetPath),
   };
+});
+
+ipcMain.handle(DesktopChannel.ExportReportWord, async (event, request: ExportReportWordRequest): Promise<SaveProjectResult> => {
+  requireTrustedSender(event);
+  if (!request || typeof request.suggestedName !== "string" || typeof request.base64 !== "string"
+    || request.base64.length > 90_000_000 || request.base64.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(request.base64)) {
+    throw new Error("Word 计算书导出内容无效");
+  }
+  const bytes = Buffer.from(request.base64, "base64");
+  if (bytes.length < 4 || !bytes.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]))) throw new Error("Word 计算书格式无效");
+  let targetPath = process.env.FRAMEMIND_E2E_REPORT_PATH;
+  if (!targetPath) {
+    const name = request.suggestedName.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").slice(0, 120) || "工程计算书";
+    const selection = await dialog.showSaveDialog({ title: "导出 Word 计算书", defaultPath: `${name}.docx`, filters: [{ name: "Word 文档", extensions: ["docx"] }] });
+    if (selection.canceled || !selection.filePath) return { status: "cancelled" };
+    targetPath = selection.filePath;
+  }
+  if (!targetPath.toLowerCase().endsWith(".docx")) targetPath += ".docx";
+  await projectFiles.save(targetPath, request.base64, "base64");
+  return { status: "saved", path: targetPath };
 });
 
 app.whenReady().then(() => {

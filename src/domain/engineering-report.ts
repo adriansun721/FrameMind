@@ -1,0 +1,45 @@
+import { decodeAnalysisResult } from "./project-file";
+import { freezeAnalysisInput, type AnalysisResult } from "./analysis";
+import { calculateMemberGeometry } from "./member-geometry";
+import type { FrameProject } from "./project";
+
+export interface EngineeringReport {
+  projectName: string;
+  generatedAt: string;
+  result: AnalysisResult;
+}
+
+export function reportSourceLabel(result: AnalysisResult): string {
+  const source = result.input.combination?.definition ?? result.input.loadCase;
+  return source ? `${source.id} · ${source.name}${result.input.combination ? " · 用户定义组合" : ""}` : "LC1 · 默认工况";
+}
+
+/** Capture once, before any await. All document content and figures use this copy. */
+export function captureEngineeringReport(project: FrameProject, analysisId: string): EngineeringReport {
+  const selected = project.analysisResults.find((result) => result.id === analysisId);
+  if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
+  const result = decodeAnalysisResult(structuredClone(selected));
+  if (!result.input.nodes.length || !result.input.members.length) throw new Error("分析输入缺少节点或杆件，不能导出成功报告");
+  for (const member of result.input.members) {
+    const start = result.input.nodes.find((node) => node.id === member.startNodeId)!;
+    const end = result.input.nodes.find((node) => node.id === member.endNodeId)!;
+    const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+    const output = result.members.find((item) => item.memberId === member.id)!;
+    const close = (a: number, b: number) => Math.abs(a - b) <= 1e-8 * Math.max(1, Math.abs(b));
+    const axes = [geometry.localX, geometry.localY, geometry.localZ];
+    if (!close(output.length, geometry.length) || (["x", "y", "z"] as const).some((axis, index) =>
+      (["x", "y", "z"] as const).some((component) => !close(output.localAxes[axis][component], axes[index][component])))) {
+      throw new Error(`杆件 ${member.label} 的结果几何与冻结输入不可对应`);
+    }
+  }
+  result.input = freezeAnalysisInput(result.input);
+  result.nodes.forEach((node) => { Object.values(node).forEach((value) => { if (typeof value === "object") Object.freeze(value); }); Object.freeze(node); });
+  result.members.forEach((member) => {
+    Object.values(member.localAxes).forEach(Object.freeze); Object.freeze(member.localAxes);
+    Object.freeze(member.localEndForces.start); Object.freeze(member.localEndForces.end); Object.freeze(member.localEndForces); Object.freeze(member);
+  });
+  Object.freeze(result.nodes); Object.freeze(result.members); Object.freeze(result);
+  return Object.freeze({ projectName: project.name, generatedAt: new Date().toISOString(), result });
+}
+
+export const reportNumber = (value: number): string => value === 0 ? "0" : Number(value.toPrecision(7)).toString();
