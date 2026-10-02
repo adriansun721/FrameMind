@@ -18,6 +18,28 @@ const project = addNode(createProject("已应用项目"), { x: -2, y: -3, z: 0 }
 const snapshot = captureAiSnapshot(project, []);
 
 describe("AI proposal public tool and task boundaries", () => {
+  it("keeps user provenance when suggestions repeat the same value and protects it from later suggestions", () => {
+    const proposal = executeAiTool(snapshot, call(complete)).proposal!;
+    const repeated = executeAiTool(snapshot, call({ xSpans: { value: [6], source: "suggestion" } }), proposal).proposal!;
+    expect(repeated.parameters.xSpans).toEqual({ value: [6], source: "user" });
+    const different = executeAiTool(snapshot, call({ xSpans: { value: [8], source: "suggestion" } }), repeated).proposal!;
+    expect(different.parameters.xSpans).toEqual({ value: [6], source: "user", conflict: [8] });
+  });
+
+  it("completes local refusal without another network request that could invalidate it", async () => {
+    const proposal = executeAiTool(snapshot, call(complete)).proposal!;
+    let requests = 0;
+    const task = startAiTask(snapshot, "拒绝方案", { proposal, isCurrent: () => true, transport: {
+      cancelDeepSeekChat: async () => {}, chatDeepSeek: async () => {
+        requests += 1;
+        return requests === 1 ? { status: "success", message: "工具", assistant: { role: "assistant", content: null, tool_calls: [call({}, "discard_frame_proposal")] } }
+          : { status: "network", message: "网络中断" };
+      },
+    } });
+    expect(await task.promise).toMatchObject({ status: "completed", proposal: null });
+    expect(requests).toBe(1);
+  });
+
   it("shows incomplete parameter cards with sources and never fabricates partial geometry", () => {
     const result = executeAiTool(snapshot, call({ storeyHeights: { value: [3, 3], source: "suggestion" } }));
     expect(result.status).toBe("missing-input");
@@ -47,6 +69,8 @@ describe("AI proposal public tool and task boundaries", () => {
     const proposal = executeAiTool(snapshot, call(complete)).proposal!;
     const conflicting = executeAiTool(snapshot, call({ xSpans: { value: [8], source: "user" } }), proposal).proposal!;
     expect(conflicting.parameters.xSpans).toEqual({ value: [6], source: "user", conflict: [8] });
+    const repeated = executeAiTool(snapshot, call({ xSpans: { value: [6], source: "user" } }), conflicting).proposal!;
+    expect(repeated.parameters.xSpans).toEqual({ value: [6], source: "user", conflict: [8] });
     expect(buildFramePreview(snapshot, conflicting).nodes).toEqual([]);
     const edited = editFrameParameter(conflicting, "xSpans", "8");
     expect(buildFramePreview(snapshot, edited).nodes).toHaveLength(12);

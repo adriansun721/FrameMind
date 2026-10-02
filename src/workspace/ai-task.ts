@@ -68,6 +68,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (toolResult.proposal !== undefined) proposal = toolResult.proposal;
         records.push({ round, call, result: toolResult });
         options.onProgress?.({ phase: "tool", round, toolCall: call, toolResult });
+        if (toolResult.proposal === null) return result("completed", toolResult.message);
         if (toolResult.status !== "completed") return result(toolResult.status, toolResult.message);
         messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(toolResult) });
       }

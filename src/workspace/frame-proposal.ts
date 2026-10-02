@@ -60,6 +60,8 @@ export function proposeFrame(input: unknown, previous?: FrameProposal): FramePro
     validateValue(field, update.value);
     const current = parameters[field];
     const differs = current && JSON.stringify(current.value) !== JSON.stringify(update.value);
+    if (current?.source === "user" && update.source === "suggestion" && !differs) continue;
+    if (current?.conflict !== undefined && !update.replace && !differs) continue;
     if (differs && current.source === "user" && (!update.replace || update.source !== "user")) {
       parameters[field] = { ...current, conflict: structuredClone(update.value) };
     } else {

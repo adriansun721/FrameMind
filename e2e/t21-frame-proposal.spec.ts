@@ -51,7 +51,13 @@ async function send(page: Page, prompt: string) {
 async function save(page: Page, path: string) {
   await page.keyboard.press("Control+s");
   await expect(page.getByRole("status")).toContainText("已保存");
-  return JSON.parse(await readFile(path, "utf8"));
+  // A repeated save may retain the prior feedback while the atomic file replacement is still in flight.
+  let saved = "";
+  await expect.poll(async () => {
+    try { saved = await readFile(path, "utf8"); return true; }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return false; throw error; }
+  }).toBe(true);
+  return JSON.parse(saved);
 }
 
 test("T21 supplements missing cards, edits and regenerates the same isolated two-storey preview", async () => {

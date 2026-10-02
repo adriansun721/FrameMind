@@ -25,6 +25,8 @@ npm test
 npm run test:e2e
 ```
 
+桌面测试通过临时隔离的 Electron 用户目录运行，避免与正在使用的应用争用配置；单独运行可使用 `node scripts/run-e2e-isolated.cjs e2e/t21-frame-proposal.spec.ts`。
+
 配置真实 Key 后，可运行 `npm run evidence:t20:online` 重验连接、选中节点/杆件及提交修改后的重新读取。该命令会产生 DeepSeek API 用量；使用临时目录和本机加密配置，证据只保存示例模型、工具输出和回复。
 
 项目文件使用 `.framemind` 扩展名和带版本号的 UTF-8 JSON 格式。架构及兼容规则见 `docs/decisions/`。

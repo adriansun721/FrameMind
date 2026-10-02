@@ -21,13 +21,13 @@
             "status": "missing-input",
             "message": "方案草稿需要补齐或澄清参数",
             "context": {
-              "projectId": "project_84f88dfd-4b08-4396-98db-04375de9a1ce",
+              "projectId": "project_da29977b-7ccd-4e53-81e4-2528ed05c956",
               "projectName": "未命名项目",
               "modelRevision": 0,
               "selection": []
             },
             "proposal": {
-              "id": "proposal_2ea1919c-c722-4b1c-b248-f0e14ea6030c",
+              "id": "proposal_6b9594dd-db9c-4144-bfe0-1d1ecb807d69",
               "version": 1,
               "parameters": {
                 "storeys": {
@@ -85,20 +85,23 @@
                 "value": [
                   6
                 ],
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "ySpans": {
                 "value": [
                   4
                 ],
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "storeyHeights": {
                 "value": [
                   3,
                   3
                 ],
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "origin": {
                 "value": [
@@ -106,23 +109,28 @@
                   0,
                   0
                 ],
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "material": {
                 "value": "en10025-s355jr",
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "columnSection": {
                 "value": "arcelor-hea200",
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "beamSection": {
                 "value": "arcelor-ipe200",
-                "source": "user"
+                "source": "user",
+                "replace": true
               },
               "rotationDegrees": {
                 "value": 0,
-                "source": "user"
+                "source": "user",
+                "replace": true
               }
             }
           },
@@ -130,13 +138,13 @@
             "status": "awaiting-confirmation",
             "message": "三维方案已生成，尚未应用",
             "context": {
-              "projectId": "project_84f88dfd-4b08-4396-98db-04375de9a1ce",
+              "projectId": "project_da29977b-7ccd-4e53-81e4-2528ed05c956",
               "projectName": "未命名项目",
               "modelRevision": 0,
               "selection": []
             },
             "proposal": {
-              "id": "proposal_2ea1919c-c722-4b1c-b248-f0e14ea6030c",
+              "id": "proposal_6b9594dd-db9c-4144-bfe0-1d1ecb807d69",
               "version": 2,
               "parameters": {
                 "storeys": {
@@ -355,13 +363,13 @@
             "status": "awaiting-confirmation",
             "message": "三维方案已生成，尚未应用",
             "context": {
-              "projectId": "project_84f88dfd-4b08-4396-98db-04375de9a1ce",
+              "projectId": "project_da29977b-7ccd-4e53-81e4-2528ed05c956",
               "projectName": "未命名项目",
               "modelRevision": 0,
               "selection": []
             },
             "proposal": {
-              "id": "proposal_2ea1919c-c722-4b1c-b248-f0e14ea6030c",
+              "id": "proposal_6b9594dd-db9c-4144-bfe0-1d1ecb807d69",
               "version": 4,
               "parameters": {
                 "storeys": {
@@ -488,8 +496,7 @@
     },
     {
       "prompt": "拒绝并取消这个建模方案，不要应用任何修改。",
-      "status": "已完成 · 已根据当前已应用模型完成回复",
-      "assistant": "已取消该建模方案，未应用任何修改。\n\n- 提案卡片已丢弃（proposal: null）\n- 正式模型保持不变：项目「未命名项目」，模型版本仍为 0\n\n如果之后想重新开始，请告诉我新的层数、跨度和截面等参数，我会先生成一张新的参数卡片供你确认。",
+      "status": "已完成 · 建模方案已拒绝，正式模型保持可用",
       "tools": [
         {
           "label": "拒绝建模方案 · 已完成",
@@ -498,7 +505,7 @@
             "status": "completed",
             "message": "建模方案已拒绝，正式模型保持可用",
             "context": {
-              "projectId": "project_84f88dfd-4b08-4396-98db-04375de9a1ce",
+              "projectId": "project_da29977b-7ccd-4e53-81e4-2528ed05c956",
               "projectName": "未命名项目",
               "modelRevision": 0,
               "selection": []
