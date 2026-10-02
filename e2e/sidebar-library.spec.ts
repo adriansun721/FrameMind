@@ -18,7 +18,9 @@ test("sidebar modules preserve drafts and share custom resources across projects
   try {
     let page = await app.firstWindow();
     const navigation = page.getByRole("navigation", { name: "侧边导航" });
-    await expect(navigation.getByRole("button")).toHaveCount(3);
+    for (const name of ["资源管理器", "搜索", "资源库"]) {
+      await expect(navigation.getByRole("button", { name, exact: true })).toBeVisible();
+    }
     const indicator = await navigation.locator(".active").evaluate((button) => getComputedStyle(button, "::before").content);
     expect(indicator).toBe("none");
     await navigation.getByRole("button", { name: "搜索", exact: true }).click();
