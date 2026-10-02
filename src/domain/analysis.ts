@@ -108,8 +108,9 @@ interface MemberMatrices {
 
 export interface MemberAnalysisRecord {
   analysisId: string;
+  sourceAnalysisId: string;
   projectRevision: number;
-  origin: "reconstructed-from-frozen-input";
+  origin: "reconstructed-from-frozen-input" | "supplemental-reconstruction";
   solver: AnalysisSolverConfig;
   memberId: string;
   dofs: Array<{ nodeId: string; dof: AnalysisDof; globalIndex: number }>;
@@ -487,7 +488,7 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   });
   const stored = result.members.find((item) => item.memberId === memberId);
   if (!stored) throw new Error(`分析结果缺少杆件 ${memberId}`);
-  return { analysisId: result.id, projectRevision: result.projectRevision, origin: "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
+  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
     localStiffness: local, transformation: transform, globalStiffness: global, globalDisplacement,
     localDisplacement: transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
     equivalentLocalForces,
@@ -497,6 +498,13 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
     totalIntensity: intensity,
     localEndForces: { start: [...stored.localEndForces.start], end: [...stored.localEndForces.end] },
   };
+}
+
+/** Recomputes a member process for an older result that did not retain a supported solver configuration. */
+export function supplementMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {
+  const supplemental = solveFrame(result.input);
+  const record = getMemberAnalysisRecord(supplemental, memberId);
+  return { ...record, sourceAnalysisId: result.id, origin: "supplemental-reconstruction" };
 }
 
 export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage?: (stage: AnalysisStage) => void): AnalysisResult {
