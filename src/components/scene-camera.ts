@@ -1,4 +1,5 @@
 import type { FrameNode, Vector3 } from "../domain/project";
+import * as THREE from "three";
 
 export interface SceneFrame {
   target: Vector3;
@@ -6,7 +7,7 @@ export interface SceneFrame {
   far: number;
 }
 
-export function calculateSceneFrame(nodes: FrameNode[]): SceneFrame {
+export function calculateSceneFrame(nodes: FrameNode[], aspect = 1): SceneFrame {
   if (nodes.length === 0) {
     return {
       target: { x: 0, y: 0, z: 1.5 },
@@ -39,12 +40,19 @@ export function calculateSceneFrame(nodes: FrameNode[]): SceneFrame {
     y: (bounds.minY + bounds.maxY) / 2,
     z: (bounds.minZ + bounds.maxZ) / 2,
   };
-  const diagonal = Math.hypot(
-    bounds.maxX - bounds.minX,
-    bounds.maxY - bounds.minY,
-    bounds.maxZ - bounds.minZ,
-  );
-  const distance = Math.max(7, diagonal * 1.8);
+  const viewDirection = new THREE.Vector3(0.72, -1, 0.76).normalize();
+  const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 0, 1), viewDirection).normalize();
+  const up = new THREE.Vector3().crossVectors(viewDirection, right).normalize();
+  const tangentY = Math.tan(21 * Math.PI / 180);
+  const tangentX = tangentY * Math.max(0.01, aspect);
+  let distance = 7;
+  // Fit the padded corners against both frustum axes, including their depth.
+  for (const x of [bounds.minX - 0.9, bounds.maxX + 0.9])
+    for (const y of [bounds.minY - 0.9, bounds.maxY + 0.9])
+      for (const z of [bounds.minZ - 0.9, bounds.maxZ + 0.9]) {
+        const corner = new THREE.Vector3(x - target.x, y - target.y, z - target.z);
+        distance = Math.max(distance, corner.dot(viewDirection) + Math.max(Math.abs(corner.dot(right)) / tangentX, Math.abs(corner.dot(up)) / tangentY) * 1.15);
+      }
   const directionLength = Math.hypot(0.72, -1, 0.76);
   const scale = distance / directionLength;
   const camera = {

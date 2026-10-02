@@ -67,7 +67,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
     await nodeDialog.getByLabel("Z 坐标").fill(coordinates[2]);
     await nodeDialog.getByRole("button", { name: "添加到模型" }).click();
   }
-  await expect(page.getByRole("complementary").getByLabel("X 坐标")).toHaveValue("4");
+  await expect(page.getByRole("region", { name: "对象属性" }).getByLabel("X 坐标")).toHaveValue("4");
 
   await page.getByRole("button", { name: "创建材料与截面" }).click();
   await page.getByLabel("材料名称").fill("Q355");
@@ -83,6 +83,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
   await expect(page.getByTestId("viewport-member-count")).toHaveText("1 根杆件");
   await expect(page.getByText("member_0001", { exact: true })).toBeVisible();
   await expect(page.getByText("4.000 m", { exact: true })).toBeVisible();
+  await page.getByText("局部坐标与参考轴", { exact: true }).click();
   await expect(page.getByText("局部 y", { exact: true })).toBeVisible();
 
   await page.getByText("N2", { exact: true }).click();

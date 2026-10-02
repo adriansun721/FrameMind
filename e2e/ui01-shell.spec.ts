@@ -80,7 +80,7 @@ test("UI01 presents a compact neutral workbench at supported window sizes", asyn
       await expect(page.getByRole("menu", { name: "文件" }).getByRole("menuitem", { name: new RegExp(name) })).toBeVisible();
     }
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("complementary", { name: "项目与属性" }).getByLabel("X 坐标")).toBeVisible();
+    await expect(page.getByRole("region", { name: "对象属性" }).getByLabel("X 坐标")).toBeVisible();
   }
 
   await app.close();

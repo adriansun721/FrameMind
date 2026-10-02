@@ -51,7 +51,7 @@ export class EngineeringSceneModel {
 
   constructor(
     private readonly parent: THREE.Group,
-    private readonly palette: EngineeringScenePalette,
+    private palette: EngineeringScenePalette,
     private readonly makeLabel: LabelFactory,
   ) {
     this.annotationGroup.name = "selection-annotations";
@@ -103,6 +103,12 @@ export class EngineeringSceneModel {
   setSelection(selection: EngineeringSceneSelection): void {
     if (sameSelection(this.selection, selection)) return;
     this.selection = selection;
+    this.applyInteractionState();
+  }
+
+  setPalette(palette: EngineeringScenePalette): void {
+    this.palette = palette;
+    this.renderedAnnotationFingerprint = "";
     this.applyInteractionState();
   }
 
@@ -222,8 +228,11 @@ export class EngineeringSceneModel {
     const label = this.makeLabel(record.member.label); label.position.copy(origin).add(new THREE.Vector3(0, 0, 0.34)); this.annotationGroup.add(label);
     if (!showLocalAxes) return;
     const size = Math.min(0.85, Math.max(0.38, geometry.length * 0.16));
-    this.annotationGroup.add(new THREE.ArrowHelper(new THREE.Vector3(geometry.localY.x, geometry.localY.y, geometry.localY.z), origin, size, this.palette.axisY, 0.12, 0.065));
-    this.annotationGroup.add(new THREE.ArrowHelper(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), origin, size, this.palette.axisZ, 0.12, 0.065));
+    for (const [axis, color] of [[geometry.localY, this.palette.axisY], [geometry.localZ, this.palette.axisZ]] as const) {
+      const arrow = new THREE.ArrowHelper(new THREE.Vector3(axis.x, axis.y, axis.z), origin, size, color, 0.12, 0.065);
+      arrow.line.geometry = arrow.line.geometry.clone(); arrow.cone.geometry = arrow.cone.geometry.clone();
+      this.annotationGroup.add(arrow);
+    }
   }
 
   private clearAnnotations(): void {

@@ -1,7 +1,10 @@
 export const enum DesktopChannel {
   SaveProject = "project:save",
   OpenProject = "project:open",
+  SetTheme = "app:theme",
 }
+
+export type AppTheme = "dark" | "light";
 
 export interface SaveProjectRequest {
   path: string | null;
@@ -17,6 +20,7 @@ export type OpenProjectResult =
   | { status: "cancelled" };
 
 export interface FrameMindDesktopApi {
+  setTheme(theme: AppTheme): Promise<void>;
   saveProject(request: SaveProjectRequest): Promise<SaveProjectResult>;
   openProject(): Promise<OpenProjectResult>;
 }

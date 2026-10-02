@@ -8,13 +8,13 @@ async function expectRequiredPropertyError(properties: Locator, field: string, s
   await expect(properties.getByRole("alert")).toHaveText(message);
 }
 
-test("UI02 keeps project selection and editable properties in one left sidebar", async () => {
+test("UI02 synchronizes the project tree and the independent right inspector", async () => {
   const { app, page } = await launchFrameMind();
 
-  const sidebar = page.getByRole("complementary", { name: "项目与属性" });
+  const sidebar = page.getByRole("complementary", { name: "项目资源" });
   await expect(sidebar).toBeVisible();
   const projectTree = sidebar.getByRole("region", { name: "项目树" });
-  const properties = sidebar.getByRole("region", { name: "对象属性" });
+  const properties = page.getByRole("region", { name: "对象属性" });
   await expect(projectTree).toBeVisible();
   await expect(properties).toContainText("未选择对象");
   await expect(page.locator(".inspector-panel")).toHaveCount(0);
@@ -24,10 +24,10 @@ test("UI02 keeps project selection and editable properties in one left sidebar",
     const tree = document.querySelector(".project-tree-pane")!.getBoundingClientRect();
     const property = document.querySelector(".property-pane")!.getBoundingClientRect();
     const viewport = document.querySelector(".model-area")!.getBoundingClientRect();
-    return { treeBottom: tree.bottom, propertyTop: property.top, propertyRight: property.right, viewportLeft: viewport.left };
+    return { treeRight: tree.right, propertyLeft: property.left, viewportRight: viewport.right, viewportLeft: viewport.left };
   });
-  expect(layout.treeBottom).toBeLessThanOrEqual(layout.propertyTop);
-  expect(layout.propertyRight).toBeLessThanOrEqual(layout.viewportLeft);
+  expect(layout.treeRight).toBeLessThanOrEqual(layout.viewportLeft);
+  expect(layout.viewportRight).toBeLessThanOrEqual(layout.propertyLeft);
 
   await createNode(page, ["1", "2", "3"]);
 

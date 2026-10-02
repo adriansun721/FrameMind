@@ -87,8 +87,8 @@ test("UI05 keeps the merged titlebar and every panel combination inside supporte
       await app.evaluate(({ BrowserWindow }, size) => {
         BrowserWindow.getAllWindows()[0]!.setContentSize(size.width, size.height);
       }, { width, height });
-      for (const [resourceOpen, assistantOpen] of [[true, true], [false, true], [false, false], [true, false]]) {
-        for (const [name, open] of [["切换资源管理器", resourceOpen], ["切换 AI 对话", assistantOpen]] as const) {
+      for (const [resourceOpen, propertyOpen, assistantOpen] of [[true, true, true], [false, true, true], [false, false, true], [true, false, true], [true, false, false], [false, false, false], [false, true, false], [true, true, false]]) {
+        for (const [name, open] of [["切换资源管理器", resourceOpen], ["切换属性面板", propertyOpen], ["切换 AI 对话", assistantOpen]] as const) {
           const button = page.getByRole("button", { name, exact: true });
           if (await button.getAttribute("aria-pressed") !== String(open)) await button.click();
         }
@@ -120,7 +120,7 @@ test("UI05 keeps the merged titlebar and every panel combination inside supporte
         expect(layout.controlsRight).toBeLessThanOrEqual(layout.width - 138);
         await expect(page.getByRole("button", { name: "资源管理器", exact: true })).toBeVisible();
         await expectRenderedCanvas(page);
-        await page.screenshot({ path: testInfo.outputPath(`layout-${width}-${resourceOpen}-${assistantOpen}.png`) });
+        await page.screenshot({ path: testInfo.outputPath(`layout-${width}-${resourceOpen}-${propertyOpen}-${assistantOpen}.png`) });
       }
     }
   } finally {

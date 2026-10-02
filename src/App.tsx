@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Send, Settings2, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, PanelRightClose, Plus, Redo2, Save, Search, Send, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport, type ForceComponent, type ResultViewMode } from "./components/SceneViewport";
 import { ModelDataTable, type NodeDraft, type MemberDraft } from "./components/ModelDataTable";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
@@ -16,12 +16,13 @@ import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECT
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
-import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisComparison, type AnalysisForceVector } from "./domain/analysis-comparison";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
+import type { AppTheme } from "../electron/contracts";
 
 type StatusTone = "neutral" | "success" | "error";
 type Selection = AnalysisTarget | null;
@@ -56,6 +57,16 @@ const ANALYSIS_PHASE_TEXT: Record<AnalysisTaskPhase, string> = {
 };
 
 export function App() {
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    try { return localStorage.getItem("framemind.theme") === "light" ? "light" : "dark"; }
+    catch { return "dark"; }
+  });
+  useLayoutEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
+  useEffect(() => {
+    try { localStorage.setItem("framemind.theme", theme); }
+    catch { setStatus({ tone: "error", text: "主题已切换，但无法保存偏好" }); }
+    void window.frameMind?.setTheme(theme).catch(() => setStatus({ tone: "error", text: "无法更新窗口主题" }));
+  }, [theme]);
   const [project, setProject] = useState<FrameProject>(() => createProject());
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProjectContent, setSavedProjectContent] = useState<string | null>(null);
@@ -73,6 +84,7 @@ export function App() {
   const [resultFocus, setResultFocus] = useState<{ memberId: string; position: number } | null>(null);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
+  const [propertyPanelOpen, setPropertyPanelOpen] = useState(true);
   const [sidebarModule, setSidebarModule] = useState<"project" | "search" | "library">("project");
   const [assistantPanelOpen, setAssistantPanelOpen] = useState(true);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
@@ -113,6 +125,10 @@ export function App() {
   const caseUniformLoads = useMemo(() => project.uniformLoads.filter((load) => load.loadCaseId === activeCase.id), [project.uniformLoads, activeCase.id]);
   const caseSelfWeightEnabled = project.selfWeight.enabled && project.selfWeight.loadCaseId === activeCase.id;
   const caseResult = getActiveAnalysisResult(project);
+  const resultSources = [
+    ...project.loadCases.map((source) => ({ id: source.id, combination: false })),
+    ...project.loadCombinations.map((source) => ({ id: source.id, combination: true })),
+  ];
 
   const selectedNode = selection?.kind === "node" ? project.nodes.find((item) => item.id === selection.id) ?? null : null;
   const selectedMember = selection?.kind === "member" ? project.members.find((item) => item.id === selection.id) ?? null : null;
@@ -411,6 +427,7 @@ export function App() {
       <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{filename(projectPath) ?? "未保存项目"}</small></div>
       <div className="layout-controls" role="group" aria-label="面板布局">
         <button className={`icon-button ${resourcePanelOpen ? "active" : ""}`} aria-label="切换资源管理器" aria-pressed={resourcePanelOpen} aria-controls={sidebarModule === "project" ? "resource-panel" : `${sidebarModule}-panel`} title={resourcePanelOpen ? "收起资源管理器" : "展开资源管理器"} onClick={() => setResourcePanelOpen((open) => !open)}><PanelLeft size={15} /></button>
+        <button className={`icon-button ${propertyPanelOpen ? "active" : ""}`} aria-label="切换属性面板" aria-pressed={propertyPanelOpen} aria-controls="property-panel" title={propertyPanelOpen ? "收起属性面板" : "展开属性面板"} onClick={() => setPropertyPanelOpen((open) => !open)}><PanelRightClose size={15} /></button>
         <button className={`icon-button ${assistantPanelOpen ? "active" : ""}`} aria-label="切换 AI 对话" aria-pressed={assistantPanelOpen} aria-controls="assistant-panel" title={assistantPanelOpen ? "收起 AI 对话" : "展开 AI 对话"} onClick={() => setAssistantPanelOpen((open) => !open)}><PanelRight size={15} /></button>
       </div>
     </header>
@@ -435,14 +452,14 @@ export function App() {
       </div>
     </section>
 
-    <section className={`workspace ${resourcePanelOpen ? "" : "resource-collapsed"} ${assistantPanelOpen ? "" : "assistant-collapsed"}`}>
+    <section className={`workspace ${resourcePanelOpen ? "" : "resource-collapsed"} ${propertyPanelOpen ? "" : "property-collapsed"} ${assistantPanelOpen ? "" : "assistant-collapsed"}`}>
       <nav className="activity-bar" aria-label="侧边导航">
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "project" ? "active" : ""}`} aria-label="资源管理器" aria-pressed={resourcePanelOpen && sidebarModule === "project"} aria-controls="resource-panel" title="资源管理器" onClick={() => switchSidebarModule("project")}><Files size={22} strokeWidth={1.5} /></button>
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "search" ? "active" : ""}`} aria-label="搜索" aria-pressed={resourcePanelOpen && sidebarModule === "search"} aria-controls="search-panel" title="搜索" onClick={() => switchSidebarModule("search")}><Search size={22} strokeWidth={1.5} /></button>
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "library" ? "active" : ""}`} aria-label="资源库" aria-pressed={resourcePanelOpen && sidebarModule === "library"} aria-controls="library-panel" title="资源库" onClick={() => switchSidebarModule("library")}><Library size={22} strokeWidth={1.5} /></button>
         <button className="activity-button activity-settings" aria-label="设置" aria-haspopup="dialog" aria-expanded={settingsDialogOpen} aria-controls="settings-dialog" title="设置" onClick={() => setSettingsDialogOpen(true)}><Settings2 size={22} strokeWidth={1.5} /></button>
       </nav>
-      <aside id="resource-panel" className="project-panel" aria-label="项目与属性" hidden={!resourcePanelOpen || sidebarModule !== "project"}>
+      <aside id="resource-panel" className="project-panel" aria-label="项目资源" hidden={!resourcePanelOpen || sidebarModule !== "project"}>
         <section className="sidebar-pane project-tree-pane" aria-label="项目树"><div className="panel-heading"><span>项目</span><button className="icon-button" title="添加节点" onClick={openNodeDialog}><Plus size={16} /></button></div>
           <div className="load-case-selector"><label><span>当前工况</span><select aria-label="当前工况" value={activeCombination ? "" : activeCase.id} onChange={(event) => { activateProject(selectLoadCase(project, event.target.value), false); setSelection(null); setFormError(null); setStatus({ tone: "neutral", text: `当前工况 · ${event.target.value}` }); }}>{activeCombination && <option value="" disabled>组合模式</option>}{project.loadCases.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理工况" title="管理荷载工况" onClick={() => setLoadCaseManagerOpen(true)}><Settings2 size={15} /></button></div>
           <div className="load-case-selector"><label><span>当前组合</span><select aria-label="当前组合" value={project.activeLoadCombinationId ?? ""} onChange={(event) => { activateProject(event.target.value ? selectLoadCombination(project, event.target.value) : selectLoadCase(project, activeCase.id), false); setSelection(null); setFormError(null); }}><option value="">独立工况</option>{project.loadCombinations.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理组合" title="管理自定义荷载组合" onClick={() => setLoadCombinationManagerOpen(true)}><Layers3 size={15} /></button></div>
@@ -477,12 +494,24 @@ export function App() {
             <button className="tree-item resource case-self-weight" aria-label={`结构自重 ${activeCase.id}`} onClick={openSelfWeightDialog}><Weight size={14} /><span>{caseSelfWeightEnabled ? "已启用 · g" : "未启用"}</span><small>{project.selfWeight.loadCaseId === activeCase.id ? `${vectorText(project.selfWeight.gravity)} m/s²` : `归属 ${project.selfWeight.loadCaseId}`}</small></button>
           </TreeGroup>
           </>}
-          <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => selectObject(null)}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? isAnalysisResultCurrent(project, caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
-          <div className="tree-muted"><span className="chevron-placeholder">›</span><Layers3 size={14} /><span>报告</span><em>0</em></div>
+          <TreeGroup label="荷载工况与组合" count={project.loadCases.length + project.loadCombinations.length} icon={<Layers3 size={14} />}>
+            {project.loadCases.map((item) => <button key={item.id} className={`tree-item resource ${!activeCombination && activeCase.id === item.id ? "active-source" : ""}`} aria-label={`切换工况 ${item.id}`} onClick={() => { activateProject(selectLoadCase(project, item.id), false); selectObject(null); }}><Layers3 size={14} /><span>{item.id} · {item.name}</span></button>)}
+            {project.loadCombinations.map((item) => <button key={item.id} className={`tree-item resource ${activeCombination?.id === item.id ? "active-source" : ""}`} aria-label={`切换组合 ${item.id}`} onClick={() => { activateProject(selectLoadCombination(project, item.id), false); selectObject(null); }}><Layers3 size={14} /><span>{item.id} · {item.name} · 用户定义</span></button>)}
+          </TreeGroup>
+          <TreeGroup label="计算结果" count={project.analysisResults.length} icon={<Calculator size={14} />}>
+            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? isAnalysisResultCurrent(project, caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
+            <button className="tree-item resource" disabled={project.analysisResults.length < 2} onClick={() => setComparisonOpen(true)}><Files size={14} /><span>历史分析与前后对比</span></button>
+            {resultSources.map((source) => {
+              const result = getAnalysisResultForSource(project, source.id);
+              return result && <button key={source.id} className="tree-item resource" aria-label={`查看 ${source.id} 结果`} onClick={() => { activateProject(source.combination ? selectLoadCombination(project, source.id) : selectLoadCase(project, source.id), false); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>{source.id} · {isAnalysisResultCurrent(project, result) ? "当前" : "已过期"} · R{result.projectRevision}</span></button>;
+            })}
+            {project.analysisResults.length === 0 && <p className="tree-empty">尚无已完成分析</p>}
+          </TreeGroup>
+          <div className="tree-muted" aria-label="报告尚未实现"><Files size={14} /><span>报告 · 尚未实现</span></div>
           </div>
         </section>
-        <div className="sidebar-divider" role="separator" aria-orientation="horizontal" />
-        <section className="sidebar-pane property-pane" aria-label="对象属性"><div className="panel-heading"><span>属性</span></div>
+      </aside>
+        <section id="property-panel" className="sidebar-pane property-pane" aria-label="对象属性" hidden={!propertyPanelOpen}><div className="panel-heading"><span>属性 · {currentSelectionLabel}</span><button className="icon-button" aria-label="收起属性面板" title="收起属性面板" onClick={() => setPropertyPanelOpen(false)}><X size={15} /></button></div>
           {selectedNode && <Inspector title="空间节点" label={selectedNode.label} icon={<CircleDot size={15} />}>
             <Identity id={selectedNode.id} label={selectedNode.label} />
             <section className="property-section"><h3>当前全局坐标</h3><dl className="coordinates-list">{(["x", "y", "z"] as const).map((axis) => <div key={axis}><dt>{axis.toUpperCase()}</dt><dd>{selectedNode.position[axis].toFixed(3)} m</dd></div>)}</dl></section>
@@ -490,7 +519,7 @@ export function App() {
           </Inspector>}
           {selectedMember && memberGeometry && <Inspector title="空间刚架杆件" label={selectedMember.label} icon={<Link2 size={15} />}>
             <Identity id={selectedMember.id} label={selectedMember.label} />
-            <section className="property-section"><h3>几何与局部轴</h3><dl><div><dt>长度</dt><dd>{memberGeometry.length.toFixed(3)} m</dd></div><div><dt>局部 x</dt><dd>{vectorText(memberGeometry.localX)}</dd></div><div><dt>局部 y</dt><dd>{vectorText(memberGeometry.localY)}</dd></div><div><dt>局部 z</dt><dd>{vectorText(memberGeometry.localZ)}</dd></div><div><dt>参考轴</dt><dd>{memberGeometry.referenceAxis === "global-z" ? "全局 Z" : "全局 Y（竖杆回退）"}</dd></div></dl></section>
+            <section className="property-section"><h3>几何</h3><dl><div><dt>长度</dt><dd>{memberGeometry.length.toFixed(3)} m</dd></div></dl><details><summary>局部坐标与参考轴</summary><dl><div><dt>局部 x</dt><dd>{vectorText(memberGeometry.localX)}</dd></div><div><dt>局部 y</dt><dd>{vectorText(memberGeometry.localY)}</dd></div><div><dt>局部 z</dt><dd>{vectorText(memberGeometry.localZ)}</dd></div><div><dt>参考轴</dt><dd>{memberGeometry.referenceAxis === "global-z" ? "全局 Z" : "全局 Y（竖杆回退）"}</dd></div></dl></details></section>
             <form className="property-form" onSubmit={saveMemberEdit}><h3>连接与朝向</h3><SelectField label="起点节点" value={memberDraft.startNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={memberDraft.endNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={memberDraft.materialId} onChange={(value) => setMemberDraft({ ...memberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={memberDraft.sectionId} onChange={(value) => setMemberDraft({ ...memberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={memberDraft.rotationDegrees} onChange={(value) => setMemberDraft({ ...memberDraft, rotationDegrees: value })} unit="°" /><div className="assignment-summary"><span>{project.materials.find((item) => item.id === selectedMember.materialId)?.name}</span><span>{project.sections.find((item) => item.id === selectedMember.sectionId)?.name}</span></div><FormFeedback error={formError} /><button className="button primary" type="submit">保存杆件属性</button></form>
           </Inspector>}
           {selectedMaterial && <Inspector title={selectedMaterial.provenance.kind === "catalog" ? "库材料" : "自定义材料"} label={`${selectedMaterial.label} · ${selectedMaterial.name}`} icon={<Layers3 size={15} />}><Identity id={selectedMaterial.id} label={selectedMaterial.label} /><ResourceProvenanceView provenance={selectedMaterial.provenance} /><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveMaterialEdit(event)}>保存材料属性</button></Inspector>}
@@ -508,7 +537,6 @@ export function App() {
           {caseResult && !selection && <AnalysisResultPanel result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onOpenComparison={() => setComparisonOpen(true)} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
           {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </section>
-      </aside>
 
       <aside id="search-panel" className="module-panel" aria-label="搜索" hidden={!resourcePanelOpen || sidebarModule !== "search"}>
         <div className="panel-heading"><span>搜索</span></div>
@@ -531,12 +559,13 @@ export function App() {
             </li>;
           })}</ul>
         </section>}
-        <SceneViewport projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+        <SceneViewport theme={theme} supports={project.supports} nodalLoads={activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
+          projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
       <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!assistantPanelOpen}>
-        <div className="panel-heading"><span>AI 对话</span><button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={() => setAssistantPanelOpen(false)}><X size={15} /></button></div>
+        <div className="panel-heading"><span>AI 对话 · 尚未接入</span><button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={() => setAssistantPanelOpen(false)}><X size={15} /></button></div>
         <div className="assistant-messages" role="log" aria-label="对话消息" />
         <div className="assistant-composer">
           <textarea aria-label="AI 消息草稿" placeholder="输入消息…" value={assistantDraft} onChange={(event) => setAssistantDraft(event.target.value)} onKeyDown={(event) => {
@@ -557,7 +586,7 @@ export function App() {
     {loadDialogOpen && <Dialog title="创建节点集中荷载" copy="全局 XYZ · 力 kN · 力矩 kN·m" onClose={() => { setLoadDialogOpen(false); selectObject(selection); }}><form onSubmit={submitLoad}><SelectField label="加载节点" value={loadDraft.nodeId} onChange={(value) => setLoadDraft({ ...loadDraft, nodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><LoadCaseField project={project} value={loadDraft.loadCaseId} onChange={(loadCaseId) => setLoadDraft({ ...loadDraft, loadCaseId })} /><div className="load-columns"><LoadFields draft={loadDraft} onChange={setLoadDraft} /></div><FormFeedback error={formError} /><DialogActions close={() => { setLoadDialogOpen(false); selectObject(selection); }} submit="添加节点荷载" /></form></Dialog>}
     {uniformDialogOpen && <Dialog title="创建杆件均布荷载" copy={`整根杆件 · ${uniformDraft.loadCaseId} · kN/m`} onClose={() => { setUniformDialogOpen(false); selectObject(selection); }}><form onSubmit={(event) => submitUniform(event, false)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><DialogActions close={() => { setUniformDialogOpen(false); selectObject(selection); }} submit="添加均布荷载" /></form></Dialog>}
     {selfWeightDialogOpen && <Dialog title="设置结构自重" copy={`材料密度 ρ (kg/m³) · 截面面积 A (m²) · 重力加速度 g (m/s²) · ${selfWeightDraft.loadCaseId}`} onClose={() => { setSelfWeightDialogOpen(false); setFormError(null); }}><form onSubmit={submitSelfWeight}><label className="check-field self-weight-toggle"><input type="checkbox" checked={selfWeightDraft.enabled} onChange={(event) => setSelfWeightDraft({ ...selfWeightDraft, enabled: event.target.checked })} /><span>启用结构自重</span></label><LoadCaseField project={project} value={selfWeightDraft.loadCaseId} onChange={(loadCaseId) => setSelfWeightDraft({ ...selfWeightDraft, loadCaseId })} /><div className="coordinate-inputs"><NumberField label="重力 X" value={selfWeightDraft.gx} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gx: value })} /><NumberField label="重力 Y" value={selfWeightDraft.gy} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gy: value })} /><NumberField label="重力 Z" value={selfWeightDraft.gz} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gz: value })} /></div><SelfWeightReferences project={project} /><FormFeedback error={formError} /><DialogActions close={() => { setSelfWeightDialogOpen(false); setFormError(null); }} submit="保存自重设置" /></form></Dialog>}
-    {settingsDialogOpen && <Dialog id="settings-dialog" title="设置" copy="应用设置将在这里集中管理。" onClose={() => setSettingsDialogOpen(false)}><section className="settings-placeholder" aria-label="常规设置"><h3>常规</h3><p>暂无可配置项。</p></section></Dialog>}
+    {settingsDialogOpen && <Dialog id="settings-dialog" title="设置" copy="FrameMind" onClose={() => setSettingsDialogOpen(false)}><section className="settings-general" aria-label="常规设置"><h3>外观</h3><div className="theme-options" role="group" aria-label="主题">{(["dark", "light"] as const).map((value) => <button key={value} className="button ghost" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === "dark" ? <Moon size={15} /> : <Sun size={15} />}{value === "dark" ? "深色" : "浅色"}</button>)}</div></section></Dialog>}
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
     {comparisonOpen && <AnalysisComparisonDialog project={project} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
@@ -599,12 +628,10 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
     <section className="property-section"><div className="result-section-heading"><h3>计算输入</h3><button type="button" className="button ghost compact-button" onClick={onOpenComparison} disabled={project.analysisResults.length < 2} title={project.analysisResults.length < 2 ? "至少需要两份已完成分析" : "选择两份已完成分析"}><Files size={14} />前后结果对比</button></div><dl>
       <div><dt>{combination ? "用户定义组合" : "来源工况"}</dt><dd>{combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入"}</dd></div>
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
-      <div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div>
-      <div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div>
       <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length + (result.input.uniformLoads?.length ?? 0)}</dd></div>
       <div><dt>{combination ? "加权自重" : "自重"}</dt><dd>{selfWeight.enabled ? `${selfWeight.totalWeightKN.toFixed(3)} kN${combination ? "" : ` · ${selfWeight.loadCaseId}`}` : "未启用"}</dd></div>
       <div><dt>历史结果</dt><dd>{project.analysisResults.length} 份 · 本结果 {result.id.slice(-8)}</dd></div>
-    </dl></section>
+    </dl><details><summary>求解与输入详情</summary><dl><div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div><div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div></dl></details></section>
     {combination && <section className="property-section"><h3>组合依据 · 无量纲系数</h3><ul className="combination-source-terms">{combination.definition.terms.map((term) => <li key={term.loadCaseId}>{term.loadCaseId} · {combination.cases.find((item) => item.loadCase.id === term.loadCaseId)?.loadCase.name} × {term.factor}</li>)}</ul><p className="combination-basis">用户定义 · 线弹性 · m / kN / kN·m</p></section>}
     <section className="property-section result-view-controls" aria-label="结果视图">
       <h3>结果视图</h3>
@@ -670,7 +697,11 @@ function AnalysisComparisonDialog({ project, onClose, onLocate }: { project: Fra
   </Dialog>;
 }
 
-function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) { return <div className="tree-group"><div className="tree-group-label"><ChevronDown size={13} />{icon}<span>{label}</span><em>{count}</em></div><div className="tree-items">{children}</div></div>; }
+function TreeGroup({ label, count, icon, children }: { label: string; count: number; icon: React.ReactNode; children: React.ReactNode }) {
+  const [expanded, setExpanded] = useState(true);
+  const id = useId();
+  return <div className="tree-group"><button className="tree-group-label" aria-label={label} aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded((value) => !value)}><ChevronDown className="group-chevron" size={13} />{icon}<span>{label}</span><em>{count}</em></button><div id={id} className="tree-items" hidden={!expanded}>{children}</div></div>;
+}
 function MenuAction({ icon, label, shortcut, onSelect }: { icon: React.ReactNode; label: string; shortcut: string; onSelect(): void }) { return <button className="menu-item" role="menuitem" onClick={onSelect}><span>{icon}{label}</span><kbd>{shortcut}</kbd></button>; }
 function RestraintFields({ restraints, onChange }: { restraints: DofRestraints; onChange: (value: DofRestraints) => void }) {
   return <fieldset className="resource-fieldset"><legend>约束自由度</legend><div className="restraint-grid">{["UX 平移", "UY 平移", "UZ 平移", "RX 转动", "RY 转动", "RZ 转动"].map((label, index) => <label className="check-field" key={label}><input type="checkbox" checked={restraints[index]} onChange={(event) => onChange(restraints.map((value, itemIndex) => itemIndex === index ? event.target.checked : value) as DofRestraints)} /><span>{label}</span></label>)}</div></fieldset>;

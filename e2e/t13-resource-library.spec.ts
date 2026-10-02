@@ -20,7 +20,7 @@ test("T13 selects traceable catalog resources and preserves a custom derivative"
   await expect(dialog).toContainText("Iy：关于局部 y 轴的二次面积矩");
   await dialog.getByRole("button", { name: "保存材料与截面" }).click();
 
-  const properties = page.getByRole("complementary", { name: "项目与属性" });
+  const properties = page.getByRole("region", { name: "对象属性" });
   await page.getByText("材料 M1 · S355JR", { exact: true }).click();
   await expect(properties).toContainText("已核对库条目");
   await expect(properties).toContainText("EN 10025-2:2019");

@@ -9,6 +9,16 @@ import {
 import { ProjectFileStore } from "./project-files";
 
 const projectFiles = new ProjectFileStore();
+if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
+
+ipcMain.handle(DesktopChannel.SetTheme, (event, theme: unknown) => {
+  if (theme !== "dark" && theme !== "light") throw new Error("不支持的主题");
+  const window = BrowserWindow.fromWebContents(event.sender);
+  window?.setTitleBarOverlay(theme === "light"
+    ? { color: "#f0f0f0", symbolColor: "#484848" }
+    : { color: "#202020", symbolColor: "#b6b6b6" });
+  window?.setBackgroundColor(theme === "light" ? "#f7f7f7" : "#1a1a1a");
+});
 
 function createWindow(): void {
   const window = new BrowserWindow({
