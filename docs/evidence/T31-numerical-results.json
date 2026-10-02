@@ -1,40 +1,40 @@
 {
-  "generatedAt": "2026-10-02T15:12:36.881Z",
-  "commit": "f2820befdce69cfec36281fcb5ae4a6e559e051c",
+  "generatedAt": "2026-10-02T15:38:36.474Z",
+  "commit": "beca80553f7ebe79188b834ea0a88b8e2f9ab1f1",
   "environment": {
     "platform": "win32",
     "arch": "x64",
     "node": "v24.19.0"
   },
-  "referenceSha256": "67f077e308756aa0f8aaa5ed184621fb7b9567143b3a96cf7b84960055e97809",
+  "referenceSha256": "64c378ed7d7fc521f8a39fc38da2383715b4e6b77a25a771232b1a469cdac31b",
   "criteria": "ADR-0032: absolute m/rad=1e-11, kN/kN·m=1e-9; relative=1e-8; balance absolute only",
   "passed": true,
   "summary": {
-    "cases": 21,
+    "cases": 22,
     "invalidCases": 7,
-    "checks": 2196,
+    "checks": 2322,
     "failedCases": [],
     "byUnit": {
       "m": {
-        "checks": 159,
+        "checks": 168,
         "maxAbsoluteError": 1.2836953722228372e-16,
         "worstToleranceRatio": 0.000005472510465620584,
         "worstQuantity": "node_0003.displacement.x"
       },
       "rad": {
-        "checks": 159,
+        "checks": 168,
         "maxAbsoluteError": 4.7704895589362195e-17,
         "worstToleranceRatio": 0.0000018038413644727582,
         "worstQuantity": "node_0002.rotation.z"
       },
       "kN": {
-        "checks": 939,
+        "checks": 993,
         "maxAbsoluteError": 4.547473508864641e-13,
         "worstToleranceRatio": 0.00045474735088646406,
         "worstQuantity": "node_0004.reaction.x"
       },
       "kN·m": {
-        "checks": 939,
+        "checks": 993,
         "maxAbsoluteError": 1.5347723092418164e-12,
         "worstToleranceRatio": 0.0015347723092418164,
         "worstQuantity": "equilibrium.5"
@@ -47,7 +47,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_a0685cd1-0952-4ef2-9130-614551f02abb",
+        "projectId": "project_e72c9223-67c1-480d-8e34-3d7af38e7a76",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -1056,7 +1056,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_facc4a64-a32e-46c8-b5ae-de74415a6df7",
+        "projectId": "project_e9426272-f770-492c-be90-05ab636b6e74",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -2065,7 +2065,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_614eb5f4-6e22-4708-806a-1839129a4da4",
+        "projectId": "project_a89084df-d0d9-4cd8-a40d-961b518512b2",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -3074,7 +3074,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_314a5b3b-c096-4004-bb05-2549832d3726",
+        "projectId": "project_59cb76bf-d243-40d3-bd23-4adba5c2c8c9",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -4083,7 +4083,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_4bbad3eb-8451-4a78-8334-d32fc487197f",
+        "projectId": "project_ca9b5eb4-c6f2-4c2e-b949-7bd4eed4ec1f",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -5092,7 +5092,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_4c23e6dc-a147-4470-a257-f7c18aa47f63",
+        "projectId": "project_2656a3f1-16bb-4a6b-9ef9-6fd6ef3abc3c",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -6101,7 +6101,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_95f98192-2470-4bff-a766-eb0a887b775e",
+        "projectId": "project_cebe8e07-96e7-41c0-ac61-a31fa6c44789",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -7110,7 +7110,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_2d4eaaae-70cf-4512-b982-75b4adb8fa74",
+        "projectId": "project_89edbc08-ad0c-4de9-82f2-cd42eaee1493",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -8119,7 +8119,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_1d4e1fba-b97a-4ef0-8aa2-fb4603f0be92",
+        "projectId": "project_02dbc0bf-51ca-4a57-a4fb-fc972bf92752",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -9128,7 +9128,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_14fe95ea-d2ca-467a-a20f-2fe8e556340f",
+        "projectId": "project_6270de47-2933-44bb-a20b-234db2289be8",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -10134,7 +10134,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_8e640aa3-f1a0-49e3-adf3-6a7e8925eb3e",
+        "projectId": "project_81099cff-a3d9-4634-91af-983b04e7cd60",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -11140,7 +11140,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_e5d4de05-d743-4557-ab5b-03921052829f",
+        "projectId": "project_896c7082-7711-45e9-8049-1a580fc439dc",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -12132,7 +12132,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_1d4ee05a-0d80-43aa-9516-a1948d9abd89",
+        "projectId": "project_379b51b0-3d7a-409e-9cab-bce053719558",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -13141,7 +13141,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_453c8c9e-dfbd-45f2-b19b-d40d86f24219",
+        "projectId": "project_e13b5781-b172-43ce-8a2c-501c3342d4e2",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -14164,7 +14164,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_f798bccb-23a7-4c19-a560-8b7560c3cc79",
+        "projectId": "project_14737f0b-bac4-4497-b537-e43b19190925",
         "projectRevision": 12,
         "dofOrder": [
           "ux",
@@ -15305,7 +15305,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_5f2ac8b2-d2fb-453a-a276-7a474e0288ba",
+        "projectId": "project_3c8cd428-d810-455e-9a8e-33e04f50bb57",
         "projectRevision": 12,
         "dofOrder": [
           "ux",
@@ -16446,7 +16446,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_a0b514e4-5958-4141-937d-c3e3ee55f174",
+        "projectId": "project_4555b486-8bbf-454d-9f32-a74d5a086715",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -18038,7 +18038,7 @@
       "source": "ADR-0004 + independent continuum virtual-work reproduction",
       "passed": true,
       "input": {
-        "projectId": "project_b657ce9e-8656-4428-8610-12cd8c61e801",
+        "projectId": "project_25bbe5d1-2933-47cc-9f65-2c851311a882",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -20167,7 +20167,7 @@
       "source": "Six-redundant force method, exact continuum energy compatibility",
       "passed": true,
       "input": {
-        "projectId": "project_335ac5b4-95b5-4b69-a311-e6d9d351fa8e",
+        "projectId": "project_119ba0a1-b1f8-4790-a44d-e507d4dbe082",
         "projectRevision": 16,
         "dofOrder": [
           "ux",
@@ -23764,7 +23764,7 @@
       "source": "计算结构力学 (2014), example 2-1, printed pp.42-46 / PDF pp.51-55; independently recomputed by force method",
       "passed": true,
       "input": {
-        "projectId": "project_6effd65d-d29d-4fe7-9c33-f168e177440d",
+        "projectId": "project_f6cae23f-c6e5-4965-9641-78bb240bcfb8",
         "projectRevision": 16,
         "dofOrder": [
           "ux",
@@ -26495,10 +26495,10 @@
     },
     {
       "id": "textbook-2-1-condensed",
-      "source": "计算结构力学 example 2-1, printed p.43 equivalent FA=(40,-26,-1200) kN/kN·cm; a distinct reduced-load model, not the original physical loads",
+      "source": "计算结构力学 example 2-1, printed p.43 FA=(40,-26,-1200) kN/kN·cm; theta_book=-rz, so physical Mz=+12 kN·m. Distinct reduced-load model, not original loads",
       "passed": true,
       "input": {
-        "projectId": "project_9ede952c-182d-4e1f-85e3-fb4356261e2a",
+        "projectId": "project_bb85a896-16a8-43f3-9386-e47be21b84e9",
         "projectRevision": 10,
         "dofOrder": [
           "ux",
@@ -26644,7 +26644,7 @@
             "moment": {
               "x": 0,
               "y": 0,
-              "z": -12
+              "z": 12
             }
           }
         ],
@@ -26674,37 +26674,37 @@
               "z": 0
             },
             "reaction": {
-              "x": 23.93886839098094,
-              "y": 21.92807548426841,
+              "x": 25.892497865990414,
+              "y": 28.89893720197022,
               "z": 0
             },
             "reactionMoment": {
               "x": 0,
               "y": 0,
-              "z": -1.8249426902808503
+              "z": 3.2082268349007466
             }
           },
           {
             "nodeId": "node_0002",
             "displacement": {
-              "x": 0.00005812624399180086,
-              "y": -0.00011709502043996743,
+              "x": 0.000059902270787264,
+              "y": -0.00013034480767362287,
               "z": 0
             },
             "rotation": {
               "x": 0,
               "y": 0,
-              "z": -0.00037437271034353116
+              "z": 0.00040900067200132847
             },
             "reaction": {
-              "x": 1.0658141036401503e-14,
-              "y": 5.773159728050814e-15,
+              "x": -7.771561172376096e-15,
+              "y": -1.7763568394002505e-15,
               "z": 0
             },
             "reactionMoment": {
               "x": 0,
               "y": 0,
-              "z": 1.7763568394002505e-15
+              "z": -1.7763568394002505e-15
             }
           },
           {
@@ -26720,14 +26720,14 @@
               "z": 0
             },
             "reaction": {
-              "x": -63.93886839098095,
-              "y": 4.071924515731585,
+              "x": -65.8924978659904,
+              "y": -2.898937201970219,
               "z": 0
             },
             "reactionMoment": {
               "x": 0,
               "y": 0,
-              "z": -4.423209577051487
+              "z": 2.5079027789493504
             }
           }
         ],
@@ -26754,20 +26754,20 @@
             },
             "localEndForces": {
               "start": [
-                32.4328270464916,
-                -1.4218452998982372,
+                38.74339528749737,
+                2.125873641697307,
                 0,
                 0,
                 0,
-                -1.824942690280851
+                3.2082268349007474
               ],
               "end": [
-                -32.4328270464916,
-                1.4218452998982372,
+                -38.74339528749737,
+                -2.125873641697307,
                 0,
                 0,
                 0,
-                -4.207436029856733
+                5.811091173038695
               ]
             }
           },
@@ -26793,20 +26793,20 @@
             },
             "localEndForces": {
               "start": [
-                63.93886839098095,
-                -4.071924515731585,
+                65.8924978659904,
+                2.898937201970219,
                 0,
                 0,
                 0,
-                -7.792563970143267
+                6.188908826961306
               ],
               "end": [
-                -63.93886839098095,
-                4.071924515731585,
+                -65.8924978659904,
+                -2.898937201970219,
                 0,
                 0,
                 0,
-                -4.423209577051487
+                2.5079027789493504
               ]
             }
           }
@@ -26876,21 +26876,21 @@
         {
           "quantity": "node_0001.reaction.x",
           "unit": "kN",
-          "actual": 23.93886839098094,
-          "reference": 23.938868390980943,
-          "absoluteError": 3.552713678800501e-15,
-          "relativeError": 1.484077534817393e-16,
-          "tolerance": 2.3938868390980943e-7,
+          "actual": 25.892497865990414,
+          "reference": 25.892497865990403,
+          "absoluteError": 1.0658141036401503e-14,
+          "relativeError": 4.1163046885487586e-16,
+          "tolerance": 2.5892497865990404e-7,
           "passed": true
         },
         {
           "quantity": "node_0001.reaction.y",
           "unit": "kN",
-          "actual": 21.92807548426841,
-          "reference": 21.928075484268415,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 3.240333317302998e-16,
-          "tolerance": 2.1928075484268415e-7,
+          "actual": 28.89893720197022,
+          "reference": 28.898937201970217,
+          "absoluteError": 3.552713678800501e-15,
+          "relativeError": 1.2293579012858268e-16,
+          "tolerance": 2.889893720197022e-7,
           "passed": true
         },
         {
@@ -26926,30 +26926,30 @@
         {
           "quantity": "node_0001.reactionMoment.z",
           "unit": "kN·m",
-          "actual": -1.8249426902808503,
-          "reference": -1.8249426902808514,
-          "absoluteError": 1.1102230246251565e-15,
-          "relativeError": 6.083604874486758e-16,
-          "tolerance": 1.8249426902808515e-8,
+          "actual": 3.2082268349007466,
+          "reference": 3.208226834900748,
+          "absoluteError": 1.3322676295501878e-15,
+          "relativeError": 4.152660326436687e-16,
+          "tolerance": 3.208226834900748e-8,
           "passed": true
         },
         {
           "quantity": "node_0002.displacement.x",
           "unit": "m",
-          "actual": 0.00005812624399180086,
-          "reference": 0.000058126243991800856,
-          "absoluteError": 6.776263578034403e-21,
-          "relativeError": 1.1657838375020834e-16,
+          "actual": 0.000059902270787264,
+          "reference": 0.000059902270787264,
+          "absoluteError": 0,
+          "relativeError": 0,
           "tolerance": 1e-11,
           "passed": true
         },
         {
           "quantity": "node_0002.displacement.y",
           "unit": "m",
-          "actual": -0.00011709502043996743,
-          "reference": -0.00011709502043996742,
-          "absoluteError": 1.3552527156068805e-20,
-          "relativeError": 1.1573956864388567e-16,
+          "actual": -0.00013034480767362287,
+          "reference": -0.00013034480767362284,
+          "absoluteError": 2.710505431213761e-20,
+          "relativeError": 2.0794886114686954e-16,
           "tolerance": 1e-11,
           "passed": true
         },
@@ -26986,19 +26986,19 @@
         {
           "quantity": "node_0002.rotation.z",
           "unit": "rad",
-          "actual": -0.00037437271034353116,
-          "reference": -0.0003743727103435311,
-          "absoluteError": 5.421010862427522e-20,
-          "relativeError": 1.4480251131160456e-16,
+          "actual": 0.00040900067200132847,
+          "reference": 0.00040900067200132836,
+          "absoluteError": 1.0842021724855044e-19,
+          "relativeError": 2.6508567019713434e-16,
           "tolerance": 1e-11,
           "passed": true
         },
         {
           "quantity": "node_0002.reaction.x",
           "unit": "kN",
-          "actual": 1.0658141036401503e-14,
+          "actual": -7.771561172376096e-15,
           "reference": 0,
-          "absoluteError": 1.0658141036401503e-14,
+          "absoluteError": 7.771561172376096e-15,
           "relativeError": null,
           "tolerance": 1e-9,
           "passed": true
@@ -27006,9 +27006,9 @@
         {
           "quantity": "node_0002.reaction.y",
           "unit": "kN",
-          "actual": 5.773159728050814e-15,
+          "actual": -1.7763568394002505e-15,
           "reference": 0,
-          "absoluteError": 5.773159728050814e-15,
+          "absoluteError": 1.7763568394002505e-15,
           "relativeError": null,
           "tolerance": 1e-9,
           "passed": true
@@ -27046,7 +27046,7 @@
         {
           "quantity": "node_0002.reactionMoment.z",
           "unit": "kN·m",
-          "actual": 1.7763568394002505e-15,
+          "actual": -1.7763568394002505e-15,
           "reference": 0,
           "absoluteError": 1.7763568394002505e-15,
           "relativeError": null,
@@ -27116,21 +27116,21 @@
         {
           "quantity": "node_0003.reaction.x",
           "unit": "kN",
-          "actual": -63.93886839098095,
-          "reference": -63.93886839098094,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 1.1112845029023497e-16,
-          "tolerance": 6.393886839098094e-7,
+          "actual": -65.8924978659904,
+          "reference": -65.8924978659904,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "node_0003.reaction.y",
           "unit": "kN",
-          "actual": 4.071924515731585,
-          "reference": 4.071924515731585,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "actual": -2.898937201970219,
+          "reference": -2.898937201970218,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.063807036235516e-16,
+          "tolerance": 2.898937201970218e-8,
           "passed": true
         },
         {
@@ -27166,31 +27166,31 @@
         {
           "quantity": "node_0003.reactionMoment.z",
           "unit": "kN·m",
-          "actual": -4.423209577051487,
-          "reference": -4.4232095770514865,
+          "actual": 2.5079027789493504,
+          "reference": 2.5079027789493495,
           "absoluteError": 8.881784197001252e-16,
-          "relativeError": 2.0079953351253715e-16,
-          "tolerance": 4.4232095770514865e-8,
+          "relativeError": 3.541518543522708e-16,
+          "tolerance": 2.5079027789493497e-8,
           "passed": true
         },
         {
           "quantity": "member_0001.start.0",
           "unit": "kN",
-          "actual": 32.4328270464916,
-          "reference": 32.4328270464916,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 3.24328270464916e-7,
+          "actual": 38.74339528749737,
+          "reference": 38.74339528749736,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.6679425253645495e-16,
+          "tolerance": 3.8743395287497356e-7,
           "passed": true
         },
         {
           "quantity": "member_0001.start.1",
           "unit": "kN",
-          "actual": -1.4218452998982372,
-          "reference": -1.4218452998982376,
+          "actual": 2.125873641697307,
+          "reference": 2.1258736416973076,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 3.1233300126381285e-16,
-          "tolerance": 1.4218452998982377e-8,
+          "relativeError": 2.0889727457907595e-16,
+          "tolerance": 2.125873641697308e-8,
           "passed": true
         },
         {
@@ -27226,31 +27226,31 @@
         {
           "quantity": "member_0001.start.5",
           "unit": "kN·m",
-          "actual": -1.824942690280851,
-          "reference": -1.8249426902808514,
+          "actual": 3.2082268349007474,
+          "reference": 3.208226834900748,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 2.433441949794703e-16,
-          "tolerance": 1.8249426902808515e-8,
+          "relativeError": 1.384220108812229e-16,
+          "tolerance": 3.208226834900748e-8,
           "passed": true
         },
         {
           "quantity": "member_0001.end.0",
           "unit": "kN",
-          "actual": -32.4328270464916,
-          "reference": -32.4328270464916,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 3.24328270464916e-7,
+          "actual": -38.74339528749737,
+          "reference": -38.74339528749736,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.6679425253645495e-16,
+          "tolerance": 3.8743395287497356e-7,
           "passed": true
         },
         {
           "quantity": "member_0001.end.1",
           "unit": "kN",
-          "actual": 1.4218452998982372,
-          "reference": 1.4218452998982376,
+          "actual": -2.125873641697307,
+          "reference": -2.1258736416973076,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 3.1233300126381285e-16,
-          "tolerance": 1.4218452998982377e-8,
+          "relativeError": 2.0889727457907595e-16,
+          "tolerance": 2.125873641697308e-8,
           "passed": true
         },
         {
@@ -27286,31 +27286,31 @@
         {
           "quantity": "member_0001.end.5",
           "unit": "kN·m",
-          "actual": -4.207436029856733,
-          "reference": -4.2074360298567335,
+          "actual": 5.811091173038695,
+          "reference": 5.811091173038696,
           "absoluteError": 8.881784197001252e-16,
-          "relativeError": 2.110973080511383e-16,
-          "tolerance": 4.2074360298567334e-8,
+          "relativeError": 1.528419350604828e-16,
+          "tolerance": 5.811091173038696e-8,
           "passed": true
         },
         {
           "quantity": "member_0001.section@0.0",
           "unit": "kN",
-          "actual": -32.4328270464916,
-          "reference": -32.4328270464916,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 3.24328270464916e-7,
+          "actual": -38.74339528749737,
+          "reference": -38.74339528749736,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.6679425253645495e-16,
+          "tolerance": 3.8743395287497356e-7,
           "passed": true
         },
         {
           "quantity": "member_0001.section@0.1",
           "unit": "kN",
-          "actual": 1.4218452998982372,
-          "reference": 1.4218452998982376,
+          "actual": -2.125873641697307,
+          "reference": -2.1258736416973076,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 3.1233300126381285e-16,
-          "tolerance": 1.4218452998982377e-8,
+          "relativeError": 2.0889727457907595e-16,
+          "tolerance": 2.125873641697308e-8,
           "passed": true
         },
         {
@@ -27346,31 +27346,31 @@
         {
           "quantity": "member_0001.section@0.5",
           "unit": "kN·m",
-          "actual": 1.824942690280851,
-          "reference": 1.8249426902808514,
+          "actual": -3.2082268349007474,
+          "reference": -3.208226834900748,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 2.433441949794703e-16,
-          "tolerance": 1.8249426902808515e-8,
+          "relativeError": 1.384220108812229e-16,
+          "tolerance": 3.208226834900748e-8,
           "passed": true
         },
         {
           "quantity": "member_0001.section@2.1213203435596424.0",
           "unit": "kN",
-          "actual": -32.4328270464916,
-          "reference": -32.4328270464916,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 3.24328270464916e-7,
+          "actual": -38.74339528749737,
+          "reference": -38.74339528749736,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.6679425253645495e-16,
+          "tolerance": 3.8743395287497356e-7,
           "passed": true
         },
         {
           "quantity": "member_0001.section@2.1213203435596424.1",
           "unit": "kN",
-          "actual": 1.4218452998982372,
-          "reference": 1.4218452998982376,
+          "actual": -2.125873641697307,
+          "reference": -2.1258736416973076,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 3.1233300126381285e-16,
-          "tolerance": 1.4218452998982377e-8,
+          "relativeError": 2.0889727457907595e-16,
+          "tolerance": 2.125873641697308e-8,
           "passed": true
         },
         {
@@ -27406,31 +27406,31 @@
         {
           "quantity": "member_0001.section@2.1213203435596424.5",
           "unit": "kN·m",
-          "actual": -1.19124666978794,
-          "reference": -1.191246669787941,
-          "absoluteError": 8.881784197001252e-16,
-          "relativeError": 7.455873264755769e-16,
-          "tolerance": 1.191246669787941e-8,
+          "actual": 1.3014321690689723,
+          "reference": 1.3014321690689739,
+          "absoluteError": 1.5543122344752192e-15,
+          "relativeError": 1.1943090630587011e-15,
+          "tolerance": 1.3014321690689738e-8,
           "passed": true
         },
         {
           "quantity": "member_0001.section@4.242640687119285.0",
           "unit": "kN",
-          "actual": -32.4328270464916,
-          "reference": -32.4328270464916,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 3.24328270464916e-7,
+          "actual": -38.74339528749737,
+          "reference": -38.74339528749736,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.6679425253645495e-16,
+          "tolerance": 3.8743395287497356e-7,
           "passed": true
         },
         {
           "quantity": "member_0001.section@4.242640687119285.1",
           "unit": "kN",
-          "actual": 1.4218452998982372,
-          "reference": 1.4218452998982376,
+          "actual": -2.125873641697307,
+          "reference": -2.1258736416973076,
           "absoluteError": 4.440892098500626e-16,
-          "relativeError": 3.1233300126381285e-16,
-          "tolerance": 1.4218452998982377e-8,
+          "relativeError": 2.0889727457907595e-16,
+          "tolerance": 2.125873641697308e-8,
           "passed": true
         },
         {
@@ -27466,31 +27466,31 @@
         {
           "quantity": "member_0001.section@4.242640687119285.5",
           "unit": "kN·m",
-          "actual": -4.207436029856731,
-          "reference": -4.2074360298567335,
-          "absoluteError": 2.6645352591003757e-15,
-          "relativeError": 6.332919241534149e-16,
-          "tolerance": 4.2074360298567334e-8,
+          "actual": 5.811091173038692,
+          "reference": 5.811091173038696,
+          "absoluteError": 3.552713678800501e-15,
+          "relativeError": 6.113677402419312e-16,
+          "tolerance": 5.811091173038696e-8,
           "passed": true
         },
         {
           "quantity": "member_0002.start.0",
           "unit": "kN",
-          "actual": 63.93886839098095,
-          "reference": 63.93886839098094,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 1.1112845029023497e-16,
-          "tolerance": 6.393886839098094e-7,
+          "actual": 65.8924978659904,
+          "reference": 65.8924978659904,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "member_0002.start.1",
           "unit": "kN",
-          "actual": -4.071924515731585,
-          "reference": -4.071924515731585,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "actual": 2.898937201970219,
+          "reference": 2.898937201970218,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.063807036235516e-16,
+          "tolerance": 2.898937201970218e-8,
           "passed": true
         },
         {
@@ -27526,31 +27526,31 @@
         {
           "quantity": "member_0002.start.5",
           "unit": "kN·m",
-          "actual": -7.792563970143267,
-          "reference": -7.7925639701432665,
-          "absoluteError": 8.881784197001252e-16,
-          "relativeError": 1.1397768733155436e-16,
-          "tolerance": 7.792563970143266e-8,
+          "actual": 6.188908826961306,
+          "reference": 6.188908826961304,
+          "absoluteError": 1.7763568394002505e-15,
+          "relativeError": 2.8702262209159492e-16,
+          "tolerance": 6.188908826961304e-8,
           "passed": true
         },
         {
           "quantity": "member_0002.end.0",
           "unit": "kN",
-          "actual": -63.93886839098095,
-          "reference": -63.93886839098094,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 1.1112845029023497e-16,
-          "tolerance": 6.393886839098094e-7,
+          "actual": -65.8924978659904,
+          "reference": -65.8924978659904,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "member_0002.end.1",
           "unit": "kN",
-          "actual": 4.071924515731585,
-          "reference": 4.071924515731585,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "actual": -2.898937201970219,
+          "reference": -2.898937201970218,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.063807036235516e-16,
+          "tolerance": 2.898937201970218e-8,
           "passed": true
         },
         {
@@ -27586,31 +27586,31 @@
         {
           "quantity": "member_0002.end.5",
           "unit": "kN·m",
-          "actual": -4.423209577051487,
-          "reference": -4.4232095770514865,
+          "actual": 2.5079027789493504,
+          "reference": 2.5079027789493495,
           "absoluteError": 8.881784197001252e-16,
-          "relativeError": 2.0079953351253715e-16,
-          "tolerance": 4.4232095770514865e-8,
+          "relativeError": 3.541518543522708e-16,
+          "tolerance": 2.5079027789493497e-8,
           "passed": true
         },
         {
           "quantity": "member_0002.section@0.0",
           "unit": "kN",
-          "actual": -63.93886839098095,
-          "reference": -63.93886839098094,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 1.1112845029023497e-16,
-          "tolerance": 6.393886839098094e-7,
+          "actual": -65.8924978659904,
+          "reference": -65.8924978659904,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "member_0002.section@0.1",
           "unit": "kN",
-          "actual": 4.071924515731585,
-          "reference": 4.071924515731585,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "actual": -2.898937201970219,
+          "reference": -2.898937201970218,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.063807036235516e-16,
+          "tolerance": 2.898937201970218e-8,
           "passed": true
         },
         {
@@ -27646,31 +27646,31 @@
         {
           "quantity": "member_0002.section@0.5",
           "unit": "kN·m",
-          "actual": 7.792563970143267,
-          "reference": 7.7925639701432665,
-          "absoluteError": 8.881784197001252e-16,
-          "relativeError": 1.1397768733155436e-16,
-          "tolerance": 7.792563970143266e-8,
+          "actual": -6.188908826961306,
+          "reference": -6.188908826961304,
+          "absoluteError": 1.7763568394002505e-15,
+          "relativeError": 2.8702262209159492e-16,
+          "tolerance": 6.188908826961304e-8,
           "passed": true
         },
         {
           "quantity": "member_0002.section@1.5.0",
           "unit": "kN",
-          "actual": -63.93886839098095,
-          "reference": -63.93886839098094,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 1.1112845029023497e-16,
-          "tolerance": 6.393886839098094e-7,
+          "actual": -65.8924978659904,
+          "reference": -65.8924978659904,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "member_0002.section@1.5.1",
           "unit": "kN",
-          "actual": 4.071924515731585,
-          "reference": 4.071924515731585,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "actual": -2.898937201970219,
+          "reference": -2.898937201970218,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.063807036235516e-16,
+          "tolerance": 2.898937201970218e-8,
           "passed": true
         },
         {
@@ -27706,31 +27706,31 @@
         {
           "quantity": "member_0002.section@1.5.5",
           "unit": "kN·m",
-          "actual": 1.6846771965458904,
-          "reference": 1.68467719654589,
-          "absoluteError": 4.440892098500626e-16,
-          "relativeError": 2.6360492725881434e-16,
-          "tolerance": 1.6846771965458902e-8,
+          "actual": -1.8405030240059777,
+          "reference": -1.8405030240059777,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 1.8405030240059776e-8,
           "passed": true
         },
         {
           "quantity": "member_0002.section@3.0",
           "unit": "kN",
-          "actual": -63.93886839098095,
-          "reference": -63.93886839098094,
-          "absoluteError": 7.105427357601002e-15,
-          "relativeError": 1.1112845029023497e-16,
-          "tolerance": 6.393886839098094e-7,
+          "actual": -65.8924978659904,
+          "reference": -65.8924978659904,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "member_0002.section@3.1",
           "unit": "kN",
-          "actual": 4.071924515731585,
-          "reference": 4.071924515731585,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "actual": -2.898937201970219,
+          "reference": -2.898937201970218,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.063807036235516e-16,
+          "tolerance": 2.898937201970218e-8,
           "passed": true
         },
         {
@@ -27766,11 +27766,11 @@
         {
           "quantity": "member_0002.section@3.5",
           "unit": "kN·m",
-          "actual": -4.4232095770514865,
-          "reference": -4.4232095770514865,
-          "absoluteError": 0,
-          "relativeError": 0,
-          "tolerance": 4.4232095770514865e-8,
+          "actual": 2.507902778949351,
+          "reference": 2.5079027789493495,
+          "absoluteError": 1.3322676295501878e-15,
+          "relativeError": 5.312277815284062e-16,
+          "tolerance": 2.5079027789493497e-8,
           "passed": true
         },
         {
@@ -27826,9 +27826,9 @@
         {
           "quantity": "equilibrium.5",
           "unit": "kN·m",
-          "actual": 0,
+          "actual": 2.842170943040401e-14,
           "reference": 0,
-          "absoluteError": 0,
+          "absoluteError": 2.842170943040401e-14,
           "relativeError": null,
           "tolerance": 1e-9,
           "passed": true
@@ -27836,21 +27836,21 @@
         {
           "quantity": "process.residual.0",
           "unit": "kN",
-          "actual": 23.93886839098094,
-          "reference": 23.93886839098094,
+          "actual": 25.892497865990414,
+          "reference": 25.892497865990414,
           "absoluteError": 0,
           "relativeError": 0,
-          "tolerance": 2.393886839098094e-7,
+          "tolerance": 2.5892497865990415e-7,
           "passed": true
         },
         {
           "quantity": "process.residual.1",
           "unit": "kN",
-          "actual": 21.92807548426841,
-          "reference": 21.92807548426841,
+          "actual": 28.89893720197022,
+          "reference": 28.89893720197022,
           "absoluteError": 0,
           "relativeError": 0,
-          "tolerance": 2.192807548426841e-7,
+          "tolerance": 2.889893720197022e-7,
           "passed": true
         },
         {
@@ -27886,18 +27886,18 @@
         {
           "quantity": "process.residual.5",
           "unit": "kN·m",
-          "actual": -1.8249426902808503,
-          "reference": -1.8249426902808503,
+          "actual": 3.2082268349007466,
+          "reference": 3.2082268349007466,
           "absoluteError": 0,
           "relativeError": 0,
-          "tolerance": 1.8249426902808502e-8,
+          "tolerance": 3.208226834900747e-8,
           "passed": true
         },
         {
           "quantity": "process.residual.6",
           "unit": "kN",
-          "actual": 1.0658141036401503e-14,
-          "reference": 1.0658141036401503e-14,
+          "actual": -7.771561172376096e-15,
+          "reference": -7.771561172376096e-15,
           "absoluteError": 0,
           "relativeError": null,
           "tolerance": 1e-9,
@@ -27906,8 +27906,8 @@
         {
           "quantity": "process.residual.7",
           "unit": "kN",
-          "actual": 5.773159728050814e-15,
-          "reference": 5.773159728050814e-15,
+          "actual": -1.7763568394002505e-15,
+          "reference": -1.7763568394002505e-15,
           "absoluteError": 0,
           "relativeError": null,
           "tolerance": 1e-9,
@@ -27946,8 +27946,8 @@
         {
           "quantity": "process.residual.11",
           "unit": "kN·m",
-          "actual": 1.7763568394002505e-15,
-          "reference": 1.7763568394002505e-15,
+          "actual": -1.7763568394002505e-15,
+          "reference": -1.7763568394002505e-15,
           "absoluteError": 0,
           "relativeError": null,
           "tolerance": 1e-9,
@@ -27956,21 +27956,21 @@
         {
           "quantity": "process.residual.12",
           "unit": "kN",
-          "actual": -63.93886839098095,
-          "reference": -63.93886839098095,
+          "actual": -65.8924978659904,
+          "reference": -65.8924978659904,
           "absoluteError": 0,
           "relativeError": 0,
-          "tolerance": 6.393886839098095e-7,
+          "tolerance": 6.589249786599041e-7,
           "passed": true
         },
         {
           "quantity": "process.residual.13",
           "unit": "kN",
-          "actual": 4.071924515731585,
-          "reference": 4.071924515731585,
+          "actual": -2.898937201970219,
+          "reference": -2.898937201970219,
           "absoluteError": 0,
           "relativeError": 0,
-          "tolerance": 4.071924515731585e-8,
+          "tolerance": 2.898937201970219e-8,
           "passed": true
         },
         {
@@ -28006,11 +28006,1593 @@
         {
           "quantity": "process.residual.17",
           "unit": "kN·m",
-          "actual": -4.423209577051487,
-          "reference": -4.423209577051487,
+          "actual": 2.5079027789493504,
+          "reference": 2.5079027789493504,
           "absoluteError": 0,
           "relativeError": 0,
-          "tolerance": 4.423209577051488e-8,
+          "tolerance": 2.5079027789493504e-8,
+          "passed": true
+        },
+        {
+          "quantity": "process.external-load-balance.0",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.external-load-balance.1",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.external-load-balance.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.external-load-balance.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.external-load-balance.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.external-load-balance.5",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "textbook-2-1-consistent",
+      "source": "Independent original-load condensation: (20,0,+15)+(20,-20,0)+(0,-9,-4.5)=(40,-29,+10.5); corner response must match the original five-node continuum solution",
+      "passed": true,
+      "input": {
+        "projectId": "project_21995750-e36b-48d6-8dcf-93ce26090933",
+        "projectRevision": 10,
+        "dofOrder": [
+          "ux",
+          "uy",
+          "uz",
+          "rx",
+          "ry",
+          "rz"
+        ],
+        "solver": {
+          "implementation": "framemind-frame/3",
+          "algorithm": "partial-pivot-gaussian",
+          "constraints": "free-dof-elimination",
+          "relativePivotTolerance": 1e-12
+        },
+        "loadCase": {
+          "id": "LC1",
+          "name": "默认工况",
+          "description": ""
+        },
+        "assumptions": {
+          "theory": "3d-euler-bernoulli-frame",
+          "shearDeformation": "neglected",
+          "rigidJoints": true,
+          "units": "m-kN-kN·m",
+          "localAxis": "member-geometry"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 3,
+              "y": 3,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0003",
+            "label": "N3",
+            "position": {
+              "x": 6,
+              "y": 3,
+              "z": 0
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          },
+          {
+            "id": "member_0002",
+            "label": "M2",
+            "startNodeId": "node_0002",
+            "endNodeId": "node_0003",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "elasticModulusGPa": 200,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.0165,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0000675,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          {
+            "id": "support_0002",
+            "label": "B2",
+            "nodeId": "node_0003",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 40,
+              "y": -29,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 10.5
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        }
+      },
+      "actual": {
+        "nodes": [
+          {
+            "nodeId": "node_0001",
+            "displacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reaction": {
+              "x": 28.686324254932526,
+              "y": 31.416981434872238,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": 2.9450759576679295
+            }
+          },
+          {
+            "nodeId": "node_0002",
+            "displacement": {
+              "x": 0.00006244211295902955,
+              "y": -0.0001397138493681004,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0.0003616960590089817
+            },
+            "reaction": {
+              "x": -1.9761969838327786e-14,
+              "y": -6.661338147750939e-15,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "nodeId": "node_0003",
+            "displacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reaction": {
+              "x": -68.6863242549325,
+              "y": -2.4169814348722327,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": 1.9978398867679317
+            }
+          }
+        ],
+        "members": [
+          {
+            "memberId": "member_0001",
+            "length": 4.242640687119286,
+            "localAxes": {
+              "x": {
+                "x": 0.7071067811865475,
+                "y": 0.7071067811865475,
+                "z": 0
+              },
+              "y": {
+                "x": -0.7071067811865475,
+                "y": 0.7071067811865475,
+                "z": 0
+              },
+              "z": {
+                "x": 0,
+                "y": 0,
+                "z": 0.9999999999999998
+              }
+            },
+            "localEndForces": {
+              "start": [
+                42.499455024988954,
+                1.9308662090311117,
+                0,
+                0,
+                0,
+                2.945075957667931
+              ],
+              "end": [
+                -42.499455024988954,
+                -1.9308662090311117,
+                0,
+                0,
+                0,
+                5.246895582151235
+              ]
+            }
+          },
+          {
+            "memberId": "member_0002",
+            "length": 3,
+            "localAxes": {
+              "x": {
+                "x": 1,
+                "y": 0,
+                "z": 0
+              },
+              "y": {
+                "x": 0,
+                "y": 1,
+                "z": 0
+              },
+              "z": {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            },
+            "localEndForces": {
+              "start": [
+                68.6863242549325,
+                2.4169814348722327,
+                0,
+                0,
+                0,
+                5.253104417848767
+              ],
+              "end": [
+                -68.6863242549325,
+                -2.4169814348722327,
+                0,
+                0,
+                0,
+                1.9978398867679317
+              ]
+            }
+          }
+        ]
+      },
+      "checks": [
+        {
+          "quantity": "node_0001.displacement.x",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.displacement.y",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.displacement.z",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.rotation.x",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.rotation.y",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.rotation.z",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.reaction.x",
+          "unit": "kN",
+          "actual": 28.686324254932526,
+          "reference": 28.68632425493251,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 4.953877878849709e-16,
+          "tolerance": 2.8686324254932514e-7,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.reaction.y",
+          "unit": "kN",
+          "actual": 31.416981434872238,
+          "reference": 31.41698143487223,
+          "absoluteError": 7.105427357601002e-15,
+          "relativeError": 2.2616518306606367e-16,
+          "tolerance": 3.1416981434872233e-7,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.reaction.z",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.reactionMoment.x",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.reactionMoment.y",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0001.reactionMoment.z",
+          "unit": "kN·m",
+          "actual": 2.9450759576679295,
+          "reference": 2.9450759576679304,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.0158081912543696e-16,
+          "tolerance": 2.9450759576679303e-8,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.displacement.x",
+          "unit": "m",
+          "actual": 0.00006244211295902955,
+          "reference": 0.00006244211295902955,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.displacement.y",
+          "unit": "m",
+          "actual": -0.0001397138493681004,
+          "reference": -0.00013971384936810034,
+          "absoluteError": 5.421010862427522e-20,
+          "relativeError": 3.8800812424435676e-16,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.displacement.z",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.rotation.x",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.rotation.y",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.rotation.z",
+          "unit": "rad",
+          "actual": 0.0003616960590089817,
+          "reference": 0.00036169605900898157,
+          "absoluteError": 1.0842021724855044e-19,
+          "relativeError": 2.997550416933301e-16,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.reaction.x",
+          "unit": "kN",
+          "actual": -1.9761969838327786e-14,
+          "reference": 0,
+          "absoluteError": 1.9761969838327786e-14,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.reaction.y",
+          "unit": "kN",
+          "actual": -6.661338147750939e-15,
+          "reference": 0,
+          "absoluteError": 6.661338147750939e-15,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.reaction.z",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.reactionMoment.x",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.reactionMoment.y",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0002.reactionMoment.z",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.displacement.x",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.displacement.y",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.displacement.z",
+          "unit": "m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.rotation.x",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.rotation.y",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.rotation.z",
+          "unit": "rad",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-11,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.reaction.x",
+          "unit": "kN",
+          "actual": -68.6863242549325,
+          "reference": -68.68632425493252,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 2.0689496590992043e-16,
+          "tolerance": 6.868632425493251e-7,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.reaction.y",
+          "unit": "kN",
+          "actual": -2.4169814348722327,
+          "reference": -2.416981434872232,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.6747424158310787e-16,
+          "tolerance": 2.4169814348722317e-8,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.reaction.z",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.reactionMoment.x",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.reactionMoment.y",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "node_0003.reactionMoment.z",
+          "unit": "kN·m",
+          "actual": 1.9978398867679317,
+          "reference": 1.9978398867679308,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 4.445693699393519e-16,
+          "tolerance": 1.997839886767931e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.start.0",
+          "unit": "kN",
+          "actual": 42.499455024988954,
+          "reference": 42.49945502498894,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.3437733982344643e-16,
+          "tolerance": 4.249945502498894e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.start.1",
+          "unit": "kN",
+          "actual": 1.9308662090311117,
+          "reference": 1.930866209031112,
+          "absoluteError": 2.220446049250313e-16,
+          "relativeError": 1.1499740576870466e-16,
+          "tolerance": 1.930866209031112e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.start.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.start.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.start.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.start.5",
+          "unit": "kN·m",
+          "actual": 2.945075957667931,
+          "reference": 2.9450759576679304,
+          "absoluteError": 4.440892098500626e-16,
+          "relativeError": 1.5079040956271848e-16,
+          "tolerance": 2.9450759576679303e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.end.0",
+          "unit": "kN",
+          "actual": -42.499455024988954,
+          "reference": -42.49945502498894,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.3437733982344643e-16,
+          "tolerance": 4.249945502498894e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.end.1",
+          "unit": "kN",
+          "actual": -1.9308662090311117,
+          "reference": -1.930866209031112,
+          "absoluteError": 2.220446049250313e-16,
+          "relativeError": 1.1499740576870466e-16,
+          "tolerance": 1.930866209031112e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.end.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.end.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.end.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.end.5",
+          "unit": "kN·m",
+          "actual": 5.246895582151235,
+          "reference": 5.246895582151235,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 5.2468955821512355e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@0.0",
+          "unit": "kN",
+          "actual": -42.499455024988954,
+          "reference": -42.49945502498894,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.3437733982344643e-16,
+          "tolerance": 4.249945502498894e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@0.1",
+          "unit": "kN",
+          "actual": -1.9308662090311117,
+          "reference": -1.930866209031112,
+          "absoluteError": 2.220446049250313e-16,
+          "relativeError": 1.1499740576870466e-16,
+          "tolerance": 1.930866209031112e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@0.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@0.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@0.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@0.5",
+          "unit": "kN·m",
+          "actual": -2.945075957667931,
+          "reference": -2.9450759576679304,
+          "absoluteError": 4.440892098500626e-16,
+          "relativeError": 1.5079040956271848e-16,
+          "tolerance": 2.9450759576679303e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@2.1213203435596424.0",
+          "unit": "kN",
+          "actual": -42.499455024988954,
+          "reference": -42.49945502498894,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.3437733982344643e-16,
+          "tolerance": 4.249945502498894e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@2.1213203435596424.1",
+          "unit": "kN",
+          "actual": -1.9308662090311117,
+          "reference": -1.930866209031112,
+          "absoluteError": 2.220446049250313e-16,
+          "relativeError": 1.1499740576870466e-16,
+          "tolerance": 1.930866209031112e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@2.1213203435596424.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@2.1213203435596424.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@2.1213203435596424.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@2.1213203435596424.5",
+          "unit": "kN·m",
+          "actual": 1.1509098122416512,
+          "reference": 1.1509098122416523,
+          "absoluteError": 1.1102230246251565e-15,
+          "relativeError": 9.64648152979729e-16,
+          "tolerance": 1.1509098122416524e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@4.242640687119285.0",
+          "unit": "kN",
+          "actual": -42.499455024988954,
+          "reference": -42.49945502498894,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 3.3437733982344643e-16,
+          "tolerance": 4.249945502498894e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@4.242640687119285.1",
+          "unit": "kN",
+          "actual": -1.9308662090311117,
+          "reference": -1.930866209031112,
+          "absoluteError": 2.220446049250313e-16,
+          "relativeError": 1.1499740576870466e-16,
+          "tolerance": 1.930866209031112e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@4.242640687119285.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@4.242640687119285.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@4.242640687119285.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0001.section@4.242640687119285.5",
+          "unit": "kN·m",
+          "actual": 5.246895582151233,
+          "reference": 5.246895582151235,
+          "absoluteError": 1.7763568394002505e-15,
+          "relativeError": 3.3855387659000096e-16,
+          "tolerance": 5.2468955821512355e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.start.0",
+          "unit": "kN",
+          "actual": 68.6863242549325,
+          "reference": 68.68632425493252,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 2.0689496590992043e-16,
+          "tolerance": 6.868632425493251e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.start.1",
+          "unit": "kN",
+          "actual": 2.4169814348722327,
+          "reference": 2.416981434872232,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.6747424158310787e-16,
+          "tolerance": 2.4169814348722317e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.start.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.start.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.start.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.start.5",
+          "unit": "kN·m",
+          "actual": 5.253104417848767,
+          "reference": 5.253104417848765,
+          "absoluteError": 1.7763568394002505e-15,
+          "relativeError": 3.3815372741585413e-16,
+          "tolerance": 5.253104417848765e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.end.0",
+          "unit": "kN",
+          "actual": -68.6863242549325,
+          "reference": -68.68632425493252,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 2.0689496590992043e-16,
+          "tolerance": 6.868632425493251e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.end.1",
+          "unit": "kN",
+          "actual": -2.4169814348722327,
+          "reference": -2.416981434872232,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.6747424158310787e-16,
+          "tolerance": 2.4169814348722317e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.end.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.end.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.end.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.end.5",
+          "unit": "kN·m",
+          "actual": 1.9978398867679317,
+          "reference": 1.9978398867679308,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 4.445693699393519e-16,
+          "tolerance": 1.997839886767931e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@0.0",
+          "unit": "kN",
+          "actual": -68.6863242549325,
+          "reference": -68.68632425493252,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 2.0689496590992043e-16,
+          "tolerance": 6.868632425493251e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@0.1",
+          "unit": "kN",
+          "actual": -2.4169814348722327,
+          "reference": -2.416981434872232,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.6747424158310787e-16,
+          "tolerance": 2.4169814348722317e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@0.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@0.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@0.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@0.5",
+          "unit": "kN·m",
+          "actual": -5.253104417848767,
+          "reference": -5.253104417848765,
+          "absoluteError": 1.7763568394002505e-15,
+          "relativeError": 3.3815372741585413e-16,
+          "tolerance": 5.253104417848765e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@1.5.0",
+          "unit": "kN",
+          "actual": -68.6863242549325,
+          "reference": -68.68632425493252,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 2.0689496590992043e-16,
+          "tolerance": 6.868632425493251e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@1.5.1",
+          "unit": "kN",
+          "actual": -2.4169814348722327,
+          "reference": -2.416981434872232,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.6747424158310787e-16,
+          "tolerance": 2.4169814348722317e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@1.5.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@1.5.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@1.5.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@1.5.5",
+          "unit": "kN·m",
+          "actual": -1.6276322655404174,
+          "reference": -1.627632265540417,
+          "absoluteError": 4.440892098500626e-16,
+          "relativeError": 2.7284370017241776e-16,
+          "tolerance": 1.627632265540417e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@3.0",
+          "unit": "kN",
+          "actual": -68.6863242549325,
+          "reference": -68.68632425493252,
+          "absoluteError": 1.4210854715202004e-14,
+          "relativeError": 2.0689496590992043e-16,
+          "tolerance": 6.868632425493251e-7,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@3.1",
+          "unit": "kN",
+          "actual": -2.4169814348722327,
+          "reference": -2.416981434872232,
+          "absoluteError": 8.881784197001252e-16,
+          "relativeError": 3.6747424158310787e-16,
+          "tolerance": 2.4169814348722317e-8,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@3.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@3.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@3.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "member_0002.section@3.5",
+          "unit": "kN·m",
+          "actual": 1.997839886767932,
+          "reference": 1.9978398867679308,
+          "absoluteError": 1.1102230246251565e-15,
+          "relativeError": 5.5571171242419e-16,
+          "tolerance": 1.997839886767931e-8,
+          "passed": true
+        },
+        {
+          "quantity": "equilibrium.0",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "equilibrium.1",
+          "unit": "kN",
+          "actual": -3.552713678800501e-15,
+          "reference": 0,
+          "absoluteError": 3.552713678800501e-15,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "equilibrium.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "equilibrium.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "equilibrium.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "equilibrium.5",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.0",
+          "unit": "kN",
+          "actual": 28.686324254932526,
+          "reference": 28.686324254932526,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 2.8686324254932524e-7,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.1",
+          "unit": "kN",
+          "actual": 31.416981434872238,
+          "reference": 31.416981434872238,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 3.141698143487224e-7,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.2",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.3",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.4",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.5",
+          "unit": "kN·m",
+          "actual": 2.9450759576679295,
+          "reference": 2.9450759576679295,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 2.9450759576679297e-8,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.6",
+          "unit": "kN",
+          "actual": -1.9761969838327786e-14,
+          "reference": -1.9761969838327786e-14,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.7",
+          "unit": "kN",
+          "actual": -6.661338147750939e-15,
+          "reference": -6.661338147750939e-15,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.8",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.9",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.10",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.11",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.12",
+          "unit": "kN",
+          "actual": -68.6863242549325,
+          "reference": -68.6863242549325,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 6.86863242549325e-7,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.13",
+          "unit": "kN",
+          "actual": -2.4169814348722327,
+          "reference": -2.4169814348722327,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 2.4169814348722327e-8,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.14",
+          "unit": "kN",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.15",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.16",
+          "unit": "kN·m",
+          "actual": 0,
+          "reference": 0,
+          "absoluteError": 0,
+          "relativeError": null,
+          "tolerance": 1e-9,
+          "passed": true
+        },
+        {
+          "quantity": "process.residual.17",
+          "unit": "kN·m",
+          "actual": 1.9978398867679317,
+          "reference": 1.9978398867679317,
+          "absoluteError": 0,
+          "relativeError": 0,
+          "tolerance": 1.9978398867679316e-8,
           "passed": true
         },
         {
@@ -28083,10 +29665,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_4e3772fb-fb7c-4683-bce9-34c594050d88",
+        "id": "project_c19cf0a6-087b-4a00-b154-e8b96359694a",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.879Z",
-        "updatedAt": "2026-10-02T15:12:36.879Z",
+        "createdAt": "2026-10-02T15:38:36.472Z",
+        "updatedAt": "2026-10-02T15:38:36.472Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -28240,10 +29822,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_fef30bce-7702-4fcb-99f4-090f94c01078",
+        "id": "project_57422f38-cb05-42e4-bbaf-7d1260a97d89",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.879Z",
-        "updatedAt": "2026-10-02T15:12:36.879Z",
+        "createdAt": "2026-10-02T15:38:36.472Z",
+        "updatedAt": "2026-10-02T15:38:36.472Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -28398,10 +29980,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_fa89d1f7-7f2f-4238-aa51-990c60e743df",
+        "id": "project_22f401db-6e76-4076-b88e-931c3bdf55b1",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.879Z",
-        "updatedAt": "2026-10-02T15:12:36.879Z",
+        "createdAt": "2026-10-02T15:38:36.472Z",
+        "updatedAt": "2026-10-02T15:38:36.472Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -28544,10 +30126,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_fceedb05-bbd6-4be0-99e9-32f6e7d79cfc",
+        "id": "project_496cea48-704a-4729-bf20-a19ea5556d05",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.879Z",
-        "updatedAt": "2026-10-02T15:12:36.879Z",
+        "createdAt": "2026-10-02T15:38:36.472Z",
+        "updatedAt": "2026-10-02T15:38:36.473Z",
         "revision": 8,
         "units": {
           "length": "m",
@@ -28711,10 +30293,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_ad71c044-a184-4ada-a928-dd9add782d4f",
+        "id": "project_502e0310-ed2e-4284-9cec-719b29074035",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.879Z",
-        "updatedAt": "2026-10-02T15:12:36.880Z",
+        "createdAt": "2026-10-02T15:38:36.473Z",
+        "updatedAt": "2026-10-02T15:38:36.473Z",
         "revision": 10,
         "units": {
           "length": "m",
@@ -28797,13 +30379,13 @@
             "rotationDegrees": 0
           },
           {
-            "id": "member_0001",
-            "label": "M1",
-            "startNodeId": "node_0003",
-            "endNodeId": "node_0004",
+            "id": "member_0002",
+            "label": "M2",
             "materialId": "material_0001",
             "sectionId": "section_0001",
-            "rotationDegrees": 0
+            "rotationDegrees": 0,
+            "startNodeId": "node_0003",
+            "endNodeId": "node_0004"
           }
         ],
         "supports": [
@@ -28877,15 +30459,6 @@
         "stage": "model-check",
         "diagnostics": [
           {
-            "code": "invalid-identity",
-            "message": "M1 的身份缺失或重复",
-            "target": {
-              "kind": "member",
-              "id": "member_0001"
-            },
-            "field": "id"
-          },
-          {
             "code": "unrestrained-component",
             "message": "N3 所在的断开部分（2 个节点）没有受约束自由度",
             "target": {
@@ -28904,10 +30477,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_84f0faec-2fbe-4458-ad75-85237830e744",
+        "id": "project_0bdc193d-468b-40bf-8dea-e539dce0cab9",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.880Z",
-        "updatedAt": "2026-10-02T15:12:36.880Z",
+        "createdAt": "2026-10-02T15:38:36.473Z",
+        "updatedAt": "2026-10-02T15:38:36.473Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -29051,10 +30624,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 1,
-        "id": "project_4fdc0e1b-0b43-48fb-8eda-a1c0bcca1d63",
+        "id": "project_69e721d8-2e75-4ff9-a27a-0827d97692b7",
         "name": "T31 axial",
-        "createdAt": "2026-10-02T15:12:36.880Z",
-        "updatedAt": "2026-10-02T15:12:36.880Z",
+        "createdAt": "2026-10-02T15:38:36.473Z",
+        "updatedAt": "2026-10-02T15:38:36.473Z",
         "revision": 7,
         "units": {
           "length": "m",
