@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { captureEngineeringReport, withSupplementalReportProcess } from "./engineering-report";
 import { createSupplementalAnalysisInput, solveFrame } from "./analysis";
 import { reportFixture } from "./engineering-report.fixture";
-import { addMember, addNodalLoad, addNode, attachAnalysisResult, updateNode, updateSection } from "./project";
+import { addMember, addNodalLoad, addNode, addSupport, attachAnalysisResult, updateNode, updateSection } from "./project";
 import { createReportFigures } from "../workspace/report-figures";
 
 describe("engineering report source", () => {
@@ -94,6 +94,25 @@ describe("engineering report source", () => {
     expect(report.appendix?.missing.join(" ")).toMatch(/冻结输入不可对应/);
   });
 
+  it("marks numerically unrelated captured matrices and loads missing while preserving the original body", () => {
+    const project = reportFixture(); const result = project.analysisResults[0];
+    const changed = solveFrame(updateSection(project, project.sections[0].id, { ...project.sections[0], areaM2: 0.04 }));
+    const mutations = [
+      changed.process!,
+      { ...structuredClone(result.process!), loadVector: result.process!.loadVector.map((value) => value + 1) },
+      { ...structuredClone(result.process!), assembledStiffness: result.process!.assembledStiffness!.map((row) => row.map((value) => value + 1)) },
+      { ...structuredClone(result.process!), reducedStiffness: result.process!.reducedStiffness!.map((row) => row.map((value) => value + 1)) },
+    ];
+    for (const process of mutations) {
+      const corrupted = { ...project, analysisResults: [{ ...result, process }] };
+      const report = captureEngineeringReport(corrupted, result.id, { memberIds: ["member_0001"], steps: ["member-process", "assembly", "constraints", "assembled-stiffness", "reduced-stiffness"] });
+      expect(report.result.nodes[1].displacement.x).toBeCloseTo(0.00002, 12);
+      expect(report.appendix?.members[0].globalStiffness[0][0]).toBeCloseTo(500000, 6);
+      expect(report.appendix?.overall).toBeNull();
+      expect(report.appendix?.missing.join(" ")).toMatch(/冻结输入不可对应/);
+    }
+  });
+
   it("retains captured member contributions when the real run exceeds both matrix collection limits", () => {
     let project = reportFixture();
     for (let index = 1; index <= 12; index += 1) {
@@ -111,6 +130,13 @@ describe("engineering report source", () => {
     expect(report.appendix?.overall?.members).toHaveLength(13);
     expect(report.appendix?.missing).toHaveLength(2);
     expect(report.appendix?.missing.join(" ")).toContain("采集上限 72 阶");
+    const constrained = addSupport(project, project.nodes.at(-1)!.id, [true, true, true, true, true, true]);
+    const smallerFreeSystem = attachAnalysisResult(constrained, solveFrame(constrained));
+    const smallerResult = smallerFreeSystem.analysisResults.at(-1)!;
+    const smallerReport = captureEngineeringReport(smallerFreeSystem, smallerResult.id, { memberIds: [], steps: ["reduced-stiffness"] });
+    expect(smallerReport.appendix?.overall?.dofs).toHaveLength(84);
+    expect(smallerReport.appendix?.overall?.reducedStiffness).toHaveLength(72);
+    expect(smallerReport.appendix?.missing).toEqual([]);
   });
 
   it("keeps the original body and labels an explicit frozen-input supplemental process separately", () => {
