@@ -130,9 +130,7 @@ test("T20 reads a mixed batch of nodes and members through their stable identiti
     await table.getByLabel("选择节点 N1", { exact: true }).check();
     await table.getByLabel("选择节点 N2", { exact: true }).check();
     const panel = page.getByRole("complementary", { name: "AI 对话", exact: true });
-    for (const id of ["node_0001", "node_0002", "member_0001"]) {
-      await expect(panel.getByTestId("ai-current-context")).toContainText(id);
-    }
+    await expect(panel.getByRole("region", { name: "当前对话对象" })).toHaveCount(0);
     await replay(app, "read_selection", {}, "已读取两个节点与一根杆件。");
     await send(page, "读取这一组对象");
     await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已完成");
@@ -167,7 +165,6 @@ test("T20 cancels pending responses when the user cancels, changes context or re
     await pending(app, page, "请求期间切换选择");
     await table.getByRole("button", { name: "定位节点 N2", exact: true }).click();
     await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已取消");
-    await expect(panel.getByTestId("ai-current-context")).toContainText("node_0002");
     await releaseLate(app, "late-selection-response");
 
     await pending(app, page, "请求期间修改模型");

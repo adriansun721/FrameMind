@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Crosshair, RotateCcw, Send, Settings2, Square, Trash2, X } from "lucide-react";
+import { RotateCcw, Send, Settings2, Square, Trash2, X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
 import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiStatus } from "../workspace/ai-tools";
 import { startAiTask, type AiProgress, type AiTaskResult } from "../workspace/ai-task";
@@ -19,7 +19,6 @@ interface Props {
   open: boolean;
   onClose(): void;
   onSettings(): void;
-  onSelect(object: AiObjectRef): void;
 }
 
 const STATUS_LABELS: Record<AiStatus, string> = {
@@ -30,7 +29,7 @@ const TOOL_LABELS: Record<string, string> = {
   read_model: "读取模型", read_selection: "读取选中对象", read_objects: "读取指定对象",
 };
 
-export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings, onSelect }: Props) {
+export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings }: Props) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -103,16 +102,9 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || turns.length === 0} onClick={() => setTurns([])}><Trash2 size={14} /></button>
       <button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={onClose}><X size={15} /></button>
     </div></div>
-    <section className="ai-current-context" data-testid="ai-current-context" aria-label="当前对话对象">
-      <div><strong>{project.name}</strong><span>R{project.revision}</span></div>
-      <div className="ai-selection-list">{snapshot.context.selection.length === 0 ? <span className="ai-muted">无选中节点或杆件</span>
-        : snapshot.context.selection.map((object) => <button key={`${object.kind}:${object.id}`} className="ai-object-link" onClick={() => onSelect(object)} title={`定位 ${object.label} · ${object.id}`}>
-          <Crosshair size={12} /><span>{object.label} · {object.id}</span>
-        </button>)}</div>
-    </section>
     <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite">
       {turns.map((turn) => <article className="ai-turn" key={turn.id}>
-        <div className="ai-user-message"><span>你</span><p>{turn.prompt}</p></div>
+        <div className="ai-user-message"><p>{turn.prompt}</p></div>
         <div className="ai-turn-context"><span>R{turn.context.modelRevision}</span><span>{turn.context.selection.map((object) => object.label).join("、") || "整个项目"}</span>
           {turn.sourceProject !== project && <span className="ai-stale">历史版本</span>}
         </div>
@@ -136,7 +128,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       </article>)}
     </div>
     <form className="assistant-composer" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-      <textarea aria-label="AI 消息草稿" placeholder="输入消息…" maxLength={8000} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
+      <textarea aria-label="AI 消息草稿" placeholder="输入消息…" rows={1} maxLength={8000} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
         if ((event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) event.stopPropagation();
       }} />
       <div className="assistant-composer-actions">

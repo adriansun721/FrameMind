@@ -52,7 +52,7 @@ test("T20 replays selected model reads, distinguishes committed edits and preser
     const table = page.getByRole("region", { name: "模型数据表" });
     await table.getByRole("button", { name: "定位杆件 M1" }).click();
     const panel = page.getByRole("complementary", { name: "AI 对话", exact: true });
-    await expect(panel.getByTestId("ai-current-context")).toContainText("member_0001");
+    await expect(panel.getByRole("region", { name: "当前对话对象" })).toHaveCount(0);
     await table.getByLabel("M1 截面转角").fill("45");
     await replay(app, [{ name: "read_selection", arguments: "{}" }], "M1 的已应用截面转角是 0 度。");
     await send(page, "这根梁的转角是多少？");
@@ -113,7 +113,6 @@ test("T20 replays selected model reads, distinguishes committed edits and preser
     await table.getByRole("button", { name: "定位杆件 M1", exact: true }).click();
     await table.getByLabel("M1 截面转角").fill("30");
     await table.getByRole("button", { name: "保存 M1", exact: true }).click();
-    await expect(panel.getByTestId("ai-current-context")).toContainText("R6");
     await expect(panel.locator(".ai-turn").last().locator(".ai-stale")).toHaveText("历史版本");
   } finally {
     await app.close();
