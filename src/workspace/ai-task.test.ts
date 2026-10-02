@@ -20,6 +20,47 @@ const selectedRead: DeepSeekChatResult = { status: "success", message: "工具�
 } };
 
 describe("AI conversation task boundary", () => {
+  it("records interruption and links a fresh retry to the original task without retaining unsafe transport errors", async () => {
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const failed = startAiTask(snapshot, "读取模型", { isCurrent: () => true,
+      transport: { chatDeepSeek: async () => { throw new Error("network sk-secret-fixture"); }, cancelDeepSeekChat: async () => {} } });
+    const failure = await failed.promise;
+    expect(failure).toMatchObject({ requestId: failed.requestId, status: "failed", interruption: { phase: "requesting", round: 1, completedTools: 0, draftsDiscarded: false } });
+    expect(JSON.stringify(failure)).not.toContain("sk-secret-fixture");
+    const script = replay([{ status: "success", message: "已恢复", assistant: { role: "assistant", content: "连接已恢复" } }]);
+    const retried = startAiTask(snapshot, "读取模型", { transport: script.transport, isCurrent: () => true, retryOf: failure.requestId });
+    expect(await retried.promise).toMatchObject({ status: "completed", requestId: retried.requestId, retryOf: failed.requestId });
+    expect(retried.requestId).not.toBe(failed.requestId);
+    expect(script.requests[0].requestId).toBe(retried.requestId);
+  });
+
+  it("discards a draft interrupted during generation and exposes no applied model change", async () => {
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const script = replay([{ status: "success", message: "准备方案", assistant: { role: "assistant", content: null,
+      tool_calls: [{ id: "draft", type: "function", function: { name: "propose_frame", arguments: '{"parameters":{"storeys":{"value":2,"source":"user"}}}' } }] } }]);
+    let current = true;
+    const result = await startAiTask(snapshot, "准备两层框架", { transport: script.transport, isCurrent: () => current,
+      onProgress: (event) => { if (event.toolResult?.proposal) current = false; } }).promise;
+    expect(result).toMatchObject({ status: "cancelled", interruption: { phase: "tool", round: 1, draftsDiscarded: true },
+      records: [{ result: { status: "missing-input" } }] });
+    expect(result.proposal).toBeUndefined();
+    expect(snapshot.model.nodes).toHaveLength(0);
+  });
+
+  it("stops before tools or replies when their progress notification invalidates the task", async () => {
+    const project = addNode(createProject(), { x: 0, y: 0, z: 0 });
+    const snapshot = captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]);
+    for (const phase of ["requesting", "tool", "responding"] as const) {
+      let current = true;
+      const script = replay([phase === "responding" ? { status: "success", message: "完成", assistant: { role: "assistant", content: "回复" } } : selectedRead]);
+      const result = await startAiTask(snapshot, "读取", { transport: script.transport, isCurrent: () => current,
+        onProgress: (event) => { if (event.phase === phase) current = false; } }).promise;
+      expect(result).toMatchObject({ status: "cancelled", records: [], interruption: { phase, completedTools: 0 } });
+      expect(result.assistant).toBeUndefined();
+      if (phase === "requesting") expect(script.requests).toHaveLength(0);
+    }
+  });
+
   it("labels a reply without tool evidence as an ordinary AI reply", async () => {
     const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "你好" } }]);
     const result = await startAiTask(captureAiSnapshot(createProject(), []), "你好", {

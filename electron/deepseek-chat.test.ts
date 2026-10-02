@@ -145,6 +145,22 @@ test("chat timeout covers an unfinished response body and cancels its stream", a
   expect(bodyCancelled).toBe(true);
 });
 
+test("a fresh chat succeeds after timeout and a late old response cannot replace it or expose credentials", async () => {
+  let finish!: (value: Response) => void;
+  const connection = await setup(vi.fn<typeof fetch>()
+    .mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }))
+    .mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "恢复后的回复" } }] }))), 20);
+  const messages = [{ role: "user" as const, content: "读取模型" }];
+  const failure = await connection.chat({ requestId: "old-request", messages });
+  expect(failure.status).toBe("timeout");
+  const recovered = await connection.chat({ requestId: "new-request", messages });
+  expect(recovered).toMatchObject({ status: "success", assistant: { content: "恢复后的回复" } });
+  finish(new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "sk-private-t20" } }] })));
+  await Promise.resolve();
+  expect(JSON.stringify([failure, recovered])).not.toContain("sk-private-t20");
+  expect((await connection.getSettings()).configured).toBe(true);
+});
+
 test.each([[401, "authentication"], [403, "authentication"], [402, "balance"], [429, "rate-limit"],
   [400, "invalid-response"], [404, "invalid-response"], [422, "invalid-response"], [500, "service"], [302, "service"]])("chat HTTP %s uses fixed safe feedback", async (status, expected) => {
   const connection = await setup(async () => new Response('{"error":{"message":"sk-private-t20"}}', { status: status as number }));

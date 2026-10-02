@@ -24,6 +24,10 @@ interface ConversationTurn {
   sourceProject: FrameProject;
   progress?: AiProgress;
   result?: AiTaskResult;
+  continuing?: boolean;
+  proposal?: FrameProposal;
+  conditions?: ConditionsProposal;
+  sectionChange?: SectionChangeProposal;
 }
 interface Props {
   project: FrameProject;
@@ -184,8 +188,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     if (open && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [turns, open]);
 
-  const submit = async (prompt = draft, continuing = false) => {
-    if (!prompt.trim() || busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
+  const submit = async (prompt = draft, continuing = false, retryOf?: string) => {
+    if (!prompt.trim() || taskRef.current || busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
     const text = prompt.trim();
     const intent = continuing ? undefined : calculationIntent(text);
     if (intent === "cancel") { setCalculationRequested(false); continuationRef.current = null; }
@@ -202,7 +206,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       ]);
     setDraft("");
     setBusy(true);
-    setTurns((previous) => [...previous.slice(-19), { id, origin: "chat", prompt: text, context, sourceProject: project }]);
+    setTurns((previous) => [...previous.slice(-19), { id, origin: "chat", prompt: text, context, sourceProject: project, continuing, proposal, conditions, sectionChange }]);
     const update = (changes: Partial<ConversationTurn>) => {
       if (generationRef.current === generation) {
         setTurns((previous) => previous.map((turn) => turn.id === id ? { ...turn, ...changes } : turn));
@@ -215,6 +219,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     }
     const task = startAiTask(snapshot, text, {
       transport: window.frameMind,
+      retryOf,
       history,
       proposal,
       conditions,
@@ -257,6 +262,10 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     }
   };
 
+  const canRetry = (turn: ConversationTurn) => turn === turns.at(-1) && turn.sourceProject === project
+    && JSON.stringify(turn.context) === JSON.stringify(snapshot.context)
+    && turn.proposal === proposal && turn.conditions === conditions && turn.sectionChange === sectionChange;
+
   useEffect(() => {
     const continuation = continuationRef.current;
     if (!continuation || busy || analysisBusy) return;
@@ -284,6 +293,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
         <details className="ai-context-details"><summary>对象上下文</summary><pre>{JSON.stringify(turn.context, null, 2)}</pre></details>
         {turn.result ? <>
           <div className={`ai-turn-status ${turn.result.status}`} data-testid="ai-turn-status">{STATUS_LABELS[turn.result.status]} · {turn.result.message}</div>
+          {turn.result.requestId && <details className="ai-context-details"><summary>任务与恢复记录</summary><pre>{JSON.stringify({ requestId: turn.result.requestId, retryOf: turn.result.retryOf, interruption: turn.result.interruption }, null, 2)}</pre></details>}
+          {turn.origin === "confirmation" && turn.result.status === "applied" && <p className="frame-draft-notice">本地提交回执已保留，重试不会再次应用此阶段。撤销后可使用重做恢复。</p>}
           {turn.result.records.map((record, index) => <details className="ai-tool-record" key={`${record.call.id}:${index}`}>
             <summary>{TOOL_LABELS[record.call.function.name] ?? record.call.function.name} · {STATUS_LABELS[record.result.status]}</summary>
             <p>{record.result.message}</p>
@@ -291,10 +302,14 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
             <details><summary>工具输出</summary><pre className="ai-tool-output">{JSON.stringify(record.result, null, 2)}</pre></details>
           </details>)}
           <AiResultExplanation result={turn.result} onLocate={onLocateResult} onCompare={(pair) => onComparison(pair, true)} />
-          {turn.origin === "chat" && turn.result.status !== "completed" && turn.result.status !== "applied" && <div className="ai-recovery-actions">
-            <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy} onClick={() => void submit(turn.prompt)}><RotateCcw size={14} /></button>
+          {turn.origin === "chat" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <>
+            <p className="frame-draft-notice">已确认模型和成功结果保留，本地编辑与计算可继续。
+              {turn.result.interruption?.draftsDiscarded ? "本次中断生成的草案未应用，需要重新准备。" : proposal || conditions || sectionChange ? "已有草案仍需在卡片中核对并确认。" : "本次任务未提交模型修改。"}
+              {!canRetry(turn) && "上下文或阶段已变化，请基于当前模型发送新消息；已提交阶段无需重做。"}</p>
+            <div className="ai-recovery-actions">
+            <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || !canRetry(turn)} onClick={() => { if (canRetry(turn)) void submit(turn.prompt, turn.continuing, turn.result?.requestId); }}><RotateCcw size={14} /></button>
             {turn.result.status === "failed" && <button className="icon-button" aria-label="打开连接设置" title="打开连接设置" onClick={onSettings}><Settings2 size={14} /></button>}
-          </div>}
+          </div></>}
           {turn.origin === "analysis" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <button disabled={busy || analysisBusy || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange)} onClick={() => void analyze()}>继续本地计算</button>}
         </> : <div className="ai-turn-status" data-testid="ai-turn-status">{turn.origin === "analysis" ? "正在检查并计算已确认模型" : turn.progress?.phase === "tool"
           ? `正在${TOOL_LABELS[turn.progress.toolCall?.function.name ?? ""] ?? "读取模型"}`
