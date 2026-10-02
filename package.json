@@ -20,6 +20,7 @@
     "evidence:t23:online": "npm run build && node scripts/verify-t23-online.cjs",
     "evidence:t24:online": "npm run build && node scripts/verify-t24-online.cjs",
     "evidence:t25:online": "npm run build && node scripts/verify-t25-online.cjs",
+    "evidence:t26:online": "npm run build && node scripts/verify-t26-online.cjs",
     "check": "npm run typecheck && npm test && npm run test:e2e"
   },
   "dependencies": {

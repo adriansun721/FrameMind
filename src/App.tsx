@@ -15,6 +15,8 @@ import { ResultReferenceDetails } from "./components/AiResultReferences";
 import type { ResultReference } from "./workspace/ai-results";
 import type { AiObjectRef } from "./workspace/ai-tools";
 import { captureAiSnapshot, type AiToolResult } from "./workspace/ai-tools";
+import { SectionStageConfirmation } from "./workspace/section-stage";
+import type { AnalysisPairIds } from "./workspace/ai-comparison";
 import { ConditionsStageConfirmation } from "./workspace/analysis-conditions";
 import type { FramePreview } from "./workspace/frame-proposal";
 import { FrameStageConfirmation } from "./workspace/frame-confirmation";
@@ -86,6 +88,7 @@ export function App() {
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
+  const sectionConfirmationRef = useRef(new SectionStageConfirmation());
   const conditionsConfirmationRef = useRef(new ConditionsStageConfirmation());
   const [historyVersion, setHistoryVersion] = useState(0);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(() => new Set());
@@ -96,6 +99,7 @@ export function App() {
   const [forceComponent, setForceComponent] = useState<ForceComponent>("N");
   const [deformationScale, setDeformationScale] = useState(100);
   const [resultFocus, setResultFocus] = useState<{ memberId: string; position: number } | null>(null);
+  const [comparisonPair, setComparisonPair] = useState<AnalysisPairIds>();
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [resultReference, setResultReference] = useState<ResultReference | null>(null);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
@@ -168,6 +172,8 @@ export function App() {
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
+      setComparisonPair(undefined);
+      sectionConfirmationRef.current = new SectionStageConfirmation();
       conditionsConfirmationRef.current = new ConditionsStageConfirmation();
     }
     if (historyMode === "record") projectHistoryRef.current.record(previous, next);
@@ -344,7 +350,7 @@ export function App() {
     analysisTaskRef.current = { id: runId, checkpoint, task };
     return task.promise.then((result): AiToolResult => {
       if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
-      const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
+      const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
       setResultReference(null); setResultFocus(null);
       if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
       return { status: "completed", message: `本地分析完成 · ${result.nodes.length} 个节点、${result.members.length} 根杆件，已展示结果`, context,
@@ -608,6 +614,14 @@ export function App() {
       </section>
 
       <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+        comparison={comparisonPair} onComparison={(pair, open) => { setComparisonPair(pair); if (open) setComparisonOpen(true); }}
+        onSectionConfirm={(confirmation) => {
+          const current = activeProjectRef.current;
+          const outcome = sectionConfirmationRef.current.confirm(current, aiSelection, confirmation);
+          if (outcome.project !== current) activateProject(outcome.project, false);
+          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
+          return outcome.result;
+        }}
         analysis={caseResult} onLocateResult={(ref) => {
           const result = project.analysisResults.find((item) => item.id === ref.analysisId);
           if (!result || result.projectId !== project.id) { setStatus({ tone: "error", text: "引用分析已不可用，请重新读取当前结果" }); return; }
@@ -657,7 +671,7 @@ export function App() {
     {settingsDialogOpen && <Dialog id="settings-dialog" title="设置" copy="FrameMind" onClose={() => setSettingsDialogOpen(false)}><section className="settings-general" aria-label="常规设置"><h3>外观</h3><div className="theme-options" role="group" aria-label="主题">{(["dark", "light"] as const).map((value) => <button key={value} className="button ghost" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === "dark" ? <Moon size={15} /> : <Sun size={15} />}{value === "dark" ? "深色" : "浅色"}</button>)}</div></section><DeepSeekSettingsPanel /></Dialog>}
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
-    {comparisonOpen && <AnalysisComparisonDialog project={project} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
+    {comparisonOpen && <AnalysisComparisonDialog key={`${comparisonPair?.beforeId ?? ""}:${comparisonPair?.afterId ?? ""}`} project={project} pair={comparisonPair} onPairChange={setComparisonPair} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
   </main>;
 }
 
@@ -743,20 +757,21 @@ function comparisonForce(values: AnalysisForceVector): string {
   return values.map((value, index) => `${ANALYSIS_FORCE_COMPONENTS[index].label} ${comparisonNumber(value)} ${ANALYSIS_FORCE_COMPONENTS[index].unit}`).join(" · ");
 }
 
-function AnalysisComparisonDialog({ project, onClose, onLocate }: { project: FrameProject; onClose(): void; onLocate(kind: "node" | "member", id: string): void }) {
+function AnalysisComparisonDialog({ project, pair, onPairChange, onClose, onLocate }: { project: FrameProject; pair?: AnalysisPairIds; onPairChange(pair: AnalysisPairIds): void; onClose(): void; onLocate(kind: "node" | "member", id: string): void }) {
   const results = project.analysisResults;
   const latest = project.latestAnalysis ?? results.at(-1);
   const defaultAfter = latest?.id ?? results.at(-1)?.id ?? "";
   const defaultBefore = results.slice(0, Math.max(0, results.findIndex((item) => item.id === defaultAfter))).filter((item) => latest && item.input.loadCase?.id === latest.input.loadCase?.id && item.input.combination?.definition.id === latest.input.combination?.definition.id).at(-1)?.id ?? results.find((item) => item.id !== defaultAfter)?.id ?? "";
-  const [beforeId, setBeforeId] = useState(defaultBefore);
-  const [afterId, setAfterId] = useState(defaultAfter);
+  const [beforeId, setBeforeId] = useState(pair?.beforeId ?? defaultBefore);
+  const [afterId, setAfterId] = useState(pair?.afterId ?? defaultAfter);
+  useEffect(() => { if (beforeId && afterId && (pair?.beforeId !== beforeId || pair?.afterId !== afterId)) onPairChange({ beforeId, afterId }); }, [beforeId, afterId, pair, onPairChange]);
   const before = results.find((item) => item.id === beforeId);
   const after = results.find((item) => item.id === afterId);
   const comparison: AnalysisComparison | null = before && after && before.id !== after.id ? compareAnalysisResults(before, after) : null;
   const changeLabels: Record<string, string> = { node: "节点", member: "杆件", material: "材料", section: "截面", support: "支座", load: "节点荷载", "uniform-load": "均布荷载", "self-weight": "结构自重" };
   return <Dialog title="前后结果对比" copy="选择两份已完成分析。所有数值来自各自冻结输入；来源、单位或对象无法匹配时不会强行比较。" onClose={onClose}>
     <div className="comparison-pickers"><SelectField label="前一份结果" value={beforeId} onChange={setBeforeId} options={results.map((item) => ({ value: item.id, label: `R${item.projectRevision} · ${analysisSourceLabel(item)} · ${item.id.slice(-8)}` }))} /><SelectField label="后一份结果" value={afterId} onChange={setAfterId} options={results.map((item) => ({ value: item.id, label: `R${item.projectRevision} · ${analysisSourceLabel(item)} · ${item.id.slice(-8)}` }))} /></div>
-    {before && after && <section className="comparison-source-grid"><div><strong>前一份</strong><span>{analysisSourceLabel(before)}</span><small>模型版本 R{before.projectRevision} · {new Date(before.createdAt).toLocaleString()}</small></div><div><strong>后一份</strong><span>{analysisSourceLabel(after)}</span><small>模型版本 R{after.projectRevision} · {new Date(after.createdAt).toLocaleString()}</small></div></section>}
+    {before && after && <section className="comparison-source-grid"><div><strong>前一份</strong><span>{analysisSourceLabel(before)}</span><small>分析 ID {before.id} · 模型版本 R{before.projectRevision} · {new Date(before.createdAt).toLocaleString()}</small></div><div><strong>后一份</strong><span>{analysisSourceLabel(after)}</span><small>分析 ID {after.id} · 模型版本 R{after.projectRevision} · {new Date(after.createdAt).toLocaleString()}</small></div></section>}
     {!before || !after ? <p className="comparison-empty">请选择两份不同的已完成分析。</p> : before.id === after.id ? <p className="comparison-empty">前后结果必须是两份不同的分析。</p> : comparison && !comparison.compatible ? <section className="comparison-incompatible" role="alert"><strong>无法比较</strong><ul>{comparison.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul></section> : comparison && <>
       <section className="comparison-section"><h3>模型变化 · {comparison.changes.length} 项</h3>{comparison.changes.length === 0 ? <p className="comparison-empty">两份分析的模型参数没有变化。</p> : <div className="comparison-table-wrap"><table className="comparison-table"><thead><tr><th>对象</th><th>稳定 ID</th><th>变化参数</th></tr></thead><tbody>{comparison.changes.map((change) => <tr key={`${change.kind}-${change.id}`}><td>{changeLabels[change.kind] ?? change.kind} · {change.label}</td><td>{change.id}</td><td>{change.changes.join("、")}</td></tr>)}</tbody></table></div>}</section>
       <section className="comparison-section"><h3>节点响应变化 · 位移 / 支座反力</h3><div className="comparison-table-wrap"><table className="comparison-table"><thead><tr><th>节点</th><th>位移（后一份 - 前一份）</th><th>反力（后一份 - 前一份）</th><th>定位</th></tr></thead><tbody>{comparison.nodes.map((row) => <tr key={row.id}><td>{row.label}<small>{row.id}</small></td><td>{comparisonVector(row.displacementDelta, "m")}</td><td>{comparisonVector(row.reactionDelta, "kN")}</td><td><button type="button" className="query-locate-button" onClick={() => onLocate("node", row.id)}>定位</button></td></tr>)}</tbody></table></div></section>

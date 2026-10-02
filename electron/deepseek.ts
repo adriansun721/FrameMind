@@ -15,6 +15,19 @@ interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
 const modelTools = [
+  { type: "function", function: { name: "propose_section_change", description: "Preview section reassignment for EXACTLY the currently selected vertical columns. Never updates a shared section or unselected members. Use either an existing project/catalog sectionId or new section properties. User must confirm the stage.",
+    parameters: { type: "object", additionalProperties: false, required: ["source"], properties: {
+      memberIds: { type: "array", items: { type: "string" }, description: "Optional, must exactly equal current selected columns." }, sectionId: { type: "string" },
+      source: { type: "string", enum: ["user", "suggestion"] }, section: { type: "object", additionalProperties: false,
+        required: ["name", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"], properties: { name: { type: "string" },
+          ...Object.fromEntries(["areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"].map((key) => [key, { type: "number", exclusiveMinimum: 0, description: key === "areaM2" ? "m^2" : "m^4" }])) } },
+    } } } },
+  { type: "function", function: { name: "discard_section_change", description: "Reject the pending section change without changing the applied model or results.", parameters: { type: "object", properties: {}, additionalProperties: false } } },
+  { type: "function", function: { name: "read_comparison", description: "Read the two explicitly selected analysis IDs, input changes, self weight and the SAME deltas as the comparison table. Different sources are marked incompatible; other changes must not be attributed solely to sections.",
+    parameters: { type: "object", additionalProperties: false, required: ["collection"], properties: { beforeId: { type: "string" }, afterId: { type: "string" }, collection: { type: "string", enum: ["summary", "nodes", "members"] }, offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 } } } } },
+  { type: "function", function: { name: "read_comparison_result", description: "Verify actual before/after values and delta for the selected analysis pair, returning a clickable comparison token. Cite the exact token. Refuses incompatible sources.",
+    parameters: { type: "object", additionalProperties: false, required: ["kind", "id", "quantity", "component"], properties: { beforeId: { type: "string" }, afterId: { type: "string" }, kind: { type: "string", enum: ["node", "member"] }, id: { type: "string" },
+      quantity: { type: "string", enum: ["displacement", "rotation", "reaction", "reactionMoment", "sectionForces", "startEndForces", "endEndForces"] }, component: { type: "string", enum: ["x", "y", "z", "N", "Vy", "Vz", "T", "My", "Mz"] }, position: { type: "number", minimum: 0 } } } } },
   { type: "function", function: { name: "read_results", description: "Read the selected completed analysis, its frozen input provenance and actual results. Summary includes node displacement component extrema, not continuous member extrema. Historical results are explicitly marked.",
     parameters: { type: "object", additionalProperties: false, required: ["collection"], properties: {
       analysisId: { type: "string" }, collection: { type: "string", enum: ["summary", "nodes", "members"] },

@@ -64,10 +64,11 @@ test("T23 continues a requested computation after two reviewed stages, and previ
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已完成 · 本地分析完成");
     const recomputed = await save(page, path);
     expect(recomputed.nodalLoads).toHaveLength(1); expect(recomputed.nodalLoads[0].force.x).toBe(16); expect(recomputed.analysisResults).toHaveLength(2);
-    // Analysis storage is a separate history item; next undo restores the entire conditions edit.
+    // Completed analyses remain provenance records; one undo restores the entire conditions edit.
     await page.getByRole("button", { name: "撤销", exact: true }).click();
-    await page.getByRole("button", { name: "撤销", exact: true }).click();
-    expect((await save(page, path)).nodalLoads[0].force.x).toBe(8);
+    const undone = await save(page, path);
+    expect(undone.nodalLoads[0].force.x).toBe(8);
+    expect(undone.analysisResults).toHaveLength(2);
   });
 });
 

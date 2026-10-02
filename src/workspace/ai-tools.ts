@@ -5,6 +5,8 @@ import { conditionsIssues, proposeConditions, type ConditionsProposal } from "./
 import { loadStageReferences } from "./load-stage";
 import { getActiveAnalysisResult, isAnalysisResultCurrent, type AnalysisResult } from "../domain/analysis";
 import { readResult, readResults, type ResultReference } from "./ai-results";
+import { proposeSectionChange, type SectionChangeProposal } from "./section-stage";
+import { readComparison, readComparisonResult, type AiAnalysisPair, type AnalysisPairIds, type ComparisonReference } from "./ai-comparison";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -14,15 +16,16 @@ export interface AiContext {
   modelRevision: number;
   selection: readonly AiSelectedObject[];
   analysisId?: string;
+  comparison?: AnalysisPairIds;
 }
 export type AiStatus = "completed" | "applied" | "missing-input" | "awaiting-confirmation" | "failed" | "cancelled";
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; reference?: ResultReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; analysisRequested?: boolean; }
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; sectionChange?: SectionChangeProposal | null; analysisRequested?: boolean; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
   | "nodalLoads" | "uniformLoads" | "selfWeight" | "loadCases" | "loadCombinations"
   | "activeLoadCaseId" | "activeLoadCombinationId">;
-export interface AiSnapshot { readonly context: AiContext; readonly model: ReadonlyTree<AiModel>; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; }
+export interface AiSnapshot { readonly context: AiContext; readonly model: ReadonlyTree<AiModel>; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
 
 function freeze<T>(value: T): ReadonlyTree<T> {
   if (value && typeof value === "object") {
@@ -32,7 +35,7 @@ function freeze<T>(value: T): ReadonlyTree<T> {
   return value as ReadonlyTree<T>;
 }
 
-export function captureAiSnapshot(project: FrameProject, selection: readonly AiObjectRef[], analysis = getActiveAnalysisResult(project)): AiSnapshot {
+export function captureAiSnapshot(project: FrameProject, selection: readonly AiObjectRef[], analysis = getActiveAnalysisResult(project), comparisonIds?: AnalysisPairIds): AiSnapshot {
   const model: AiModel = {
     units: project.units, nodes: project.nodes, members: project.members, materials: project.materials,
     sections: project.sections, supports: project.supports, nodalLoads: project.nodalLoads,
@@ -40,17 +43,22 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
     loadCombinations: project.loadCombinations, activeLoadCaseId: project.activeLoadCaseId,
     activeLoadCombinationId: project.activeLoadCombinationId,
   };
+  const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
+  const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
+  const resultSnapshot = (result: AnalysisResult) => structuredClone({ ...result, process: undefined });
   return freeze({
     context: {
       projectId: project.id, projectName: project.name, modelRevision: project.revision,
       analysisId: analysis?.id,
+      comparison: comparisonIds,
       selection: selection.map(({ kind, id }) => {
         const object = (kind === "node" ? project.nodes : project.members).find((item) => item.id === id);
         return { kind, id, label: object?.label ?? id, exists: Boolean(object) };
       }),
     },
     model: structuredClone(model),
-    analysis: analysis ? structuredClone({ ...analysis, process: undefined }) : undefined,
+    analysis: analysis ? resultSnapshot(analysis) : undefined,
+    comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
     analysisCurrent: analysis ? isAnalysisResultCurrent(project, analysis) : false,
   }) as AiSnapshot;
 }
@@ -100,12 +108,30 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal): AiToolResult {
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (call.function.name === "read_comparison" || call.function.name === "read_comparison_result") {
+      if (!snapshot.comparison) return { status: "missing-input", message: "请先选择两次确定的成功分析作为前后对比", context: snapshot.context };
+      if (call.function.name === "read_comparison") return { status: "completed", message: "已读取两次确定分析的对比及来源", context: snapshot.context, data: readComparison(snapshot.comparison, input) };
+      const comparisonReference = readComparisonResult(snapshot.comparison, input, call.id);
+      return { status: "completed", message: "已核对前后数值及差值，可定位同一对比表", context: snapshot.context, comparisonReference, data: comparisonReference };
+    }
+    if (call.function.name === "discard_section_change") {
+      exactFields(input, []);
+      return { status: "completed", message: "截面方案已拒绝，正式模型及结果保留", context: snapshot.context, sectionChange: null };
+    }
+    if (call.function.name === "propose_section_change") {
+      let sectionChange: SectionChangeProposal;
+      try { sectionChange = proposeSectionChange(snapshot, input, previousSectionChange); }
+      catch (error) { return { status: "missing-input", message: error instanceof Error ? error.message : "请重新选择柱和截面", context: snapshot.context }; }
+      return { status: "awaiting-confirmation", message: "选柱截面修改预览已准备，正式模型及结果尚未改变", context: snapshot.context, sectionChange,
+        data: { memberIds: sectionChange.memberIds, before: snapshot.model.members.filter((member) => sectionChange.memberIds.includes(member.id)).map((member) => ({ member, section: snapshot.model.sections.find((section) => section.id === member.sectionId) })), after: sectionChange.section, source: sectionChange.source,
+          scope: "仅重新指定选中柱的截面；共享截面及其他杆件不变。启用自重时，重算会使用新面积重新生成自重。" } };
+    }
     if (call.function.name === "read_results" || call.function.name === "read_result") {
       if (!snapshot.analysis) return { status: "missing-input", message: "当前所选工况或组合无成功结果，请先运行本地计算", context: snapshot.context };
       if (input.analysisId !== undefined && input.analysisId !== snapshot.analysis.id) throw new Error("分析身份与当前所选结果不一致，请重新读取结果上下文");

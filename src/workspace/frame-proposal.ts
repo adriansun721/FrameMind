@@ -29,6 +29,7 @@ export interface FramePreview {
   uniformLoads?: FrameUniformLoad[];
   selfWeight?: FrameSelfWeight & { caseLabel: string };
   loadStageSummary?: string;
+  sectionChange?: boolean;
 }
 
 function object(value: unknown): Record<string, unknown> {

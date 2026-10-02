@@ -1,14 +1,21 @@
 import type { AiTaskResult } from "../workspace/ai-task";
 import { resultReferenceLabel, type ResultReference } from "../workspace/ai-results";
+import type { AnalysisPairIds } from "../workspace/ai-comparison";
 
-export function AiResultExplanation({ result, onLocate }: { result: AiTaskResult; onLocate(ref: ResultReference): void }) {
+export function AiResultExplanation({ result, onLocate, onCompare }: { result: AiTaskResult; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
   const references = result.records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
+  const comparisons = result.records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
   if (!result.assistant) return null;
-  const parts = result.assistant.split(/(\[\[result:[^\]\r\n]+\]\])/g);
+  const parts = result.assistant.split(/(\[\[(?:result|comparison):[^\]\r\n]+\]\])/g);
   return <div className="ai-result-explanation">
-    {references.length > 0 && <p className="ai-result-note">引用数值来自本地分析；原因说明属于 AI 推断，不提供规范验算结论。</p>}
+    {references.length + comparisons.length > 0 && <p className="ai-result-note">引用数值来自本地分析；原因说明属于 AI 推断，不提供规范验算结论。</p>}
     <p className="ai-assistant-message">{parts.map((part, index) => {
       const ref = references.find((item) => item.token === part);
+      const comparison = comparisons.find((item) => item.token === part);
+      if (comparison) return <button key={index} className="ai-result-reference ai-comparison-reference" onClick={() => onCompare({ beforeId: comparison.before.analysisId, afterId: comparison.after.analysisId })}>
+        {comparison.after.object.label} · {comparison.after.component}：{comparison.before.value.toPrecision(8)} → {comparison.after.value.toPrecision(8)} {comparison.unit} · Δ {comparison.delta.toPrecision(8)} {comparison.unit}
+        <small>{comparison.before.source.id} · 输入 R{comparison.before.inputRevision} → R{comparison.after.inputRevision} · 查看同一对比表</small>
+      </button>;
       return ref ? <button key={index} className="ai-result-reference" onClick={() => onLocate(ref)} title={`${ref.analysisId} · 输入 R${ref.inputRevision} · ${ref.source.id}`}>
         {resultReferenceLabel(ref)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{ref.current ? "" : " · 历史结果"}</small>
       </button> : <span key={index}>{part}</span>;
