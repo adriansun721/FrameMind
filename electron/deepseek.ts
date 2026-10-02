@@ -15,6 +15,17 @@ interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
 const modelTools = [
+  { type: "function", function: { name: "read_results", description: "Read the selected completed analysis, its frozen input provenance and actual results. Summary includes node displacement component extrema, not continuous member extrema. Historical results are explicitly marked.",
+    parameters: { type: "object", additionalProperties: false, required: ["collection"], properties: {
+      analysisId: { type: "string" }, collection: { type: "string", enum: ["summary", "nodes", "members"] },
+      offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 },
+    } } } },
+  { type: "function", function: { name: "read_result", description: "Verify one actual numeric result and create a clickable reference token. Cite this token verbatim in the explanation. Never supplies safety or code compliance checks. Member end forces and positive-local-x-face section actions have different signs.",
+    parameters: { type: "object", additionalProperties: false, required: ["kind", "id", "quantity", "component"], properties: {
+      analysisId: { type: "string" }, kind: { type: "string", enum: ["node", "member"] }, id: { type: "string" },
+      quantity: { type: "string", enum: ["displacement", "rotation", "reaction", "reactionMoment", "sectionForces", "startEndForces", "endEndForces"] },
+      component: { type: "string", enum: ["x", "y", "z", "N", "Vy", "Vz", "T", "My", "Mz"] }, position: { type: "number", minimum: 0, description: "Required only for sectionForces; metres from the frozen member start." },
+    } } } },
   { type: "function", function: { name: "request_analysis", description: "Queue a local analysis only when the user explicitly requests computation of the applied model. Does not compute itself; unconfirmed changes still require stage confirmation.",
     parameters: { type: "object", properties: {}, additionalProperties: false } } },
   { type: "function", function: { name: "discard_frame_proposal", description: "Discard the current unapplied frame proposal when the user rejects or cancels it. Never changes the applied model.",

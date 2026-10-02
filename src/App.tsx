@@ -10,6 +10,8 @@ import { MemberAnalysisProcess } from "./components/MemberAnalysisProcess";
 import { AnalysisProcess } from "./components/AnalysisProcess";
 import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
 import { AiConversationPanel } from "./components/AiConversationPanel";
+import { ResultReferenceDetails } from "./components/AiResultReferences";
+import type { ResultReference } from "./workspace/ai-results";
 import type { AiObjectRef } from "./workspace/ai-tools";
 import { captureAiSnapshot, type AiToolResult } from "./workspace/ai-tools";
 import { ConditionsStageConfirmation } from "./workspace/analysis-conditions";
@@ -95,6 +97,7 @@ export function App() {
   const [deformationScale, setDeformationScale] = useState(100);
   const [resultFocus, setResultFocus] = useState<{ memberId: string; position: number } | null>(null);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [resultReference, setResultReference] = useState<ResultReference | null>(null);
   const [resourcePanelOpen, setResourcePanelOpen] = useState(true);
   const [propertyPanelOpen, setPropertyPanelOpen] = useState(true);
   const [sidebarModule, setSidebarModule] = useState<"project" | "search" | "library">("project");
@@ -135,7 +138,8 @@ export function App() {
   const caseLoads = useMemo(() => project.nodalLoads.filter((load) => load.loadCaseId === activeCase.id), [project.nodalLoads, activeCase.id]);
   const caseUniformLoads = useMemo(() => project.uniformLoads.filter((load) => load.loadCaseId === activeCase.id), [project.uniformLoads, activeCase.id]);
   const caseSelfWeightEnabled = project.selfWeight.enabled && project.selfWeight.loadCaseId === activeCase.id;
-  const caseResult = getActiveAnalysisResult(project);
+  const referenceAnalysis = resultReference ? project.analysisResults.find((result) => result.id === resultReference.analysisId) : undefined;
+  const caseResult = referenceAnalysis ?? getActiveAnalysisResult(project);
   const resultSources = [
     ...project.loadCases.map((source) => ({ id: source.id, combination: false })),
     ...project.loadCombinations.map((source) => ({ id: source.id, combination: true })),
@@ -169,6 +173,7 @@ export function App() {
     if (historyMode === "record") projectHistoryRef.current.record(previous, next);
     setHistoryVersion((value) => value + 1);
     if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId) {
+      setResultReference(null); setResultFocus(null);
       if (newSession || !preserveConversation) activeSessionRef.current += 1;
       setAnalysisFailure(null);
       const activeAnalysis = analysisTaskRef.current;
@@ -340,6 +345,7 @@ export function App() {
     return task.promise.then((result): AiToolResult => {
       if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
       const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
+      setResultReference(null); setResultFocus(null);
       if (showResults) { setResultView("deformation"); setDataTableOpen(true); }
       return { status: "completed", message: `本地分析完成 · ${result.nodes.length} 个节点、${result.members.length} 根杆件，已展示结果`, context,
         data: { analysisId: result.id, modelRevision: checkpoint.revision, units: source.units,
@@ -529,7 +535,7 @@ export function App() {
             {project.loadCombinations.map((item) => <button key={item.id} className={`tree-item resource ${activeCombination?.id === item.id ? "active-source" : ""}`} aria-label={`切换组合 ${item.id}`} onClick={() => { activateProject(selectLoadCombination(project, item.id), false); selectObject(null); }}><Layers3 size={14} /><span>{item.id} · {item.name} · 用户定义</span></button>)}
           </TreeGroup>
           <TreeGroup label="计算结果" count={project.analysisResults.length} icon={<Calculator size={14} />}>
-            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? isAnalysisResultCurrent(project, caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
+            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { setResultReference(null); setResultFocus(null); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? isAnalysisResultCurrent(project, caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
             <button className="tree-item resource" disabled={project.analysisResults.length < 2} onClick={() => setComparisonOpen(true)}><Files size={14} /><span>历史分析与前后对比</span></button>
             {resultSources.map((source) => {
               const result = getAnalysisResultForSource(project, source.id);
@@ -542,6 +548,9 @@ export function App() {
         </section>
       </aside>
         <section id="property-panel" className="sidebar-pane property-pane" aria-label="对象属性" hidden={!propertyPanelOpen}><div className="panel-heading"><span>属性 · {currentSelectionLabel}</span><button className="icon-button" aria-label="收起属性面板" title="收起属性面板" onClick={() => setPropertyPanelOpen(false)}><X size={15} /></button></div>
+          {resultReference && referenceAnalysis && <ResultReferenceDetails reference={resultReference} current={isAnalysisResultCurrent(project, referenceAnalysis)}
+            exists={(resultReference.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === resultReference.object.id)}
+            onClose={() => { setResultReference(null); setResultFocus(null); }} />}
           {selectedNode && <Inspector title="空间节点" label={selectedNode.label} icon={<CircleDot size={15} />}>
             <Identity id={selectedNode.id} label={selectedNode.label} />
             <section className="property-section"><h3>当前全局坐标</h3><dl className="coordinates-list">{(["x", "y", "z"] as const).map((axis) => <div key={axis}><dt>{axis.toUpperCase()}</dt><dd>{selectedNode.position[axis].toFixed(3)} m</dd></div>)}</dl></section>
@@ -592,11 +601,29 @@ export function App() {
         </section>}
         <SceneViewport theme={theme} supports={project.supports} nodalLoads={activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
           selfWeight={activeCombination ? combinationInput?.selfWeight : caseSelfWeightEnabled ? project.selfWeight : undefined} selfWeightLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 组合加权" : ""}`}
-          preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 用户定义" : ""} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+          preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${caseResult ? analysisSourceLabel(caseResult) : `${activeSource.id} · ${activeSource.name}`} · ${caseResult ? isAnalysisResultCurrent(project, caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         {dataTableOpen && <ModelDataTable project={project} selection={selection} nodeDraft={nodeDraft} memberDraft={memberDraft} error={formError} selectedNodeIds={selectedNodeIds} selectedMemberIds={selectedMemberIds} onNodeDraft={setNodeDraft} onMemberDraft={setMemberDraft} onSelect={(next) => { selectObject(next); setDiagnosticFitRequest((value) => value + 1); }} onToggleSelection={toggleMultiSelection} onDuplicate={duplicateSelected} onDelete={deleteSelected} onBatchEdit={openBatchEdit} onSaveNode={saveNodeEdit} onSaveMember={saveMemberEdit} onClose={() => setDataTableOpen(false)} />}
       </section>
 
       <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+        analysis={caseResult} onLocateResult={(ref) => {
+          const result = project.analysisResults.find((item) => item.id === ref.analysisId);
+          if (!result || result.projectId !== project.id) { setStatus({ tone: "error", text: "引用分析已不可用，请重新读取当前结果" }); return; }
+          if (ref.source.id !== (project.activeLoadCombinationId ?? project.activeLoadCaseId)) {
+            const next = ref.source.kind === "combination" ? selectLoadCombination(project, ref.source.id) : selectLoadCase(project, ref.source.id);
+            activateProject(next, false, "restore", true);
+          }
+          setResultReference(ref); setPropertyPanelOpen(true);
+          const exists = (ref.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === ref.object.id);
+          selectObject(exists ? { kind: ref.object.kind, id: ref.object.id } as Selection : null);
+          setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set());
+          if (ref.object.kind === "member") {
+            setResultView(ref.quantity === "sectionForces" ? "forces" : "model"); setForceComponent(ref.component as ForceComponent);
+            const member = result.members.find((item) => item.memberId === ref.object.id)!;
+            setResultFocus({ memberId: ref.object.id, position: ref.position ?? (ref.quantity === "endEndForces" ? member.length : 0) });
+          } else { setResultView(ref.quantity === "displacement" ? "deformation" : "model"); setResultFocus(null); }
+          setDiagnosticFitRequest((value) => value + 1);
+        }}
         analysisBusy={analysisBusy} onAnalyze={() => runAnalysis(true)} onCancelAnalysis={cancelAnalysis}
         onConditionsConfirm={(confirmation) => {
           const current = activeProjectRef.current;
@@ -663,7 +690,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
   const formatEndForces = (values: number[]) => `Fx ${values[0].toFixed(3)} kN · Fy ${values[1].toFixed(3)} kN · Fz ${values[2].toFixed(3)} kN · Mx ${values[3].toFixed(3)} kN·m · My ${values[4].toFixed(3)} kN·m · Mz ${values[5].toFixed(3)} kN·m`;
   const preciseVector = (vector: { x: number; y: number; z: number }) => `(${[vector.x, vector.y, vector.z].map((value) => value.toPrecision(10)).join(", ")})`;
   return <div className="analysis-result-panel">
-    <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>最近一次分析</small><strong>3D 线弹性静力</strong></div></div>
+    <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>所选分析</small><strong>3D 线弹性静力</strong></div></div>
     <section className="property-section"><div className="result-section-heading"><h3>计算输入</h3><button type="button" className="button ghost compact-button" onClick={onOpenComparison} disabled={project.analysisResults.length < 2} title={project.analysisResults.length < 2 ? "至少需要两份已完成分析" : "选择两份已完成分析"}><Files size={14} />前后结果对比</button></div><dl>
       <div><dt>{combination ? "用户定义组合" : "来源工况"}</dt><dd>{combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入"}</dd></div>
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>

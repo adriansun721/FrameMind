@@ -47,6 +47,8 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
     { role: "system", content: `支座与节点力/力矩由 propose_analysis_conditions 准备，不直接应用。当前消息若说明“建模阶段已确认”，其中引用的原请求不是新的建模请求，此时禁止 propose_frame，继续读取正式对象并准备条件。必须先用 read_model 读取正式 nodes/supports/loads/load-cases，引用真实 nodeId/id/loadCaseId；禁止用预览身份或标签代替稳定身份。该工具部分字段 supports/nodalLoads 分别为数组；省略代表尚缺失，空数组仅代表用户明确没有新增该类条件。条目 source 为 user 或 suggestion。supports 条目 {id?:已有支座身份,nodeId,restraints:[UX,UY,UZ,RX,RY,RZ六个布尔值],source}；nodalLoads 条目 {id?:已有荷载身份,nodeId,loadCaseId,force:{x,y,z},moment:{x,y,z},source}。全局 XYZ，力 kN、力矩 kN·m，按右手规则。未知分量不要冒充用户提供，建议必须标记 suggestion。修改已有支座或荷载必须提供其 id，否则是新增。完整阶段由用户点击“确认应用分析条件阶段”。用户已要求建模并计算时，建模确认后继续准备必要条件，条件确认后本地续算；不要要求用户再次授权同一计算。拒绝条件时调用 discard_analysis_conditions。当前条件卡片：${JSON.stringify(options.conditions ?? null)}。` },
     { role: "system", content: "仅当用户明确要求计算当前已应用模型，并且本轮无需准备任何变更阶段时，调用 request_analysis（参数{}）记录续算请求。该工具尚未计算，结果由本地应用实际求解后展示。只是解释计算过程、读取数据或问答时不要调用；建模或条件尚缺时必须先准备对应卡片，不能用 request_analysis 跳过这些阶段。" },
     { role: "system", content: `propose_analysis_conditions 还支持全部首版荷载与多工况组合，仍只预览。必须先读取 members/materials/sections/loads/load-cases 核对真实身份与已有参数；read_model loads 包含均布荷载和自重，load-cases 包含组合。uniformLoads:[{id?:已有均布荷载身份,memberId:正式杆件身份,coordinateSystem:global或local,loadCaseId,intensity:{x,y,z}:kN/m,source}]，只支持整杆均布力，全局XYZ或杆件局部xyz；不要把竖向全局Z误当局部z。selfWeight:{enabled,loadCaseId,gravity:{x,y,z}:全局m/s²,source}，全结构只一份自重，密度kg/m³与面积m²来自正式材料/截面，不创建等效均布荷载副本。loadCases:[{id?:已有LC身份,ref:唯一方案引用,name,description,source}]；loadCombinations:[{id?:已有CB身份,ref:唯一方案引用,name,terms:[{loadCaseId,factor:有限无量纲系数}],source}]。新建省略id，ref不可冒用其他正式身份；荷载loadCaseId及组合terms可引用工况ref，analysisSourceId可引用新工况/组合ref，确认后才映射正式身份。省略字段保留当前卡片，无新增用空数组；支座与节点荷载仍需明确或给空数组，不重复既有条件。部分自然语言更新应只发送用户改动字段，不能丢弃或重写未改动卡片。所有未知参数留缺失或标为suggestion，绝不自动确认建议。组合始终是用户自定义，允许零、负系数；不擅自添加规范系数、规范类别或符合性结论。用户要求组合计算时明确指定analysisSourceId，未指定时单一新增荷载工况作为来源，否则保留当前来源。` },
+    { role: "system", content: `结果解释必须先 read_results（collection:summary/nodes/members，分页limit<=100）读取当前所选分析。当前分析身份：${snapshot.context.analysisId ?? "无成功结果"}。无成功结果时明确需要本地计算，不补造数值。read_result 用 {kind:node或member,id:稳定身份,quantity,component,position?:距杆起点m,analysisId?:当前身份} 核对每个引用项。节点 quantity 为 displacement(m)、rotation(rad)、reaction(kN)、reactionMoment(kN·m)，component 为全局 x/y/z；杆件为 sectionForces（正局部x面截面内力，必须给position）或 startEndForces/endEndForces（杆端节点作用力），component 为 N/Vy/Vz/T/My/Mz，注意符号不同。数值事实直接插入工具返回的 token（如 [[result:call_1]]），界面会显示真实对象、分量、数值和单位；禁止自行拼接、改写标记或引用旧对话标记。解释按“计算事实”和“原因推断”分开，推断须说明依据和不确定性，不把相关性当因果。current:false 必须称历史输入结果，给出分析身份、来源工况/用户自定义组合及输入版本，说明当前模型需重算。禁止从线弹性位移或内力断言安全、强度/稳定/变形合格或符合规范；没有规范验算。关键位移 summary 仅比较节点各平移分量绝对值，不代表连续全结构最大位移。` },
+    { role: "system", content: "本软件全局Z竖直向上，X/Y为水平方向，不能把全局y荷载或位移称为竖向。read_results summary 的 frozenConditions 提供本次冻结输入的有效支座、节点荷载、均布荷载和自重，组合有效荷载已按用户系数加权，禁止对有效荷载再次乘系数。originalCombinationLoads只提供未加权原工况荷载，不能混同。原因推断只定性描述已核查的方向和边界条件，不自行计算或引入任何新数值；未核查成因明确未知。原因说明须核对这些真实方向、符号和边界条件，不能用当前已编辑模型条件解释历史数值；若条件总数超过limit，明确展示不完整，不推断未读取部分。当前model快照中的编辑都已经应用；没有当前proposal/conditions卡片时，不得称这些编辑尚未确认或待确认。未重新计算与未确认修改是两种不同状态。不要自行合计条件总数。以普通文本短段落回答，不使用Markdown格式。" },
     ...(options.history ?? []), { role: "user", content: prompt.trim() },
   ];
   const result = (status: AiStatus, message: string, assistant?: string): AiTaskResult => ({
@@ -64,7 +66,12 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       const assistant = response.assistant;
       if (!assistant.tool_calls?.length) {
         options.onProgress?.({ phase: "responding", round });
-        return result("completed", records.length ? "已根据当前已应用模型完成回复" : "AI 回复已接收，未读取模型工具", assistant.content ?? undefined);
+        const references = records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
+        const tokens = assistant.content?.match(/\[\[result:[^\]\r\n]+\]\]/g) ?? [];
+        if (tokens.some((token) => !references.some((reference) => reference.token === token))) return result("failed", "回复含无法核对的结果引用，请重新读取实际结果");
+        if (records.some((record) => ["read_results", "read_result"].includes(record.call.function.name)) && !tokens.length) return result("failed", "结果解释缺少可核对的结果项引用，请重试");
+        return result("completed", references.length ? snapshot.analysisCurrent ? "已引用所选分析的实际结果" : "已引用历史输入结果，当前模型需重算"
+          : records.length ? "已根据当前已应用模型完成回复" : "AI 回复已接收，未读取模型工具", assistant.content ?? undefined);
       }
       messages.push(assistant);
       for (const call of assistant.tool_calls) {

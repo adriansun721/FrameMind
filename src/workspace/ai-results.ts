@@ -1,0 +1,110 @@
+import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
+import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
+import type { Vector3 } from "../domain/project";
+
+export interface ResultReference {
+  token: string;
+  analysisId: string;
+  inputRevision: number;
+  createdAt: string;
+  current: boolean;
+  source: { id: string; name: string; kind: "case" | "combination"; terms?: { loadCaseId: string; factor: number }[] };
+  object: { kind: "node" | "member"; id: string; label: string; position: Vector3; endPosition?: Vector3 };
+  quantity: string;
+  component: string;
+  coordinateSystem: "global XYZ" | "local xyz";
+  position?: number;
+  value: number;
+  unit: string;
+}
+
+export function analysisProvenance(result: AnalysisResult, current: boolean) {
+  const combination = result.input.combination?.definition;
+  return { analysisId: result.id, inputRevision: result.input.projectRevision, createdAt: result.createdAt, current,
+    source: combination ? { id: combination.id, name: combination.name, kind: "combination" as const, terms: combination.terms }
+      : { id: result.input.loadCase?.id ?? "LC1", name: result.input.loadCase?.name ?? "旧版工况", kind: "case" as const },
+    assumptions: result.input.assumptions, solver: result.input.solver, status: current ? "当前模型结果" : "历史输入结果，当前模型需重新计算" };
+}
+
+function fields(input: Record<string, unknown>, allowed: string[]) {
+  if (Object.keys(input).some((key) => !allowed.includes(key))) throw new Error("结果工具含未定义字段");
+}
+
+export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>) {
+  fields(input, ["analysisId", "collection", "offset", "limit"]);
+  const collection = input.collection;
+  if (typeof collection !== "string" || !["summary", "nodes", "members"].includes(collection)) throw new Error("结果集合必须为 summary、nodes 或 members");
+  const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
+  if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
+    || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
+  const provenance = analysisProvenance(result, current);
+  if (collection === "summary") {
+    const displacementExtrema = (["x", "y", "z"] as const).map((component) => {
+      const node = result.nodes.reduce<typeof result.nodes[number] | undefined>((best, item) => !best || Math.abs(item.displacement[component]) > Math.abs(best.displacement[component]) ? item : best, undefined);
+      return node ? { nodeId: node.nodeId, component, value: node.displacement[component], unit: "m", criterion: "节点平移分量绝对值最大，非沿杆连续极值" } : null;
+    });
+    return { ...provenance, counts: { nodes: result.nodes.length, members: result.members.length }, displacementExtrema,
+      frozenConditions: { supports: result.input.supports.slice(0, limit), nodalLoads: result.input.nodalLoads.slice(0, limit),
+        uniformLoads: (result.input.uniformLoads ?? []).slice(0, limit), selfWeight: result.input.selfWeight,
+        originalCombinationLoads: result.input.combination ? {
+          nodalLoads: result.input.combination.cases.flatMap((item) => item.nodalLoads).slice(0, limit),
+          uniformLoads: result.input.combination.cases.flatMap((item) => item.uniformLoads).slice(0, limit),
+          selfWeight: result.input.combination.cases.slice(0, limit).map((item) => ({ ...item.selfWeight, loadCaseId: item.loadCase.id })),
+          scope: "仅供核对的原工况荷载，尚未乘组合系数；上层nodalLoads/uniformLoads/selfWeight是已加权有效荷载，禁止再次加权。各类原荷载最多limit项。",
+        } : undefined,
+        total: { supports: result.input.supports.length, nodalLoads: result.input.nodalLoads.length, uniformLoads: result.input.uniformLoads?.length ?? 0 },
+        limit, scope: "冻结输入的有效条件；组合荷载已按用户系数加权。仅展示各类前limit项，不是完整大模型荷载清单。" } };
+  }
+  const items = collection === "nodes" ? result.nodes.map((node) => ({ ...node, object: result.input.nodes.find((item) => item.id === node.nodeId),
+    units: { displacement: "m", rotation: "rad", reaction: "kN", reactionMoment: "kN·m" }, coordinateSystem: "global XYZ" }))
+    : result.members.map((member) => ({ ...member, object: result.input.members.find((item) => item.id === member.memberId),
+      components: ANALYSIS_FORCE_COMPONENTS, signConvention: "杆端节点作用力；截面正局部 x 面内力由 read_result sectionForces 获取" }));
+  return { ...provenance, collection, total: items.length, offset, limit, items: items.slice(offset, offset + limit) };
+}
+
+export function readResult(result: AnalysisResult, current: boolean, input: Record<string, unknown>, callId: string): ResultReference {
+  fields(input, ["analysisId", "kind", "id", "quantity", "component", "position"]);
+  if (typeof input.id !== "string" || typeof input.component !== "string" || typeof input.quantity !== "string") throw new Error("结果项需提供稳定对象身份、类型与分量");
+  const provenance = analysisProvenance(result, current);
+  const quantity = input.quantity; const component = input.component;
+  let object: ResultReference["object"]; let value: number; let unit: string;
+  if (input.kind === "node") {
+    if (input.position !== undefined) throw new Error("节点结果不接受沿杆位置");
+    const node = result.input.nodes.find((item) => item.id === input.id);
+    const response = result.nodes.find((item) => item.nodeId === input.id);
+    if (!node || !response) throw new Error("本次分析无此节点");
+    if (component !== "x" && component !== "y" && component !== "z") throw new Error("节点分量须为全局 x、y、z");
+    const quantities = { displacement: { vector: response.displacement, unit: "m" }, rotation: { vector: response.rotation, unit: "rad" },
+      reaction: { vector: response.reaction, unit: "kN" }, reactionMoment: { vector: response.reactionMoment, unit: "kN·m" } };
+    if (!Object.hasOwn(quantities, quantity)) throw new Error("无效节点结果类型");
+    const item = quantities[quantity as keyof typeof quantities]; value = item.vector[component]; unit = item.unit;
+    object = { kind: "node", id: node.id, label: node.label, position: node.position };
+  } else if (input.kind === "member") {
+    const member = result.input.members.find((item) => item.id === input.id);
+    const response = result.members.find((item) => item.memberId === input.id);
+    if (!member || !response) throw new Error("本次分析无此杆件");
+    const index = ANALYSIS_FORCE_COMPONENTS.findIndex((item) => item.label === component);
+    if (index < 0) throw new Error("杆件分量须为 N、Vy、Vz、T、My、Mz");
+    if (quantity === "sectionForces") {
+      if (typeof input.position !== "number") throw new Error("截面内力需指定距起点位置（m）");
+      value = getMemberSectionForces(result, member.id, input.position).forces[index];
+    } else if (quantity === "startEndForces" || quantity === "endEndForces") {
+      if (input.position !== undefined) throw new Error("杆端作用力不接受截面位置");
+      value = response.localEndForces[quantity === "startEndForces" ? "start" : "end"][index];
+    } else throw new Error("无效杆件结果类型");
+    unit = ANALYSIS_FORCE_COMPONENTS[index].unit;
+    object = { kind: "member", id: member.id, label: member.label,
+      position: result.input.nodes.find((node) => node.id === member.startNodeId)!.position,
+      endPosition: result.input.nodes.find((node) => node.id === member.endNodeId)!.position };
+  } else throw new Error("结果对象须为 node 或 member");
+  if (!Number.isFinite(value)) throw new Error("结果包含非有限数值");
+  return { token: `[[result:${callId}]]`, analysisId: result.id, inputRevision: provenance.inputRevision, createdAt: result.createdAt, current,
+    source: provenance.source, object, quantity, component, coordinateSystem: input.kind === "node" ? "global XYZ" : "local xyz",
+    ...(quantity === "sectionForces" ? { position: input.position as number } : {}), value, unit };
+}
+
+export const RESULT_QUANTITY_LABELS: Record<string, string> = { displacement: "位移", rotation: "转角", reaction: "反力", reactionMoment: "反力矩",
+  sectionForces: "截面内力（正局部 x 面）", startEndForces: "起点杆端作用力", endEndForces: "终点杆端作用力" };
+export function resultReferenceLabel(ref: ResultReference): string {
+  return `${ref.object.label} · ${RESULT_QUANTITY_LABELS[ref.quantity]} ${ref.component}${ref.position !== undefined ? ` @ ${ref.position} m` : ""} = ${ref.value.toPrecision(8)} ${ref.unit}`;
+}

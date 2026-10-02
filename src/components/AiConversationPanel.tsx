@@ -9,6 +9,9 @@ import { prepareFrameConfirmation, type FrameConfirmation } from "../workspace/f
 import { AnalysisConditionsCard } from "./AnalysisConditionsCard";
 import { buildConditionsPreview, conditionsIssues, prepareConditionsConfirmation, type ConditionsConfirmation, type ConditionsProposal } from "../workspace/analysis-conditions";
 import { calculationIntent } from "../workspace/analysis-intent";
+import type { AnalysisResult } from "../domain/analysis";
+import type { ResultReference } from "../workspace/ai-results";
+import { AiResultExplanation } from "./AiResultReferences";
 
 interface ConversationTurn {
   id: string;
@@ -23,6 +26,8 @@ interface Props {
   project: FrameProject;
   sessionId: number;
   selection: readonly AiObjectRef[];
+  analysis?: AnalysisResult;
+  onLocateResult(reference: ResultReference): void;
   open: boolean;
   onClose(): void;
   onSettings(): void;
@@ -48,9 +53,11 @@ const TOOL_LABELS: Record<string, string> = {
   confirm_analysis_conditions: "确认分析条件阶段",
   run_analysis: "本地空间刚架分析",
   request_analysis: "准备本地分析请求",
+  read_results: "读取分析结果",
+  read_result: "核对结果引用",
 };
 
-export function AiConversationPanel({ project, sessionId, selection, open, onClose, onSettings, onPreview, onConfirm, onConditionsConfirm, onAnalyze, onCancelAnalysis, analysisBusy }: Props) {
+export function AiConversationPanel({ project, sessionId, selection, analysis, onLocateResult, open, onClose, onSettings, onPreview, onConfirm, onConditionsConfirm, onAnalyze, onCancelAnalysis, analysisBusy }: Props) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -75,9 +82,9 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
   const taskRef = useRef<ReturnType<typeof startAiTask> | null>(null);
   const generationRef = useRef(0);
   const selectionKey = JSON.stringify(selection);
-  const snapshot = useMemo(() => captureAiSnapshot(project, JSON.parse(selectionKey)), [project, selectionKey]);
-  const currentRef = useRef({ project, sessionId, selectionKey });
-  currentRef.current = { project, sessionId, selectionKey };
+  const snapshot = useMemo(() => captureAiSnapshot(project, JSON.parse(selectionKey), analysis), [project, selectionKey, analysis]);
+  const currentRef = useRef({ project, sessionId, selectionKey, analysis });
+  currentRef.current = { project, sessionId, selectionKey, analysis };
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -129,7 +136,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
 
   useEffect(() => {
     taskRef.current?.cancel();
-  }, [project, sessionId, selectionKey]);
+  }, [project, sessionId, selectionKey, analysis]);
   useEffect(() => () => {
     generationRef.current += 1;
     taskRef.current?.cancel();
@@ -149,6 +156,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
     const context = snapshot.context;
     const history = turns.filter((turn) => turn.result?.status === "completed"
       && turn.sourceProject === project && JSON.stringify(turn.context.selection) === JSON.stringify(context.selection))
+      .filter((turn) => turn.context.analysisId === context.analysisId && !turn.result!.records.some((record) => record.result.reference))
       .slice(-4).flatMap((turn) => [
         { role: "user" as const, content: turn.prompt },
         { role: "assistant" as const, content: turn.result!.assistant ?? turn.result!.message },
@@ -172,7 +180,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       proposal,
       conditions,
       isCurrent: () => currentRef.current.project === project && currentRef.current.sessionId === sessionId
-        && currentRef.current.selectionKey === selectionKey && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions,
+        && currentRef.current.selectionKey === selectionKey && currentRef.current.analysis === analysis && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions,
       onProgress: (progress) => update({ progress }),
     });
     taskRef.current = task;
@@ -222,7 +230,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
       {turns.map((turn) => <article className="ai-turn" key={turn.id}>
         <div className="ai-user-message"><p>{turn.prompt}</p></div>
         <div className="ai-turn-context"><span>R{turn.context.modelRevision}</span><span>{turn.context.selection.map((object) => object.label).join("、") || "整个项目"}</span>
-          {turn.sourceProject !== project && <span className="ai-stale">历史版本</span>}
+          {(turn.sourceProject !== project || turn.context.analysisId !== snapshot.context.analysisId) && <span className="ai-stale">历史版本</span>}
         </div>
         <details className="ai-context-details"><summary>对象上下文</summary><pre>{JSON.stringify(turn.context, null, 2)}</pre></details>
         {turn.result ? <>
@@ -233,7 +241,7 @@ export function AiConversationPanel({ project, sessionId, selection, open, onClo
             <details><summary>工具输入</summary><pre>{record.call.function.arguments}</pre></details>
             <details><summary>工具输出</summary><pre className="ai-tool-output">{JSON.stringify(record.result, null, 2)}</pre></details>
           </details>)}
-          {turn.result.assistant && <p className="ai-assistant-message">{turn.result.assistant}</p>}
+          <AiResultExplanation result={turn.result} onLocate={onLocateResult} />
           {turn.origin === "chat" && turn.result.status !== "completed" && turn.result.status !== "applied" && <div className="ai-recovery-actions">
             <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy} onClick={() => void submit(turn.prompt)}><RotateCcw size={14} /></button>
             {turn.result.status === "failed" && <button className="icon-button" aria-label="打开连接设置" title="打开连接设置" onClick={onSettings}><Settings2 size={14} /></button>}

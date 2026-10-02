@@ -1,0 +1,1082 @@
+{
+  "date": "2026-10-02",
+  "model": "deepseek-flash",
+  "network": "real DeepSeek HTTPS; no fetch replacement",
+  "turns": [
+    {
+      "prompt": "请先读取当前所选组合的真实分析结果，再解释 N2 的全局 y 位移和 M1 距起点2米处的局部 Mz 截面内力。逐项用 read_result 核对并插入返回引用标记，说明对象位置、工况或组合和冻结输入；区分计算事实与原因推断，说明线弹性结果不能用于安全或规范合格判定。不重新计算、不修改模型，回答控制在300字以内。",
+      "status": "已完成 · 已引用所选分析的实际结果",
+      "assistant": "所选分析为当前结果（inputRevision 9，模型版本10），来源是用户自定义组合 CB1“用户试算”，系数 LC1=-0.5、LC2=0；冻结有效条件为 N1 全约束支座、N2 处沿全局 y 的节点力 2.5 kN（LC1 已加权后）。\n\n计算事实：N2 位于 (4,0,0) m，其全局 y 位移为 N2 · 位移 y = 0.0026666667 mCB1 · 输入 R9；M1 从 (0,0,0) 到 (4,0,0) m，距起点 2 m 处局部 Mz 截面内力为 M1 · 截面内力（正局部 x 面） Mz @ 2 m = 5.0000000 kN·mCB1 · 输入 R9。注意节点位移为节点分量极值，非杆件连续极值；截面内力为正局部 x 面。\n\n原因推断：N1 固定约束下单层悬臂，N2 水平沿 y 加载，故 y 向位移与局部 Mz 与之方向一致，量值随距离线性增长；此为线弹性 Euler-Bernoulli 梁柱结果，未计剪切变形，不能用于强度、稳定或变形合格等安全与规范判定，需本地规范验算另行处理。",
+      "outputs": [
+        {
+          "status": "completed",
+          "message": "已读取所选分析的真实结果",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 10,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": []
+          },
+          "data": {
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            },
+            "status": "当前模型结果",
+            "counts": {
+              "nodes": 2,
+              "members": 1
+            },
+            "displacementExtrema": [
+              {
+                "nodeId": "node_0001",
+                "component": "x",
+                "value": 0,
+                "unit": "m",
+                "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+              },
+              {
+                "nodeId": "node_0002",
+                "component": "y",
+                "value": 0.0026666666666666666,
+                "unit": "m",
+                "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+              },
+              {
+                "nodeId": "node_0001",
+                "component": "z",
+                "value": 0,
+                "unit": "m",
+                "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+              }
+            ],
+            "frozenConditions": {
+              "supports": [
+                {
+                  "id": "support_0001",
+                  "label": "B1",
+                  "nodeId": "node_0001",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "id": "load_0001",
+                  "label": "L1",
+                  "nodeId": "node_0002",
+                  "loadCaseId": "LC1",
+                  "force": {
+                    "x": 0,
+                    "y": 2.5,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [],
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              "originalCombinationLoads": {
+                "nodalLoads": [
+                  {
+                    "id": "load_0001",
+                    "label": "L1",
+                    "nodeId": "node_0002",
+                    "loadCaseId": "LC1",
+                    "force": {
+                      "x": 0,
+                      "y": -5,
+                      "z": 0
+                    },
+                    "moment": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  }
+                ],
+                "uniformLoads": [],
+                "selfWeight": [
+                  {
+                    "enabled": false,
+                    "loadCaseId": "LC1",
+                    "gravity": {
+                      "x": 0,
+                      "y": 0,
+                      "z": -9.81
+                    }
+                  },
+                  {
+                    "enabled": false,
+                    "loadCaseId": "LC2",
+                    "gravity": {
+                      "x": 0,
+                      "y": 0,
+                      "z": -9.81
+                    }
+                  }
+                ],
+                "scope": "仅供核对的原工况荷载，尚未乘组合系数；上层nodalLoads/uniformLoads/selfWeight是已加权有效荷载，禁止再次加权。各类原荷载最多limit项。"
+              },
+              "total": {
+                "supports": 1,
+                "nodalLoads": 1,
+                "uniformLoads": 0
+              },
+              "limit": 50,
+              "scope": "冻结输入的有效条件；组合荷载已按用户系数加权。仅展示各类前limit项，不是完整大模型荷载清单。"
+            }
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已读取所选分析的真实结果",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 10,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": []
+          },
+          "data": {
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            },
+            "status": "当前模型结果",
+            "collection": "nodes",
+            "total": 2,
+            "offset": 0,
+            "limit": 50,
+            "items": [
+              {
+                "nodeId": "node_0001",
+                "displacement": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "reaction": {
+                  "x": 0,
+                  "y": -2.5,
+                  "z": 0
+                },
+                "reactionMoment": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -10
+                },
+                "object": {
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "units": {
+                  "displacement": "m",
+                  "rotation": "rad",
+                  "reaction": "kN",
+                  "reactionMoment": "kN·m"
+                },
+                "coordinateSystem": "global XYZ"
+              },
+              {
+                "nodeId": "node_0002",
+                "displacement": {
+                  "x": 0,
+                  "y": 0.0026666666666666666,
+                  "z": 0
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0.001
+                },
+                "reaction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "reactionMoment": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "object": {
+                  "id": "node_0002",
+                  "label": "N2",
+                  "position": {
+                    "x": 4,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "units": {
+                  "displacement": "m",
+                  "rotation": "rad",
+                  "reaction": "kN",
+                  "reactionMoment": "kN·m"
+                },
+                "coordinateSystem": "global XYZ"
+              }
+            ]
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已核对实际结果项，可用引用标记定位",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 10,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": []
+          },
+          "reference": {
+            "token": "[[result:call_00_sQWDMRXaAIFE1hgMvb7A7057]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "node",
+              "id": "node_0002",
+              "label": "N2",
+              "position": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "displacement",
+            "component": "y",
+            "coordinateSystem": "global XYZ",
+            "value": 0.0026666666666666666,
+            "unit": "m"
+          },
+          "data": {
+            "token": "[[result:call_00_sQWDMRXaAIFE1hgMvb7A7057]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "node",
+              "id": "node_0002",
+              "label": "N2",
+              "position": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "displacement",
+            "component": "y",
+            "coordinateSystem": "global XYZ",
+            "value": 0.0026666666666666666,
+            "unit": "m",
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            }
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已核对实际结果项，可用引用标记定位",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 10,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": []
+          },
+          "reference": {
+            "token": "[[result:call_01_3lnof3On4aAcHJeaNyBn4440]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "member",
+              "id": "member_0001",
+              "label": "M1",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "endPosition": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "sectionForces",
+            "component": "Mz",
+            "coordinateSystem": "local xyz",
+            "position": 2,
+            "value": 5,
+            "unit": "kN·m"
+          },
+          "data": {
+            "token": "[[result:call_01_3lnof3On4aAcHJeaNyBn4440]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "member",
+              "id": "member_0001",
+              "label": "M1",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "endPosition": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "sectionForces",
+            "component": "Mz",
+            "coordinateSystem": "local xyz",
+            "position": 2,
+            "value": 5,
+            "unit": "kN·m",
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "我已将当前 N2 的 x 坐标改为8米，但没有重算。请先读所选结果，只解释这份历史输入的 N2 全局 y 位移和 M1 距起点2米处局部 Mz 截面内力，用 read_result 返回的引用标记核对。明确原输入的对象位置、分析ID、组合及冻结版本，说明当前模型需重新计算，不把旧数值称为当前响应。区分事实与推断，不提供安全或规范结论，300字以内。不要计算或修改。",
+      "status": "已完成 · 已引用历史输入结果，当前模型需重算",
+      "assistant": "事实（均为历史输入结果，analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4，输入版本 inputRevision 9，当前 modelRevision 11，current:false）：原输入中 N2 位于 x=4 m、y=0、z=0，M1 从 N1(x=0) 到 N2(x=4)。分析来源为用户自定义组合 CB1“用户试算”，项为 LC1×(-0.5)、LC2×0；冻结有效节点荷载为 N2 上全局 y 方向 2.5 kN，支座 B1 为 N1 全约束。\n\nN2 全局 y 位移 = 0.0026666666666666666 m N2 · 位移 y = 0.0026666667 mCB1 · 输入 R9 · 历史结果（全局 y 为水平方向，非竖向）。M1 距起点 2 m 处局部 Mz 截面内力 = 5 kN·m M1 · 截面内力（正局部 x 面） Mz @ 2 m = 5.0000000 kN·mCB1 · 输入 R9 · 历史结果。\n\n推断（依据上述方向与边界）：该位移方向与冻结荷载方向一致、同一水平轴，符合悬臂在 N2 受侧向集中力的定性表现；Mz 沿杆非零与端部受侧向力相符。未核查连续极值与他处成因，未知。\n\n当前模型中 N2 已改为 x=8 m，M1 长度随之变为 8 m，故上述数值仅属原几何，当前模型需重新计算，不能作为当前响应。不提供安全或规范结论。",
+      "outputs": [
+        {
+          "status": "completed",
+          "message": "已读取历史输入结果，当前模型需重新计算",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 11,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": [
+              {
+                "kind": "node",
+                "id": "node_0002",
+                "label": "N2",
+                "exists": true
+              }
+            ]
+          },
+          "data": {
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": false,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            },
+            "status": "历史输入结果，当前模型需重新计算",
+            "counts": {
+              "nodes": 2,
+              "members": 1
+            },
+            "displacementExtrema": [
+              {
+                "nodeId": "node_0001",
+                "component": "x",
+                "value": 0,
+                "unit": "m",
+                "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+              },
+              {
+                "nodeId": "node_0002",
+                "component": "y",
+                "value": 0.0026666666666666666,
+                "unit": "m",
+                "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+              },
+              {
+                "nodeId": "node_0001",
+                "component": "z",
+                "value": 0,
+                "unit": "m",
+                "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+              }
+            ],
+            "frozenConditions": {
+              "supports": [
+                {
+                  "id": "support_0001",
+                  "label": "B1",
+                  "nodeId": "node_0001",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "id": "load_0001",
+                  "label": "L1",
+                  "nodeId": "node_0002",
+                  "loadCaseId": "LC1",
+                  "force": {
+                    "x": 0,
+                    "y": 2.5,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [],
+              "selfWeight": {
+                "enabled": false,
+                "loadCaseId": "LC1",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              "originalCombinationLoads": {
+                "nodalLoads": [
+                  {
+                    "id": "load_0001",
+                    "label": "L1",
+                    "nodeId": "node_0002",
+                    "loadCaseId": "LC1",
+                    "force": {
+                      "x": 0,
+                      "y": -5,
+                      "z": 0
+                    },
+                    "moment": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  }
+                ],
+                "uniformLoads": [],
+                "selfWeight": [
+                  {
+                    "enabled": false,
+                    "loadCaseId": "LC1",
+                    "gravity": {
+                      "x": 0,
+                      "y": 0,
+                      "z": -9.81
+                    }
+                  },
+                  {
+                    "enabled": false,
+                    "loadCaseId": "LC2",
+                    "gravity": {
+                      "x": 0,
+                      "y": 0,
+                      "z": -9.81
+                    }
+                  }
+                ],
+                "scope": "仅供核对的原工况荷载，尚未乘组合系数；上层nodalLoads/uniformLoads/selfWeight是已加权有效荷载，禁止再次加权。各类原荷载最多limit项。"
+              },
+              "total": {
+                "supports": 1,
+                "nodalLoads": 1,
+                "uniformLoads": 0
+              },
+              "limit": 50,
+              "scope": "冻结输入的有效条件；组合荷载已按用户系数加权。仅展示各类前limit项，不是完整大模型荷载清单。"
+            }
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已读取已应用模型摘要",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 11,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": [
+              {
+                "kind": "node",
+                "id": "node_0002",
+                "label": "N2",
+                "exists": true
+              }
+            ]
+          },
+          "data": {
+            "counts": {
+              "nodes": 2,
+              "members": 1,
+              "materials": 1,
+              "sections": 1,
+              "supports": 1,
+              "loads": 1,
+              "loadCases": 2,
+              "loadCombinations": 1
+            },
+            "units": {
+              "length": "m",
+              "force": "kN",
+              "moment": "kN·m"
+            },
+            "activeLoadCaseId": "LC1",
+            "activeLoadCombinationId": "CB1",
+            "selfWeight": {
+              "enabled": false,
+              "loadCaseId": "LC1",
+              "gravity": {
+                "x": 0,
+                "y": 0,
+                "z": -9.81
+              }
+            }
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已核对实际结果项，可用引用标记定位",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 11,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": [
+              {
+                "kind": "node",
+                "id": "node_0002",
+                "label": "N2",
+                "exists": true
+              }
+            ]
+          },
+          "reference": {
+            "token": "[[result:call_00_yhufb6TBCu4zlVFano3b5952]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": false,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "node",
+              "id": "node_0002",
+              "label": "N2",
+              "position": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "displacement",
+            "component": "y",
+            "coordinateSystem": "global XYZ",
+            "value": 0.0026666666666666666,
+            "unit": "m"
+          },
+          "data": {
+            "token": "[[result:call_00_yhufb6TBCu4zlVFano3b5952]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": false,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "node",
+              "id": "node_0002",
+              "label": "N2",
+              "position": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "displacement",
+            "component": "y",
+            "coordinateSystem": "global XYZ",
+            "value": 0.0026666666666666666,
+            "unit": "m",
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            }
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已核对实际结果项，可用引用标记定位",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 11,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": [
+              {
+                "kind": "node",
+                "id": "node_0002",
+                "label": "N2",
+                "exists": true
+              }
+            ]
+          },
+          "reference": {
+            "token": "[[result:call_01_cFqqnmq3bX0lbMDjKMK94651]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": false,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "member",
+              "id": "member_0001",
+              "label": "M1",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "endPosition": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "sectionForces",
+            "component": "Mz",
+            "coordinateSystem": "local xyz",
+            "position": 2,
+            "value": 5,
+            "unit": "kN·m"
+          },
+          "data": {
+            "token": "[[result:call_01_cFqqnmq3bX0lbMDjKMK94651]]",
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "inputRevision": 9,
+            "createdAt": "2026-10-02T10:42:50.420Z",
+            "current": false,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination",
+              "terms": [
+                {
+                  "loadCaseId": "LC1",
+                  "factor": -0.5
+                },
+                {
+                  "loadCaseId": "LC2",
+                  "factor": 0
+                }
+              ]
+            },
+            "object": {
+              "kind": "member",
+              "id": "member_0001",
+              "label": "M1",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "endPosition": {
+                "x": 4,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "quantity": "sectionForces",
+            "component": "Mz",
+            "coordinateSystem": "local xyz",
+            "position": 2,
+            "value": 5,
+            "unit": "kN·m",
+            "assumptions": {
+              "theory": "3d-euler-bernoulli-frame",
+              "shearDeformation": "neglected",
+              "rigidJoints": true,
+              "units": "m-kN-kN·m",
+              "localAxis": "member-geometry"
+            },
+            "solver": {
+              "implementation": "framemind-frame/3",
+              "algorithm": "partial-pivot-gaussian",
+              "constraints": "free-dof-elimination",
+              "relativePivotTolerance": 1e-12
+            }
+          }
+        },
+        {
+          "status": "completed",
+          "message": "已读取对象及其已应用参数",
+          "context": {
+            "projectId": "project_71fe9ee4-577c-4e33-94b9-afa21c930304",
+            "projectName": "T25 悬臂引用",
+            "modelRevision": 11,
+            "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4",
+            "selection": [
+              {
+                "kind": "node",
+                "id": "node_0002",
+                "label": "N2",
+                "exists": true
+              }
+            ]
+          },
+          "data": {
+            "units": {
+              "length": "m",
+              "force": "kN",
+              "moment": "kN·m"
+            },
+            "objects": [
+              {
+                "kind": "node",
+                "id": "node_0002",
+                "label": "N2",
+                "position": {
+                  "x": 8,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "member",
+                "id": "member_0001",
+                "label": "M1",
+                "startNodeId": "node_0001",
+                "endNodeId": "node_0002",
+                "materialId": "material_0001",
+                "sectionId": "section_0001",
+                "rotationDegrees": 0,
+                "startNode": {
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "endNode": {
+                  "id": "node_0002",
+                  "label": "N2",
+                  "position": {
+                    "x": 8,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "material": {
+                  "id": "material_0001",
+                  "label": "M1",
+                  "name": "Steel",
+                  "elasticModulusGPa": 200,
+                  "poissonRatio": 0.3,
+                  "densityKgM3": 7850,
+                  "provenance": {
+                    "kind": "custom"
+                  }
+                },
+                "section": {
+                  "id": "section_0001",
+                  "label": "S1",
+                  "name": "Section",
+                  "areaM2": 0.01,
+                  "secondMomentYM4": 0.0002,
+                  "secondMomentZM4": 0.0001,
+                  "torsionalConstantM4": 0.0001,
+                  "provenance": {
+                    "kind": "custom"
+                  }
+                },
+                "geometry": {
+                  "length": 8,
+                  "localX": {
+                    "x": 1,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "localY": {
+                    "x": 0,
+                    "y": 1,
+                    "z": 0
+                  },
+                  "localZ": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 1
+                  },
+                  "referenceAxis": "global-z"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "verified": {
+    "numericAgreement": true,
+    "clickableLocation": true,
+    "frozenPositions": true,
+    "historicalInput": true,
+    "analysisId": "analysis_a589a76d-8a3f-429a-abe8-d40338fccfd4"
+  }
+}
