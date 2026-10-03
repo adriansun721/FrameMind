@@ -1,6 +1,6 @@
 import { PagedItems } from "./components/ProcessDisclosure";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
+import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Settings, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport, type ForceComponent, type ResultViewMode } from "./components/SceneViewport";
 import { BottomProperties } from "./components/BottomProperties";
 import { ResizableWorkspace } from "./components/ResizableWorkspace";
@@ -507,7 +507,7 @@ export function App() {
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "project" ? "active" : ""}`} aria-label="资源管理器" aria-pressed={resourcePanelOpen && sidebarModule === "project"} aria-controls="resource-panel" title="资源管理器" onClick={() => switchSidebarModule("project")}><Files size={22} strokeWidth={1.5} /></button>
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "search" ? "active" : ""}`} aria-label="搜索" aria-pressed={resourcePanelOpen && sidebarModule === "search"} aria-controls="search-panel" title="搜索" onClick={() => switchSidebarModule("search")}><Search size={22} strokeWidth={1.5} /></button>
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "library" ? "active" : ""}`} aria-label="资源库" aria-pressed={resourcePanelOpen && sidebarModule === "library"} aria-controls="library-panel" title="资源库" onClick={() => switchSidebarModule("library")}><Library size={22} strokeWidth={1.5} /></button>
-        <button className="activity-button activity-settings" aria-label="设置" aria-haspopup="dialog" aria-expanded={settingsDialogOpen} aria-controls="settings-dialog" title="设置" onClick={() => setSettingsDialogOpen(true)}><Settings2 size={22} strokeWidth={1.5} /></button>
+        <button className="activity-button activity-settings" aria-label="设置" aria-haspopup="dialog" aria-expanded={settingsDialogOpen} aria-controls="settings-dialog" title="设置" onClick={() => setSettingsDialogOpen(true)}><Settings size={22} strokeWidth={1.5} /></button>
       </nav>
       <aside id="resource-panel" className="project-panel" aria-label="项目资源" hidden={!resourcePanelOpen || sidebarModule !== "project"}>
         <section className="sidebar-pane project-tree-pane" aria-label="项目树"><div className="panel-heading"><span>项目</span><button className="icon-button" title="添加节点" onClick={openNodeDialog}><Plus size={16} /></button></div>
