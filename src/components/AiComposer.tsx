@@ -84,9 +84,9 @@ export function AiComposer({ draft, onDraft, busy, paused, analysisBusy, blocked
           </>}
         </div>}
       </div>
-      {analysisBusy ? <button type="button" className="icon-button ai-send-button" aria-label="取消本地计算" title="取消本地计算" onClick={onCancelAnalysis}><Square size={15} fill="currentColor" /></button>
-        : busy ? <button type="button" className="icon-button ai-send-button" aria-label={paused ? "继续输出" : "暂停输出"} title={paused ? "继续输出" : "暂停输出"} onClick={paused ? onResume : onPause}>{paused ? <Play size={17} fill="currentColor" /> : <Square size={15} fill="currentColor" />}</button>
-        : <button className="icon-button ai-send-button" type="submit" aria-label="发送消息" title="发送消息" disabled={disabled || tooLong || !requestText.trim()}><ArrowUp size={20} /></button>}
+      {analysisBusy ? <button type="button" className="icon-button ai-send-button" aria-label="取消本地计算" title="取消本地计算" onClick={onCancelAnalysis}><Square size={12} fill="currentColor" /></button>
+        : busy ? <button type="button" className="icon-button ai-send-button" aria-label={paused ? "继续输出" : "暂停输出"} title={paused ? "继续输出" : "暂停输出"} onClick={paused ? onResume : onPause}>{paused ? <Play size={14} fill="currentColor" /> : <Square size={12} fill="currentColor" />}</button>
+        : <button className="icon-button ai-send-button" type="submit" aria-label="发送消息" title="发送消息" disabled={disabled || tooLong || !requestText.trim()}><ArrowUp size={18} /></button>}
     </div>
   </form>;
 }
