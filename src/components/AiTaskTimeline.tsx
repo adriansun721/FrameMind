@@ -77,9 +77,11 @@ function timelineSteps(turns: readonly TimelineTurn[], paused: boolean): Step[] 
     for (const [id, record] of calls) {
       const status = record.result?.status;
       if (turn.origin === "confirmation" && status === "applied") continue;
-      steps.push({ id: `${turn.id}:${id}`, label: toolLabel(record),
-        state: status === "completed" || status === "applied" || status === "missing-input" || status === "awaiting-confirmation" ? "done" : status === "failed" ? "issue" : status === "cancelled" ? "cancelled" : turn.result ? "cancelled" : "active",
-        detail: status === "failed" ? record.result?.message : undefined });
+      const awaitingWithoutStage = status === "awaiting-confirmation"
+        && !record.result?.proposal && !record.result?.conditions && !record.result?.sectionChange;
+      steps.push({ id: `${turn.id}:${id}`, label: awaitingWithoutStage ? "等待确认" : toolLabel(record),
+        state: awaitingWithoutStage ? "waiting" : status === "completed" || status === "applied" || status === "missing-input" || status === "awaiting-confirmation" ? "done" : status === "failed" ? "issue" : status === "cancelled" ? "cancelled" : turn.result ? "cancelled" : "active",
+        detail: status === "failed" || awaitingWithoutStage ? record.result?.message : undefined });
       if (status === "missing-input") steps.push({ id: `${turn.id}:${id}:missing`, label: "发现待补充参数", state: "issue", detail: record.result?.message });
     }
     const result = turn.result;
