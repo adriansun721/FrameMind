@@ -88,7 +88,7 @@ test("T21 retains current analysis while previewing and invalidates a proposal a
     await createNode(page, ["0", "0", "0"]); await createNode(page, ["4", "0", "0"]);
     await page.getByRole("button", { name: "创建材料与截面" }).click(); await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click(); await page.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "设置支座" }).click(); await page.getByRole("button", { name: "添加支座" }).click();
+    await page.getByRole("toolbar", { name: "建模工具" }).getByRole("button", { name: "支座", exact: true }).click(); await page.getByRole("button", { name: "添加支座" }).click();
     await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click(); await page.getByRole("dialog", { name: "创建节点集中荷载" }).getByLabel("FZ").fill("-3");
     await page.getByRole("button", { name: "添加节点荷载" }).click(); await page.getByRole("button", { name: "运行分析" }).click();
     await expect(page.getByRole("status")).toContainText("分析完成");

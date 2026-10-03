@@ -22,7 +22,7 @@ test("T15 keeps the previous run and compares two frozen results", async () => {
   await page.getByRole("button", { name: "保存材料与截面" }).click();
   await page.getByRole("button", { name: "创建杆件" }).click();
   await page.getByRole("button", { name: "添加杆件" }).click();
-  await page.getByRole("button", { name: "设置支座" }).click();
+  await page.getByRole("toolbar", { name: "建模工具" }).getByRole("button", { name: "支座", exact: true }).click();
   await page.getByRole("button", { name: "添加支座" }).click();
   await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click();
   const load = page.getByRole("dialog", { name: "创建节点集中荷载" });

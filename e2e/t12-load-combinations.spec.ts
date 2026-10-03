@@ -16,7 +16,7 @@ test("T12 edits, solves, switches and reopens user combinations with traceable s
     await createNode(page, ["0", "0", "0"]); await createNode(page, ["4", "0", "0"]);
     await page.getByRole("button", { name: "创建材料与截面" }).click(); await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click(); await page.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "设置支座" }).click(); await page.getByRole("button", { name: "添加支座" }).click();
+    await page.getByRole("toolbar", { name: "建模工具" }).getByRole("button", { name: "支座", exact: true }).click(); await page.getByRole("button", { name: "添加支座" }).click();
     await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载", exact: true }).click();
     await page.getByRole("dialog").getByLabel("FX").fill("10"); await page.getByRole("button", { name: "添加节点荷载" }).click();
     await page.getByRole("button", { name: "运行分析" }).click(); await expect(page.getByRole("status")).toContainText("分析完成");

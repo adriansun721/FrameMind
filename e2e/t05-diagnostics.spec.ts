@@ -21,7 +21,7 @@ test("T05 locates model and solver failures, repairs them and retains historical
     await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click();
     await page.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "设置支座", exact: true }).click();
+    await page.getByRole("toolbar", { name: "建模工具" }).getByRole("button", { name: "支座", exact: true }).click();
     for (const label of ["UX 平移", "UY 平移", "UZ 平移", "RX 转动", "RY 转动", "RZ 转动"]) await page.getByLabel(label).uncheck();
     await page.getByRole("button", { name: "添加支座" }).click();
     await page.getByRole("button", { name: "运行分析" }).click();

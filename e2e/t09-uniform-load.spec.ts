@@ -33,7 +33,7 @@ test("T09 creates, renders, edits, undoes, solves and reopens uniform member loa
     await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click();
     await page.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "设置支座" }).click();
+    await page.getByRole("toolbar", { name: "建模工具" }).getByRole("button", { name: "支座", exact: true }).click();
     await page.getByRole("button", { name: "添加支座" }).click();
     await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建均布荷载" }).click();
     const dialog = page.getByRole("dialog", { name: "创建杆件均布荷载" });

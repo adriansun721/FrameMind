@@ -14,7 +14,7 @@ test("T18 exposes overall DOF numbering, assembly and textbook page mapping", as
     await memberDialog.getByLabel("起点节点").selectOption("node_0001");
     await memberDialog.getByLabel("终点节点").selectOption("node_0002");
     await memberDialog.getByRole("button", { name: "添加杆件" }).click();
-    await page.getByRole("button", { name: "设置支座" }).click();
+    await page.getByRole("toolbar", { name: "建模工具" }).getByRole("button", { name: "支座", exact: true }).click();
     await page.getByRole("button", { name: "添加支座" }).click();
     await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click();
     const loadDialog = page.getByRole("dialog", { name: "创建节点集中荷载" });

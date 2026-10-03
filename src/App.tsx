@@ -490,8 +490,7 @@ export function App() {
         <button className="tool-button" onClick={openNodeDialog} aria-label="创建节点" title="创建节点"><CircleDot size={15} />节点</button>
         <button className="tool-button" aria-disabled={!memberCreationAvailable} onClick={memberCreationAvailable ? openMemberDialog : undefined} aria-label="创建杆件" title={memberCreationAvailable ? "创建杆件" : "需要至少两个节点、一个材料和一个截面"}><Link2 size={15} />杆件</button>
         <button className="tool-button" onClick={() => { setMaterialDraft(defaultMaterial); setSectionDraft(defaultSection); setMaterialCatalogId(""); setSectionCatalogId(""); setFormError(null); setResourceDialogOpen(true); }} aria-label="创建材料与截面" title="创建材料与截面"><Layers3 size={15} />材料与截面</button>
-        <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="基础工具栏占位；使用设置支座打开 T03 支座输入"><Anchor size={15} />支座</button>
-        <button className="tool-button" aria-label="设置支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />设置支座</button>
+        <button className="tool-button" aria-label="支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />支座</button>
         <LoadMenu disabled={!!activeCombination} hasMembers={project.members.length > 0}
           onNodalLoad={openLoadDialog}
           onUniformLoad={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}
