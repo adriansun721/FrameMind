@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, CircleAlert, Minus } from "lucide-react";
+import { Minus } from "lucide-react";
 import type { AiProgress, AiTaskResult, AiToolRecord } from "../workspace/ai-task";
 import { FRAME_FIELDS, type FrameProposal } from "../workspace/frame-proposal";
 import type { ConditionsProposal } from "../workspace/analysis-conditions";
@@ -115,7 +115,9 @@ export function AiTaskTimeline({ turns, paused }: { turns: readonly TimelineTurn
   return <section className="ai-task-timeline" aria-label="处理过程" aria-busy={steps.some((step) => step.state === "active")}>
     {settled && <button className="ai-process-toggle" type="button" aria-expanded={!collapsed} onClick={() => setCollapsed((value) => !value)}>{collapsed ? "展开处理过程" : "收起处理过程"}</button>}
     {(!collapsed || !settled) && <ol>{steps.map((step) => <li key={step.id} className={`ai-process-step ${step.state}`}>
-      <span className="ai-process-dot" aria-hidden="true">{step.state === "done" ? <Check size={11} /> : step.state === "issue" ? <CircleAlert size={12} /> : step.state === "cancelled" ? <Minus size={11} /> : null}</span>
+      <span className="ai-process-dot" aria-hidden="true">{step.state === "done" ? <svg className="ai-process-check" width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <path d="M3.4 10.3 Q5.8 12 7.2 14.3 Q10.5 8.5 16.6 4.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg> : step.state === "issue" ? <span className="ai-process-alert">!</span> : step.state === "cancelled" ? <Minus size={11} /> : null}</span>
       <div>{step.parameters ? <details className="ai-confirmed-parameters"><summary>{step.label}</summary><p>{step.parameters}</p></details> : <span>{step.label}{step.state === "active" && <span className="ai-thinking-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>}</span>}
         {step.detail && <p className="ai-process-detail">{step.detail}</p>}</div>
     </li>)}</ol>}
