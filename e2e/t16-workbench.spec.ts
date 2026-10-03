@@ -107,12 +107,12 @@ test("T16 renders a spatial model, loads and actual results in both themes", asy
     }
     await page.getByRole("button", { name: "设置支座" }).click();
     await page.getByRole("button", { name: "添加支座" }).click();
-    await page.getByRole("button", { name: "创建荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click();
     const load = page.getByRole("dialog", { name: "创建节点集中荷载" });
     await load.getByLabel("FZ").fill("-12");
     await load.getByLabel("MY").fill("4");
     await load.getByRole("button", { name: "添加节点荷载" }).click();
-    await page.getByRole("button", { name: "创建均布荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建均布荷载" }).click();
     const uniform = page.getByRole("dialog", { name: "创建杆件均布荷载" });
     await uniform.getByLabel("加载杆件").selectOption("member_0002");
     await uniform.getByLabel("qz", { exact: true }).fill("-2");

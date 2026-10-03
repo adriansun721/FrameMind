@@ -81,7 +81,7 @@ for (const mode of ["unconfigured", "removed", "disconnected"] as const) {
       await page.getByRole("button", { name: "添加杆件", exact: true }).click();
       await page.getByRole("button", { name: "设置支座", exact: true }).click();
       await page.getByRole("button", { name: "添加支座", exact: true }).click();
-      await page.getByRole("button", { name: "创建荷载", exact: true }).click();
+      await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载", exact: true }).click();
       await page.getByRole("dialog", { name: "创建节点集中荷载" }).getByLabel("FY", { exact: true }).fill("6");
       await page.getByRole("button", { name: "添加节点荷载", exact: true }).click();
       await page.getByRole("button", { name: "运行分析", exact: true }).click();

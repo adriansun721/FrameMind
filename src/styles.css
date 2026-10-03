@@ -205,6 +205,10 @@ button { color: inherit; }
 .tool-button[aria-disabled="true"]:hover { background: transparent; color: var(--text-disabled); }
 .tool-button svg { stroke-width: 1.5; }
 .tool-button.icon-only { width: 26px; padding: 0; }
+.load-menu-container { position: relative; }
+.load-menu { top: 29px; width: 176px; }
+.load-menu .menu-item:disabled { color: var(--text-disabled); background: transparent; cursor: not-allowed; }
+.load-menu .menu-item small { color: var(--text-muted); font-size: var(--text-micro); }
 
 .button {
   height: var(--control-height);

@@ -35,7 +35,7 @@ test("T11 manages, solves, compares and reopens two independent load cases", asy
     await page.getByRole("button", { name: "创建材料与截面" }).click(); await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click(); await page.getByRole("button", { name: "添加杆件" }).click();
     await page.getByRole("button", { name: "设置支座" }).click(); await page.getByRole("button", { name: "添加支座" }).click();
-    await page.getByRole("button", { name: "创建荷载", exact: true }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载", exact: true }).click();
     const nodal = page.getByRole("dialog", { name: "创建节点集中荷载" });
     await nodal.getByLabel("FX").fill("10"); await nodal.getByRole("button", { name: "添加节点荷载" }).click();
     await solve(page);
@@ -44,7 +44,7 @@ test("T11 manages, solves, compares and reopens two independent load cases", asy
     await expect(page.getByLabel("当前工况")).toHaveValue("LC2");
     await expect(page.getByRole("button", { name: "查看分析结果" })).toBeDisabled();
     await expect(page.locator(".analysis-result-panel")).toHaveCount(0);
-    await page.getByRole("button", { name: "创建均布荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建均布荷载" }).click();
     const uniform = page.getByRole("dialog", { name: "创建杆件均布荷载" });
     await expect(uniform.getByLabel("所属工况")).toHaveValue("LC2");
     await uniform.getByLabel("qy").fill("-3"); await uniform.getByRole("button", { name: "添加均布荷载" }).click();

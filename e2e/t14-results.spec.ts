@@ -12,7 +12,7 @@ test("T14 switches result views, scales deformation, and locates a member statio
   await page.getByRole("button", { name: "添加杆件" }).click();
   await page.getByRole("button", { name: "设置支座" }).click();
   await page.getByRole("button", { name: "添加支座" }).click();
-  await page.getByRole("button", { name: "创建荷载" }).click();
+  await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click();
   const load = page.getByRole("dialog", { name: "创建节点集中荷载" });
   await load.getByLabel("FY").fill("5");
   await load.getByRole("button", { name: "添加节点荷载" }).click();

@@ -32,7 +32,7 @@ test("T04 manually builds, solves, reads and reopens a spatial multi-member fram
     }
     await page.getByRole("button", { name: "设置支座" }).click();
     await page.getByRole("button", { name: "添加支座" }).click();
-    await page.getByRole("button", { name: "创建荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click();
     const load = page.getByRole("dialog", { name: "创建节点集中荷载" });
     for (const [label, value] of [["FX", "8"], ["FY", "5"], ["FZ", "-3"], ["MX", "2"], ["MY", "1.5"], ["MZ", "-1.25"]]) await load.getByLabel(label).fill(value);
     await load.getByRole("button", { name: "添加节点荷载" }).click();

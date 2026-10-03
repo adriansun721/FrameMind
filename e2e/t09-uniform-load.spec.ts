@@ -22,7 +22,9 @@ test("T09 creates, renders, edits, undoes, solves and reopens uniform member loa
     await page.bringToFront();
     await expect(page.locator(".viewport canvas")).toBeVisible();
     const errors: string[] = []; page.on("pageerror", (error) => errors.push(error.message));
-    await expect(page.getByRole("button", { name: "创建均布荷载" })).toBeDisabled();
+    await page.getByRole("button", { name: "荷载", exact: true }).click();
+    await expect(page.getByRole("menuitem", { name: "创建均布荷载" })).toBeDisabled();
+    await page.keyboard.press("Escape");
     await createNode(page, ["0", "0", "0"]); await createNode(page, ["4", "0", "0"]);
     await page.getByRole("button", { name: "创建材料与截面" }).click();
     await page.getByLabel("弹性模量 E").fill("200");
@@ -33,7 +35,7 @@ test("T09 creates, renders, edits, undoes, solves and reopens uniform member loa
     await page.getByRole("button", { name: "添加杆件" }).click();
     await page.getByRole("button", { name: "设置支座" }).click();
     await page.getByRole("button", { name: "添加支座" }).click();
-    await page.getByRole("button", { name: "创建均布荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建均布荷载" }).click();
     const dialog = page.getByRole("dialog", { name: "创建杆件均布荷载" });
     await dialog.getByLabel("qy", { exact: true }).fill("-3");
     await dialog.getByRole("button", { name: "添加均布荷载" }).click();

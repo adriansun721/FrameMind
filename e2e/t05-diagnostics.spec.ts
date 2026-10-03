@@ -38,7 +38,7 @@ test("T05 locates model and solver failures, repairs them and retains historical
     await page.getByRole("region", { name: "项目树" }).getByRole("button", { name: "B1 · N1", exact: true }).click();
     for (const label of ["RX 转动", "RY 转动", "RZ 转动"]) await inspector.getByLabel(label).check();
     await inspector.getByRole("button", { name: "保存支座属性" }).click();
-    await page.getByRole("button", { name: "创建荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载" }).click();
     await page.getByLabel("FY", { exact: true }).fill("5");
     await page.getByRole("button", { name: "添加节点荷载" }).click();
     await page.getByRole("region", { name: "项目树" }).getByRole("button", { name: "L1 · N2", exact: true }).click();

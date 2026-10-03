@@ -26,7 +26,7 @@ test("T10 configures, solves, edits and reopens self weight without changing the
     await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click(); await page.getByRole("button", { name: "添加杆件" }).click();
     await page.getByRole("button", { name: "设置支座" }).click(); await page.getByRole("button", { name: "添加支座" }).click();
-    await page.getByRole("button", { name: "设置自重" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "设置自重" }).click();
     const selfWeight = page.getByRole("dialog", { name: "设置结构自重" });
     await selfWeight.getByLabel("启用结构自重").check();
     await selfWeight.getByRole("button", { name: "保存自重设置" }).click();

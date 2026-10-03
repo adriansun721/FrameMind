@@ -7,6 +7,7 @@ import { ResizableWorkspace } from "./components/ResizableWorkspace";
 import type { NodeDraft, MemberDraft } from "./components/model-editing";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
 import { LoadCaseManager } from "./components/LoadCaseManager";
+import { LoadMenu } from "./components/LoadMenu";
 import { LoadCombinationManager } from "./components/LoadCombinationManager";
 import { ResourceLibraryPanel, type LibraryResource } from "./components/ResourceLibraryPanel";
 import { MemberAnalysisProcess } from "./components/MemberAnalysisProcess";
@@ -489,9 +490,10 @@ export function App() {
         <button className="tool-button" onClick={() => { setMaterialDraft(defaultMaterial); setSectionDraft(defaultSection); setMaterialCatalogId(""); setSectionCatalogId(""); setFormError(null); setResourceDialogOpen(true); }} aria-label="创建材料与截面" title="创建材料与截面"><Layers3 size={15} />材料与截面</button>
         <button className="tool-button" aria-disabled="true" aria-label="支座（尚未实现）" title="基础工具栏占位；使用设置支座打开 T03 支座输入"><Anchor size={15} />支座</button>
         <button className="tool-button" aria-label="设置支座" title="创建节点支座" onClick={openSupportDialog}><Anchor size={15} />设置支座</button>
-        <button className="tool-button" aria-label="创建荷载" title={activeCombination ? "选择工况后创建荷载" : "创建节点集中力和力矩"} disabled={!!activeCombination} onClick={openLoadDialog}><Plus size={15} />荷载</button>
-        <button className="tool-button" aria-label="创建均布荷载" title={activeCombination ? "选择工况后创建荷载" : "整根杆件均布力 · kN/m"} disabled={!!activeCombination || project.members.length === 0} onClick={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}><ArrowDownToLine size={15} />均布荷载</button>
-        <button className={`tool-button ${!activeCombination && caseSelfWeightEnabled ? "active" : ""}`} aria-label="设置自重" aria-pressed={!activeCombination && caseSelfWeightEnabled} title={activeCombination ? "选择工况后设置自重" : `设置结构自重 · ${project.selfWeight.loadCaseId}`} disabled={!!activeCombination} onClick={openSelfWeightDialog}><Weight size={15} />自重</button>
+        <LoadMenu disabled={!!activeCombination} hasMembers={project.members.length > 0} selfWeightEnabled={caseSelfWeightEnabled}
+          onNodalLoad={openLoadDialog}
+          onUniformLoad={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}
+          onSelfWeight={openSelfWeightDialog} />
         {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={() => void runAnalysis()}><Calculator size={15} />计算</button>}
         <span className="toolbar-divider" />
         <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canUndo} aria-label={projectHistoryRef.current.canUndo ? "撤销" : "撤销（尚未实现）"} title="撤销（Ctrl+Z）" onClick={() => restoreHistory("undo")}><Undo2 size={15} /></button>

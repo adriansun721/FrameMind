@@ -17,14 +17,14 @@ test("T12 edits, solves, switches and reopens user combinations with traceable s
     await page.getByRole("button", { name: "创建材料与截面" }).click(); await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click(); await page.getByRole("button", { name: "添加杆件" }).click();
     await page.getByRole("button", { name: "设置支座" }).click(); await page.getByRole("button", { name: "添加支座" }).click();
-    await page.getByRole("button", { name: "创建荷载", exact: true }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建荷载", exact: true }).click();
     await page.getByRole("dialog").getByLabel("FX").fill("10"); await page.getByRole("button", { name: "添加节点荷载" }).click();
     await page.getByRole("button", { name: "运行分析" }).click(); await expect(page.getByRole("status")).toContainText("分析完成");
     await page.getByRole("button", { name: "管理工况" }).click();
     let dialog = page.getByRole("dialog", { name: "荷载工况管理" });
     await dialog.getByRole("button", { name: "新建工况" }).click(); await dialog.getByLabel("工况名称").fill("横向风");
     await dialog.getByRole("button", { name: "创建工况", exact: true }).click(); await dialog.getByRole("button", { name: "关闭工况管理" }).click();
-    await page.getByRole("button", { name: "创建均布荷载" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).click(); await page.getByRole("menuitem", { name: "创建均布荷载" }).click();
     await page.getByRole("dialog").getByLabel("qy").fill("-3"); await page.getByRole("button", { name: "添加均布荷载" }).click();
     await page.getByRole("button", { name: "管理组合" }).click();
     dialog = page.getByRole("dialog", { name: "自定义荷载组合" });
