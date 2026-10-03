@@ -29,7 +29,7 @@ describe("AI proposal public tool and task boundaries", () => {
   it("completes local refusal without another network request that could invalidate it", async () => {
     const proposal = executeAiTool(snapshot, call(complete)).proposal!;
     let requests = 0;
-    const task = startAiTask(snapshot, "拒绝方案", { proposal, isCurrent: () => true, transport: {
+    const task = startAiTask(snapshot, "拒绝方案", { proposal, isCurrent: () => true, getCurrentSnapshot: () => snapshot, transport: {
       cancelDeepSeekChat: async () => {}, chatDeepSeek: async () => {
         requests += 1;
         return requests === 1 ? { status: "success", message: "工具", assistant: { role: "assistant", content: null, tool_calls: [call({}, "discard_frame_proposal")] } }
@@ -100,7 +100,7 @@ describe("AI proposal public tool and task boundaries", () => {
   it("carries the current edited card into a natural-language task and lets a refusal discard it", async () => {
     const proposal = editFrameParameter(executeAiTool(snapshot, call(complete)).proposal!, "xSpans", "8");
     const requests: DeepSeekChatRequest[] = [];
-    const result = await startAiTask(snapshot, "第二层改成4米", { proposal, isCurrent: () => true, transport: {
+    const result = await startAiTask(snapshot, "第二层改成4米", { proposal, isCurrent: () => true, getCurrentSnapshot: () => snapshot, transport: {
       cancelDeepSeekChat: async () => {}, chatDeepSeek: async (request) => {
         requests.push(request); return { status: "success", message: "工具", assistant: { role: "assistant", content: null,
           tool_calls: [call({ storeyHeights: { value: [3, 4], source: "user", replace: true } })] } };
@@ -110,7 +110,7 @@ describe("AI proposal public tool and task boundaries", () => {
     expect(requests[0].messages[0].content).toContain('"xSpans":{"value":[8],"source":"user"}');
     expect(result.proposal!.parameters.xSpans?.value).toEqual([8]);
     expect(result.proposal!.parameters.storeyHeights?.value).toEqual([3, 4]);
-    const rejected = await startAiTask(snapshot, "不要这个方案", { proposal: result.proposal as FrameProposal, isCurrent: () => true, transport: {
+    const rejected = await startAiTask(snapshot, "不要这个方案", { proposal: result.proposal as FrameProposal, isCurrent: () => true, getCurrentSnapshot: () => snapshot, transport: {
       cancelDeepSeekChat: async () => {}, chatDeepSeek: async (request) => ({ status: "success", message: "工具", assistant: request.messages.some((message) => message.role === "tool")
         ? { role: "assistant", content: "已拒绝方案" } : { role: "assistant", content: null, tool_calls: [call({}, "discard_frame_proposal")] } }),
     } }).promise;

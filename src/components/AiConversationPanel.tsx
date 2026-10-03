@@ -295,6 +295,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       sectionChange,
       isCurrent: () => currentRef.current.project === project && currentRef.current.sessionId === sessionId
         && currentRef.current.selectionKey === selectionKey && currentRef.current.analysis === analysis && currentRef.current.comparisonKey === comparisonKey && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions && sectionRef.current === sectionChange,
+      getCurrentSnapshot: () => captureAiSnapshot(currentRef.current.project, JSON.parse(currentRef.current.selectionKey), currentRef.current.analysis, comparison),
       onProgress: (progress) => {
         if (generationRef.current === generation) setTurns((previous) => previous.map((turn) => turn.id === id
           ? { ...turn, progress, progressEvents: [...(turn.progressEvents ?? []), progress] } : turn));
@@ -383,11 +384,13 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     </section>}
     <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite" hidden={showHome}
       onScroll={(event) => { const log = event.currentTarget; followOutputRef.current = log.scrollHeight - log.scrollTop - log.clientHeight < 48; }}>
-      {[...workflows].map(([id, workflow]) => <article className="ai-workflow" key={id}>
-        <div className="ai-user-message"><p>{workflow[0].origin === "chat" && !workflow[0].continuing ? workflow[0].prompt : "继续处理已确认任务"}</p></div>
+      {[...workflows].map(([id, workflow]) => <article className="ai-workflow ai-turn" key={id}>
+        <div className="ai-user-message"><p>{workflow[0].origin === "chat" && !workflow[0].continuing ? workflow[0].prompt : "继续处理已确认任务"}</p>{workflow.some((turn) => turn.sourceProject !== project) && <span className="ai-stale">历史版本</span>}</div>
         <AiTaskTimeline turns={workflow} paused={paused && (turns.at(-1)?.workflowId ?? turns.at(-1)?.id) === id} />
+        {(turns.at(-1)?.workflowId ?? turns.at(-1)?.id) === id && !workflow.at(-1)?.result && <span className="ai-turn-status" data-testid="ai-turn-status">{paused ? "已暂停输出" : "处理中 · 正在读取当前模型"}</span>}
         {workflow.map((turn) => (turn.result || turn.output) && <AiResultExplanation key={turn.id} result={(turn.result ?? turn.output)!} onLocate={onLocateResult} onCompare={(pair) => onComparison(pair, true)} />)}
         {workflow.map((turn) => turn.result && <div key={turn.id}>
+          <span className="ai-turn-status" data-testid="ai-turn-status">{{ completed: "已完成", applied: "已应用", "missing-input": "缺少输入", "awaiting-confirmation": "等待确认", failed: "处理失败", cancelled: "已取消" }[turn.result.status]} · {turn.result.message}</span>
           {turn.origin === "chat" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <>
             <p className="frame-draft-notice">已确认模型和成功结果保留，本地编辑与计算可继续。
               {turn.result.interruption?.draftsDiscarded ? "本次中断生成的草案未应用，需要重新准备。" : proposal || conditions || sectionChange ? "已有草案仍需在卡片中核对并确认。" : "本次任务未提交模型修改。"}

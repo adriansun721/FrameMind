@@ -45,7 +45,7 @@ function toolLabel(record: Pick<AiToolRecord, "call">): string {
       if (collections[collection]) return collections[collection];
     } catch { /* Invalid arguments are reported by the tool result. */ }
   }
-  return TOOL_LABELS[record.call.function.name] ?? "处理模型任务";
+  return TOOL_LABELS[record.call.function.name] ?? record.call.function.name;
 }
 
 function stageParameters(draft: StageResolution["draft"], resourceNames: Record<string, string> = {}): string | undefined {
@@ -57,6 +57,15 @@ function stageParameters(draft: StageResolution["draft"], resourceNames: Record<
   }).join("\n");
   if ("memberIds" in draft) return `柱数量：${draft.memberIds.length}\n截面：${draft.section.name}\n面积：${draft.section.areaM2} m²\nIy：${draft.section.secondMomentYM4} m⁴\nIz：${draft.section.secondMomentZM4} m⁴\nJ：${draft.section.torsionalConstantM4} m⁴`;
   return `本次支座设置：${draft.supports?.length ?? 0} 项\n本次节点荷载设置：${draft.nodalLoads?.length ?? 0} 项\n本次均布荷载设置：${draft.uniformLoads?.length ?? 0} 项\n自重设置：${draft.selfWeight === undefined ? "保持原设置" : draft.selfWeight.enabled ? "启用" : "关闭"}\n本次工况设置：${draft.loadCases?.length ?? 0} 项\n本次组合设置：${draft.loadCombinations?.length ?? 0} 项`;
+}
+
+function toolRecordDetails(record: AiToolRecord) {
+  const output = { ...record.result, message: undefined };
+  return <details className="ai-tool-record" key={`${record.round}:${record.call.id}`}>
+    <summary>{toolLabel(record)}</summary>
+    <details><summary>工具输入</summary><pre className="ai-tool-input">{record.call.function.arguments}</pre></details>
+    <details><summary>工具输出</summary><pre className="ai-tool-output">{JSON.stringify(output, null, 2)}</pre></details>
+  </details>;
 }
 
 function timelineSteps(turns: readonly TimelineTurn[], paused: boolean): Step[] {
@@ -123,5 +132,6 @@ export function AiTaskTimeline({ turns, paused }: { turns: readonly TimelineTurn
       <div>{step.parameters ? <details className="ai-confirmed-parameters"><summary>{step.label}</summary><p>{step.parameters}</p></details> : <span>{step.label}{step.state === "active" && <span className="ai-thinking-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>}</span>}
         {step.detail && <p className="ai-process-detail">{step.detail}</p>}</div>
     </li>)}</ol>}
+    {!collapsed && <div className="ai-tool-records">{turns.flatMap((turn) => turn.result?.records ?? turn.output?.records ?? []).filter((record) => record.round > 0).map(toolRecordDetails)}</div>}
   </section>;
 }

@@ -24,11 +24,13 @@ export interface AiTaskResult {
   proposal?: FrameProposal | null;
   conditions?: ConditionsProposal | null;
   sectionChange?: SectionChangeProposal | null;
+  lifecycle?: { request: { id: string; state: "initiated" }; response: { kind: "none" | "text" | "tool"; state: "received" | "not-received" }; task: { state: "completed" | "failed" | "cancelled"; status: AiStatus } };
 }
 export interface AiTaskOptions {
   retryOf?: string;
   transport: AiTransport;
   isCurrent(): boolean;
+  getCurrentSnapshot(): AiSnapshot;
   history?: readonly { role: "user" | "assistant"; content: string }[];
   proposal?: FrameProposal;
   conditions?: ConditionsProposal;
@@ -60,6 +62,9 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   let proposal: FrameProposal | null | undefined = options.proposal;
   let conditions: ConditionsProposal | null | undefined = options.conditions;
   let sectionChange: SectionChangeProposal | null | undefined = options.sectionChange;
+  const taskSnapshot: AiSnapshot = { ...snapshot, context: { ...snapshot.context, goal: prompt.trim() } };
+  const isCurrent = () => options.isCurrent() && options.getCurrentSnapshot().snapshotKey === taskSnapshot.snapshotKey;
+  const initialReadCall: DeepSeekToolCall = { id: `${requestId}_state`, type: "function", function: { name: "read_model", arguments: JSON.stringify({ collection: "summary" }) } };
   let phase: AiProgress["phase"] = "requesting";
   let currentRound = 1;
   const messages: DeepSeekChatMessage[] = [
@@ -77,10 +82,13 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   ];
   const result = (status: AiStatus, message: string, assistant?: string): AiTaskResult => {
     const interrupted = status === "failed" || status === "cancelled";
-    return { requestId, retryOf: options.retryOf, status, message, context: snapshot.context, assistant, records: records.slice(),
+    const hasAgentTools = records.some((record) => record.round > 0);
+    const taskState = status === "completed" ? "completed" : status === "cancelled" ? "cancelled" : "failed";
+    return { requestId, retryOf: options.retryOf, status, message, context: taskSnapshot.context, assistant, records: records.slice(),
       proposal: interrupted ? options.proposal : proposal,
       conditions: interrupted ? options.conditions : conditions,
       sectionChange: interrupted ? options.sectionChange : sectionChange,
+      lifecycle: { request: { id: requestId, state: "initiated" }, response: { kind: assistant ? "text" : hasAgentTools ? "tool" : "none", state: assistant || hasAgentTools ? "received" : "not-received" }, task: { state: taskState, status } },
       interruption: interrupted ? { phase, round: currentRound, completedTools: records.filter((record) => record.result.status === "completed").length,
         draftsDiscarded: proposal !== options.proposal || conditions !== options.conditions || sectionChange !== options.sectionChange } : undefined };
   };
@@ -89,15 +97,20 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
     options.onProgress?.(event);
   };
   const run = async (): Promise<AiTaskResult> => {
+    if (!cancelled && isCurrent()) {
+      const toolResult = executeAiTool(taskSnapshot, initialReadCall);
+      records.push({ round: 0, call: initialReadCall, result: toolResult });
+      messages.splice(1, 0, { role: "system", content: `任务开始的本地状态读取回执（仅来自当前已应用快照）：${JSON.stringify(toolResult)}` });
+    }
     for (let round = 1; ; round += 1) {
-      if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+      if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
       if (round > MAX_ROUNDS) return result("failed", "工具读取轮次已达上限，请缩小对象范围或分开提问");
       progress({ phase: "requesting", round });
-      if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+      if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
       let response: DeepSeekChatResult | undefined;
       while (!response) {
         if (paused) await waitForResume();
-        if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         activeRequestId = requestAttempt === 0 ? requestId : `${requestId}_resume_${requestAttempt}`;
         const interruption = new Promise<undefined>((resolve) => { interruptRequest = () => resolve(undefined); });
         try {
@@ -110,13 +123,13 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       }
       if (paused) await waitForResume();
       if (cancelled) return result("cancelled", "对话已取消");
-      if (!options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+      if (!isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
       if (response.status !== "success" || !response.assistant) return result(response.status === "cancelled" ? "cancelled" : "failed", response.message);
       const assistant = response.assistant;
       if (!assistant.tool_calls?.length) {
         progress({ phase: "responding", round });
         if (paused) await waitForResume();
-        if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         const references = records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
         const comparisons = records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
         const tokens = assistant.content?.match(/\[\[(?:result|comparison):[^\]\r\n]+\]\]/g) ?? [];
@@ -131,31 +144,32 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
           for (let index = 0; index < units.length; index += 2) {
             if (index > 0) await new Promise<void>((resolve) => setTimeout(resolve, 32));
             if (paused) await waitForResume();
-            if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+            if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
             visible += units.slice(index, index + 2).join("");
             options.onOutput({ assistant: visible, records: records.slice() });
           }
           if (paused) await waitForResume();
-          if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+          if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         }
+        const agentToolRecords = records.filter((record) => record.round > 0);
         return result("completed", comparisons.length ? "已引用两次确定分析的实际差值" : references.length ? snapshot.analysisCurrent ? "已引用所选分析的实际结果" : "已引用历史输入结果，当前模型需重算"
-          : records.length ? "已根据当前已应用模型完成回复" : "AI 回复已接收，未读取模型工具", assistant.content ?? undefined);
+          : agentToolRecords.length ? "已根据当前已应用模型完成回复" : "AI 回复已接收，未读取模型工具", assistant.content ?? undefined);
       }
       messages.push(assistant);
       for (const call of assistant.tool_calls) {
-        if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (records.length >= MAX_TOOL_RECORDS) return result("failed", "工具读取数量已达上限，请缩小对象范围或分开提问");
         progress({ phase: "tool", round, toolCall: call });
         if (paused) await waitForResume();
-        if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-        const toolResult = executeAiTool(snapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined);
+        if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        const toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined);
         if (toolResult.proposal !== undefined) proposal = toolResult.proposal;
         if (toolResult.conditions !== undefined) conditions = toolResult.conditions;
         if (toolResult.sectionChange !== undefined) sectionChange = toolResult.sectionChange;
         records.push({ round, call, result: toolResult });
         progress({ phase: "tool", round, toolCall: call, toolResult });
         if (paused) await waitForResume();
-        if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null) return result("completed", toolResult.message);
         if (toolResult.status !== "completed") return result(toolResult.status, toolResult.message);
         messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(toolResult) });

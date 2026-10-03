@@ -28,10 +28,11 @@ const modelTools = [
   { type: "function", function: { name: "read_comparison_result", description: "Verify actual before/after values and delta for the selected analysis pair, returning a clickable comparison token. Cite the exact token. Refuses incompatible sources.",
     parameters: { type: "object", additionalProperties: false, required: ["kind", "id", "quantity", "component"], properties: { beforeId: { type: "string" }, afterId: { type: "string" }, kind: { type: "string", enum: ["node", "member"] }, id: { type: "string" },
       quantity: { type: "string", enum: ["displacement", "rotation", "reaction", "reactionMoment", "sectionForces", "startEndForces", "endEndForces"] }, component: { type: "string", enum: ["x", "y", "z", "N", "Vy", "Vz", "T", "My", "Mz"] }, position: { type: "number", minimum: 0 } } } } },
-  { type: "function", function: { name: "read_results", description: "Read the selected completed analysis, its frozen input provenance and actual results. Summary includes node displacement component extrema, not continuous member extrema. Historical results are explicitly marked.",
+  { type: "function", function: { name: "read_results", description: "Read the selected completed analysis, its frozen input provenance and actual results. Summary includes node displacement component extrema, not continuous member extrema. Historical results are explicitly marked. Nodes and members support bounded fields/query filtering.",
     parameters: { type: "object", additionalProperties: false, required: ["collection"], properties: {
       analysisId: { type: "string" }, collection: { type: "string", enum: ["summary", "nodes", "members"] },
-      offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 },
+      offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 }, fields: { type: "array", minItems: 1, maxItems: 12, items: { type: "string" } },
+      query: { type: "object", additionalProperties: false, required: ["field"], properties: { field: { type: "string" }, equals: {}, min: { type: "number" }, max: { type: "number" } } },
     } } } },
   { type: "function", function: { name: "read_result", description: "Verify one actual numeric result and create a clickable reference token. Cite this token verbatim in the explanation. Never supplies safety or code compliance checks. Member end forces and positive-local-x-face section actions have different signs.",
     parameters: { type: "object", additionalProperties: false, required: ["kind", "id", "quantity", "component"], properties: {
@@ -43,10 +44,11 @@ const modelTools = [
     parameters: { type: "object", properties: {}, additionalProperties: false } } },
   { type: "function", function: { name: "discard_frame_proposal", description: "Discard the current unapplied frame proposal when the user rejects or cancels it. Never changes the applied model.",
     parameters: { type: "object", properties: {}, additionalProperties: false } } },
-  { type: "function", function: { name: "read_model", description: "Read the applied model summary or a paginated collection. All values come from the current model snapshot.",
+  { type: "function", function: { name: "read_model", description: "Read the applied model identity, engineering revision, analysis context, summary or a paginated collection. All values come from the current model snapshot; collection reads support bounded fields/query filtering.",
     parameters: { type: "object", properties: {
       collection: { type: "string", enum: ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases"] },
-      offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 },
+      offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 }, fields: { type: "array", minItems: 1, maxItems: 12, items: { type: "string" } },
+      query: { type: "object", additionalProperties: false, required: ["field"], properties: { field: { type: "string" }, equals: {}, min: { type: "number" }, max: { type: "number" } } },
     }, required: ["collection"], additionalProperties: false } } },
   { type: "function", function: { name: "read_selection", description: "Read the selected nodes and members using stable object identifiers.",
     parameters: { type: "object", properties: {}, additionalProperties: false } } },

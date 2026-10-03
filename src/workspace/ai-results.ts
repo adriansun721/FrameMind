@@ -18,6 +18,42 @@ export interface ResultReference {
   unit: string;
 }
 
+interface ResultQuery { field: string; equals?: string | number | boolean; min?: number; max?: number; }
+const resultFields: Record<string, readonly string[]> = {
+  nodes: ["nodeId", "object.id", "object.label", "displacement.x", "displacement.y", "displacement.z", "rotation.x", "rotation.y", "rotation.z", "reaction.x", "reaction.y", "reaction.z", "reactionMoment.x", "reactionMoment.y", "reactionMoment.z"],
+  members: ["memberId", "object.id", "object.label", "length", "localEndForces.start.0", "localEndForces.start.1", "localEndForces.start.2", "localEndForces.start.3", "localEndForces.start.4", "localEndForces.start.5", "localEndForces.end.0", "localEndForces.end.1", "localEndForces.end.2", "localEndForces.end.3", "localEndForces.end.4", "localEndForces.end.5"],
+};
+
+function readPath(value: unknown, path: string): unknown {
+  if (value && typeof value === "object" && Object.hasOwn(value, path)) return (value as Record<string, unknown>)[path];
+  return path.split(".").reduce<unknown>((current, key) => current && typeof current === "object" ? (current as Record<string, unknown>)[key] : undefined, value);
+}
+
+function validateQuery(collection: string, fields: unknown, query: unknown): void {
+  if (fields !== undefined && (!Array.isArray(fields) || fields.length < 1 || fields.length > 12 || fields.some((field) => typeof field !== "string" || !resultFields[collection]?.includes(field)))) throw new Error("结果 fields 不是该集合支持的字段列表");
+  if (query === undefined) return;
+  if (!query || typeof query !== "object" || Array.isArray(query)) throw new Error("结果 query 必须是对象");
+  const value = query as Record<string, unknown>;
+  if (Object.keys(value).some((key) => !["field", "equals", "min", "max"].includes(key)) || typeof value.field !== "string" || !resultFields[collection]?.includes(value.field)) throw new Error("结果 query.field 不是该集合的可查询字段");
+  if (Array.isArray(fields) && !fields.includes(value.field)) throw new Error("结果 fields 必须包含 query.field");
+  const hasEquals = value.equals !== undefined; const hasRange = value.min !== undefined || value.max !== undefined;
+  if ((hasEquals && hasRange) || !hasEquals && !hasRange) throw new Error("结果 query 必须提供 equals 或 min/max");
+  if (hasEquals && !["string", "number", "boolean"].includes(typeof value.equals)) throw new Error("结果 query.equals 类型无效");
+  for (const key of ["min", "max"] as const) if (value[key] !== undefined && (typeof value[key] !== "number" || !Number.isFinite(value[key]))) throw new Error(`结果 query.${key} 必须是有限数值`);
+  if (typeof value.min === "number" && typeof value.max === "number" && value.min > value.max) throw new Error("结果 query.min 不能大于 query.max");
+}
+
+function filterResults(items: readonly unknown[], fields: unknown, query: unknown): readonly unknown[] {
+  const projected = items.map((item) => Array.isArray(fields) ? Object.fromEntries(fields.map((field) => [field, readPath(item, field)])) : item);
+  if (!query) return projected;
+  const condition = query as ResultQuery;
+  return projected.filter((item) => {
+    const actual = readPath(item, condition.field);
+    if (condition.equals !== undefined) return actual === condition.equals;
+    return typeof actual === "number" && (condition.min === undefined || actual >= condition.min) && (condition.max === undefined || actual <= condition.max);
+  });
+}
+
 export function analysisProvenance(result: AnalysisResult, current: boolean) {
   const combination = result.input.combination?.definition;
   return { analysisId: result.id, inputRevision: result.input.projectRevision, createdAt: result.createdAt, current,
@@ -31,7 +67,7 @@ function fields(input: Record<string, unknown>, allowed: string[]) {
 }
 
 export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>) {
-  fields(input, ["analysisId", "collection", "offset", "limit"]);
+  fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query"]);
   const collection = input.collection;
   if (typeof collection !== "string" || !["summary", "nodes", "members"].includes(collection)) throw new Error("结果集合必须为 summary、nodes 或 members");
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
@@ -39,6 +75,7 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
   const provenance = analysisProvenance(result, current);
   if (collection === "summary") {
+    if (input.fields !== undefined || input.query !== undefined) throw new Error("summary 只能读取完整分析摘要，不能按字段或范围筛选");
     const displacementExtrema = (["x", "y", "z"] as const).map((component) => {
       const node = result.nodes.reduce<typeof result.nodes[number] | undefined>((best, item) => !best || Math.abs(item.displacement[component]) > Math.abs(best.displacement[component]) ? item : best, undefined);
       return node ? { nodeId: node.nodeId, component, value: node.displacement[component], unit: "m", criterion: "节点平移分量绝对值最大，非沿杆连续极值" } : null;
@@ -59,7 +96,11 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
     units: { displacement: "m", rotation: "rad", reaction: "kN", reactionMoment: "kN·m" }, coordinateSystem: "global XYZ" }))
     : result.members.map((member) => ({ ...member, object: result.input.members.find((item) => item.id === member.memberId),
       components: ANALYSIS_FORCE_COMPONENTS, signConvention: "杆端节点作用力；截面正局部 x 面内力由 read_result sectionForces 获取" }));
-  return { ...provenance, collection, total: items.length, offset, limit, items: items.slice(offset, offset + limit) };
+  validateQuery(collection, input.fields, input.query);
+  const filtered = filterResults(items, input.fields, input.query);
+  const pageItems = filtered.slice(offset, offset + limit);
+  return { ...provenance, collection, total: filtered.length, offset, limit, items: pageItems, query: input.query, fields: input.fields,
+    page: { empty: pageItems.length === 0, hasMore: offset + pageItems.length < filtered.length, nextOffset: offset + pageItems.length } };
 }
 
 export function readResult(result: AnalysisResult, current: boolean, input: Record<string, unknown>, callId: string): ResultReference {

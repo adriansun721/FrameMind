@@ -27,8 +27,9 @@ describe("AI progressive output", () => {
     const answer = "你好🙂，这是逐步显示的回答。";
     const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: answer } }]);
     const output: string[] = [];
-    const task = startAiTask(captureAiSnapshot(createProject(), []), "你好", {
-      transport: script.transport, isCurrent: () => true,
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const task = startAiTask(snapshot, "你好", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
       onOutput: (value) => output.push(value.assistant!),
     });
     await vi.advanceTimersByTimeAsync(0);
@@ -52,8 +53,9 @@ describe("AI progressive output", () => {
     let current = true;
     const onOutput = vi.fn();
     const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "这段回答不应该继续显示。" } }]);
-    const task = startAiTask(captureAiSnapshot(createProject(), []), "你好", {
-      transport: script.transport, isCurrent: () => current, onOutput,
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const task = startAiTask(snapshot, "你好", {
+      transport: script.transport, isCurrent: () => current, getCurrentSnapshot: () => snapshot, onOutput,
     });
     await vi.advanceTimersByTimeAsync(0);
     expect(onOutput).toHaveBeenCalledTimes(1);
@@ -66,8 +68,9 @@ describe("AI progressive output", () => {
   it("does not reveal an unverified result reference", async () => {
     const onOutput = vi.fn();
     const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "结果是 [[result:unknown]]。" } }]);
-    const task = startAiTask(captureAiSnapshot(createProject(), []), "读取结果", {
-      transport: script.transport, isCurrent: () => true, onOutput,
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const task = startAiTask(snapshot, "读取结果", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, onOutput,
     });
     expect(await task.promise).toMatchObject({ status: "failed" });
     expect(onOutput).not.toHaveBeenCalled();
@@ -79,7 +82,8 @@ describe("AI conversation task boundary", () => {
     const requests: DeepSeekChatRequest[] = [];
     const releases: ((response: DeepSeekChatResult) => void)[] = [];
     const cancelDeepSeekChat = vi.fn(async () => {});
-    const task = startAiTask(captureAiSnapshot(createProject(), []), "你好", { isCurrent: () => true,
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const task = startAiTask(snapshot, "你好", { isCurrent: () => true, getCurrentSnapshot: () => snapshot,
       transport: { chatDeepSeek: (request) => { requests.push(structuredClone(request)); return new Promise((resolve) => releases.push(resolve)); }, cancelDeepSeekChat } });
     expect(task.pause()).toBe(true);
     await vi.waitFor(() => expect(cancelDeepSeekChat).toHaveBeenCalledWith(requests[0].requestId));
@@ -91,7 +95,7 @@ describe("AI conversation task boundary", () => {
     expect(requests[1].messages).toEqual(requests[0].messages);
     expect(requests[1].requestId).not.toBe(requests[0].requestId);
     releases[1]({ status: "success", message: "完成", assistant: { role: "assistant", content: "你好，已继续" } });
-    expect(await task.promise).toMatchObject({ requestId: task.requestId, status: "completed", assistant: "你好，已继续", records: [] });
+    expect(await task.promise).toMatchObject({ requestId: task.requestId, status: "completed", assistant: "你好，已继续", records: [{ round: 0, result: { status: "completed" } }] });
     expect(task.pause()).toBe(false);
   });
 
@@ -99,7 +103,8 @@ describe("AI conversation task boundary", () => {
     const project = addNode(createProject(), { x: 4, y: 0, z: 0 });
     const requests: DeepSeekChatRequest[] = [];
     const releases: ((response: DeepSeekChatResult) => void)[] = [];
-    const task = startAiTask(captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]), "读取节点", { isCurrent: () => true,
+    const snapshot = captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]);
+    const task = startAiTask(snapshot, "读取节点", { isCurrent: () => true, getCurrentSnapshot: () => snapshot,
       transport: { chatDeepSeek: (request) => { requests.push(structuredClone(request)); return requests.length === 1 ? Promise.resolve(selectedRead) : new Promise((resolve) => releases.push(resolve)); }, cancelDeepSeekChat: async () => {} } });
     await vi.waitFor(() => expect(requests).toHaveLength(2));
     for (let count = 0; count < 2; count += 1) {
@@ -110,29 +115,30 @@ describe("AI conversation task boundary", () => {
       expect(requests.at(-1)!.messages.filter((message) => message.role === "tool")).toHaveLength(1);
     }
     releases.at(-1)!({ status: "success", message: "完成", assistant: { role: "assistant", content: "节点已读取" } });
-    expect(await task.promise).toMatchObject({ status: "completed", records: [{ result: { status: "completed" } }] });
-    expect((await task.promise).records).toHaveLength(1);
+    expect(await task.promise).toMatchObject({ status: "completed", records: [{ round: 0, result: { status: "completed" } }, { round: 1, result: { status: "completed" } }] });
+    expect((await task.promise).records).toHaveLength(2);
   });
 
   it("cancels a paused task when its context changes and never resumes obsolete work", async () => {
     let current = true;
+    const snapshot = captureAiSnapshot(createProject(), []);
     const chatDeepSeek = vi.fn(() => new Promise<DeepSeekChatResult>(() => {}));
-    const task = startAiTask(captureAiSnapshot(createProject(), []), "读取模型", { isCurrent: () => current,
+    const task = startAiTask(snapshot, "读取模型", { isCurrent: () => current, getCurrentSnapshot: () => snapshot,
       transport: { chatDeepSeek, cancelDeepSeekChat: async () => {} } });
     task.pause(); current = false; task.cancel(); task.resume();
-    expect(await task.promise).toMatchObject({ status: "cancelled", records: [] });
+    expect(await task.promise).toMatchObject({ status: "cancelled", records: [{ round: 0, result: { status: "completed" } }] });
     expect(chatDeepSeek).toHaveBeenCalledTimes(1);
   });
 
   it("records interruption and links a fresh retry to the original task without retaining unsafe transport errors", async () => {
     const snapshot = captureAiSnapshot(createProject(), []);
-    const failed = startAiTask(snapshot, "读取模型", { isCurrent: () => true,
-      transport: { chatDeepSeek: async () => { throw new Error("network sk-secret-fixture"); }, cancelDeepSeekChat: async () => {} } });
+    const failed = startAiTask(snapshot, "读取模型", { isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+      transport: { chatDeepSeek: async () => { throw new Error("network fixture-secret"); }, cancelDeepSeekChat: async () => {} } });
     const failure = await failed.promise;
-    expect(failure).toMatchObject({ requestId: failed.requestId, status: "failed", interruption: { phase: "requesting", round: 1, completedTools: 0, draftsDiscarded: false } });
-    expect(JSON.stringify(failure)).not.toContain("sk-secret-fixture");
+    expect(failure).toMatchObject({ requestId: failed.requestId, status: "failed", interruption: { phase: "requesting", round: 1, completedTools: 1, draftsDiscarded: false } });
+    expect(JSON.stringify(failure)).not.toContain("fixture-secret");
     const script = replay([{ status: "success", message: "已恢复", assistant: { role: "assistant", content: "连接已恢复" } }]);
-    const retried = startAiTask(snapshot, "读取模型", { transport: script.transport, isCurrent: () => true, retryOf: failure.requestId });
+    const retried = startAiTask(snapshot, "读取模型", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, retryOf: failure.requestId });
     expect(await retried.promise).toMatchObject({ status: "completed", requestId: retried.requestId, retryOf: failed.requestId });
     expect(retried.requestId).not.toBe(failed.requestId);
     expect(script.requests[0].requestId).toBe(retried.requestId);
@@ -143,10 +149,10 @@ describe("AI conversation task boundary", () => {
     const script = replay([{ status: "success", message: "准备方案", assistant: { role: "assistant", content: null,
       tool_calls: [{ id: "draft", type: "function", function: { name: "propose_frame", arguments: '{"parameters":{"storeys":{"value":2,"source":"user"}}}' } }] } }]);
     let current = true;
-    const result = await startAiTask(snapshot, "准备两层框架", { transport: script.transport, isCurrent: () => current,
+    const result = await startAiTask(snapshot, "准备两层框架", { transport: script.transport, isCurrent: () => current, getCurrentSnapshot: () => snapshot,
       onProgress: (event) => { if (event.toolResult?.proposal) current = false; } }).promise;
     expect(result).toMatchObject({ status: "cancelled", interruption: { phase: "tool", round: 1, draftsDiscarded: true },
-      records: [{ result: { status: "missing-input" } }] });
+      records: [{ round: 0, result: { status: "completed" } }, { round: 1, result: { status: "missing-input" } }] });
     expect(result.proposal).toBeUndefined();
     expect(snapshot.model.nodes).toHaveLength(0);
   });
@@ -157,9 +163,9 @@ describe("AI conversation task boundary", () => {
     for (const phase of ["requesting", "tool", "responding"] as const) {
       let current = true;
       const script = replay([phase === "responding" ? { status: "success", message: "完成", assistant: { role: "assistant", content: "回复" } } : selectedRead]);
-      const result = await startAiTask(snapshot, "读取", { transport: script.transport, isCurrent: () => current,
+      const result = await startAiTask(snapshot, "读取", { transport: script.transport, isCurrent: () => current, getCurrentSnapshot: () => snapshot,
         onProgress: (event) => { if (event.phase === phase) current = false; } }).promise;
-      expect(result).toMatchObject({ status: "cancelled", records: [], interruption: { phase, completedTools: 0 } });
+      expect(result).toMatchObject({ status: "cancelled", records: [{ round: 0, result: { status: "completed" } }], interruption: { phase, completedTools: 1 } });
       expect(result.assistant).toBeUndefined();
       if (phase === "requesting") expect(script.requests).toHaveLength(0);
     }
@@ -167,10 +173,11 @@ describe("AI conversation task boundary", () => {
 
   it("labels a reply without tool evidence as an ordinary AI reply", async () => {
     const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "你好" } }]);
-    const result = await startAiTask(captureAiSnapshot(createProject(), []), "你好", {
-      transport: script.transport, isCurrent: () => true,
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const result = await startAiTask(snapshot, "你好", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
     }).promise;
-    expect(result).toMatchObject({ status: "completed", assistant: "你好", records: [] });
+    expect(result).toMatchObject({ status: "completed", assistant: "你好", records: [{ round: 0, result: { status: "completed" } }] });
     expect(result.message).toContain("未读取模型工具");
   });
 
@@ -181,13 +188,13 @@ describe("AI conversation task boundary", () => {
       role: "assistant", content: "选中 N1，坐标为 (4, 0, 0) m。",
     } }]);
     const progress: AiProgress[] = [];
-    const task = startAiTask(snapshot, "这个节点在哪里？", { transport: script.transport, isCurrent: () => true,
+    const task = startAiTask(snapshot, "这个节点在哪里？", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
       history: [{ role: "user", content: "查看刚架" }, { role: "assistant", content: "请选择对象" }],
       onProgress: (event) => progress.push(event) });
     const result = await task.promise;
 
     expect(result).toMatchObject({ status: "completed", assistant: "选中 N1，坐标为 (4, 0, 0) m。", context: snapshot.context,
-      records: [{ round: 1, call: selectedRead.assistant!.tool_calls![0], result: { status: "completed" } }] });
+      records: [{ round: 0, result: { status: "completed" } }, { round: 1, call: selectedRead.assistant!.tool_calls![0], result: { status: "completed" } }] });
     expect(script.requests).toHaveLength(2);
     expect(script.requests[0].messages[0]).toMatchObject({ role: "system" });
     expect(script.requests[0].messages[0].content).toContain(project.id);
@@ -196,6 +203,31 @@ describe("AI conversation task boundary", () => {
     expect(JSON.parse(toolMessage.content!)).toMatchObject({ status: "completed", data: { objects: [{ id: project.nodes[0].id, position: { x: 4, y: 0, z: 0 } }] } });
     expect(progress.filter((event) => event.phase === "tool")).toHaveLength(2);
     expect(progress.some((event) => event.phase === "responding")).toBe(true);
+  });
+
+  it("reads an existing project before the model can answer from an empty assumption", async () => {
+    const project = addNode(addNode(createProject("已建模型"), { x: 0, y: 0, z: 0 }), { x: 4, y: 0, z: 0 });
+    let firstRequest!: DeepSeekChatRequest;
+    const snapshot = captureAiSnapshot(project, []);
+    const task = startAiTask(snapshot, "当前工程有哪些节点？", { isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+      transport: { chatDeepSeek: async (request) => { firstRequest = structuredClone(request); return { status: "success", message: "普通文本回复", assistant: { role: "assistant", content: "已读取当前工程。" } }; }, cancelDeepSeekChat: async () => {} } });
+    const result = await task.promise;
+    expect(result).toMatchObject({ status: "completed", context: { projectId: project.id, projectName: "已建模型", modelRevision: project.revision, goal: "当前工程有哪些节点？" }, message: "AI 回复已接收，未读取模型工具", lifecycle: { request: { state: "initiated" }, response: { kind: "text", state: "received" }, task: { state: "completed", status: "completed" } } });
+    expect(result.records[0]).toMatchObject({ round: 0, call: { function: { name: "read_model", arguments: '{"collection":"summary"}' } }, result: { status: "completed", data: { project: { id: project.id, revision: project.revision }, counts: { nodes: 2 } }, receipt: { input: { projectId: project.id, modelRevision: project.revision }, state: { model: "applied", project: "current" } } } });
+    expect(firstRequest.messages.some((message) => message.role === "system" && message.content.includes("任务开始的本地状态读取回执") && message.content.includes(project.id))).toBe(true);
+  });
+
+  it("cancels a task when a reload changes the captured snapshot even if the caller flag remains true", async () => {
+    const project = addNode(createProject("旧快照"), { x: 0, y: 0, z: 0 });
+    let live = captureAiSnapshot(project, []);
+    let finish!: (value: DeepSeekChatResult) => void;
+    const task = startAiTask(live, "读取当前工程", { isCurrent: () => true, getCurrentSnapshot: () => live,
+      transport: { chatDeepSeek: () => new Promise((resolve) => { finish = resolve; }), cancelDeepSeekChat: async () => {} } });
+    live = captureAiSnapshot(addNode(createProject("新项目"), { x: 9, y: 0, z: 0 }), []);
+    finish({ status: "success", message: "迟到回复", assistant: { role: "assistant", content: "旧快照回答" } });
+    const result = await task.promise;
+    expect(result).toMatchObject({ status: "cancelled", lifecycle: { task: { state: "cancelled", status: "cancelled" } } });
+    expect(result.assistant).toBeUndefined();
   });
 
   it("preserves missing-input, failure, confirmation and transport cancellation outcomes", async () => {
@@ -207,12 +239,14 @@ describe("AI conversation task boundary", () => {
       const script = replay([{ status: "success", message: "工具请求", assistant: { role: "assistant", content: "准备处理",
         tool_calls: [{ id: "call_1", type: "function", function: { name, arguments: JSON.stringify(input) } }] } },
       { status: "success", message: "错误地声称完成", assistant: { role: "assistant", content: "已完成修改" } }]);
-      const task = startAiTask(snapshot, "读取或修改对象", { transport: script.transport, isCurrent: () => true });
-      expect(await task.promise).toMatchObject({ status, records: [{ result: { status } }] });
+      const task = startAiTask(snapshot, "读取或修改对象", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot });
+      const result = await task.promise;
+      expect(result).toMatchObject({ status });
+      expect(result.records.at(-1)?.result.status).toBe(status);
       expect(script.requests).toHaveLength(1);
     }
     const script = replay([{ status: "cancelled", message: "请求已取消" }]);
-    expect(await startAiTask(snapshot, "读取", { transport: script.transport, isCurrent: () => true }).promise)
+    expect(await startAiTask(snapshot, "读取", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot }).promise)
       .toMatchObject({ status: "cancelled", message: "请求已取消" });
   });
 
@@ -222,11 +256,11 @@ describe("AI conversation task boundary", () => {
     let finish!: (value: DeepSeekChatResult) => void;
     const cancellations: string[] = [];
     const progress: AiProgress[] = [];
-    const task = startAiTask(snapshot, "读取选择", { isCurrent: () => true, onProgress: (event) => progress.push(event),
+    const task = startAiTask(snapshot, "读取选择", { isCurrent: () => true, getCurrentSnapshot: () => snapshot, onProgress: (event) => progress.push(event),
       transport: { chatDeepSeek: () => new Promise((resolve) => { finish = resolve; }),
         cancelDeepSeekChat: async (id) => { cancellations.push(id); } } });
     task.cancel();
-    expect(await task.promise).toMatchObject({ status: "cancelled", records: [] });
+    expect(await task.promise).toMatchObject({ status: "cancelled", records: [{ round: 0, result: { status: "completed" } }] });
     finish(selectedRead);
     await Promise.resolve();
     expect(cancellations).toEqual([task.requestId]);
@@ -239,15 +273,15 @@ describe("AI conversation task boundary", () => {
     let current = true;
     let finish!: (value: DeepSeekChatResult) => void;
     const progress: AiProgress[] = [];
-    const task = startAiTask(snapshot, "读取选择", { isCurrent: () => current, onProgress: (event) => progress.push(event),
+    const task = startAiTask(snapshot, "读取选择", { isCurrent: () => current, getCurrentSnapshot: () => snapshot, onProgress: (event) => progress.push(event),
       transport: { chatDeepSeek: () => new Promise((resolve) => { finish = resolve; }), cancelDeepSeekChat: async () => {} } });
     current = false;
     finish(selectedRead);
-    expect(await task.promise).toMatchObject({ status: "cancelled", records: [] });
+    expect(await task.promise).toMatchObject({ status: "cancelled", records: [{ round: 0, result: { status: "completed" } }] });
     expect(progress.filter((event) => event.phase === "tool")).toEqual([]);
 
     const script = replay([selectedRead]);
-    expect(await startAiTask(snapshot, "读取选择", { transport: script.transport, isCurrent: () => false }).promise)
+    expect(await startAiTask(snapshot, "读取选择", { transport: script.transport, isCurrent: () => false, getCurrentSnapshot: () => snapshot }).promise)
       .toMatchObject({ status: "cancelled", records: [] });
     expect(script.requests).toHaveLength(0);
   });
@@ -260,11 +294,11 @@ describe("AI conversation task boundary", () => {
         ...selectedRead.assistant!.tool_calls![0], id: `call_${index}`,
       }] },
     })));
-    const result = await startAiTask(snapshot, "读取选择", { transport: script.transport, isCurrent: () => true }).promise;
+    const result = await startAiTask(snapshot, "读取选择", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot }).promise;
     expect(result.status).toBe("failed");
     expect(result.message).toContain("缩小");
     expect(script.requests).toHaveLength(8);
-    expect(result.records).toHaveLength(8);
+    expect(result.records).toHaveLength(9);
     expect(result.assistant).toBeUndefined();
   });
 });

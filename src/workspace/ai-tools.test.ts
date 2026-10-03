@@ -70,6 +70,20 @@ describe("read-only AI tools", () => {
       .toMatchObject({ status: "missing-input", data: { missing: [{ kind: "node", id: "missing_node" }] } });
   });
 
+  it("returns bounded field/range pages, explicit empty-page semantics and a real state receipt", () => {
+    const project = addNode(addNode(createProject("状态回归"), { x: 0, y: 0, z: 0 }), { x: 4, y: 0, z: 0 });
+    const snapshot = captureAiSnapshot(project, []);
+    const filtered = executeAiTool(snapshot, call("read_model", { collection: "nodes", fields: ["id", "position.x"], query: { field: "position.x", min: 1, max: 5 } }));
+    expect(filtered).toMatchObject({ status: "completed", data: { total: 1, items: [{ id: project.nodes[1].id, "position.x": 4 }], page: { empty: false } } });
+    expect(filtered.receipt).toMatchObject({ object: { id: project.id, name: "状态回归" }, input: { projectId: project.id, modelRevision: project.revision }, state: { project: "current", model: "applied", analysis: "absent" }, call: { initiated: true, completed: true, status: "completed" } });
+    const empty = executeAiTool(snapshot, call("read_model", { collection: "nodes", offset: 20, limit: 5 }));
+    expect(empty).toMatchObject({ status: "completed", data: { total: 2, items: [], page: { empty: true, hasMore: false, nextOffset: 20 } } });
+    expect(executeAiTool(snapshot, call("read_model", { collection: "nodes", query: { field: "position.x" } })).status).toBe("failed");
+    expect(executeAiTool(snapshot, call("read_model", { collection: "nodes", fields: ["id"], query: { field: "position.x", min: 0 } })).status).toBe("failed");
+    expect(executeAiTool(snapshot, call("read_model", { collection: "nodes", fields: ["id"], query: { field: "position.x", min: 0 } })).receipt?.call).toMatchObject({ initiated: true, completed: true, status: "failed" });
+    expect(executeAiTool(snapshot, { malformed: true }).receipt?.call).toMatchObject({ initiated: false, completed: true, status: "failed" });
+  });
+
   it("rejects malformed, unbounded or unknown input while keeping mutation requests unapplied", () => {
     const project = addNode(createProject(), { x: 1, y: 2, z: 3 });
     const before = JSON.stringify(project);

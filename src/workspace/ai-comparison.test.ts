@@ -34,7 +34,7 @@ it("replays comparison evidence and rejects forged or missing delta citations", 
   const snapshot = captureAiSnapshot(computed, [], after, { beforeId: p.analysisResults[0].id, afterId: after.id });
   for (const [reply, expected] of [["计算事实：[[comparison:t26]]。原因推断：输入相同。", "completed"], ["[[comparison:forged]]", "failed"], ["变化了100米。", "failed"]] as const) {
     let requests = 0;
-    const task = startAiTask(snapshot, "解释前后差异", { isCurrent: () => true, transport: { cancelDeepSeekChat: async () => {},
+    const task = startAiTask(snapshot, "解释前后差异", { isCurrent: () => true, getCurrentSnapshot: () => snapshot, transport: { cancelDeepSeekChat: async () => {},
       chatDeepSeek: async () => ({ status: "success", message: "回放", assistant: ++requests === 1 ? { role: "assistant", content: null,
         tool_calls: [call("read_comparison_result", { kind: "node", id: p.nodes[1].id, quantity: "displacement", component: "x" })] } : { role: "assistant", content: reply } }) } });
     const result = await task.promise;

@@ -29,6 +29,33 @@ it("references the actual cantilever displacement with frozen position, componen
   expect(output.reference?.value).toBeCloseTo(-0.005333333333333333, 12);
 });
 
+it("queries reaction moments and member end-force fields by bounded collection reads", () => {
+  const p = cantilever();
+  const snapshot = captureAiSnapshot(attachAnalysisResult(p, solveFrame(p)), []);
+  const nodes = executeAiTool(snapshot, call("read_results", { collection: "nodes", fields: ["nodeId", "reactionMoment.x"] }));
+  expect(nodes.status).toBe("completed");
+  expect(nodes.data).toMatchObject({ collection: "nodes" });
+  expect((nodes.data as { items: Array<Record<string, unknown>> }).items).toEqual(expect.arrayContaining([{ nodeId: p.nodes[0].id, "reactionMoment.x": expect.any(Number) }]));
+  const members = executeAiTool(snapshot, call("read_results", { collection: "members", fields: ["memberId", "localEndForces.start.0", "localEndForces.end.5"], query: { field: "localEndForces.start.0", min: -1e9, max: 1e9 } }));
+  expect(members.status).toBe("completed");
+  expect(members.data).toMatchObject({ collection: "members", items: [{ memberId: p.members[0].id, "localEndForces.start.0": expect.any(Number), "localEndForces.end.5": expect.any(Number) }] });
+});
+
+it("rejects an analysis captured from another project", () => {
+  const foreign = solveFrame(cantilever());
+  expect(() => captureAiSnapshot(createProject("不同项目"), [], foreign)).toThrow("分析结果不属于当前项目");
+});
+it("refuses numeric explanation when the captured analysis is not complete", () => {
+  const p = cantilever();
+  const complete = solveFrame(p);
+  const incomplete = { ...complete, nodes: [] };
+  const snapshot = captureAiSnapshot(p, [], incomplete);
+  expect(snapshot.context.analysis).toMatchObject({ id: incomplete.id, status: "incomplete", current: false });
+  expect(executeAiTool(snapshot, call("read_results", { collection: "summary" }))).toMatchObject({ status: "missing-input" });
+  expect(executeAiTool(snapshot, call("read_results", { collection: "summary" })).message).toContain("分析尚未完成");
+  expect(executeAiTool(snapshot, call("read_result", { kind: "node", id: p.nodes[1].id, quantity: "displacement", component: "y" })).receipt?.state.analysis).toBe("incomplete");
+});
+
 it("uses the selected user-defined combination and never borrows another case's success", () => {
   let p = addLoadCase(cantilever(), "空工况");
   p = addLoadCombination(p, "用户组合", [{ loadCaseId: "LC1", factor: -0.5 }, { loadCaseId: "LC2", factor: 0 }]);
@@ -54,9 +81,9 @@ it("replays real result evidence and rejects fabricated or absent reference toke
     ["计算事实：[[result:forged]]", "failed"], ["位移为123米", "failed"]] as const) {
     const requests: DeepSeekChatRequest[] = [];
     const visible: string[] = [];
-    const task = startAiTask(snapshot, "解释关键位移", { isCurrent: () => true, onOutput: (output) => {
+    const task = startAiTask(snapshot, "解释关键位移", { isCurrent: () => true, getCurrentSnapshot: () => snapshot, onOutput: (output) => {
       visible.push(output.assistant!);
-      expect(output.records[0].result.reference?.token).toBe("[[result:citation_1]]");
+      expect(output.records.find((record) => record.result.reference)?.result.reference?.token).toBe("[[result:citation_1]]");
     }, transport: {
       cancelDeepSeekChat: async () => {},
       chatDeepSeek: async (request) => {
@@ -118,5 +145,10 @@ it("rejects wrong analysis IDs, invalid components, positions, fields and nonexi
   expect(executeAiTool(snapshot, call("read_results", { collection: ["nodes"] })).status).toBe("failed");
   expect(executeAiTool(snapshot, call("read_results", { collection: "nodes", limit: null })).status).toBe("failed");
   expect(executeAiTool(snapshot, call("read_results", { collection: "nodes", offset: 1, limit: 1 })).data).toMatchObject({ total: 2, items: [{ nodeId: p.nodes[1].id }] });
+  expect(executeAiTool(snapshot, call("read_results", { collection: "nodes", fields: ["nodeId", "displacement.y"], query: { field: "nodeId", equals: p.nodes[1].id } })).data)
+    .toMatchObject({ total: 1, items: [{ nodeId: p.nodes[1].id }], page: { empty: false } });
+  expect(executeAiTool(snapshot, call("read_results", { collection: "nodes", offset: 20, limit: 5 })).data)
+    .toMatchObject({ total: 2, items: [], page: { empty: true, hasMore: false } });
+  expect(executeAiTool(snapshot, call("read_results", { collection: "nodes", query: { field: "nodeId" } })).status).toBe("failed");
   expect(executeAiTool(captureAiSnapshot(p, []), call("read_results", { collection: "summary" })).status).toBe("missing-input");
 });

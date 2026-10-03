@@ -10,22 +10,39 @@ import { readComparison, readComparisonResult, type AiAnalysisPair, type Analysi
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
+export interface AiAnalysisContext {
+  id?: string;
+  inputRevision?: number;
+  createdAt?: string;
+  status: 'absent' | 'incomplete' | 'complete';
+  current: boolean;
+  source?: { id: string; name: string; kind: 'case' | 'combination' };
+}
 export interface AiContext {
   projectId: string;
   projectName: string;
   modelRevision: number;
   selection: readonly AiSelectedObject[];
+  goal?: string;
   analysisId?: string;
+  analysis?: AiAnalysisContext;
   comparison?: AnalysisPairIds;
 }
 export type AiStatus = "completed" | "applied" | "missing-input" | "awaiting-confirmation" | "failed" | "cancelled";
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; sectionChange?: SectionChangeProposal | null; analysisRequested?: boolean; }
+export interface AiReceipt {
+  call: { id?: string; name?: string; initiated: boolean; completed: boolean; status: AiStatus };
+  object: { kind: "project"; id: string; name: string };
+  objects: readonly AiObjectRef[];
+  input: { projectId: string; modelRevision: number; analysisId?: string; analysisInputRevision?: number };
+  state: { project: "current"; model: "applied"; analysis: "absent" | "incomplete" | "current" | "expired" };
+}
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; sectionChange?: SectionChangeProposal | null; analysisRequested?: boolean; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
   | "nodalLoads" | "uniformLoads" | "selfWeight" | "loadCases" | "loadCombinations"
   | "activeLoadCaseId" | "activeLoadCombinationId">;
-export interface AiSnapshot { readonly context: AiContext; readonly model: ReadonlyTree<AiModel>; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
+export interface AiSnapshot { readonly context: AiContext; readonly snapshotKey: string; readonly model: ReadonlyTree<AiModel>; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
 
 function freeze<T>(value: T): ReadonlyTree<T> {
   if (value && typeof value === "object") {
@@ -36,6 +53,7 @@ function freeze<T>(value: T): ReadonlyTree<T> {
 }
 
 export function captureAiSnapshot(project: FrameProject, selection: readonly AiObjectRef[], analysis = getActiveAnalysisResult(project), comparisonIds?: AnalysisPairIds): AiSnapshot {
+  if (analysis && (analysis.projectId !== project.id || analysis.input.projectId !== project.id)) throw new Error("分析结果不属于当前项目");
   const model: AiModel = {
     units: project.units, nodes: project.nodes, members: project.members, materials: project.materials,
     sections: project.sections, supports: project.supports, nodalLoads: project.nodalLoads,
@@ -46,20 +64,28 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
   const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
   const resultSnapshot = (result: AnalysisResult) => structuredClone({ ...result, process: undefined });
+  const analysisComplete = Boolean(analysis && analysis.status === "complete" && analysis.nodes.length === analysis.input.nodes.length && analysis.members.length === analysis.input.members.length);
+  const analysisContext: AiAnalysisContext = analysis ? {
+    id: analysis.id, inputRevision: analysis.input.projectRevision, createdAt: analysis.createdAt, status: analysisComplete ? "complete" : "incomplete",
+    current: analysisComplete && isAnalysisResultCurrent(project, analysis),
+    source: analysis.input.combination ? { id: analysis.input.combination.definition.id, name: analysis.input.combination.definition.name, kind: "combination" } :
+      { id: analysis.input.loadCase?.id ?? "LC1", name: analysis.input.loadCase?.name ?? "旧版工况", kind: "case" },
+  } : { status: "absent", current: false };
   return freeze({
     context: {
       projectId: project.id, projectName: project.name, modelRevision: project.revision,
-      analysisId: analysis?.id,
+      ...(analysis ? { analysisId: analysis.id, analysis: analysisContext } : {}),
       comparison: comparisonIds,
       selection: selection.map(({ kind, id }) => {
         const object = (kind === "node" ? project.nodes : project.members).find((item) => item.id === id);
         return { kind, id, label: object?.label ?? id, exists: Boolean(object) };
       }),
     },
+    snapshotKey: JSON.stringify({ projectId: project.id, revision: project.revision, model, analysisId: analysis?.id, analysisComplete }),
     model: structuredClone(model),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
-    analysisCurrent: analysis ? isAnalysisResultCurrent(project, analysis) : false,
+    analysisCurrent: analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false,
   }) as AiSnapshot;
 }
 
@@ -76,6 +102,16 @@ function exactFields(input: Record<string, unknown>, allowed: readonly string[])
 }
 
 const collections = ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases"];
+const queryFields: Record<string, readonly string[]> = {
+  nodes: ["id", "label", "position.x", "position.y", "position.z"],
+  members: ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"],
+  materials: ["id", "label", "name", "elasticModulusGPa", "poissonRatio", "densityKgM3"],
+  sections: ["id", "label", "name", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"],
+  supports: ["id", "label", "nodeId"],
+  loads: ["id", "label", "kind", "nodeId", "memberId", "loadCaseId"],
+  "load-cases": ["id", "name", "description"],
+};
+interface CollectionQuery { field: string; equals?: string | number | boolean; min?: number; max?: number; }
 const mutationTools = new Set(["create_node", "create_nodes", "update_node", "update_nodes", "delete_node", "delete_nodes",
   "create_member", "create_members", "update_member", "update_members", "delete_member", "delete_members",
   "set_material", "set_section", "set_support", "set_load", "apply_model_changes"]);
@@ -90,13 +126,64 @@ function validateCall(value: unknown): ToolCall {
   return { id: call.id, type: "function", function: { name: fn.name, arguments: fn.arguments } };
 }
 
+function validateCollectionQuery(collection: string, fields: unknown, query: unknown): void {
+  if (fields !== undefined && (!Array.isArray(fields) || fields.length < 1 || fields.length > 12 || fields.some((field) => typeof field !== "string" || !queryFields[collection]?.includes(field)))) {
+    throw new Error("fields 必须是该集合支持的字段列表");
+  }
+  if (query === undefined) return;
+  const value = record(query);
+  exactFields(value, ["field", "equals", "min", "max"]);
+  if (typeof value.field !== "string" || !queryFields[collection]?.includes(value.field)) throw new Error("query.field 不是该集合的可查询字段");
+  if (Array.isArray(fields) && !fields.includes(value.field)) throw new Error("fields 必须包含 query.field，避免筛选字段从回执中消失");
+  const hasEquals = value.equals !== undefined;
+  const hasRange = value.min !== undefined || value.max !== undefined;
+  if ((hasEquals && hasRange) || !hasEquals && !hasRange) throw new Error("query 必须提供 equals 或 min/max");
+  if (hasEquals && !["string", "number", "boolean"].includes(typeof value.equals)) throw new Error("query.equals 类型无效");
+  for (const key of ["min", "max"] as const) if (value[key] !== undefined && (typeof value[key] !== "number" || !Number.isFinite(value[key]))) throw new Error(`query.${key} 必须是有限数值`);
+  if (typeof value.min === "number" && typeof value.max === "number" && value.min > value.max) throw new Error("query.min 不能大于 query.max");
+}
+
+function readPath(value: unknown, path: string): unknown {
+  if (value && typeof value === "object" && Object.hasOwn(value, path)) return (value as Record<string, unknown>)[path];
+  return path.split(".").reduce<unknown>((current, key) => current && typeof current === "object" ? (current as Record<string, unknown>)[key] : undefined, value);
+}
+
+function filterCollection(items: readonly unknown[], fields: unknown, query: unknown): readonly unknown[] {
+  const projected = items.map((item) => {
+    if (!Array.isArray(fields)) return item;
+    return Object.fromEntries(fields.map((field) => [field, readPath(item, field)]));
+  });
+  if (!query) return projected;
+  const condition = query as CollectionQuery;
+  return projected.filter((item) => {
+    const actual = readPath(item, condition.field);
+    if (condition.equals !== undefined) return actual === condition.equals;
+    return typeof actual === "number" && (condition.min === undefined || actual >= condition.min) && (condition.max === undefined || actual <= condition.max);
+  });
+}
+
+function buildReceipt(snapshot: AiSnapshot, value: unknown, result: AiToolResult): AiReceipt {
+  let call: { id?: string; name?: string } = {};
+  let initiated = false;
+  let input: Record<string, unknown> = {};
+  try {
+    const parsed = validateCall(value); call = { id: parsed.id, name: parsed.function.name }; input = record(JSON.parse(parsed.function.arguments)); initiated = true;
+  } catch { /* The failed result still carries the real snapshot identity. */ }
+  const objects = Array.isArray(input.objects) ? input.objects.filter((item): item is AiObjectRef => Boolean(item && typeof item === "object" && (item as AiObjectRef).kind && typeof (item as AiObjectRef).id === "string"))
+    : input.id && (input.kind === "node" || input.kind === "member") ? [{ kind: input.kind, id: input.id } as AiObjectRef] : snapshot.context.selection;
+  return { call: { ...call, initiated, completed: true, status: result.status }, object: { kind: "project", id: snapshot.context.projectId, name: snapshot.context.projectName }, objects,
+    input: { projectId: snapshot.context.projectId, modelRevision: snapshot.context.modelRevision, analysisId: snapshot.analysis?.id, analysisInputRevision: snapshot.analysis?.input.projectRevision },
+    state: { project: "current", model: "applied", analysis: snapshot.context.analysis?.status === "incomplete" ? "incomplete" : snapshot.analysis ? snapshot.analysisCurrent ? "current" : "expired" : "absent" } };
+}
+
 function validateInput(name: string, input: Record<string, unknown>): void {
   if (name === "read_selection") exactFields(input, []);
   else if (name === "read_model") {
-    exactFields(input, ["collection", "offset", "limit"]);
+    exactFields(input, ["collection", "offset", "limit", "fields", "query"]);
     if (typeof input.collection !== "string" || !collections.includes(input.collection)) throw new Error("请选择有效的模型数据集合");
     if (input.offset !== undefined && (typeof input.offset !== "number" || !Number.isSafeInteger(input.offset) || input.offset < 0)) throw new Error("offset 必须是非负整数");
     if (input.limit !== undefined && (typeof input.limit !== "number" || !Number.isSafeInteger(input.limit) || input.limit < 1 || input.limit > 100)) throw new Error("limit 必须是 1 至 100 的整数");
+    validateCollectionQuery(input.collection, input.fields, input.query);
   } else if (name === "read_objects") {
     exactFields(input, ["objects"]);
     if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 100) throw new Error("objects 必须包含 1 至 100 个对象引用");
@@ -108,7 +195,7 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal): AiToolResult {
+function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
@@ -134,6 +221,7 @@ export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProp
     }
     if (call.function.name === "read_results" || call.function.name === "read_result") {
       if (!snapshot.analysis) return { status: "missing-input", message: "当前所选工况或组合无成功结果，请先运行本地计算", context: snapshot.context };
+      if (snapshot.context.analysis?.status !== "complete") return { status: "missing-input", message: "分析尚未完成，不能解释未完成的数值；请等待本地计算结束", context: snapshot.context };
       if (input.analysisId !== undefined && input.analysisId !== snapshot.analysis.id) throw new Error("分析身份与当前所选结果不一致，请重新读取结果上下文");
       if (call.function.name === "read_results") return { status: "completed", message: snapshot.analysisCurrent ? "已读取所选分析的真实结果" : "已读取历史输入结果，当前模型需重新计算",
         context: snapshot.context, data: readResults(snapshot.analysis, snapshot.analysisCurrent, input) };
@@ -210,7 +298,8 @@ export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProp
   };
   if (input.collection === "summary") {
     return { status: "completed", message: "已读取已应用模型摘要", context: snapshot.context,
-      data: { counts: { nodes: model.nodes.length, members: model.members.length, materials: model.materials.length,
+      data: { project: { id: snapshot.context.projectId, name: snapshot.context.projectName, revision: snapshot.context.modelRevision }, goal: snapshot.context.goal,
+        analysis: snapshot.context.analysis ?? { status: "absent", current: false }, counts: { nodes: model.nodes.length, members: model.members.length, materials: model.materials.length,
         sections: model.sections.length, supports: model.supports.length, loads: model.nodalLoads.length + model.uniformLoads.length,
         loadCases: model.loadCases.length, loadCombinations: model.loadCombinations.length },
         units: model.units, activeLoadCaseId: model.activeLoadCaseId, activeLoadCombinationId: model.activeLoadCombinationId,
@@ -219,9 +308,17 @@ export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProp
   const items = modelCollections[input.collection as string];
   const offset = input.offset as number | undefined ?? 0;
   const limit = input.limit as number | undefined ?? 50;
+  const filtered = filterCollection(items, input.fields, input.query);
+  const pageItems = filtered.slice(offset, offset + limit);
   const extra = input.collection === "loads" ? { selfWeight: model.selfWeight }
     : input.collection === "load-cases" ? { combinations: model.loadCombinations,
       activeLoadCaseId: model.activeLoadCaseId, activeLoadCombinationId: model.activeLoadCombinationId } : {};
   return { status: "completed", message: "已读取已应用模型", context: snapshot.context,
-    data: { units: model.units, collection: input.collection, total: items.length, items: items.slice(offset, offset + limit), offset, limit, ...extra } };
+    data: { units: model.units, collection: input.collection, total: filtered.length, items: pageItems, offset, limit,
+      page: { empty: pageItems.length === 0, hasMore: offset + pageItems.length < filtered.length, nextOffset: offset + pageItems.length }, query: input.query, fields: input.fields, ...extra } };
+}
+
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal): AiToolResult {
+  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange);
+  return { ...result, receipt: buildReceipt(snapshot, value, result) };
 }
