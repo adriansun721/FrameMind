@@ -106,7 +106,7 @@ test("T22 requires refreshing a stale model and confirming every subsequent stag
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
-    await expect(page.getByLabel("未应用三维方案")).toContainText("12 节点 / 16 杆件");
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "details");
     await expect(proposalDrawer(page)).toContainText("基础 R1");
     await closeProposalDrawer(page);

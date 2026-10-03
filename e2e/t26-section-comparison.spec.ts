@@ -48,7 +48,7 @@ test("T26 confirms selected column sections, automatically recomputes self weigh
     await expect(proposalDrawer(page)).toContainText("member_0001"); await expect(proposalDrawer(page)).not.toContainText("member_0002");
     await expect(proposalDrawer(page)).toContainText("0.01 → 0.02");
     await closeProposalDrawer(page);
-    await expect(page.getByLabel("未应用三维方案")).toContainText("1 根选中柱");
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     expect((await save(page, path)).members).toEqual(before.members);
     for (const theme of ["dark", "light"]) {
       await page.getByRole("button", { name: "设置", exact: true }).click(); const settings = page.getByRole("dialog", { name: "设置", exact: true });
@@ -124,7 +124,7 @@ test("T26 invalidates changed selections, supports card edits and rejection with
     await proposalDrawer(page).getByLabel("目标柱截面").selectOption("custom");
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByLabel("新柱截面 A (m²)", { exact: true }).fill("0.03");
-    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
     await openProposalView(page, card, "details");

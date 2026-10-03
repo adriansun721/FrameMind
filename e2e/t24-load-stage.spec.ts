@@ -39,9 +39,9 @@ test("T24 edits, previews and confirms a complete multi-case load stage before a
     const before = await save(page, path);
     expect(before.loadCases).toHaveLength(1); expect(before.uniformLoads).toHaveLength(0); expect(before.selfWeight.enabled).toBe(false);
     expect(before.loadCombinations).toHaveLength(0); expect(before.analysisResults).toHaveLength(0);
-    await expect(page.getByLabel("未应用三维方案")).toContainText("1 均布 / 自重启用 / 2 工况 / 1 用户自定义组合");
-    await expect(page.getByLabel("待确认自重标记", { exact: true })).toHaveCount(1);
-    await expect(page.getByLabel("待确认自重标记", { exact: true })).toContainText("恒载");
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
+    await expect(page.getByLabel("待确认自重标记", { exact: true })).toHaveCount(0);
+    await expect(card).toContainText("恒载");
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByLabel("均布荷载 1 坐标系", { exact: true }).selectOption("local");
     await openProposalView(page, card, "edit");
@@ -53,7 +53,7 @@ test("T24 edits, previews and confirms a complete multi-case load stage before a
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByLabel("组合 1 项 2 系数", { exact: true }).fill("-0.5");
     await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeDisabled();
-    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
     await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeEnabled();

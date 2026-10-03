@@ -35,11 +35,11 @@ test("T23 continues a requested computation after two reviewed stages, and previ
     await expect(proposalDrawer(page).getByLabel("支座 1 RX", { exact: true })).toBeChecked();
     const before = await save(page, path);
     expect(before.supports).toHaveLength(0); expect(before.nodalLoads).toHaveLength(0); expect(before.analysisResults).toHaveLength(0);
-    await expect(page.getByLabel("未应用三维方案")).toContainText("4 支座 / 1 节点荷载");
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByLabel("荷载 1 FX (kN)", { exact: true }).fill("8");
     await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeDisabled();
-    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
     for (const theme of ["dark", "light"]) {

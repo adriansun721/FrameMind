@@ -24,11 +24,11 @@ test("T21 supplements missing cards, edits and regenerates the same isolated two
     await expect(card.getByTestId("frame-proposal-counts")).toHaveText("12 节点 · 8 柱 · 8 梁");
     await openProposalView(page, card, "edit");
     await expect(proposalDrawer(page).getByText("建议 · 待确认", { exact: true })).toHaveCount(5);
-    await expect(page.getByLabel("未应用三维方案")).toContainText("12 节点 / 16 杆件");
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     expect(await save(page, path)).toEqual(before);
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
-    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
     await openProposalView(page, card, "edit");
@@ -38,7 +38,7 @@ test("T21 supplements missing cards, edits and regenerates the same isolated two
     await openProposalView(page, card, "details");
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
-    await expect(page.getByLabel("未应用三维方案")).toContainText("16 杆件");
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     for (const theme of ["dark", "light"]) {
       await page.getByRole("button", { name: "设置", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "设置", exact: true });
@@ -59,7 +59,7 @@ test("T21 supplements missing cards, edits and regenerates the same isolated two
           for (let i = 0; i < buffer.length; i += 4) if (rgb.every((value, c) => Math.abs(buffer[i + c] - value) < 25)) matches++;
           done(matches);
         })));
-        expect(pixels).toBeGreaterThan(20);
+        expect(pixels).toBe(0);
         await page.screenshot({ path: `docs/evidence/T21-${theme}-${width}.png` });
       }
     }
@@ -126,7 +126,7 @@ test("T21 retains current analysis while previewing and invalidates a proposal a
     const card = page.getByRole("region", { name: "建模参数卡片" });
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
-    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await createNode(page, ["10", "0", "0"]);
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await expect(page.getByText("正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。", { exact: true })).toBeVisible();

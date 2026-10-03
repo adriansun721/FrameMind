@@ -11,7 +11,7 @@ test("compact card keeps local edits separate from text updates and previews in 
     await openProposalView(page, card, "edit");
     const editor = proposalDrawer(page);
     await editor.getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
-    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "发送消息", exact: true })).toBeDisabled();
     await expect(card).toContainText("侧栏有未保存编辑");
     expect((await save(page, path)).nodes).toHaveLength(0);
@@ -48,6 +48,7 @@ test("compact card keeps local edits separate from text updates and previews in 
     await expect(card).toHaveCount(0);
     const applied = await save(page, path);
     expect(applied.nodes.at(-1).position).toEqual({ x: 8, y: 4, z: 7 });
+    await page.locator(".ai-turn-details > summary").last().click();
     await expect(page.locator(".ai-turn").last().getByText("操作详情 · 1 项", { exact: true })).toBeVisible();
   });
 });
