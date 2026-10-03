@@ -43,7 +43,9 @@ public class Plan2MockCodex {
             }
             var prompt = new StreamReader(Console.OpenStandardInput(), Utf8).ReadToEnd().TrimStart('\uFEFF');
             var root = Environment.CurrentDirectory;
-            if (!args.Contains("exec") || !args.Contains("--json") || !args.Contains("--output-schema") || args.Last() != "-" || args.Contains("resume") || args.Contains("--last")) throw new Exception("Invalid CLI arguments");
+            var modelIndex = Array.IndexOf(args, "-m");
+            var effortIndex = Array.IndexOf(args, "model_reasoning_effort=\"high\"");
+            if (!args.Contains("exec") || !args.Contains("--json") || !args.Contains("--output-schema") || args.Last() != "-" || args.Contains("resume") || args.Contains("--last") || modelIndex < 0 || modelIndex + 1 >= args.Length || args[modelIndex + 1] != "gpt-6.1-sol" || effortIndex < 0) throw new Exception("Invalid CLI arguments or model configuration");
             if (args[2] != root || args[6] != "approval_policy=\"never\"") throw new Exception("Native argv quoting failed");
             var state = Obj(Json.DeserializeObject(File.ReadAllText(Path.Combine(root, ".git", "plan2-scheduler", "state.json"), Utf8)));
             var task = Arr(state["tasks"]).Select(Obj).First(x => (string)x["status"] == "running");

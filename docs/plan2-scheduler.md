@@ -20,7 +20,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-Plan2Schedu
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-Plan2Scheduler.ps1 -Action Run -MaxTasks 1
 ```
 
-业务执行前，先自行审阅并处理已有未提交改动，将 PLAN2.0.md 和 PRD2.0.md 纳入需求基线提交。Run 在开始新任务时要求干净工作区，不会替你 stash、清理、提交或覆盖既有改动。CLI 须已登录；无需为调度器新增 API 密钥。实际子会话使用 `-s danger-full-access -c approval_policy="never"`，在本机获得实现、测试、审查及当前分支提交所需权限。任务完成会提交，但不会推送。
+业务执行前，先自行审阅并处理已有未提交改动，将 PLAN2.0.md 和 PRD2.0.md 纳入需求基线提交。Run 在开始新任务时要求干净工作区，不会替你 stash、清理、提交或覆盖既有改动。CLI 须已登录；无需为调度器新增 API 密钥。实际子会话固定使用模型 `gpt-6.1-sol`、推理强度 `high`，并使用 `-s danger-full-access -c approval_policy="never"`，在本机获得实现、测试、审查及当前分支提交所需权限。任务完成会提交，但不会推送。
 
 可指定 `-RepositoryRoot`、`-ImplementSkill`、`-CodexPath`（原生 `.exe`）、`-StateRoot`；重新运行时使用同一配置。默认每项超时 240 分钟，可通过 `-TimeoutMinutes` 修改。超时和停止检查覆盖输入传递、进程执行及日志管道收尾。Windows Job 持有工作进程及其后代，关闭调度器时整组结束；随脚本提供的 `WorkerJob.cs` 由系统 .NET 编译，无需安装开发工具。脚本按需运行，不注册开机、定时或自动重启任务，以免在未明确启动时执行业务计划。
 

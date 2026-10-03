@@ -308,7 +308,7 @@ function Test-Plan2ChildAlive {
 
 function Invoke-Plan2Worker {
     param($Context, $State, $Attempt, [string]$CodexPath, [int]$TimeoutMinutes)
-    $arguments = @('exec', '-C', $Context.root, '-s', 'danger-full-access', '-c', 'approval_policy="never"', '--json', '--color', 'never', '--output-schema', (Join-Path $PSScriptRoot 'result.schema.json'), '-o', (Join-Path $Attempt.directory 'result.json'), '-')
+    $arguments = @('exec', '-C', $Context.root, '-s', 'danger-full-access', '-c', 'approval_policy="never"', '-m', 'gpt-6.1-sol', '-c', 'model_reasoning_effort="high"', '--json', '--color', 'never', '--output-schema', (Join-Path $PSScriptRoot 'result.schema.json'), '-o', (Join-Path $Attempt.directory 'result.json'), '-')
     $executable = (Get-Command $CodexPath -ErrorAction Stop).Source
     if ([IO.Path]::GetExtension($executable) -ne '.exe') { throw 'CodexPath must resolve to a native executable (normally codex.exe).' }
     $info = New-Object Diagnostics.ProcessStartInfo
