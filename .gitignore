@@ -7,3 +7,6 @@ test-results/
 playwright-report/
 *.log
 .DS_Store
+.scratch/
+__pycache__/
+*.pyc

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { History, RotateCcw, Settings2, SquarePen, Trash2, X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
-import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiStatus, type AiToolResult } from "../workspace/ai-tools";
+import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiToolResult } from "../workspace/ai-tools";
 import { startAiTask, type AiProgress, type AiTaskResult } from "../workspace/ai-task";
 import { FrameProposalCard } from "./FrameProposalCard";
 import { frameResourceOptions, type FramePreview, type FrameProposal } from "../workspace/frame-proposal";
@@ -16,7 +16,7 @@ import { prepareSectionConfirmation, proposeSectionChange, type SectionChangePro
 import type { AnalysisPairIds } from "../workspace/ai-comparison";
 import { AiResultExplanation } from "./AiResultReferences";
 import { AiComposer } from "./AiComposer";
-import { AiTaskTimeline, TOOL_LABELS, type StageResolution } from "./AiTaskTimeline";
+import { AiTaskTimeline, type StageResolution } from "./AiTaskTimeline";
 import { conditionSummaries } from "./condition-summary";
 
 interface ConversationTurn {
@@ -74,10 +74,6 @@ interface Props {
   analysisBusy: boolean;
 }
 
-const STATUS_LABELS: Record<AiStatus, string> = {
-  completed: "已完成", applied: "已应用", "missing-input": "缺少输入", "awaiting-confirmation": "等待确认",
-  failed: "失败", cancelled: "已取消",
-};
 export function AiConversationPanel({ project, sessionId, selection, analysis, comparison, onComparison, onSectionConfirm, onLocateResult, open, onClose, onSettings, onPreview, onConfirm, onConditionsConfirm, onAnalyze, onCancelAnalysis, analysisBusy }: Props) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
@@ -368,7 +364,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   }
 
   return <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!open}>
-    <div className="panel-heading"><span>AI 对话</span><div className="ai-heading-actions">
+    <div className="panel-heading"><span>Frame</span><div className="ai-heading-actions">
       <button className="icon-button" aria-label="历史对话" title="历史对话" aria-pressed={showHome} disabled={busy || analysisBusy} onClick={() => setShowHome((value) => !value)}><History size={15} /></button>
       <button className="icon-button" aria-label="新建对话" title="新建对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty} onClick={newConversation}><SquarePen size={15} /></button>
       {busy && <button className="icon-button" aria-label="取消对话" title="结束本次对话请求" onClick={() => { taskRef.current?.cancel(); setCalculationRequested(false); continuationRef.current = null; }}><X size={14} /></button>}
@@ -391,28 +387,6 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
         <div className="ai-user-message"><p>{workflow[0].origin === "chat" && !workflow[0].continuing ? workflow[0].prompt : "继续处理已确认任务"}</p></div>
         <AiTaskTimeline turns={workflow} paused={paused && (turns.at(-1)?.workflowId ?? turns.at(-1)?.id) === id} />
         {workflow.map((turn) => (turn.result || turn.output) && <AiResultExplanation key={turn.id} result={(turn.result ?? turn.output)!} onLocate={onLocateResult} onCompare={(pair) => onComparison(pair, true)} />)}
-        <details className="ai-turn-details"><summary>查看详情</summary>
-        {workflow.map((turn) => <article className="ai-turn" key={turn.id}>
-          <div className="ai-user-message" hidden><p>{turn.prompt}</p></div>
-          <div className="ai-turn-context"><span>R{turn.context.modelRevision}</span><span>{turn.context.selection.map((object) => object.label).join("、") || "整个项目"}</span>
-            {(turn.sourceProject !== project || turn.context.analysisId !== snapshot.context.analysisId) && <span className="ai-stale">历史版本</span>}
-          </div>
-          <details className="ai-context-details"><summary>对象上下文</summary><pre>{JSON.stringify(turn.context, null, 2)}</pre></details>
-          {turn.result ? <>
-          <div className={`ai-turn-status ${turn.result.status}`} data-testid="ai-turn-status">{STATUS_LABELS[turn.result.status]} · {turn.result.message}</div>
-          {turn.result.requestId && <details className="ai-context-details"><summary>任务与恢复记录</summary><pre>{JSON.stringify({ requestId: turn.result.requestId, retryOf: turn.result.retryOf, interruption: turn.result.interruption }, null, 2)}</pre></details>}
-          {turn.result.records.length > 0 && <details className="ai-context-details"><summary>{turn.origin === "confirmation" ? "操作详情" : "执行详情"} · {turn.result.records.length} 项</summary>
-          {turn.origin === "confirmation" && turn.result.status === "applied" && <p>本地提交回执已保留，重试不会再次应用此阶段。撤销后可使用重做恢复。</p>}
-          {turn.result.records.map((record, index) => <details className="ai-tool-record" key={`${record.call.id}:${index}`}>
-            <summary>{TOOL_LABELS[record.call.function.name] ?? record.call.function.name} · {STATUS_LABELS[record.result.status]}</summary>
-            <p>{record.result.message}</p>
-            <details><summary>工具输入</summary><pre>{record.call.function.arguments}</pre></details>
-            <details><summary>工具输出</summary><pre className="ai-tool-output">{JSON.stringify(record.result, null, 2)}</pre></details>
-          </details>)}
-          </details>}
-          </> : <div className="ai-turn-status" data-testid="ai-turn-status">{turn.origin === "analysis" ? "正在检查并计算已确认模型" : paused && turn === turns.at(-1) ? "已暂停输出" : turn.output ? "正在输出回复" : "思考中…"}</div>}
-        </article>)}
-        </details>
         {workflow.map((turn) => turn.result && <div key={turn.id}>
           {turn.origin === "chat" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <>
             <p className="frame-draft-notice">已确认模型和成功结果保留，本地编辑与计算可继续。

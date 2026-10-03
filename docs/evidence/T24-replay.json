@@ -61,13 +61,13 @@
             "status": "awaiting-confirmation",
             "message": "三维方案已生成，尚未应用",
             "context": {
-              "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+              "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
               "projectName": "未命名项目",
               "modelRevision": 0,
               "selection": []
             },
             "proposal": {
-              "id": "proposal_09f2bd03-f993-4b99-8b76-51a84488d950",
+              "id": "proposal_f03b9ef1-c667-4f42-9cbe-fe49524782fe",
               "version": 1,
               "parameters": {
                 "storeys": {
@@ -233,7 +233,7 @@
       "tools": [
         {
           "input": {
-            "proposalId": "proposal_09f2bd03-f993-4b99-8b76-51a84488d950",
+            "proposalId": "proposal_f03b9ef1-c667-4f42-9cbe-fe49524782fe",
             "proposalVersion": 1,
             "baseRevision": 0
           },
@@ -241,14 +241,14 @@
             "status": "applied",
             "message": "建模阶段已应用，可整组撤销和重做",
             "context": {
-              "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+              "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
               "projectName": "未命名项目",
               "modelRevision": 1,
               "selection": []
             },
             "data": {
-              "requestId": "confirm_b6b18e14-def4-4a11-896a-d3b608ebde15",
-              "proposalId": "proposal_09f2bd03-f993-4b99-8b76-51a84488d950",
+              "requestId": "confirm_075121bd-2bf8-4cf2-b84d-5048ff74c686",
+              "proposalId": "proposal_f03b9ef1-c667-4f42-9cbe-fe49524782fe",
               "proposalVersion": 1,
               "baseRevision": 0,
               "appliedRevision": 1,
@@ -714,7 +714,7 @@
             "status": "awaiting-confirmation",
             "message": "分析条件预览已准备，尚未应用",
             "context": {
-              "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+              "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
               "projectName": "未命名项目",
               "modelRevision": 1,
               "selection": []
@@ -775,7 +775,7 @@
                   ]
                 }
               ],
-              "id": "conditions_688b6cbb-1993-4b31-a994-50cffaca0549",
+              "id": "conditions_3545fc3c-a63e-42bb-9abb-b25c80b33683",
               "version": 1,
               "analysisSourceId": "service",
               "supports": [
@@ -987,7 +987,7 @@
       "tools": [
         {
           "input": {
-            "proposalId": "conditions_688b6cbb-1993-4b31-a994-50cffaca0549",
+            "proposalId": "conditions_3545fc3c-a63e-42bb-9abb-b25c80b33683",
             "proposalVersion": 2,
             "baseRevision": 1
           },
@@ -995,14 +995,14 @@
             "status": "applied",
             "message": "分析条件阶段已应用，可整组撤销和重做",
             "context": {
-              "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+              "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
               "projectName": "未命名项目",
               "modelRevision": 2,
               "selection": []
             },
             "data": {
-              "requestId": "confirm_530d194e-6951-414f-8441-b53de7b88561",
-              "proposalId": "conditions_688b6cbb-1993-4b31-a994-50cffaca0549",
+              "requestId": "confirm_ce204012-a5d8-468b-a0f2-38c81af1216d",
+              "proposalId": "conditions_3545fc3c-a63e-42bb-9abb-b25c80b33683",
               "proposalVersion": 2,
               "baseRevision": 1,
               "appliedRevision": 2,
@@ -1152,20 +1152,20 @@
       "tools": [
         {
           "input": {
-            "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+            "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
             "modelRevision": 2
           },
           "output": {
             "status": "completed",
             "message": "本地分析完成 · 12 个节点、16 根杆件，已展示结果",
             "context": {
-              "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+              "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
               "projectName": "未命名项目",
               "modelRevision": 2,
               "selection": []
             },
             "data": {
-              "analysisId": "analysis_580e8e3d-ebef-4b12-9292-219ff1be2ee3",
+              "analysisId": "analysis_4b40ab49-4585-4531-9b46-d012de2aebe1",
               "modelRevision": 2,
               "units": {
                 "length": "m",
@@ -2183,13 +2183,13 @@
     "liveFactor": -0.5
   },
   "analysis": {
-    "id": "analysis_580e8e3d-ebef-4b12-9292-219ff1be2ee3",
-    "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+    "id": "analysis_4b40ab49-4585-4531-9b46-d012de2aebe1",
+    "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
     "projectRevision": 2,
-    "createdAt": "2026-10-02T09:49:04.075Z",
+    "createdAt": "2026-10-03T09:25:47.002Z",
     "status": "complete",
     "input": {
-      "projectId": "project_30f225c8-7bdc-4543-bf2a-9f880e4e31cf",
+      "projectId": "project_dc33ca49-3606-404b-b744-a7eda653cc8e",
       "projectRevision": 2,
       "dofOrder": [
         "ux",

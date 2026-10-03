@@ -2,10 +2,10 @@
   "input": {
     "format": "framemind-project",
     "formatVersion": 1,
-    "id": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+    "id": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
     "name": "T26 选柱对比",
-    "createdAt": "2026-10-02T12:21:44.264Z",
-    "updatedAt": "2026-10-02T12:21:44.267Z",
+    "createdAt": "2026-10-03T09:25:57.257Z",
+    "updatedAt": "2026-10-03T09:25:57.270Z",
     "revision": 15,
     "units": {
       "length": "m",
@@ -192,13 +192,13 @@
     "nextLoadCaseNumber": 2,
     "analysisResults": [
       {
-        "id": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "id": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 14,
-        "createdAt": "2026-10-02T12:21:44.267Z",
+        "createdAt": "2026-10-03T09:25:57.269Z",
         "status": "complete",
         "input": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectRevision": 14,
           "dofOrder": [
             "ux",
@@ -2147,13 +2147,13 @@
     "nextLoadNumber": 3,
     "nextUniformLoadNumber": 1,
     "latestAnalysis": {
-      "id": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-      "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+      "id": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+      "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
       "projectRevision": 14,
-      "createdAt": "2026-10-02T12:21:44.267Z",
+      "createdAt": "2026-10-03T09:25:57.269Z",
       "status": "complete",
       "input": {
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 14,
         "dofOrder": [
           "ux",
@@ -4095,10 +4095,10 @@
   "applied": {
     "format": "framemind-project",
     "formatVersion": 1,
-    "id": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+    "id": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
     "name": "T26 选柱对比",
-    "createdAt": "2026-10-02T12:21:44.264Z",
-    "updatedAt": "2026-10-02T12:21:45.587Z",
+    "createdAt": "2026-10-03T09:25:57.257Z",
+    "updatedAt": "2026-10-03T09:25:58.570Z",
     "revision": 17,
     "units": {
       "length": "m",
@@ -4285,13 +4285,13 @@
     "nextLoadCaseNumber": 2,
     "analysisResults": [
       {
-        "id": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "id": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 14,
-        "createdAt": "2026-10-02T12:21:44.267Z",
+        "createdAt": "2026-10-03T09:25:57.269Z",
         "status": "complete",
         "input": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectRevision": 14,
           "dofOrder": [
             "ux",
@@ -6230,13 +6230,13 @@
         }
       },
       {
-        "id": "analysis_2a190f20-c943-4007-849d-e03729e65567",
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "id": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 16,
-        "createdAt": "2026-10-02T12:21:45.580Z",
+        "createdAt": "2026-10-03T09:25:58.568Z",
         "status": "complete",
         "input": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectRevision": 16,
           "dofOrder": [
             "ux",
@@ -8178,13 +8178,13 @@
     "loadCombinations": [],
     "nextLoadCombinationNumber": 1,
     "latestAnalysis": {
-      "id": "analysis_2a190f20-c943-4007-849d-e03729e65567",
-      "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+      "id": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
+      "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
       "projectRevision": 16,
-      "createdAt": "2026-10-02T12:21:45.580Z",
+      "createdAt": "2026-10-03T09:25:58.568Z",
       "status": "complete",
       "input": {
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 16,
         "dofOrder": [
           "ux",
@@ -10133,10 +10133,10 @@
   "undone": {
     "format": "framemind-project",
     "formatVersion": 1,
-    "id": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+    "id": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
     "name": "T26 选柱对比",
-    "createdAt": "2026-10-02T12:21:44.264Z",
-    "updatedAt": "2026-10-02T12:21:46.028Z",
+    "createdAt": "2026-10-03T09:25:57.257Z",
+    "updatedAt": "2026-10-03T09:26:00.125Z",
     "revision": 18,
     "units": {
       "length": "m",
@@ -10323,13 +10323,13 @@
     "nextLoadCaseNumber": 2,
     "analysisResults": [
       {
-        "id": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "id": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 14,
-        "createdAt": "2026-10-02T12:21:44.267Z",
+        "createdAt": "2026-10-03T09:25:57.269Z",
         "status": "complete",
         "input": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectRevision": 14,
           "dofOrder": [
             "ux",
@@ -12268,13 +12268,13 @@
         }
       },
       {
-        "id": "analysis_2a190f20-c943-4007-849d-e03729e65567",
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "id": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 16,
-        "createdAt": "2026-10-02T12:21:45.580Z",
+        "createdAt": "2026-10-03T09:25:58.568Z",
         "status": "complete",
         "input": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectRevision": 16,
           "dofOrder": [
             "ux",
@@ -14216,13 +14216,13 @@
     "loadCombinations": [],
     "nextLoadCombinationNumber": 1,
     "latestAnalysis": {
-      "id": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-      "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+      "id": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+      "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
       "projectRevision": 14,
-      "createdAt": "2026-10-02T12:21:44.267Z",
+      "createdAt": "2026-10-03T09:25:57.269Z",
       "status": "complete",
       "input": {
-        "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+        "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
         "projectRevision": 14,
         "dofOrder": [
           "ux",
@@ -16175,10 +16175,10 @@
         "status": "missing-input",
         "message": "请先选择需要修改的柱，不会自动扩展到全结构",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 15,
-          "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+          "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
           "selection": []
         }
       }
@@ -16189,10 +16189,10 @@
         "status": "awaiting-confirmation",
         "message": "选柱截面修改预览已准备，正式模型及结果尚未改变",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 15,
-          "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+          "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
           "selection": [
             {
               "kind": "member",
@@ -16203,7 +16203,7 @@
           ]
         },
         "sectionChange": {
-          "id": "section_change_3c47d6b3-08fb-4e49-9e0c-67aa8f2105db",
+          "id": "section_change_36766f86-205f-4802-97cb-c6bb95e79dc7",
           "version": 1,
           "memberIds": [
             "member_0001"
@@ -16269,15 +16269,15 @@
       }
     },
     {
-      "input": "{\"proposalId\":\"section_change_3c47d6b3-08fb-4e49-9e0c-67aa8f2105db\",\"memberIds\":[\"member_0001\"],\"baseRevision\":15}",
+      "input": "{\"proposalId\":\"section_change_36766f86-205f-4802-97cb-c6bb95e79dc7\",\"memberIds\":[\"member_0001\"],\"baseRevision\":15}",
       "output": {
         "status": "applied",
         "message": "截面修改阶段已应用，可整组撤销和重做",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 16,
-          "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+          "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
           "selection": [
             {
               "kind": "member",
@@ -16288,7 +16288,7 @@
           ]
         },
         "data": {
-          "requestId": "confirm_a6eba777-5d07-4e45-b673-b5ca30033f3f",
+          "requestId": "confirm_b7e10dc9-9264-486b-b60b-49ed36495910",
           "memberIds": [
             "member_0001"
           ],
@@ -16310,19 +16310,19 @@
       }
     },
     {
-      "input": "{\"projectId\":\"project_384b123d-152c-4c6f-92e5-04f26dc3e6dd\",\"modelRevision\":16}",
+      "input": "{\"projectId\":\"project_cae91ca8-948d-4a95-a0de-cf19b5e33472\",\"modelRevision\":16}",
       "output": {
         "status": "completed",
         "message": "本地分析完成 · 4 个节点、2 根杆件，已展示结果",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 16,
-          "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+          "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
           "selection": []
         },
         "data": {
-          "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+          "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
           "modelRevision": 16,
           "units": {
             "length": "m",
@@ -16518,13 +16518,13 @@
         "status": "completed",
         "message": "已读取两次确定分析的对比及来源",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 17,
-          "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+          "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
           "comparison": {
-            "beforeId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-            "afterId": "analysis_2a190f20-c943-4007-849d-e03729e65567"
+            "beforeId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+            "afterId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d"
           },
           "selection": [
             {
@@ -16537,9 +16537,9 @@
         },
         "data": {
           "before": {
-            "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+            "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
             "inputRevision": 14,
-            "createdAt": "2026-10-02T12:21:44.267Z",
+            "createdAt": "2026-10-03T09:25:57.269Z",
             "current": false,
             "source": {
               "id": "LC1",
@@ -16562,9 +16562,9 @@
             "status": "前份历史输入，保留冻结来源"
           },
           "after": {
-            "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+            "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
             "inputRevision": 16,
-            "createdAt": "2026-10-02T12:21:45.580Z",
+            "createdAt": "2026-10-03T09:25:58.568Z",
             "current": true,
             "source": {
               "id": "LC1",
@@ -16744,13 +16744,13 @@
         "status": "completed",
         "message": "已核对前后数值及差值，可定位同一对比表",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 17,
-          "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+          "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
           "comparison": {
-            "beforeId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-            "afterId": "analysis_2a190f20-c943-4007-849d-e03729e65567"
+            "beforeId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+            "afterId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d"
           },
           "selection": [
             {
@@ -16764,9 +16764,9 @@
         "comparisonReference": {
           "token": "[[comparison:t26-node]]",
           "before": {
-            "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+            "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
             "inputRevision": 14,
-            "createdAt": "2026-10-02T12:21:44.267Z",
+            "createdAt": "2026-10-03T09:25:57.269Z",
             "current": false,
             "source": {
               "id": "LC1",
@@ -16790,9 +16790,9 @@
             "unit": "m"
           },
           "after": {
-            "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+            "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
             "inputRevision": 16,
-            "createdAt": "2026-10-02T12:21:45.580Z",
+            "createdAt": "2026-10-03T09:25:58.568Z",
             "current": true,
             "source": {
               "id": "LC1",
@@ -16821,9 +16821,9 @@
         "data": {
           "token": "[[comparison:t26-node]]",
           "before": {
-            "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+            "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
             "inputRevision": 14,
-            "createdAt": "2026-10-02T12:21:44.267Z",
+            "createdAt": "2026-10-03T09:25:57.269Z",
             "current": false,
             "source": {
               "id": "LC1",
@@ -16847,9 +16847,9 @@
             "unit": "m"
           },
           "after": {
-            "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+            "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
             "inputRevision": 16,
-            "createdAt": "2026-10-02T12:21:45.580Z",
+            "createdAt": "2026-10-03T09:25:58.568Z",
             "current": true,
             "source": {
               "id": "LC1",
@@ -16883,13 +16883,13 @@
         "status": "completed",
         "message": "已核对前后数值及差值，可定位同一对比表",
         "context": {
-          "projectId": "project_384b123d-152c-4c6f-92e5-04f26dc3e6dd",
+          "projectId": "project_cae91ca8-948d-4a95-a0de-cf19b5e33472",
           "projectName": "T26 选柱对比",
           "modelRevision": 17,
-          "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+          "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
           "comparison": {
-            "beforeId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
-            "afterId": "analysis_2a190f20-c943-4007-849d-e03729e65567"
+            "beforeId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
+            "afterId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d"
           },
           "selection": [
             {
@@ -16903,9 +16903,9 @@
         "comparisonReference": {
           "token": "[[comparison:t26-reaction]]",
           "before": {
-            "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+            "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
             "inputRevision": 14,
-            "createdAt": "2026-10-02T12:21:44.267Z",
+            "createdAt": "2026-10-03T09:25:57.269Z",
             "current": false,
             "source": {
               "id": "LC1",
@@ -16929,9 +16929,9 @@
             "unit": "kN"
           },
           "after": {
-            "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+            "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
             "inputRevision": 16,
-            "createdAt": "2026-10-02T12:21:45.580Z",
+            "createdAt": "2026-10-03T09:25:58.568Z",
             "current": true,
             "source": {
               "id": "LC1",
@@ -16960,9 +16960,9 @@
         "data": {
           "token": "[[comparison:t26-reaction]]",
           "before": {
-            "analysisId": "analysis_624d28f9-2df7-432e-b299-2c85119407bd",
+            "analysisId": "analysis_d0546ba4-9a5a-4071-8c46-31ac5e2d1ef2",
             "inputRevision": 14,
-            "createdAt": "2026-10-02T12:21:44.267Z",
+            "createdAt": "2026-10-03T09:25:57.269Z",
             "current": false,
             "source": {
               "id": "LC1",
@@ -16986,9 +16986,9 @@
             "unit": "kN"
           },
           "after": {
-            "analysisId": "analysis_2a190f20-c943-4007-849d-e03729e65567",
+            "analysisId": "analysis_dea76196-34ec-4b9b-8c59-d7bdd719470d",
             "inputRevision": 16,
-            "createdAt": "2026-10-02T12:21:45.580Z",
+            "createdAt": "2026-10-03T09:25:58.568Z",
             "current": true,
             "source": {
               "id": "LC1",

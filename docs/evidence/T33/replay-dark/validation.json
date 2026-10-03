@@ -1,6 +1,6 @@
 {
-  "runId": "f49a5153-d4c2-4262-bb00-c3d1dd893cc8",
-  "startedAt": "2026-10-02T17:47:58.004Z",
+  "runId": "f2447bd9-5e2d-4519-b026-d8d18c971780",
+  "startedAt": "2026-10-03T08:27:10.020Z",
   "outcome": "passed",
   "fixtureId": "T33-two-storey-v1",
   "date": "2026-10-03",
@@ -20,7 +20,7 @@
   "stage": "passed",
   "firstUse": "Pending real participant; automation is not AC-20 evidence",
   "fixtureSHA256": "e0520b9670303173eef3c2a31f409040c049bb167f391004d852e645ff5689ee",
-  "buildIndexSHA256": "e31d0e2d5d3815b53ae44387500f28dc576f985d6870812aca14a9aad1357ca1",
+  "buildIndexSHA256": "7bb4166b9b788dc41811055ec404c88644384f564b912a1763c3ef06eed87d61",
   "model": "deepseek-flash",
   "beforeBalance": {
     "reaction": {
@@ -106,13 +106,13 @@
             "status": "missing-input",
             "message": "方案草稿需要补齐或澄清参数",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 0,
               "selection": []
             },
             "proposal": {
-              "id": "proposal_407fbd6f-6286-4998-8542-d49db5b33858",
+              "id": "proposal_32b22cd2-d664-4280-9b19-a57e989b8752",
               "version": 1,
               "parameters": {
                 "storeys": {
@@ -265,7 +265,7 @@
         {
           "name": "确认建模阶段 · 已应用",
           "input": {
-            "proposalId": "proposal_407fbd6f-6286-4998-8542-d49db5b33858",
+            "proposalId": "proposal_32b22cd2-d664-4280-9b19-a57e989b8752",
             "proposalVersion": 2,
             "baseRevision": 0
           },
@@ -273,14 +273,14 @@
             "status": "applied",
             "message": "建模阶段已应用，可整组撤销和重做",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 1,
               "selection": []
             },
             "data": {
-              "requestId": "confirm_d6a41c49-bb45-4009-bb52-37c06e94a752",
-              "proposalId": "proposal_407fbd6f-6286-4998-8542-d49db5b33858",
+              "requestId": "confirm_ab133c59-12eb-48bb-830a-7557b6aedcaa",
+              "proposalId": "proposal_32b22cd2-d664-4280-9b19-a57e989b8752",
               "proposalVersion": 2,
               "baseRevision": 0,
               "appliedRevision": 1,
@@ -749,7 +749,7 @@
             "status": "awaiting-confirmation",
             "message": "分析条件预览已准备，尚未应用",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 1,
               "selection": []
@@ -810,7 +810,7 @@
                   ]
                 }
               ],
-              "id": "conditions_d9446a38-ea63-4481-8a71-b645d514d80d",
+              "id": "conditions_f7c3455b-c2a9-4cd9-8795-2eeaa1feecd1",
               "version": 1,
               "analysisSourceId": "demo",
               "supports": [
@@ -1025,7 +1025,7 @@
         {
           "name": "确认分析条件阶段 · 已应用",
           "input": {
-            "proposalId": "conditions_d9446a38-ea63-4481-8a71-b645d514d80d",
+            "proposalId": "conditions_f7c3455b-c2a9-4cd9-8795-2eeaa1feecd1",
             "proposalVersion": 1,
             "baseRevision": 1
           },
@@ -1033,14 +1033,14 @@
             "status": "applied",
             "message": "分析条件阶段已应用，可整组撤销和重做",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 2,
               "selection": []
             },
             "data": {
-              "requestId": "confirm_6cfadb92-83d5-4939-9b36-158e8c61809f",
-              "proposalId": "conditions_d9446a38-ea63-4481-8a71-b645d514d80d",
+              "requestId": "confirm_5d6300c4-6a5d-4dcc-9e01-939cb6dfc7ba",
+              "proposalId": "conditions_f7c3455b-c2a9-4cd9-8795-2eeaa1feecd1",
               "proposalVersion": 1,
               "baseRevision": 1,
               "appliedRevision": 2,
@@ -1193,20 +1193,20 @@
         {
           "name": "本地空间刚架分析 · 已完成",
           "input": {
-            "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+            "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
             "modelRevision": 2
           },
           "output": {
             "status": "completed",
             "message": "本地分析完成 · 12 个节点、16 根杆件，已展示结果",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 2,
               "selection": []
             },
             "data": {
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "modelRevision": 2,
               "units": {
                 "length": "m",
@@ -2227,16 +2227,16 @@
             "status": "completed",
             "message": "已读取所选分析的真实结果",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 3,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": []
             },
             "data": {
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2470,17 +2470,17 @@
             "status": "completed",
             "message": "已核对实际结果项，可用引用标记定位",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 3,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": []
             },
             "reference": {
               "token": "[[result:t33-node]]",
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2515,9 +2515,9 @@
             },
             "data": {
               "token": "[[result:t33-node]]",
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2577,17 +2577,17 @@
             "status": "completed",
             "message": "已核对实际结果项，可用引用标记定位",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 3,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": []
             },
             "reference": {
               "token": "[[result:t33-reaction]]",
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2622,9 +2622,9 @@
             },
             "data": {
               "token": "[[result:t33-reaction]]",
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2684,17 +2684,17 @@
             "status": "completed",
             "message": "已核对实际结果项，可用引用标记定位",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 3,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": []
             },
             "reference": {
               "token": "[[result:t33-member]]",
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2734,9 +2734,9 @@
             },
             "data": {
               "token": "[[result:t33-member]]",
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "inputRevision": 2,
-              "createdAt": "2026-10-02T17:48:01.655Z",
+              "createdAt": "2026-10-03T08:27:13.577Z",
               "current": true,
               "source": {
                 "id": "CB1",
@@ -2812,10 +2812,10 @@
             "status": "awaiting-confirmation",
             "message": "选柱截面修改预览已准备，正式模型及结果尚未改变",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 3,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": [
                 {
                   "kind": "member",
@@ -2832,7 +2832,7 @@
               ]
             },
             "sectionChange": {
-              "id": "section_change_08a60277-a4b1-46d2-9e16-d906b4a7a56c",
+              "id": "section_change_0b5786e2-bbd9-4e62-b9a3-05cb51321130",
               "version": 1,
               "memberIds": [
                 "member_0001",
@@ -2950,7 +2950,7 @@
         {
           "name": "确认截面修改阶段 · 已应用",
           "input": {
-            "proposalId": "section_change_08a60277-a4b1-46d2-9e16-d906b4a7a56c",
+            "proposalId": "section_change_0b5786e2-bbd9-4e62-b9a3-05cb51321130",
             "memberIds": [
               "member_0001",
               "member_0002"
@@ -2961,10 +2961,10 @@
             "status": "applied",
             "message": "截面修改阶段已应用，可整组撤销和重做",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 4,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": [
                 {
                   "kind": "member",
@@ -2981,7 +2981,7 @@
               ]
             },
             "data": {
-              "requestId": "confirm_fc34aa0d-04f3-4a8b-86ec-3a89a3d755f7",
+              "requestId": "confirm_c72aead7-9e08-42b3-9984-32a406bac527",
               "memberIds": [
                 "member_0001",
                 "member_0002"
@@ -3013,21 +3013,21 @@
         {
           "name": "本地空间刚架分析 · 已完成",
           "input": {
-            "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+            "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
             "modelRevision": 4
           },
           "output": {
             "status": "completed",
             "message": "本地分析完成 · 12 个节点、16 根杆件，已展示结果",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 4,
-              "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+              "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
               "selection": []
             },
             "data": {
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "modelRevision": 4,
               "units": {
                 "length": "m",
@@ -4048,13 +4048,13 @@
             "status": "completed",
             "message": "已读取两次确定分析的对比及来源",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -4073,9 +4073,9 @@
             },
             "data": {
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -4108,9 +4108,9 @@
                 "status": "前份历史输入，保留冻结来源"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -4786,13 +4786,13 @@
             "status": "completed",
             "message": "已核对前后数值及差值，可定位同一对比表",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -4812,9 +4812,9 @@
             "comparisonReference": {
               "token": "[[comparison:t33-node]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -4848,9 +4848,9 @@
                 "unit": "m"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -4889,9 +4889,9 @@
             "data": {
               "token": "[[comparison:t33-node]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -4925,9 +4925,9 @@
                 "unit": "m"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -4977,13 +4977,13 @@
             "status": "completed",
             "message": "已核对前后数值及差值，可定位同一对比表",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -5003,9 +5003,9 @@
             "comparisonReference": {
               "token": "[[comparison:t33-reaction]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -5039,9 +5039,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -5080,9 +5080,9 @@
             "data": {
               "token": "[[comparison:t33-reaction]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -5116,9 +5116,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -5168,13 +5168,13 @@
             "status": "completed",
             "message": "已核对前后数值及差值，可定位同一对比表",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -5194,9 +5194,9 @@
             "comparisonReference": {
               "token": "[[comparison:t33-member]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -5235,9 +5235,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -5281,9 +5281,9 @@
             "data": {
               "token": "[[comparison:t33-member]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -5322,9 +5322,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -5388,13 +5388,13 @@
             "status": "completed",
             "message": "已读取两次确定分析的对比及来源",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -5413,9 +5413,9 @@
             },
             "data": {
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -5448,9 +5448,9 @@
                 "status": "前份历史输入，保留冻结来源"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6126,13 +6126,13 @@
             "status": "completed",
             "message": "已核对前后数值及差值，可定位同一对比表",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -6152,9 +6152,9 @@
             "comparisonReference": {
               "token": "[[comparison:t33-node]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -6188,9 +6188,9 @@
                 "unit": "m"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6229,9 +6229,9 @@
             "data": {
               "token": "[[comparison:t33-node]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -6265,9 +6265,9 @@
                 "unit": "m"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6317,13 +6317,13 @@
             "status": "completed",
             "message": "已核对前后数值及差值，可定位同一对比表",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -6343,9 +6343,9 @@
             "comparisonReference": {
               "token": "[[comparison:t33-reaction]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -6379,9 +6379,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6420,9 +6420,9 @@
             "data": {
               "token": "[[comparison:t33-reaction]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -6456,9 +6456,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6508,13 +6508,13 @@
             "status": "completed",
             "message": "已核对前后数值及差值，可定位同一对比表",
             "context": {
-              "projectId": "project_20c08cee-7edd-47ac-b3ac-7c743e99ba4c",
+              "projectId": "project_ca4d2a2a-5185-4ed3-b23b-bd245770eec2",
               "projectName": "未命名项目",
               "modelRevision": 5,
-              "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+              "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
               "comparison": {
-                "beforeId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
-                "afterId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70"
+                "beforeId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
+                "afterId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1"
               },
               "selection": [
                 {
@@ -6534,9 +6534,9 @@
             "comparisonReference": {
               "token": "[[comparison:t33-member]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -6575,9 +6575,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6621,9 +6621,9 @@
             "data": {
               "token": "[[comparison:t33-member]]",
               "before": {
-                "analysisId": "analysis_8f1ab56a-fe96-49dd-85ed-d1ea3ca7f03a",
+                "analysisId": "analysis_c06fe946-ac56-4f9a-a870-1daf3e1104cb",
                 "inputRevision": 2,
-                "createdAt": "2026-10-02T17:48:01.655Z",
+                "createdAt": "2026-10-03T08:27:13.577Z",
                 "current": false,
                 "source": {
                   "id": "CB1",
@@ -6662,9 +6662,9 @@
                 "unit": "kN"
               },
               "after": {
-                "analysisId": "analysis_ab23a112-55b2-4897-ac5e-48bd9fa7dd70",
+                "analysisId": "analysis_2273957a-c20a-4b54-87e6-97a799cb39b1",
                 "inputRevision": 4,
-                "createdAt": "2026-10-02T17:48:04.450Z",
+                "createdAt": "2026-10-03T08:27:17.848Z",
                 "current": true,
                 "source": {
                   "id": "CB1",
@@ -6718,7 +6718,7 @@
       "tools": []
     }
   ],
-  "finishedAt": "2026-10-02T17:48:11.102Z",
+  "finishedAt": "2026-10-03T08:27:27.301Z",
   "verified": {
     "parameterCompletion": true,
     "previewIsolation": true,
@@ -6732,29 +6732,29 @@
     "saveReopen": true
   },
   "artifacts": {
-    "before.framemind": "2856bc646e1cf77515758e49594e4ade0b54f487aa9daaf43e858470d8c4e1a9",
-    "after.framemind": "f7b3d826d0691c8801a0e6ded263d74b9d4475a4d205d760c809bd8ba01c9ede",
-    "计算书.docx": "7e9762423e42051a1a65bee190c2a20b1e1abb9fed6cbd9cba224b5c3b6cf3ba",
-    "计算书.pdf": "424f1ce12ab9429363b10fa16ffca41f65761a9c7e61126da377245ada9129d9",
-    "comparison-1080.png": "6b95f29e90e7ebbe3567fe0186fbcc74be68fb077b80a1fa0686ed3b5c492970",
-    "comparison-1440.png": "664734e7c9c7638bdc674a4d577e26cf48de0155769ca1f24695782c11a7eae2",
-    "conditions-preview-1080.png": "1149b072b7676bf9250faa0106783ebfdfc614e7f858ef12eddcd40e1659f7b5",
-    "conditions-preview-1440.png": "f77fff5656fd03843fbfea23762120926e3663f148dd4565cd6dc08b289ab343",
-    "deformation-1080.png": "05836af046da96b6acbf43e40ccbbfa71a3acc9a27e78fb9d565beb7b5db31d5",
-    "deformation-1440.png": "10465712b98a3b1d2397e5a2d30500ef54875bcb8cad9543176d1d545193a252",
-    "forces-1080.png": "529f5941aef8b7faebddd48977f4b0a8957364423ef2a408dd460f5744498532",
-    "forces-1440.png": "1b4075aca5e27034e61848a9ad183bae18a8b581f994c75f510612f5a9685e7a",
-    "frame-preview-1080.png": "3af8e97eac4ae6cb74a59d9df0ec14191c045e7436eb87c81f6d01c4373a7987",
-    "frame-preview-1440.png": "38badd2474234f0381d4dd0c5e0760d1e727673782e373bb50faed2e48bf1f7c",
-    "guide-1080.png": "1b6109ffb650e5019f357e45241ec2506f28cd46e9fca1bdb1f8f409deaa81d1",
-    "guide-1440.png": "470a4d3ebd3bd33fd2cbd9e3192233e4fc0bc9ebea20cb60cd587fc469bd292a",
-    "network-failure-1080.png": "805fcebb161fc097646f1faef45c6e8fb36f27d35fb58edf851911c688af9eba",
-    "network-failure-1440.png": "343e34e954c28dbceddf41fde499c39d71a0ff9163851302c0f62af5e33c5586",
-    "reference-1080.png": "cb1e360aff50bb815ba6299e4e7e95b6c3f625889a3fd6fd2c0e9952deca903e",
-    "reference-1440.png": "5564dd17f8c9877d4170da2c93cb8b8790a8ee4294890572a58ec3f73a873fc5",
-    "report-1080.png": "9b41f867818f3601805abd87f178fea0fd98f0969da6a1476ec93d42c9c24859",
-    "report-1440.png": "7842003918561ef69d7a89e6a69d288d0e880c7948b3cf204ca9b101072085bd",
-    "section-preview-1080.png": "f2e8a56ec865d270adb71129fa29999d10c6428abf324ffa7b6bd9a165a1b0cc",
-    "section-preview-1440.png": "2c082c593b109e9a462bbeba5e33582126b759b37acc5653a3f161043306d66a"
+    "before.framemind": "bf98b7c892c95b99c60624cbf8c0ec044dcaa405c9ad84ecdd74e835d6871deb",
+    "after.framemind": "7bb9286d303ea8a92c794b1f7bf2efeb60e00493a389e52a174d2df23619d176",
+    "计算书.docx": "f7c616872706a0e10b08607075ab469d17e1c273764c4acaddaffd43442651ef",
+    "计算书.pdf": "ba6f69b48511815df128d489845ccf7045b408a787391fe74994e3818b67d9d4",
+    "comparison-1080.png": "ccc90811c9a4440cb58f72542d4287c1ba0a9a7d03d3e5397b2bdc2a0980ca67",
+    "comparison-1440.png": "423bfba1a9ebd199a1f891433677a293b80e3b072807b46f654d1e304cf6edef",
+    "conditions-preview-1080.png": "c05cf15a1c650705a549215540002626e202c6a235dfc9b488df9fd8391d7458",
+    "conditions-preview-1440.png": "2d03a85361e1d0ee17215ceb83dc31cbdb3f0df07cc89e5f0bddd5e0278f3f63",
+    "deformation-1080.png": "f18de92117c89cd246f4aa4e72bcc2780b425137fae1047a5fde9362f922cd0d",
+    "deformation-1440.png": "f7ab7375799b1b618b12b2311564de58a082c474cc54749d03fb5aca12286cac",
+    "forces-1080.png": "61004dd7af1bac6a723c75c54eeede0bdcd4b7150953fedefb4652304ea7c648",
+    "forces-1440.png": "163a4897ee5c72216a23c58ecccaabd68befd74df8674da9cc7664bf4baba858",
+    "frame-preview-1080.png": "22d4a29ae17ddf66a56cc7efc28b58b1d617599414e3797a4bf0df68fb6c4018",
+    "frame-preview-1440.png": "5354be6c2f3312c76a55a9197e5df1dbf7250b1f91bb471534aa768f0cd73b14",
+    "guide-1080.png": "b1b7aa740abadae1477cea8a851ec03dc1196140ecd95fe110935e32343c0fed",
+    "guide-1440.png": "c6dae67f28b6538875e2ab5b16d76d5cd8b475a8bc6bb8cd16d40ea2de1e2e1f",
+    "network-failure-1080.png": "5bc77a198c1e9825192f22e2ddefc3ba53e6c799e824baabf22c369ee3834101",
+    "network-failure-1440.png": "30154e77367c0d1a6dec3e6cdf28cd38b38d1836259a19c994f1c5108cb5c817",
+    "reference-1080.png": "72800bfbad45d845d3d519a3a04c32ada0c235af1838045a75add57505af9bab",
+    "reference-1440.png": "0276abb631931ec8e0ae75055216ece29cb9607a17c1339616d963c60e0dc968",
+    "report-1080.png": "4a19b8c7a21341c64ae5ed28dcb3128c69f2e8eef38100bf3ffaecd33c03baeb",
+    "report-1440.png": "b559067d41cfab57963dcca3c35570e67a6b24240288f4b3343a595530040427",
+    "section-preview-1080.png": "4929ee6536d37a460a754be4a551a128623f5167b1b34e0f4658c1044cde955c",
+    "section-preview-1440.png": "7cc40acc949dde42ad300f2560727bce1e8263f3404a9ab1c0804e1a46ca50ec"
   }
 }
