@@ -12,8 +12,8 @@ test("AI home shows recent conversations, expands history and reopens the select
     const fieldBox = (await field.boundingBox())!;
     const addBox = (await page.getByRole("button", { name: "添加附件或插件" }).boundingBox())!;
     const sendBox = (await page.getByRole("button", { name: "发送消息", exact: true }).boundingBox())!;
-    expect(fieldBox.height).toBeGreaterThan(40);
-    expect((await composer.boundingBox())!.height).toBeLessThan(110);
+    expect(fieldBox.height).toBeGreaterThan(24);
+    expect((await composer.boundingBox())!.height).toBeLessThan(85);
     expect(addBox.y).toBeGreaterThanOrEqual(fieldBox.y + fieldBox.height);
     expect(sendBox.x).toBeGreaterThan(addBox.x + addBox.width);
     await page.screenshot({ path: "test-results/ai-home.png" });

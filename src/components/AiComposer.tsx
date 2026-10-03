@@ -41,7 +41,7 @@ export function AiComposer({ draft, onDraft, busy, paused, analysisBusy, blocked
     onSend(draft.trim() || attachments.map((file) => file.name).join("、"), requestText);
     setAttachments([]); setFileError(""); setMenu(null);
   }}>
-    <textarea aria-label="AI 消息草稿" rows={2} maxLength={8000} value={draft} onChange={(event) => onDraft(event.target.value)} onKeyDown={(event) => {
+    <textarea aria-label="AI 消息草稿" rows={1} maxLength={8000} value={draft} onChange={(event) => onDraft(event.target.value)} onKeyDown={(event) => {
       if ((event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) event.stopPropagation();
       if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
         event.preventDefault();

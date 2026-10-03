@@ -17,7 +17,7 @@ export function ResizableWorkspace({ resourceOpen, assistantOpen, resourcePanelI
   const clamp = (width: number) => Math.max(minimum, Math.min(maximum, width));
   const compact = areaWidth <= 1160;
   const leftWidth = clamp(resourceWidth ?? (compact ? 220 : 230));
-  const rightWidth = clamp(assistantWidth ?? 220);
+  const rightWidth = clamp(assistantWidth ?? (compact ? 220 : 260));
 
   useLayoutEffect(() => {
     const workspace = workspaceRef.current;

@@ -339,10 +339,10 @@ button { color: inherit; }
 .viewport-preview-legend span { display: inline-block; width: 18px; border-top: 2px dashed var(--model-preview); margin-right: var(--space-2); vertical-align: middle; }
 .ai-recovery-actions { display: flex; justify-content: flex-end; }
 .assistant-composer { flex: none; display: flex; flex-direction: column; margin: var(--space-4); border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--surface-panel-muted); }
-.assistant-composer textarea { display: block; min-width: 0; width: 100%; box-sizing: border-box; field-sizing: content; min-height: calc(2lh + 2 * var(--space-4)); max-height: min(30vh, calc(6lh + 2 * var(--space-4))); resize: none; padding: var(--space-4); border: 0; border-radius: 20px 20px 0 0; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: var(--text-body); line-height: var(--line-height-body); }
+.assistant-composer textarea { display: block; min-width: 0; width: 100%; box-sizing: border-box; field-sizing: content; min-height: calc(1lh + 2 * var(--space-2)); max-height: min(30vh, calc(6lh + 2 * var(--space-2))); resize: none; padding: var(--space-2) var(--space-4); border: 0; border-radius: 20px 20px 0 0; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: var(--text-body); line-height: var(--line-height-body); }
 .assistant-composer textarea::placeholder { color: var(--text-muted); }
 .assistant-composer:focus-within { border-color: var(--focus-border); }
-.assistant-composer-actions { flex: none; display: flex; align-items: center; justify-content: space-between; padding: var(--space-1) var(--space-4) var(--space-2); }
+.assistant-composer-actions { flex: none; display: flex; align-items: center; justify-content: space-between; padding: var(--space-0) var(--space-4) var(--space-1); }
 .ai-add-actions { position: relative; }
 .assistant-composer .ai-add-button { width: 32px; height: 32px; }
 .assistant-composer .ai-send-button { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-action); color: var(--text-on-action); }
