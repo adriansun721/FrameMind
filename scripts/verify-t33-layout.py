@@ -23,8 +23,9 @@ def main():
     parser.add_argument("--renderer", required=True)
     parser.add_argument("--modes", nargs="+", choices=["replay", "online"], default=["replay", "online"])
     parser.add_argument("--output-dir", default=str(Path(tempfile.gettempdir()) / "framemind-t33-layout"))
+    parser.add_argument("--evidence-root", default=str(Path(__file__).resolve().parents[1] / "docs/evidence/T33"))
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[1] / "docs/evidence/T33"
+    root = Path(args.evidence_root).resolve()
     output = Path(args.output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     spec = importlib.util.spec_from_file_location("render_docx", args.renderer)

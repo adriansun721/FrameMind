@@ -1,0 +1,744 @@
+{
+  "date": "2026-10-03",
+  "stories": [
+    {
+      "id": "US-001",
+      "tasks": [
+        "T01",
+        "T34"
+      ],
+      "evidence": [
+        "docs/decisions/0001-t01-desktop-stack-and-project-format.md"
+      ],
+      "status": "本机安装回归通过；干净环境待验收"
+    },
+    {
+      "id": "US-002",
+      "tasks": [
+        "T16"
+      ],
+      "evidence": [
+        "docs/evidence/T16-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-003",
+      "tasks": [
+        "T01",
+        "T04",
+        "T15",
+        "T34"
+      ],
+      "evidence": [
+        "docs/decisions/0001-t01-desktop-stack-and-project-format.md",
+        "docs/evidence/T04-validation.md",
+        "docs/evidence/T15-validation.md"
+      ],
+      "status": "本机安装回归通过；干净环境待验收"
+    },
+    {
+      "id": "US-004",
+      "tasks": [
+        "T16",
+        "T33"
+      ],
+      "evidence": [
+        "docs/evidence/T16-validation.md",
+        "docs/evidence/T33-validation.md"
+      ],
+      "status": "技术流程已验证；真人首次使用待验收"
+    },
+    {
+      "id": "US-005",
+      "tasks": [
+        "T16",
+        "T33"
+      ],
+      "evidence": [
+        "docs/evidence/T16-validation.md",
+        "docs/evidence/T33-validation.md"
+      ],
+      "status": "技术流程已验证；真人首次使用待验收"
+    },
+    {
+      "id": "US-006",
+      "tasks": [
+        "T16",
+        "T33"
+      ],
+      "evidence": [
+        "docs/evidence/T16-validation.md",
+        "docs/evidence/T33-validation.md"
+      ],
+      "status": "技术流程已验证；真人首次使用待验收"
+    },
+    {
+      "id": "US-007",
+      "tasks": [
+        "T16",
+        "T33"
+      ],
+      "evidence": [
+        "docs/evidence/T16-validation.md",
+        "docs/evidence/T33-validation.md"
+      ],
+      "status": "技术流程已验证；真人首次使用待验收"
+    },
+    {
+      "id": "US-008",
+      "tasks": [
+        "T01"
+      ],
+      "evidence": [
+        "docs/decisions/0001-t01-desktop-stack-and-project-format.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-009",
+      "tasks": [
+        "T02"
+      ],
+      "evidence": [
+        "docs/decisions/0002-t02-members-materials-sections-and-local-axes.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-010",
+      "tasks": [
+        "T02"
+      ],
+      "evidence": [
+        "docs/decisions/0002-t02-members-materials-sections-and-local-axes.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-011",
+      "tasks": [
+        "T07"
+      ],
+      "evidence": [
+        "docs/evidence/T07-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-013",
+      "tasks": [
+        "T07"
+      ],
+      "evidence": [
+        "docs/evidence/T07-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-012",
+      "tasks": [
+        "T08"
+      ],
+      "evidence": [
+        "docs/evidence/T08-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-018",
+      "tasks": [
+        "T08"
+      ],
+      "evidence": [
+        "docs/evidence/T08-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-014",
+      "tasks": [
+        "T13"
+      ],
+      "evidence": [
+        "docs/evidence/T13-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-015",
+      "tasks": [
+        "T02",
+        "T13"
+      ],
+      "evidence": [
+        "docs/decisions/0002-t02-members-materials-sections-and-local-axes.md",
+        "docs/evidence/T13-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-016",
+      "tasks": [
+        "T02"
+      ],
+      "evidence": [
+        "docs/decisions/0002-t02-members-materials-sections-and-local-axes.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-017",
+      "tasks": [
+        "T03",
+        "T23"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T23-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-019",
+      "tasks": [
+        "T21",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T21-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-020",
+      "tasks": [
+        "T21",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T21-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-021",
+      "tasks": [
+        "T21",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T21-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-022",
+      "tasks": [
+        "T21",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T21-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-023",
+      "tasks": [
+        "T21",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T21-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-024",
+      "tasks": [
+        "T22",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T22-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-029",
+      "tasks": [
+        "T22",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T22-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-030",
+      "tasks": [
+        "T22",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T22-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-025",
+      "tasks": [
+        "T20",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T20-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-026",
+      "tasks": [
+        "T22",
+        "T23",
+        "T24",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T22-validation.md",
+        "docs/evidence/T23-validation.md",
+        "docs/evidence/T24-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-027",
+      "tasks": [
+        "T20",
+        "T27"
+      ],
+      "evidence": [
+        "docs/evidence/T20-validation.md",
+        "docs/evidence/T27-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-028",
+      "tasks": [
+        "T23"
+      ],
+      "evidence": [
+        "docs/evidence/T23-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-031",
+      "tasks": [
+        "T03",
+        "T23"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T23-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-032",
+      "tasks": [
+        "T09",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T09-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-033",
+      "tasks": [
+        "T10",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T10-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-034",
+      "tasks": [
+        "T11",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T11-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-035",
+      "tasks": [
+        "T12",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T12-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-036",
+      "tasks": [
+        "T12",
+        "T24"
+      ],
+      "evidence": [
+        "docs/evidence/T12-validation.md",
+        "docs/evidence/T24-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-037",
+      "tasks": [
+        "T03",
+        "T04",
+        "T23"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T04-validation.md",
+        "docs/evidence/T23-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-038",
+      "tasks": [
+        "T05"
+      ],
+      "evidence": [
+        "docs/evidence/T05-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-039",
+      "tasks": [
+        "T05"
+      ],
+      "evidence": [
+        "docs/evidence/T05-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-040",
+      "tasks": [
+        "T06",
+        "T32"
+      ],
+      "evidence": [
+        "docs/evidence/T06-validation.md",
+        "docs/evidence/T32-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-041",
+      "tasks": [
+        "T03",
+        "T04",
+        "T14"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T04-validation.md",
+        "docs/evidence/T14-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-042",
+      "tasks": [
+        "T03",
+        "T04",
+        "T14"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T04-validation.md",
+        "docs/evidence/T14-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-043",
+      "tasks": [
+        "T14"
+      ],
+      "evidence": [
+        "docs/evidence/T14-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-044",
+      "tasks": [
+        "T14",
+        "T25"
+      ],
+      "evidence": [
+        "docs/evidence/T14-validation.md",
+        "docs/evidence/T25-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-045",
+      "tasks": [
+        "T11",
+        "T12",
+        "T14"
+      ],
+      "evidence": [
+        "docs/evidence/T11-validation.md",
+        "docs/evidence/T12-validation.md",
+        "docs/evidence/T14-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-046",
+      "tasks": [
+        "T15"
+      ],
+      "evidence": [
+        "docs/evidence/T15-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-047",
+      "tasks": [
+        "T15",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T15-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-048",
+      "tasks": [
+        "T25",
+        "T26"
+      ],
+      "evidence": [
+        "docs/evidence/T25-validation.md",
+        "docs/evidence/T26-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-049",
+      "tasks": [
+        "T17"
+      ],
+      "evidence": [
+        "docs/evidence/T17-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-050",
+      "tasks": [
+        "T18"
+      ],
+      "evidence": [
+        "docs/evidence/T18-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-051",
+      "tasks": [
+        "T18"
+      ],
+      "evidence": [
+        "docs/evidence/T18-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-052",
+      "tasks": [
+        "T28"
+      ],
+      "evidence": [
+        "docs/evidence/T28-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-053",
+      "tasks": [
+        "T29"
+      ],
+      "evidence": [
+        "docs/evidence/T29-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-054",
+      "tasks": [
+        "T28",
+        "T30"
+      ],
+      "evidence": [
+        "docs/evidence/T28-validation.md",
+        "docs/evidence/T30-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-055",
+      "tasks": [
+        "T28",
+        "T29",
+        "T30"
+      ],
+      "evidence": [
+        "docs/evidence/T28-validation.md",
+        "docs/evidence/T29-validation.md",
+        "docs/evidence/T30-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-056",
+      "tasks": [
+        "T03",
+        "T04",
+        "T31"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T04-validation.md",
+        "docs/evidence/T31-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-057",
+      "tasks": [
+        "T33"
+      ],
+      "evidence": [
+        "docs/evidence/T33-validation.md"
+      ],
+      "status": "真人首次使用未验收"
+    },
+    {
+      "id": "US-058",
+      "tasks": [
+        "T32"
+      ],
+      "evidence": [
+        "docs/evidence/T32-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-059",
+      "tasks": [
+        "T19"
+      ],
+      "evidence": [
+        "docs/evidence/T19-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-060",
+      "tasks": [
+        "T19"
+      ],
+      "evidence": [
+        "docs/evidence/T19-validation.md"
+      ],
+      "status": "既有任务技术证据可复核"
+    },
+    {
+      "id": "US-061",
+      "tasks": [
+        "T03",
+        "T19",
+        "T27",
+        "T34"
+      ],
+      "evidence": [
+        "docs/decisions/0003-t03-spatial-frame-analysis.md",
+        "docs/evidence/T19-validation.md",
+        "docs/evidence/T27-validation.md"
+      ],
+      "status": "本机安装回归通过；干净环境待验收"
+    },
+    {
+      "id": "US-062",
+      "tasks": [
+        "T27",
+        "T34"
+      ],
+      "evidence": [
+        "docs/evidence/T27-validation.md"
+      ],
+      "status": "本机安装回归通过；干净环境待验收"
+    }
+  ],
+  "acceptance": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05",
+    "AC-06",
+    "AC-07",
+    "AC-08",
+    "AC-09",
+    "AC-10",
+    "AC-11",
+    "AC-12",
+    "AC-13",
+    "AC-14",
+    "AC-15",
+    "AC-16",
+    "AC-17",
+    "AC-18",
+    "AC-19",
+    "AC-20"
+  ],
+  "releaseStatus": "candidate; AC-20 and clean Windows pending"
+}

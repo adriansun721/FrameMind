@@ -1,0 +1,12 @@
+{
+  "runId": "44f6ba1f-c0de-4ea4-b7aa-905fd4f168fa",
+  "startedAt": "2026-10-03T04:16:45.529Z",
+  "outcome": "passed",
+  "executablePath": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t34-install-ibVuKu\\中文安装目录\\FrameMind.exe",
+  "members": 1120,
+  "worker": "real bundled Worker",
+  "archiveSHA256": "56fd1d151d272e3bbb2aa3efbf077399e0e867df477041e525b72c1431dbd762",
+  "resultsAfterCancellation": 0,
+  "resultsAfterRetry": 1,
+  "finishedAt": "2026-10-03T04:16:53.464Z"
+}

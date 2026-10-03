@@ -1,0 +1,32 @@
+appId: com.framemind.desktop
+productName: FrameMind
+directories:
+  output: release
+  buildResources: build
+asar: true
+npmRebuild: false
+files:
+  - dist/**
+  - dist-electron/*.js
+  - '!dist-electron/*.test.js'
+  - package.json
+extraResources:
+  - from: release-assets
+    to: 交付资料
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  executableName: FrameMind
+nsis:
+  artifactName: FrameMind-${version}-Windows-x64-Setup.${ext}
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: false
+  createStartMenuShortcut: true
+  runAfterFinish: false
+  deleteAppDataOnUninstall: false
+  installerLanguages: [zh_CN, en_US]
+  language: '2052'

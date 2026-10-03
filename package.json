@@ -25,19 +25,20 @@
     "evidence:t32": "npm run build && node scripts/verify-t32-performance.cjs",
     "evidence:t33": "npm run build && node scripts/run-e2e-isolated.cjs e2e/t33-complete-demo.spec.ts",
     "evidence:t33:online": "npm run build && node scripts/verify-t33-online.cjs",
-    "check": "npm run typecheck && npm test && npm run test:e2e"
+    "check": "npm run typecheck && npm test && npm run test:e2e",
+    "package:win": "npm run build && node scripts/prepare-t34-delivery.cjs && electron-builder --win nsis --x64 --publish never",
+    "evidence:t34": "node scripts/verify-t34-install.cjs",
+    "evidence:t34:online": "node scripts/verify-t34-install.cjs --online",
+    "delivery:t34": "node scripts/create-t34-delivery.cjs"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
     "docx": "^9.7.1",
-    "electron": "latest",
     "jszip": "^3.10.2",
     "lucide-react": "latest",
     "pdf-lib": "^1.17.1",
     "react": "latest",
     "react-dom": "latest",
-    "three": "latest",
-    "vite": "latest"
+    "three": "latest"
   },
   "devDependencies": {
     "@playwright/test": "latest",
@@ -49,9 +50,13 @@
     "@types/three": "latest",
     "concurrently": "latest",
     "cross-env": "latest",
+    "electron-builder": "26.17.0",
     "jsdom": "latest",
     "typescript": "latest",
     "vitest": "latest",
-    "wait-on": "latest"
+    "wait-on": "latest",
+    "electron": "44.5.1",
+    "vite": "8.3.1",
+    "@vitejs/plugin-react": "6.1.1"
   }
 }

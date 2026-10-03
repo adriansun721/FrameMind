@@ -126,7 +126,7 @@ function verifyReferences(turn, before, after) {
   }
 }
 
-async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33" }) {
+async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33", executablePath }) {
   const directory = await mkdtemp(join(tmpdir(), "framemind-t33-"));
   const mode = online ? "online" : "replay";
   const output = resolve(evidenceRoot, `${mode}-${theme}`);
@@ -150,7 +150,13 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
       const source = join(process.env.APPDATA, require("../package.json").name);
       for (const name of ["deepseek.credentials", "Local State"]) await copyFile(join(source, name), join(directory, name));
     }
-    app = await electron.launch({ args: ["."], env }); const page = await app.firstWindow();
+    app = await electron.launch({ executablePath, args: executablePath ? [] : ["."], env }); const page = await app.firstWindow();
+    if (executablePath) {
+      report.installedExecutableSHA256 = createHash("sha256").update(await readFile(executablePath)).digest("hex");
+      report.installedApp = await app.evaluate(({ app }) => ({ packaged: app.isPackaged, appPath: app.getAppPath(), executable: process.execPath }));
+      assert.equal(report.installedApp.packaged, true);
+      report.installedArchiveSHA256 = createHash("sha256").update(await readFile(join(report.installedApp.appPath))).digest("hex");
+    }
     await expect(page.getByRole("button", { name: "文件", exact: true })).toBeVisible();
     report.environment.runtime = await app.evaluate(() => ({ electron: process.versions.electron, chrome: process.versions.chrome, node: process.versions.node }));
     await page.getByRole("button", { name: "设置", exact: true }).click();

@@ -1,0 +1,230 @@
+{
+  "replay-dark": {
+    "runId": "04af542b-58de-452a-ab1c-656597766f6b",
+    "pdf": {
+      "pages": 16,
+      "fonts": [
+        [
+          "AAAAAA+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BAAAAA+MicrosoftYaHei",
+          true
+        ],
+        [
+          "CAAAAA+TimesNewRomanPSMT",
+          true
+        ],
+        [
+          "DAAAAA+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    },
+    "word": {
+      "pages": 22,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+DengXian-Bold",
+          true
+        ],
+        [
+          "BCDGEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDHEE+DengXian",
+          true
+        ],
+        [
+          "BCDIEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDJEE+ArialMT",
+          true
+        ],
+        [
+          "BCDKEE+MicrosoftYaHei-Bold",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    }
+  },
+  "replay-light": {
+    "runId": "12749316-e2e4-4bb2-8bba-4dfb31ff0c09",
+    "pdf": {
+      "pages": 16,
+      "fonts": [
+        [
+          "AAAAAA+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BAAAAA+MicrosoftYaHei",
+          true
+        ],
+        [
+          "CAAAAA+TimesNewRomanPSMT",
+          true
+        ],
+        [
+          "DAAAAA+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    },
+    "word": {
+      "pages": 22,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDGEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDHEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDIEE+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    }
+  },
+  "online-dark": {
+    "runId": "a8c9fcf8-acad-4655-84c6-2fb4625cb6d0",
+    "pdf": {
+      "pages": 16,
+      "fonts": [
+        [
+          "AAAAAA+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BAAAAA+MicrosoftYaHei",
+          true
+        ],
+        [
+          "CAAAAA+TimesNewRomanPSMT",
+          true
+        ],
+        [
+          "DAAAAA+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    },
+    "word": {
+      "pages": 22,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDGEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDHEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDIEE+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    }
+  },
+  "online-light": {
+    "runId": "4b0ad079-c35b-4acb-b752-0410e9e6ece9",
+    "pdf": {
+      "pages": 16,
+      "fonts": [
+        [
+          "AAAAAA+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BAAAAA+MicrosoftYaHei",
+          true
+        ],
+        [
+          "CAAAAA+TimesNewRomanPSMT",
+          true
+        ],
+        [
+          "DAAAAA+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    },
+    "word": {
+      "pages": 22,
+      "fonts": [
+        [
+          "BCDEEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDFEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDGEE+MicrosoftYaHei-Bold",
+          true
+        ],
+        [
+          "BCDHEE+MicrosoftYaHei",
+          true
+        ],
+        [
+          "BCDIEE+ArialMT",
+          true
+        ]
+      ],
+      "out_of_page": [],
+      "missing_word_paragraphs": [],
+      "correct_analysis_id": true
+    }
+  }
+}

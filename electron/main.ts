@@ -18,7 +18,8 @@ if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.en
 
 let deepSeek: DeepSeekConnection;
 const productionUrl = pathToFileURL(join(__dirname, "../dist/index.html")).href;
-const trustedUrl = process.env.VITE_DEV_SERVER_URL ?? productionUrl;
+const developmentUrl = app.isPackaged ? undefined : process.env.VITE_DEV_SERVER_URL;
+const trustedUrl = developmentUrl ?? productionUrl;
 function requireTrustedSender(event: IpcMainInvokeEvent): void {
   if (!BrowserWindow.fromWebContents(event.sender) || event.senderFrame !== event.sender.mainFrame
     || event.senderFrame.url !== trustedUrl && event.senderFrame.url !== `${trustedUrl}/`) {
@@ -83,7 +84,6 @@ function createWindow(): void {
     if (url !== trustedUrl && url !== `${trustedUrl}/`) event.preventDefault();
   });
 
-  const developmentUrl = process.env.VITE_DEV_SERVER_URL;
   if (developmentUrl) {
     void window.loadURL(developmentUrl);
   } else {

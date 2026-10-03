@@ -1,0 +1,23 @@
+{
+  "runId": "1eadc977-97c8-4a25-9648-8da7663feafb",
+  "startedAt": "2026-10-03T04:15:44.361Z",
+  "outcome": "passed",
+  "version": "0.1.0",
+  "os": "10.0.26200",
+  "architecture": "x64",
+  "installer": "D:\\FrameMind\\release\\FrameMind-0.1.0-Windows-x64-Setup.exe",
+  "installationDirectory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t34-install-ibVuKu\\中文安装目录",
+  "cleanMachine": false,
+  "cleanMachineReason": "Developer host, fresh application profiles and PATH stripped in offline tests; Windows Sandbox unavailable",
+  "online": true,
+  "firstUse": "Pending real participant (AC-20)",
+  "installerSHA256": "db5cef844b33b27bcc5c72292825c5e567c67a93678997955b624d7b679cebb3",
+  "executableSHA256": "8d861b9ce35ccc98ec77cc3b9b404d9f2cf7f2f56c01980e23fbfebdb63f45f6",
+  "archiveSHA256": "56fd1d151d272e3bbb2aa3efbf077399e0e867df477041e525b72c1431dbd762",
+  "deliveryManifestSHA256": "b499a8c76a7f9bb02eb19a2700b3e6c1676369ccafb3e6d76ccca78ca0a8940d",
+  "deliveryFiles": 13,
+  "offline": "passed: unconfigured, removed credential, disconnected, Chinese paths, both themes, restart, exports, real Worker cancellation/retry",
+  "completeWorkflow": "passed: real DeepSeek HTTPS in both themes",
+  "uninstall": "passed",
+  "finishedAt": "2026-10-03T04:21:00.166Z"
+}

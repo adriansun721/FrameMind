@@ -1,5 +1,7 @@
 # FrameMind
 
+T34 已加入 Windows x64 NSIS 候选安装包、固定示例和质量资料、安装版离线回归与禁网 Sandbox 复验脚本。开发构建运行 `npm ci`、`npm run package:win`，输出到 `release/`；安装验证运行 `npm run evidence:t34`，真实 DeepSeek 完整流程运行 `npm run evidence:t34:online`（复用已有本机加密凭据并产生 API 用量）。详见 [启动与限制说明](docs/release/Windows-quick-start.md) 和 [验收索引](docs/release/T34-acceptance.md)。**真人试用与干净 Windows 实测仍待执行，当前为候选交付，首版未全部完成。**
+
 T33 已增加首次使用引导、固定两层钢刚架完整演示、双主题回放和真实 DeepSeek 联测，修复 AI 新增柱截面的身份错误导致报告导出/项目重开失败的问题。技术验收与项目、Word/PDF 证据见 [T33 验收记录](docs/evidence/T33-validation.md)。**真人首次试用尚待执行，T33 未标为全部完成**；试用材料见 [首次使用记录](docs/evidence/T33-first-use.md)。`npm run evidence:t33` 运行固定回放；`npm run evidence:t33:online` 复用本机已配置的加密凭据，会产生 DeepSeek API 用量。两种模式独立记录，回放不计作在线通过。
 
 T16 完整工作台：左侧可折叠项目树、模型下方可独立收起、拖动调整高度的横向属性栏、最右 AI 对话区；设置中可选择深色/浅色主题并在重启后保留。主题同时更新三维标记和原生标题栏。验收与双主题截图见 [T16 验收记录](docs/evidence/T16-validation.md)。T21—T24 已接入自然语言参数卡片、三维预览、阶段确认、成组撤销重做和确认后自动续算，T28—T30 已实现按指定分析导出可编辑 Word 和 PDF 工程计算书。
