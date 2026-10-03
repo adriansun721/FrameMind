@@ -2,7 +2,7 @@ import type { AiTaskResult } from "../workspace/ai-task";
 import { resultReferenceLabel, type ResultReference } from "../workspace/ai-results";
 import type { AnalysisPairIds } from "../workspace/ai-comparison";
 
-export function AiResultExplanation({ result, onLocate, onCompare }: { result: AiTaskResult; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
+export function AiResultExplanation({ result, onLocate, onCompare }: { result: Pick<AiTaskResult, "assistant" | "records">; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
   const references = result.records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
   const comparisons = result.records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
   if (!result.assistant) return null;

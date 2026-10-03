@@ -53,7 +53,11 @@ it("replays real result evidence and rejects fabricated or absent reference toke
   for (const [reply, status] of [["计算事实：[[result:citation_1]]。原因推断：与悬臂端横向荷载有关。", "completed"],
     ["计算事实：[[result:forged]]", "failed"], ["位移为123米", "failed"]] as const) {
     const requests: DeepSeekChatRequest[] = [];
-    const task = startAiTask(snapshot, "解释关键位移", { isCurrent: () => true, transport: {
+    const visible: string[] = [];
+    const task = startAiTask(snapshot, "解释关键位移", { isCurrent: () => true, onOutput: (output) => {
+      visible.push(output.assistant!);
+      expect(output.records[0].result.reference?.token).toBe("[[result:citation_1]]");
+    }, transport: {
       cancelDeepSeekChat: async () => {},
       chatDeepSeek: async (request) => {
         requests.push(structuredClone(request));
@@ -64,6 +68,11 @@ it("replays real result evidence and rejects fabricated or absent reference toke
     } });
     const output = await task.promise;
     expect(output.status).toBe(status);
+    if (status === "completed") {
+      expect(visible.at(-1)).toBe(reply);
+      expect(visible.length).toBeGreaterThan(1);
+      for (const text of visible) expect(text.replace("[[result:citation_1]]", "")).not.toContain("[[");
+    } else expect(visible).toEqual([]);
     const evidence = requests[1].messages.find((message) => message.role === "tool");
     expect(JSON.parse(evidence!.content!)).toMatchObject({ reference: { value: expect.closeTo(-0.005333333333333333, 12), analysisId: snapshot.analysis!.id } });
     if (status === "failed") expect(output.assistant).toBeUndefined();

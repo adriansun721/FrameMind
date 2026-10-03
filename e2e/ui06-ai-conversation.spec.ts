@@ -1,6 +1,55 @@
 import { expect, test } from "@playwright/test";
 import { desktop } from "./frame-proposal-actions";
 
+test("AI replies have wider side gutters and reveal progressively with local pause and instant history", async () => {
+  await desktop(async (app, page) => {
+    const reply = "建模前请核对层高、跨度、材料与截面。\n".repeat(24);
+    await app.evaluate((_electron, content) => {
+      const state = { requests: 0 };
+      (globalThis as typeof globalThis & { revealFixture?: typeof state }).revealFixture = state;
+      globalThis.fetch = async () => {
+        state.requests += 1;
+        return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content } }] }));
+      };
+    }, reply);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const resizer = page.getByRole("separator", { name: "调整 AI 对话面板宽度" });
+    await resizer.focus(); await resizer.press("End");
+    await page.getByLabel("AI 消息草稿").fill("帮我准备建模");
+    await page.getByRole("button", { name: "发送消息", exact: true }).click();
+    const message = page.locator(".ai-assistant-message");
+    await expect(message).toBeVisible();
+    await page.getByRole("button", { name: "暂停输出", exact: true }).click();
+    const partial = (await message.textContent())!;
+    expect(partial.length).toBeGreaterThan(0);
+    expect(partial.length).toBeLessThan(reply.length);
+    expect(reply.startsWith(partial)).toBe(true);
+    await expect(page.getByTestId("ai-turn-status")).toHaveText("已暂停输出");
+    await expect(message).toHaveText(partial, { useInnerText: false });
+    const log = page.getByRole("log", { name: "对话消息" });
+    const spacing = await log.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { left: parseFloat(style.paddingLeft), right: parseFloat(style.paddingRight), overflow: element.scrollWidth > element.clientWidth };
+    });
+    expect(spacing.left).toBeGreaterThanOrEqual(24);
+    expect(spacing.right).toBe(spacing.left);
+    expect(spacing.overflow).toBe(false);
+    await page.screenshot({ path: "test-results/ai-progressive-wide.png" });
+    await page.getByRole("button", { name: "继续输出", exact: true }).click();
+    await expect(page.getByTestId("ai-turn-status")).toContainText("已完成", { timeout: 15_000 });
+    expect(await message.textContent()).toBe(reply);
+    expect(await app.evaluate(() => (globalThis as typeof globalThis & { revealFixture?: { requests: number } }).revealFixture?.requests)).toBe(1);
+    await resizer.focus(); await resizer.press("Home");
+    await expect(log).toHaveCSS("padding-left", "20px");
+    await expect(log).toHaveCSS("padding-right", "20px");
+    await page.screenshot({ path: "test-results/ai-progressive-compact.png" });
+    await page.getByRole("button", { name: "历史对话", exact: true }).click();
+    await page.locator(".ai-history-item").first().click();
+    expect(await message.textContent()).toBe(reply);
+    await expect(page.getByRole("button", { name: "发送消息", exact: true })).toBeVisible();
+  });
+});
+
 test("AI home shows recent conversations, expands history and reopens the selected chat", async () => {
   await desktop(async (app, page) => {
     await app.evaluate(() => { globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "收到消息" } }] })); });

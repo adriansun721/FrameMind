@@ -26,6 +26,7 @@ interface ConversationTurn {
   sourceProject: FrameProject;
   progress?: AiProgress;
   result?: AiTaskResult;
+  output?: Pick<AiTaskResult, "assistant" | "records">;
   continuing?: boolean;
   proposal?: FrameProposal;
   conditions?: ConditionsProposal;
@@ -132,6 +133,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const currentRef = useRef({ project, sessionId, selectionKey, analysis, comparisonKey });
   currentRef.current = { project, sessionId, selectionKey, analysis, comparisonKey };
   const logRef = useRef<HTMLDivElement>(null);
+  const followOutputRef = useRef(true);
 
   useEffect(() => {
     if (!turns.length) return;
@@ -150,9 +152,11 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     rejectProposal(); rejectConditions(); rejectSection();
     baselineRef.current = undefined;
     setConversationId(crypto.randomUUID()); setTurns([]); setDraft(""); setShowHome(true);
+    followOutputRef.current = true;
   };
   const openConversation = (conversation: ConversationHistory) => {
     if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
+    followOutputRef.current = true;
     rejectProposal(); rejectConditions(); rejectSection();
     baselineRef.current = undefined;
     setConversationId(conversation.id); setTurns(conversation.turns.map((turn) => turn.result ? turn : {
@@ -240,8 +244,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     taskRef.current?.cancel();
   }, []);
   useEffect(() => {
-    if (open && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [turns, open]);
+    if (open && !showHome && followOutputRef.current && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [turns, open, showHome]);
 
   const submit = async (prompt = draft, continuing = false, retryOf?: string, requestText?: string) => {
     if (!prompt.trim() || taskRef.current || busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
@@ -261,6 +265,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
         { role: "assistant" as const, content: turn.result!.assistant ?? turn.result!.message },
       ]);
     setDraft("");
+    followOutputRef.current = true;
     setShowHome(false);
     setPaused(false);
     setBusy(true);
@@ -285,11 +290,12 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       isCurrent: () => currentRef.current.project === project && currentRef.current.sessionId === sessionId
         && currentRef.current.selectionKey === selectionKey && currentRef.current.analysis === analysis && currentRef.current.comparisonKey === comparisonKey && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions && sectionRef.current === sectionChange,
       onProgress: (progress) => update({ progress }),
+      onOutput: (output) => update({ output }),
     });
     taskRef.current = task;
     try {
       const result = await task.promise;
-      update({ result });
+      update({ result, output: undefined });
       if (result.proposal !== undefined && result.status !== "cancelled" && result.status !== "failed"
         && result.records.some((record) => record.result.proposal !== undefined)
         && currentRef.current.project === project && generationRef.current === generation && proposalRef.current === proposal) {
@@ -311,7 +317,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
         && !continuing && result.records.some((record) => record.result.analysisRequested)
         && calculationRequestedRef.current && intent !== "cancel") continuationRef.current = "analyze";
     } catch {
-      update({ result: { status: "failed", message: "对话未完成，请检查连接设置后重试。", context, records: [] } });
+      update({ result: { status: "failed", message: "对话未完成，请检查连接设置后重试。", context, records: [] }, output: undefined });
     } finally {
       if (taskRef.current === task) {
         taskRef.current = null;
@@ -356,7 +362,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       </button>)}</div>
       {conversations.length > 3 && <button type="button" className="ai-history-expand" aria-expanded={historyExpanded} onClick={() => setHistoryExpanded((value) => !value)}>{historyExpanded ? "收起历史记录" : `查看全部（${conversations.length} 个）`}</button>}
     </section>}
-    <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite" hidden={showHome}>
+    <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite" hidden={showHome}
+      onScroll={(event) => { const log = event.currentTarget; followOutputRef.current = log.scrollHeight - log.scrollTop - log.clientHeight < 48; }}>
       {turns.map((turn) => <article className="ai-turn" key={turn.id}>
         <div className="ai-user-message"><p>{turn.prompt}</p></div>
         <div className="ai-turn-context"><span>R{turn.context.modelRevision}</span><span>{turn.context.selection.map((object) => object.label).join("、") || "整个项目"}</span>
@@ -383,9 +390,10 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
             {turn.result.status === "failed" && <button className="icon-button" aria-label="打开连接设置" title="打开连接设置" onClick={onSettings}><Settings2 size={14} /></button>}
           </div></>}
           {turn.origin === "analysis" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <button disabled={busy || analysisBusy || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange)} onClick={() => void analyze()}>继续本地计算</button>}
-        </> : <div className="ai-turn-status" data-testid="ai-turn-status">{turn.origin === "analysis" ? "正在检查并计算已确认模型" : paused && turn === turns.at(-1) ? "已暂停输出" : turn.progress?.phase === "tool"
+        </> : <><div className="ai-turn-status" data-testid="ai-turn-status">{turn.origin === "analysis" ? "正在检查并计算已确认模型" : paused && turn === turns.at(-1) ? "已暂停输出" : turn.progress?.phase === "tool"
           ? `正在${TOOL_LABELS[turn.progress.toolCall?.function.name ?? ""] ?? "读取模型"}`
-          : turn.progress?.phase === "responding" ? "正在整理回复" : "正在请求 DeepSeek"}</div>}
+          : turn.output ? "正在输出回复" : turn.progress?.phase === "responding" ? "正在整理回复" : "正在请求 DeepSeek"}</div>
+          {turn.output && <AiResultExplanation result={turn.output} onLocate={onLocateResult} onCompare={(pair) => onComparison(pair, true)} />}</>}
       </article>)}
       {proposal && <>
         {!proposalCurrent && <p className="frame-draft-notice">正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。</p>}

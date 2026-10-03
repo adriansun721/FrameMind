@@ -293,10 +293,10 @@ button { color: inherit; }
 .library-content > .form-error { margin: 12px; overflow-wrap: anywhere; }
 .module-panel .icon-button:disabled { opacity: 0.4; cursor: not-allowed; }
 .workspace > .model-area { grid-column: 3; grid-row: 1; }
-.assistant-panel { grid-column: 4; grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-left: 1px solid var(--border-subtle); background: var(--surface-panel); }
-.assistant-messages { flex: 1; min-height: 0; overflow: auto; font-size: var(--text-body); }
+.assistant-panel { --ai-content-inset: clamp(20px, 5cqw, 40px); container-type: inline-size; grid-column: 4; grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-left: 1px solid var(--border-subtle); background: var(--surface-panel); }
+.assistant-messages { flex: 1; min-height: 0; overflow: auto; padding-inline: var(--ai-content-inset); font-size: var(--text-body); }
 .ai-heading-actions { display: flex; }
-.ai-conversation-home { flex: 1; min-height: 0; overflow: auto; padding: var(--space-5) var(--space-4); }
+.ai-conversation-home { flex: 1; min-height: 0; overflow: auto; padding: var(--space-5) var(--ai-content-inset); }
 .ai-history-list { display: flex; flex-direction: column; gap: var(--space-1); }
 .ai-history-item { display: flex; align-items: center; gap: var(--space-4); width: 100%; padding: var(--space-3); border: 0; border-radius: 5px; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--text-body); text-align: left; cursor: pointer; }
 .ai-history-item:hover { background: var(--surface-control-hover); color: var(--text-primary); }
@@ -304,7 +304,7 @@ button { color: inherit; }
 .ai-history-item time { flex: none; font-size: var(--text-caption); color: var(--text-muted); }
 .ai-history-expand { margin: var(--space-3); padding: 0; border: 0; background: transparent; color: var(--text-muted); font: inherit; font-size: var(--text-body); cursor: pointer; }
 .ai-history-item:focus-visible, .ai-history-expand:focus-visible, .ai-add-menu button:focus-visible { outline: 2px solid var(--focus-border); outline-offset: 2px; }
-.ai-turn { padding: var(--space-5) var(--space-4) var(--space-8); overflow-wrap: anywhere; }
+.ai-turn { padding: var(--space-5) 0 var(--space-8); overflow-wrap: anywhere; }
 .ai-user-message { display: flex; justify-content: flex-end; margin-bottom: var(--space-5); }
 .ai-user-message p { max-width: 80%; margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--space-6); background: var(--surface-control); white-space: pre-wrap; line-height: 1.6; }
 .ai-assistant-message { margin: var(--space-3) 0 0; white-space: pre-wrap; line-height: 1.6; }
@@ -338,7 +338,7 @@ button { color: inherit; }
 .viewport-preview-legend { position: absolute; left: var(--space-4); top: 94px; z-index: 2; padding: var(--space-2) var(--space-3); background: var(--surface-panel); border: 1px solid var(--model-preview); color: var(--text-primary); font-size: var(--text-caption); pointer-events: none; }
 .viewport-preview-legend span { display: inline-block; width: 18px; border-top: 2px dashed var(--model-preview); margin-right: var(--space-2); vertical-align: middle; }
 .ai-recovery-actions { display: flex; justify-content: flex-end; }
-.assistant-composer { flex: none; display: flex; flex-direction: column; margin: var(--space-4); border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--surface-panel-muted); }
+.assistant-composer { flex: none; display: flex; flex-direction: column; margin: var(--space-4) var(--ai-content-inset); border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--surface-panel-muted); }
 .assistant-composer textarea { display: block; min-width: 0; width: 100%; box-sizing: border-box; field-sizing: content; min-height: calc(1lh + 2 * var(--space-2)); max-height: min(30vh, calc(6lh + 2 * var(--space-2))); resize: none; padding: var(--space-2) var(--space-4); border: 0; border-radius: 20px 20px 0 0; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: var(--text-body); line-height: var(--line-height-body); }
 .assistant-composer textarea::placeholder { color: var(--text-muted); }
 .assistant-composer:focus-within { border-color: var(--focus-border); }

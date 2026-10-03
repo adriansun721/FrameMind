@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DeepSeekChatRequest, DeepSeekChatResult } from "../../electron/contracts";
 import { addNode, createProject } from "../domain/project";
 import { captureAiSnapshot } from "./ai-tools";
@@ -18,6 +18,61 @@ const selectedRead: DeepSeekChatResult = { status: "success", message: "工具�
   role: "assistant", content: null, tool_calls: [{ id: "call_selection", type: "function",
     function: { name: "read_selection", arguments: "{}" } }],
 } };
+
+afterEach(() => vi.useRealTimers());
+
+describe("AI progressive output", () => {
+  it("reveals Unicode text gradually and pauses/resumes locally without repeating a request", async () => {
+    vi.useFakeTimers();
+    const answer = "你好🙂，这是逐步显示的回答。";
+    const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: answer } }]);
+    const output: string[] = [];
+    const task = startAiTask(captureAiSnapshot(createProject(), []), "你好", {
+      transport: script.transport, isCurrent: () => true,
+      onOutput: (value) => output.push(value.assistant!),
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(output).toEqual(["你好"]);
+    expect(task.pause()).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(output).toEqual(["你好"]);
+    expect(script.cancelled).toEqual([]);
+    task.resume();
+    await vi.runAllTimersAsync();
+    expect(await task.promise).toMatchObject({ status: "completed", assistant: answer });
+    expect(output[1]).toBe("你好🙂，");
+    expect(output.at(-1)).toBe(answer);
+    expect(output.length).toBeGreaterThan(2);
+    expect(script.requests).toHaveLength(1);
+    expect(task.pause()).toBe(false);
+  });
+
+  it.each(["cancel", "context"])("stops publishing text when %s interrupts output", async (interruption) => {
+    vi.useFakeTimers();
+    let current = true;
+    const onOutput = vi.fn();
+    const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "这段回答不应该继续显示。" } }]);
+    const task = startAiTask(captureAiSnapshot(createProject(), []), "你好", {
+      transport: script.transport, isCurrent: () => current, onOutput,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onOutput).toHaveBeenCalledTimes(1);
+    if (interruption === "cancel") task.cancel(); else current = false;
+    await vi.runAllTimersAsync();
+    expect(await task.promise).toMatchObject({ status: "cancelled" });
+    expect(onOutput).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reveal an unverified result reference", async () => {
+    const onOutput = vi.fn();
+    const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "结果是 [[result:unknown]]。" } }]);
+    const task = startAiTask(captureAiSnapshot(createProject(), []), "读取结果", {
+      transport: script.transport, isCurrent: () => true, onOutput,
+    });
+    expect(await task.promise).toMatchObject({ status: "failed" });
+    expect(onOutput).not.toHaveBeenCalled();
+  });
+});
 
 describe("AI conversation task boundary", () => {
   it("pauses a pending response, resumes the same task and ignores the old response", async () => {

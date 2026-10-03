@@ -34,6 +34,7 @@ export interface AiTaskOptions {
   conditions?: ConditionsProposal;
   sectionChange?: SectionChangeProposal;
   onProgress?(progress: AiProgress): void;
+  onOutput?(output: Pick<AiTaskResult, "assistant" | "records">): void;
 }
 export interface AiTask { requestId: string; promise: Promise<AiTaskResult>; cancel(): void; pause(): boolean; resume(): void; }
 
@@ -122,6 +123,20 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (records.some((record) => ["read_results", "read_result"].includes(record.call.function.name)) && !tokens.some((token) => references.some((ref) => ref.token === token))) return result("failed", "结果解释缺少可核对的结果项引用，请重试");
         if (records.some((record) => record.call.function.name === "read_comparison_result" || record.call.function.name === "read_comparison" && (record.result.data as { compatible?: boolean })?.compatible)
           && !tokens.some((token) => comparisons.some((ref) => ref.token === token))) return result("failed", "对比解释缺少可核对的差值引用，请重试");
+        // Reveal only validated text. Keep reference tokens and Unicode characters intact.
+        if (options.onOutput && assistant.content) {
+          const units = assistant.content.match(/\[\[(?:result|comparison):[^\]\r\n]+\]\]|[^]/gu) ?? [];
+          let visible = "";
+          for (let index = 0; index < units.length; index += 2) {
+            if (index > 0) await new Promise<void>((resolve) => setTimeout(resolve, 32));
+            if (paused) await waitForResume();
+            if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+            visible += units.slice(index, index + 2).join("");
+            options.onOutput({ assistant: visible, records: records.slice() });
+          }
+          if (paused) await waitForResume();
+          if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        }
         return result("completed", comparisons.length ? "已引用两次确定分析的实际差值" : references.length ? snapshot.analysisCurrent ? "已引用所选分析的实际结果" : "已引用历史输入结果，当前模型需重算"
           : records.length ? "已根据当前已应用模型完成回复" : "AI 回复已接收，未读取模型工具", assistant.content ?? undefined);
       }
