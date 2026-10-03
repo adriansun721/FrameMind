@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RotateCcw, Send, Settings2, Square, Trash2, X } from "lucide-react";
+import { History, RotateCcw, Settings2, SquarePen, Trash2, X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
 import { captureAiSnapshot, type AiContext, type AiObjectRef, type AiStatus, type AiToolResult } from "../workspace/ai-tools";
 import { startAiTask, type AiProgress, type AiTaskResult } from "../workspace/ai-task";
@@ -15,11 +15,13 @@ import { SectionChangeCard } from "./SectionChangeCard";
 import { buildSectionPreview, prepareSectionConfirmation, proposeSectionChange, type SectionChangeProposal, type SectionConfirmation } from "../workspace/section-stage";
 import type { AnalysisPairIds } from "../workspace/ai-comparison";
 import { AiResultExplanation } from "./AiResultReferences";
+import { AiComposer } from "./AiComposer";
 
 interface ConversationTurn {
   id: string;
   origin: "chat" | "confirmation" | "analysis";
   prompt: string;
+  requestText?: string;
   context: AiContext;
   sourceProject: FrameProject;
   progress?: AiProgress;
@@ -29,6 +31,23 @@ interface ConversationTurn {
   conditions?: ConditionsProposal;
   sectionChange?: SectionChangeProposal;
 }
+interface ConversationHistory {
+  id: string;
+  turns: ConversationTurn[];
+  updatedAt: number;
+  proposal?: FrameProposal;
+  proposalSource: FrameProject;
+  conditions?: ConditionsProposal;
+  conditionsSource: FrameProject;
+  sectionChange?: SectionChangeProposal;
+  sectionSource: FrameProject;
+  sectionSelection: readonly AiObjectRef[];
+  calculationRequested: boolean;
+  requestPrompt: string;
+  baselineId?: string;
+}
+// Chat stays in the application session and is never written into project files.
+const sessionHistories = new Map<string, ConversationHistory[]>();
 interface Props {
   project: FrameProject;
   sessionId: number;
@@ -73,6 +92,11 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [busy, setBusy] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [showHome, setShowHome] = useState(true);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [conversationId, setConversationId] = useState<string>(() => crypto.randomUUID());
+  const [conversations, setConversations] = useState(() => sessionHistories.get(project.id) ?? []);
   const [proposal, setProposal] = useState<FrameProposal | undefined>();
   const [proposalDirty, setProposalDirty] = useState(false);
   const [sectionChange, setSectionChange] = useState<SectionChangeProposal>();
@@ -108,6 +132,37 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const currentRef = useRef({ project, sessionId, selectionKey, analysis, comparisonKey });
   currentRef.current = { project, sessionId, selectionKey, analysis, comparisonKey };
   const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!turns.length) return;
+    setConversations((previous) => {
+      const next = [{ id: conversationId, turns, updatedAt: Date.now(), proposal, proposalSource,
+        conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested,
+        requestPrompt: requestPromptRef.current, baselineId: baselineRef.current },
+      ...previous.filter((item) => item.id !== conversationId)].slice(0, 30);
+      sessionHistories.set(project.id, next);
+      return next;
+    });
+  }, [turns, conversationId, project.id, proposal, proposalSource, conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested]);
+
+  const newConversation = () => {
+    if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
+    rejectProposal(); rejectConditions(); rejectSection();
+    baselineRef.current = undefined;
+    setConversationId(crypto.randomUUID()); setTurns([]); setDraft(""); setShowHome(true);
+  };
+  const openConversation = (conversation: ConversationHistory) => {
+    if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
+    rejectProposal(); rejectConditions(); rejectSection();
+    baselineRef.current = undefined;
+    setConversationId(conversation.id); setTurns(conversation.turns.map((turn) => turn.result ? turn : {
+      ...turn, result: { status: "cancelled", message: "会话切换已中断本次请求，请基于当前模型重新发送。", context: turn.context, records: [] },
+    })); setDraft(""); setShowHome(false);
+    proposalRef.current = conversation.proposal; setProposal(conversation.proposal); setProposalSource(conversation.proposalSource);
+    conditionsRef.current = conversation.conditions; setConditions(conversation.conditions); setConditionsSource(conversation.conditionsSource);
+    sectionRef.current = conversation.sectionChange; setSectionChange(conversation.sectionChange); setSectionSource(conversation.sectionSource); setSectionSelection(conversation.sectionSelection);
+    setCalculationRequested(conversation.calculationRequested); requestPromptRef.current = conversation.requestPrompt; baselineRef.current = conversation.baselineId;
+  };
 
   useEffect(() => {
     if (sectionChange && sectionCurrent && !sectionDirty) {
@@ -188,9 +243,10 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     if (open && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [turns, open]);
 
-  const submit = async (prompt = draft, continuing = false, retryOf?: string) => {
+  const submit = async (prompt = draft, continuing = false, retryOf?: string, requestText?: string) => {
     if (!prompt.trim() || taskRef.current || busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty) return;
     const text = prompt.trim();
+    const taskText = requestText ?? text;
     const intent = continuing ? undefined : calculationIntent(text);
     if (intent === "cancel") { setCalculationRequested(false); continuationRef.current = null; }
     else if (intent === "request") { setCalculationRequested(true); requestPromptRef.current = text; }
@@ -201,12 +257,14 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       && turn.sourceProject === project && JSON.stringify(turn.context.selection) === JSON.stringify(context.selection))
       .filter((turn) => turn.context.analysisId === context.analysisId && JSON.stringify(turn.context.comparison) === comparisonKey && !turn.result!.records.some((record) => record.result.reference || record.result.comparisonReference))
       .slice(-4).flatMap((turn) => [
-        { role: "user" as const, content: turn.prompt },
+        { role: "user" as const, content: turn.requestText ?? turn.prompt },
         { role: "assistant" as const, content: turn.result!.assistant ?? turn.result!.message },
       ]);
     setDraft("");
+    setShowHome(false);
+    setPaused(false);
     setBusy(true);
-    setTurns((previous) => [...previous.slice(-19), { id, origin: "chat", prompt: text, context, sourceProject: project, continuing, proposal, conditions, sectionChange }]);
+    setTurns((previous) => [...previous.slice(-19), { id, origin: "chat", prompt: text, requestText, context, sourceProject: project, continuing, proposal, conditions, sectionChange }]);
     const update = (changes: Partial<ConversationTurn>) => {
       if (generationRef.current === generation) {
         setTurns((previous) => previous.map((turn) => turn.id === id ? { ...turn, ...changes } : turn));
@@ -217,7 +275,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       setBusy(false);
       return;
     }
-    const task = startAiTask(snapshot, text, {
+    const task = startAiTask(snapshot, taskText, {
       transport: window.frameMind,
       retryOf,
       history,
@@ -257,6 +315,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     } finally {
       if (taskRef.current === task) {
         taskRef.current = null;
+        setPaused(false);
         setBusy(false);
       }
     }
@@ -281,20 +340,23 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
 
   return <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!open}>
     <div className="panel-heading"><span>AI 对话</span><div className="ai-heading-actions">
-      <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || analysisBusy || turns.length === 0} onClick={() => { setTurns([]); rejectProposal(); rejectConditions(); rejectSection(); }}><Trash2 size={14} /></button>
+      <button className="icon-button" aria-label="历史对话" title="历史对话" aria-pressed={showHome} disabled={busy || analysisBusy} onClick={() => setShowHome((value) => !value)}><History size={15} /></button>
+      <button className="icon-button" aria-label="新建对话" title="新建对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty} onClick={newConversation}><SquarePen size={15} /></button>
+      {busy && <button className="icon-button" aria-label="取消对话" title="结束本次对话请求" onClick={() => { taskRef.current?.cancel(); setCalculationRequested(false); continuationRef.current = null; }}><X size={14} /></button>}
+      <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || turns.length === 0} onClick={() => {
+        const next = conversations.filter((item) => item.id !== conversationId);
+        setConversations(next); sessionHistories.set(project.id, next); newConversation();
+      }}><Trash2 size={14} /></button>
       <button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={onClose}><X size={15} /></button>
     </div></div>
-    <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite">
-      {turns.length === 0 && <section className="ai-start-guide" aria-label="首次使用引导">
-        <strong>{project.nodes.length ? "从当前模型继续" : "描述你要建立的空间刚架"}</strong>
-        <p>在下方发送任务，核对参数卡片和三维预览，再确认建模与支座、荷载。确认后才能计算。</p>
-        <p>计算后可查看变形和内力，选中柱修改截面并重算；在项目树“工程计算书”导出 Word 或 PDF。</p>
-        {!project.nodes.length && <button type="button" className="button ghost compact-button" disabled={Boolean(draft.trim()) || busy || analysisBusy} onClick={() => {
-          setDraft("建立一个两层空间钢刚架，请先用参数卡片补齐尺寸、材料和截面，预览并由我确认后再设置支座与荷载、计算。");
-        }}>填写两层刚架任务</button>}
-        <button type="button" className="button ghost compact-button" onClick={onSettings}>设置 DeepSeek 连接</button>
-        <p>未配置连接时，可使用顶部建模工具、属性栏和“计算”完成本地分析。</p>
-      </section>}
+    {showHome && <section className="ai-conversation-home" aria-label="历史对话列表">
+      <div className="ai-history-list">{(historyExpanded ? conversations : conversations.slice(0, 3)).map((conversation) => <button type="button" className="ai-history-item" key={conversation.id}
+        disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty} onClick={() => openConversation(conversation)}>
+        <span>{conversation.turns.find((turn) => turn.origin === "chat")?.prompt ?? "对话"}</span><time dateTime={new Date(conversation.updatedAt).toISOString()}>{new Date(conversation.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Taipei" })}</time>
+      </button>)}</div>
+      {conversations.length > 3 && <button type="button" className="ai-history-expand" aria-expanded={historyExpanded} onClick={() => setHistoryExpanded((value) => !value)}>{historyExpanded ? "收起历史记录" : `查看全部（${conversations.length} 个）`}</button>}
+    </section>}
+    <div className="assistant-messages" ref={logRef} role="log" aria-label="对话消息" aria-live="polite" hidden={showHome}>
       {turns.map((turn) => <article className="ai-turn" key={turn.id}>
         <div className="ai-user-message"><p>{turn.prompt}</p></div>
         <div className="ai-turn-context"><span>R{turn.context.modelRevision}</span><span>{turn.context.selection.map((object) => object.label).join("、") || "整个项目"}</span>
@@ -317,11 +379,11 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
               {turn.result.interruption?.draftsDiscarded ? "本次中断生成的草案未应用，需要重新准备。" : proposal || conditions || sectionChange ? "已有草案仍需在卡片中核对并确认。" : "本次任务未提交模型修改。"}
               {!canRetry(turn) && "上下文或阶段已变化，请基于当前模型发送新消息；已提交阶段无需重做。"}</p>
             <div className="ai-recovery-actions">
-            <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || !canRetry(turn)} onClick={() => { if (canRetry(turn)) void submit(turn.prompt, turn.continuing, turn.result?.requestId); }}><RotateCcw size={14} /></button>
+            <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || !canRetry(turn)} onClick={() => { if (canRetry(turn)) void submit(turn.prompt, turn.continuing, turn.result?.requestId, turn.requestText); }}><RotateCcw size={14} /></button>
             {turn.result.status === "failed" && <button className="icon-button" aria-label="打开连接设置" title="打开连接设置" onClick={onSettings}><Settings2 size={14} /></button>}
           </div></>}
           {turn.origin === "analysis" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <button disabled={busy || analysisBusy || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange)} onClick={() => void analyze()}>继续本地计算</button>}
-        </> : <div className="ai-turn-status" data-testid="ai-turn-status">{turn.origin === "analysis" ? "正在检查并计算已确认模型" : turn.progress?.phase === "tool"
+        </> : <div className="ai-turn-status" data-testid="ai-turn-status">{turn.origin === "analysis" ? "正在检查并计算已确认模型" : paused && turn === turns.at(-1) ? "已暂停输出" : turn.progress?.phase === "tool"
           ? `正在${TOOL_LABELS[turn.progress.toolCall?.function.name ?? ""] ?? "读取模型"}`
           : turn.progress?.phase === "responding" ? "正在整理回复" : "正在请求 DeepSeek"}</div>}
       </article>)}
@@ -349,15 +411,9 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       {comparison && <button className="button ghost compact-button" onClick={() => onComparison(comparison, true)}>查看本次前后对比</button>}
       {calculationRequested && <p className="frame-draft-notice">已请求本地计算，等待必要阶段确认；未确认建议不会进入求解。<button onClick={() => { setCalculationRequested(false); continuationRef.current = null; }}>取消后续计算</button></p>}
     </div>
-    <form className="assistant-composer" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-      <textarea aria-label="AI 消息草稿" placeholder="输入消息…" rows={1} maxLength={8000} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
-        if ((event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) event.stopPropagation();
-      }} />
-      <div className="assistant-composer-actions">
-        {analysisBusy ? <button type="button" className="icon-button" aria-label="取消本地计算" title="取消本地计算" onClick={onCancelAnalysis}><Square size={14} /></button>
-          : busy ? <button type="button" className="icon-button" aria-label="取消对话" title="取消对话" onClick={() => { taskRef.current?.cancel(); setCalculationRequested(false); continuationRef.current = null; }}><Square size={14} /></button>
-          : <button className="icon-button" type="submit" aria-label="发送消息" title="发送消息" disabled={!draft.trim() || proposalDirty || conditionsDirty || sectionDirty}><Send size={15} /></button>}
-      </div>
-    </form>
+    <AiComposer key={conversationId} draft={draft} onDraft={setDraft} busy={busy} paused={paused} analysisBusy={analysisBusy}
+      blocked={proposalDirty || conditionsDirty || sectionDirty} onSend={(prompt, requestText) => { void submit(prompt, false, undefined, requestText); }}
+      onPause={() => { if (taskRef.current?.pause()) setPaused(true); }} onResume={() => { taskRef.current?.resume(); setPaused(false); }}
+      onCancelAnalysis={onCancelAnalysis} onSettings={onSettings} />
   </aside>;
 }

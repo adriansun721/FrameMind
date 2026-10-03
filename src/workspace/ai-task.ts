@@ -1,4 +1,4 @@
-import type { DeepSeekChatMessage, DeepSeekToolCall, FrameMindDesktopApi } from "../../electron/contracts";
+import type { DeepSeekChatMessage, DeepSeekChatResult, DeepSeekToolCall, FrameMindDesktopApi } from "../../electron/contracts";
 import { executeAiTool, type AiContext, type AiSnapshot, type AiStatus, type AiToolResult } from "./ai-tools";
 import { frameResourceOptions, type FrameProposal } from "./frame-proposal";
 import type { ConditionsProposal } from "./analysis-conditions";
@@ -35,7 +35,7 @@ export interface AiTaskOptions {
   sectionChange?: SectionChangeProposal;
   onProgress?(progress: AiProgress): void;
 }
-export interface AiTask { requestId: string; promise: Promise<AiTaskResult>; cancel(): void; }
+export interface AiTask { requestId: string; promise: Promise<AiTaskResult>; cancel(): void; pause(): boolean; resume(): void; }
 
 const MAX_ROUNDS = 8;
 const MAX_TOOL_RECORDS = 64;
@@ -44,6 +44,15 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   const requestId = `ai_${crypto.randomUUID()}`;
   let cancelled = false;
   let settled = false;
+  let paused = false;
+  let releasePause: (() => void) | undefined;
+  let interruptRequest: (() => void) | undefined;
+  let activeRequestId: string | undefined;
+  let requestAttempt = 0;
+  const waitForResume = async () => {
+    while (paused && !cancelled) await new Promise<void>((resolve) => { releasePause = resolve; });
+    releasePause = undefined;
+  };
   let resolveCancellation!: (result: AiTaskResult) => void;
   const cancellation = new Promise<AiTaskResult>((resolve) => { resolveCancellation = resolve; });
   const records: AiToolRecord[] = [];
@@ -83,13 +92,28 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       if (round > MAX_ROUNDS) return result("failed", "工具读取轮次已达上限，请缩小对象范围或分开提问");
       progress({ phase: "requesting", round });
       if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-      const response = await options.transport.chatDeepSeek({ requestId, messages });
+      let response: DeepSeekChatResult | undefined;
+      while (!response) {
+        if (paused) await waitForResume();
+        if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+        activeRequestId = requestAttempt === 0 ? requestId : `${requestId}_resume_${requestAttempt}`;
+        const interruption = new Promise<undefined>((resolve) => { interruptRequest = () => resolve(undefined); });
+        try {
+          response = await Promise.race([options.transport.chatDeepSeek({ requestId: activeRequestId, messages }), interruption]);
+        } finally {
+          interruptRequest = undefined;
+          activeRequestId = undefined;
+        }
+        if (!response) requestAttempt += 1;
+      }
+      if (paused) await waitForResume();
       if (cancelled) return result("cancelled", "对话已取消");
       if (!options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
       if (response.status !== "success" || !response.assistant) return result(response.status === "cancelled" ? "cancelled" : "failed", response.message);
       const assistant = response.assistant;
       if (!assistant.tool_calls?.length) {
         progress({ phase: "responding", round });
+        if (paused) await waitForResume();
         if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         const references = records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
         const comparisons = records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
@@ -106,6 +130,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (records.length >= MAX_TOOL_RECORDS) return result("failed", "工具读取数量已达上限，请缩小对象范围或分开提问");
         progress({ phase: "tool", round, toolCall: call });
+        if (paused) await waitForResume();
         if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         const toolResult = executeAiTool(snapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined);
         if (toolResult.proposal !== undefined) proposal = toolResult.proposal;
@@ -113,6 +138,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (toolResult.sectionChange !== undefined) sectionChange = toolResult.sectionChange;
         records.push({ round, call, result: toolResult });
         progress({ phase: "tool", round, toolCall: call, toolResult });
+        if (paused) await waitForResume();
         if (cancelled || !options.isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null) return result("completed", toolResult.message);
         if (toolResult.status !== "completed") return result(toolResult.status, toolResult.message);
@@ -124,10 +150,26 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
     run().catch(() => result(cancelled ? "cancelled" : "failed", cancelled ? "对话已取消" : "对话未完成，请检查连接设置后重试")),
     cancellation,
   ]).then((value) => { settled = true; return value; });
-  return { requestId, promise, cancel: () => {
+  return { requestId, promise, pause: () => {
+    if (settled || cancelled || paused) return false;
+    paused = true;
+    interruptRequest?.();
+    if (activeRequestId) {
+      const id = activeRequestId;
+      void Promise.resolve().then(() => options.transport.cancelDeepSeekChat(id)).catch(() => {});
+    }
+    return true;
+  }, resume: () => {
+    if (!paused || settled || cancelled) return;
+    paused = false;
+    releasePause?.();
+  }, cancel: () => {
     if (settled || cancelled) return;
     cancelled = true;
+    releasePause?.();
+    interruptRequest?.();
     resolveCancellation(result("cancelled", "对话已取消"));
-    void Promise.resolve().then(() => options.transport.cancelDeepSeekChat(requestId)).catch(() => {});
+    const id = activeRequestId ?? requestId;
+    void Promise.resolve().then(() => options.transport.cancelDeepSeekChat(id)).catch(() => {});
   } };
 }

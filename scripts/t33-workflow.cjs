@@ -190,11 +190,10 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
       await expect(page.getByLabel("未保存修改", { exact: true })).toHaveCount(0);
       return JSON.parse(await readFile(projectPath, "utf8"));
     }
-    report.stage = "first-use-guide";
-    await expect(page.getByRole("region", { name: "首次使用引导" })).toBeVisible();
-    await page.getByRole("button", { name: "填写两层刚架任务", exact: true }).click();
-    await expect(page.getByLabel("AI 消息草稿")).toContainText("两层空间钢刚架");
-    await expect(page.getByRole("button", { name: "填写两层刚架任务", exact: true })).toBeDisabled();
+    report.stage = "conversation-home";
+    await expect(page.getByRole("region", { name: "历史对话列表" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "首次使用引导" })).toHaveCount(0);
+    await expect(page.getByLabel("AI 消息草稿")).toHaveValue("");
     await expect(page.getByTestId("ai-turn-status")).toHaveCount(0);
     await capture("guide");
     report.stage = "parameter-completion";

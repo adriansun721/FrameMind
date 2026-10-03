@@ -116,7 +116,7 @@ test("T27 starts only one task when send is submitted twice before the next rend
       globalThis.fetch = async () => { state.requests += 1; return new Promise<Response>(() => undefined); };
     });
     await page.getByLabel("AI 消息草稿").fill("读取当前模型");
-    await page.getByRole("log").evaluate(() => {
+    await page.locator(".assistant-composer").evaluate(() => {
       const form = document.querySelector<HTMLFormElement>(".assistant-composer")!;
       form.requestSubmit(); form.requestSubmit();
     });

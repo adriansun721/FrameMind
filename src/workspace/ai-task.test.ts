@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DeepSeekChatRequest, DeepSeekChatResult } from "../../electron/contracts";
 import { addNode, createProject } from "../domain/project";
 import { captureAiSnapshot } from "./ai-tools";
@@ -20,6 +20,55 @@ const selectedRead: DeepSeekChatResult = { status: "success", message: "工具�
 } };
 
 describe("AI conversation task boundary", () => {
+  it("pauses a pending response, resumes the same task and ignores the old response", async () => {
+    const requests: DeepSeekChatRequest[] = [];
+    const releases: ((response: DeepSeekChatResult) => void)[] = [];
+    const cancelDeepSeekChat = vi.fn(async () => {});
+    const task = startAiTask(captureAiSnapshot(createProject(), []), "你好", { isCurrent: () => true,
+      transport: { chatDeepSeek: (request) => { requests.push(structuredClone(request)); return new Promise((resolve) => releases.push(resolve)); }, cancelDeepSeekChat } });
+    expect(task.pause()).toBe(true);
+    await vi.waitFor(() => expect(cancelDeepSeekChat).toHaveBeenCalledWith(requests[0].requestId));
+    releases[0]({ status: "success", message: "旧请求", assistant: { role: "assistant", content: "旧回答" } });
+    await Promise.resolve();
+    expect(requests).toHaveLength(1);
+    task.resume();
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    expect(requests[1].messages).toEqual(requests[0].messages);
+    expect(requests[1].requestId).not.toBe(requests[0].requestId);
+    releases[1]({ status: "success", message: "完成", assistant: { role: "assistant", content: "你好，已继续" } });
+    expect(await task.promise).toMatchObject({ requestId: task.requestId, status: "completed", assistant: "你好，已继续", records: [] });
+    expect(task.pause()).toBe(false);
+  });
+
+  it("continues after completed tools without replaying them, including repeated pause cycles", async () => {
+    const project = addNode(createProject(), { x: 4, y: 0, z: 0 });
+    const requests: DeepSeekChatRequest[] = [];
+    const releases: ((response: DeepSeekChatResult) => void)[] = [];
+    const task = startAiTask(captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]), "读取节点", { isCurrent: () => true,
+      transport: { chatDeepSeek: (request) => { requests.push(structuredClone(request)); return requests.length === 1 ? Promise.resolve(selectedRead) : new Promise((resolve) => releases.push(resolve)); }, cancelDeepSeekChat: async () => {} } });
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    for (let count = 0; count < 2; count += 1) {
+      expect(task.pause()).toBe(true);
+      await Promise.resolve();
+      task.resume();
+      await vi.waitFor(() => expect(requests).toHaveLength(3 + count));
+      expect(requests.at(-1)!.messages.filter((message) => message.role === "tool")).toHaveLength(1);
+    }
+    releases.at(-1)!({ status: "success", message: "完成", assistant: { role: "assistant", content: "节点已读取" } });
+    expect(await task.promise).toMatchObject({ status: "completed", records: [{ result: { status: "completed" } }] });
+    expect((await task.promise).records).toHaveLength(1);
+  });
+
+  it("cancels a paused task when its context changes and never resumes obsolete work", async () => {
+    let current = true;
+    const chatDeepSeek = vi.fn(() => new Promise<DeepSeekChatResult>(() => {}));
+    const task = startAiTask(captureAiSnapshot(createProject(), []), "读取模型", { isCurrent: () => current,
+      transport: { chatDeepSeek, cancelDeepSeekChat: async () => {} } });
+    task.pause(); current = false; task.cancel(); task.resume();
+    expect(await task.promise).toMatchObject({ status: "cancelled", records: [] });
+    expect(chatDeepSeek).toHaveBeenCalledTimes(1);
+  });
+
   it("records interruption and links a fresh retry to the original task without retaining unsafe transport errors", async () => {
     const snapshot = captureAiSnapshot(createProject(), []);
     const failed = startAiTask(snapshot, "读取模型", { isCurrent: () => true,
