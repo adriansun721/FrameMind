@@ -34,6 +34,15 @@ test("T12 edits, solves, switches and reopens user combinations with traceable s
     await dialog.getByRole("button", { name: "创建组合", exact: true }).click();
     await expect(page.getByLabel("当前组合")).toHaveValue("CB1");
     await dialog.getByRole("button", { name: "关闭组合管理" }).click();
+    await page.getByRole("button", { name: "荷载", exact: true }).focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(page.getByRole("menuitem", { name: "创建荷载", exact: true })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: "创建均布荷载" })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: "工况", exact: true })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("dialog", { name: "荷载工况管理" })).toBeVisible();
+    await page.getByRole("button", { name: "关闭工况管理" }).click();
+    await expect(page.getByLabel("当前组合")).toHaveValue("CB1");
     await page.getByRole("button", { name: "运行分析" }).click(); await expect(page.getByRole("status")).toContainText("分析完成");
     await expect(page.locator(".analysis-result-panel")).toContainText("用户定义");
     await expect(page.locator(".analysis-result-panel")).toContainText("LC2 · 横向风 × -0.5");

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Plus, Save, Trash2, X } from "lucide-react";
+import { Plus, Save, Trash2, Weight, X } from "lucide-react";
 import { addLoadCase, deleteLoadCase, getLoadCaseReferences, selectLoadCase, updateLoadCase, type FrameProject } from "../domain/project";
 import { getLoadCaseResult, isAnalysisResultCurrent } from "../domain/analysis";
 
-export function LoadCaseManager({ project, onChange, onClose }: { project: FrameProject; onChange(project: FrameProject): void; onClose(): void }) {
+export function LoadCaseManager({ project, onChange, onSelfWeight, onClose }: { project: FrameProject; onChange(project: FrameProject): void; onSelfWeight(loadCaseId: string): void; onClose(): void }) {
   const [editingId, setEditingId] = useState(project.activeLoadCaseId);
   const initial = project.loadCases.find((item) => item.id === project.activeLoadCaseId)!;
   const [name, setName] = useState(initial.name);
@@ -47,6 +47,11 @@ export function LoadCaseManager({ project, onChange, onClose }: { project: Frame
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="load-case-actions"><button className="button primary" type="submit"><Save size={14} />{editingId ? "保存工况" : "创建工况"}</button><button className="button ghost" type="button" disabled={!editingId} onClick={remove}><Trash2 size={14} />删除工况</button></div>
       </form>
+      <section className="property-section" aria-label="工况自重">
+        <h3>结构自重{editingId && ` · ${editingId}`}</h3>
+        <p>{editingId ? project.selfWeight.enabled && project.selfWeight.loadCaseId === editingId ? "已计入此工况" : "未计入此工况" : "创建工况后可设置自重"}{project.selfWeight.enabled && project.selfWeight.loadCaseId !== editingId && editingId && `；自重当前计入 ${project.selfWeight.loadCaseId}，启用此工况将调整归属。`}</p>
+        <button className="button ghost" type="button" disabled={!editingId} onClick={() => onSelfWeight(editingId)}><Weight size={14} />设置自重</button>
+      </section>
       {project.analysisResults.length > 0 && <section className="load-case-comparison" aria-label="工况响应比较">
         <h3>工况响应比较</h3>
         <label className="field"><span>比较节点</span><select value={nodeId} onChange={(event) => setNodeId(event.target.value)}>{project.nodes.map((node) => <option key={node.id} value={node.id}>{node.label}</option>)}</select></label>
