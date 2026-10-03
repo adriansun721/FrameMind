@@ -58,7 +58,7 @@ async function verify() {
     await expect(card.getByTestId("frame-proposal-counts")).toHaveText("将创建 12 个节点、8 根柱、8 根梁。");
     assert.equal(await readFile(projectPath, "utf8"), before);
     diagnostic.stage = "local-confirmation";
-    await card.getByRole("button", { name: "确认应用建模阶段", exact: true }).click();
+    await card.getByRole("button", { name: "确认建模", exact: true }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toHaveText("已应用 · 建模阶段已应用，可整组撤销和重做");
     report.confirmation = JSON.parse(await page.locator(".ai-turn").last().locator(".ai-tool-output").textContent());
     assert.equal(report.confirmation.status, "applied");

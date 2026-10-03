@@ -111,6 +111,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const sectionConfirmation = useMemo(() => sectionChange ? prepareSectionConfirmation(sectionSource, sectionSelection, sectionChange) : undefined, [sectionSource, sectionSelection, sectionChange]);
   const [conditions, setConditions] = useState<ConditionsProposal>();
   const conditionsRef = useRef(conditions); conditionsRef.current = conditions;
+  const previousConditionsRef = useRef<ConditionsProposal | undefined>(undefined);
+  const previousSectionRef = useRef<SectionChangeProposal | undefined>(undefined);
   const [conditionsSource, setConditionsSource] = useState(project);
   const [conditionsDirty, setConditionsDirty] = useState(false);
   const [calculationRequested, setCalculationState] = useState(false);
@@ -169,19 +171,19 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   };
 
   useEffect(() => {
-    if (sectionChange && sectionCurrent && !sectionDirty) {
+    if (sectionChange && sectionCurrent) {
       previewCallback.current(buildSectionPreview(snapshot, sectionChange));
-    } else if (conditions && conditionsCurrent && !conditionsDirty && !conditionsIssues(project, conditions).length) {
+    } else if (conditions && conditionsCurrent && !conditionsIssues(project, conditions).length) {
       previewCallback.current(buildConditionsPreview(project, conditions));
-    } else previewCallback.current(proposal && proposalCurrent && !proposalDirty ? buildFramePreview(snapshot, proposal) : null);
+    } else previewCallback.current(proposal && proposalCurrent ? buildFramePreview(snapshot, proposal) : null);
   }, [proposal, proposalCurrent, proposalDirty, snapshot, conditions, conditionsCurrent, conditionsDirty, project, sectionChange, sectionCurrent, sectionDirty]);
   useEffect(() => () => previewCallback.current(null), []);
   const rejectProposal = () => { proposalRef.current = undefined; taskRef.current?.cancel(); setProposal(undefined); setProposalDirty(false); };
   const changeProposal = (next: FrameProposal) => { proposalRef.current = next; taskRef.current?.cancel(); setProposal(next); setProposalSource(project); setProposalDirty(false); };
   const rejectConditions = () => { conditionsRef.current = undefined; taskRef.current?.cancel(); setConditions(undefined); setConditionsDirty(false); setCalculationRequested(false); continuationRef.current = null; };
-  const changeConditions = (next: ConditionsProposal) => { conditionsRef.current = next; taskRef.current?.cancel(); setConditions(next); setConditionsSource(project); setConditionsDirty(false); };
+  const changeConditions = (next: ConditionsProposal) => { previousConditionsRef.current = conditionsRef.current; conditionsRef.current = next; taskRef.current?.cancel(); setConditions(next); setConditionsSource(project); setConditionsDirty(false); };
   const rejectSection = () => { sectionRef.current = undefined; taskRef.current?.cancel(); setSectionChange(undefined); setSectionDirty(false); setSectionError(""); setCalculationRequested(false); continuationRef.current = null; };
-  const changeSection = (next: SectionChangeProposal) => { sectionRef.current = next; taskRef.current?.cancel(); setSectionChange(next); setSectionSource(project); setSectionSelection(selection); setSectionDirty(false); setSectionError(""); };
+  const changeSection = (next: SectionChangeProposal) => { previousSectionRef.current = sectionRef.current; sectionRef.current = next; taskRef.current?.cancel(); setSectionChange(next); setSectionSource(project); setSectionSelection(selection); setSectionDirty(false); setSectionError(""); };
   const confirmSection = () => {
     if (!sectionConfirmation || busy || analysisBusy || sectionDirty || !sectionCurrent || sectionRef.current !== sectionChange || proposal || conditions) return;
     const result = onSectionConfirm(sectionConfirmation);
@@ -305,7 +307,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       if (result.conditions !== undefined && result.status !== "cancelled" && result.status !== "failed"
         && result.records.some((record) => record.result.conditions !== undefined)
         && currentRef.current.project === project && generationRef.current === generation && conditionsRef.current === conditions) {
-        setConditions(result.conditions ?? undefined); setConditionsSource(project); setConditionsDirty(false);
+        previousConditionsRef.current = conditions; setConditions(result.conditions ?? undefined); setConditionsSource(project); setConditionsDirty(false);
         if (result.conditions === null) setCalculationRequested(false);
       }
       if (result.sectionChange !== undefined && result.status !== "cancelled" && result.status !== "failed"
@@ -373,13 +375,15 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
         {turn.result ? <>
           <div className={`ai-turn-status ${turn.result.status}`} data-testid="ai-turn-status">{STATUS_LABELS[turn.result.status]} · {turn.result.message}</div>
           {turn.result.requestId && <details className="ai-context-details"><summary>任务与恢复记录</summary><pre>{JSON.stringify({ requestId: turn.result.requestId, retryOf: turn.result.retryOf, interruption: turn.result.interruption }, null, 2)}</pre></details>}
-          {turn.origin === "confirmation" && turn.result.status === "applied" && <p className="frame-draft-notice">本地提交回执已保留，重试不会再次应用此阶段。撤销后可使用重做恢复。</p>}
+          <details className="ai-context-details"><summary>{turn.origin === "confirmation" ? "操作详情" : "执行详情"} · {turn.result.records.length} 项</summary>
+          {turn.origin === "confirmation" && turn.result.status === "applied" && <p>本地提交回执已保留，重试不会再次应用此阶段。撤销后可使用重做恢复。</p>}
           {turn.result.records.map((record, index) => <details className="ai-tool-record" key={`${record.call.id}:${index}`}>
             <summary>{TOOL_LABELS[record.call.function.name] ?? record.call.function.name} · {STATUS_LABELS[record.result.status]}</summary>
             <p>{record.result.message}</p>
             <details><summary>工具输入</summary><pre>{record.call.function.arguments}</pre></details>
             <details><summary>工具输出</summary><pre className="ai-tool-output">{JSON.stringify(record.result, null, 2)}</pre></details>
           </details>)}
+          </details>
           <AiResultExplanation result={turn.result} onLocate={onLocateResult} onCompare={(pair) => onComparison(pair, true)} />
           {turn.origin === "chat" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <>
             <p className="frame-draft-notice">已确认模型和成功结果保留，本地编辑与计算可继续。
@@ -398,14 +402,19 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       {proposal && <>
         {!proposalCurrent && <p className="frame-draft-notice">正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。</p>}
         <FrameProposalCard key={`${proposal.id}:${proposal.version}`} snapshot={snapshot} proposal={proposal} busy={busy || analysisBusy} current={proposalCurrent && !sectionChange}
+          visible={open && !showHome}
           baseRevision={confirmation!.context.modelRevision} onConfirm={confirmProposal} onChange={changeProposal} onDirty={setProposalDirty} onReject={() => { rejectProposal(); setCalculationRequested(false); continuationRef.current = null; }} />
       </>}
       {conditions && <>
         {!conditionsCurrent && <p className="frame-draft-notice">正式模型已变化，分析条件预览已失效。更新并重新核对后确认。</p>}
         <AnalysisConditionsCard key={`${conditions.id}:${conditions.version}`} project={project} proposal={conditions} busy={busy || analysisBusy} current={conditionsCurrent && !proposal && !sectionChange}
+          visible={open && !showHome} calculate={calculationRequested}
+          previous={previousConditionsRef.current}
           baseRevision={conditionsConfirmation!.context.modelRevision} onDirty={setConditionsDirty} onChange={changeConditions} onConfirm={confirmConditions} onReject={rejectConditions} />
       </>}
       {sectionChange && <SectionChangeCard key={`${sectionChange.id}:${sectionChange.version}`} snapshot={captureAiSnapshot(sectionSource, sectionSelection)} proposal={sectionChange}
+        visible={open && !showHome} calculate={calculationRequested}
+        previous={previousSectionRef.current}
         current={sectionCurrent && !proposal && !conditions} busy={busy || analysisBusy} onChange={changeSection} onDirty={setSectionDirty} onConfirm={confirmSection} onReject={rejectSection}
         onRegenerate={() => {
           try {

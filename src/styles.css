@@ -334,6 +334,41 @@ button { color: inherit; }
 .frame-draft-notice, .frame-issues { color: var(--status-warning); margin: var(--space-4); }
 .frame-proposal-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .frame-proposal-actions button { font-size: inherit; padding: var(--space-2); }
+.proposal-summary-card { margin: var(--space-4) 0; padding: 14px; }
+.proposal-summary { display: grid; gap: 9px; margin: 14px 0; }
+.proposal-summary > div { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.proposal-summary dt { color: var(--text-secondary); font-weight: 400; }
+.proposal-summary dd { margin: 0; line-height: 1.6; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.proposal-suggestion { display: inline-block; margin-left: 6px; padding: 0 4px; border: 1px solid var(--border-subtle); border-radius: 3px; color: var(--status-warning); font-size: var(--text-micro); }
+.proposal-source { margin-left: 8px; color: var(--text-muted); }
+.proposal-card-actions { display: flex; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.proposal-card-actions button { flex: none; white-space: nowrap; padding: 7px; border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-primary); background: var(--surface-control); font: inherit; cursor: pointer; }
+.proposal-condition-group + .proposal-condition-group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+.proposal-more-actions { margin: 16px 0; }
+.proposal-more-actions > summary { cursor: pointer; color: var(--text-secondary); margin-bottom: 8px; }
+.proposal-card-actions .proposal-confirm { margin-left: auto; background: var(--surface-action); color: var(--text-on-action); border-color: var(--surface-action); }
+.proposal-card-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.proposal-card-actions button:focus-visible { outline: 2px solid var(--focus-border); outline-offset: 2px; }
+.proposal-summary-card .frame-issues, .proposal-summary-card .frame-draft-notice { margin: 10px 0; line-height: 1.6; }
+.proposal-row-changed { animation: proposal-change 3s ease-out; }
+@keyframes proposal-change { from { background: var(--surface-control-hover); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .proposal-row-changed { animation: none; text-decoration: underline; } }
+.proposal-drawer { position: fixed; z-index: 8; top: 48px; right: 0; bottom: 0; width: min(560px, 55vw); margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--surface-panel); color: var(--text-primary); border: 0; border-left: 1px solid var(--border-strong); border-radius: 0; box-shadow: -8px 0 24px #0002; }
+.proposal-drawer-heading { display: flex; align-items: center; justify-content: space-between; flex: none; padding: 18px 22px; border-bottom: 1px solid var(--border-subtle); }
+.proposal-drawer-heading div { display: grid; gap: 4px; }
+.proposal-drawer-heading span { color: var(--text-secondary); }
+.proposal-drawer-content { flex: 1; min-height: 0; overflow: auto; padding: 4px 22px 22px; }
+.proposal-drawer .proposal-summary > div { grid-template-columns: 110px minmax(0, 1fr); }
+.proposal-drawer .frame-parameter { margin: 16px 0; }
+.proposal-drawer .frame-object-list { max-height: none; }
+.proposal-drawer form > label, .proposal-drawer fieldset > label { display: grid; gap: 6px; margin: 12px 0; }
+.proposal-drawer form > label select, .proposal-drawer fieldset > label input { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px; background: var(--surface-control); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; }
+.proposal-drawer-footer { flex: none; margin: 0; padding: 14px 22px; background: var(--surface-panel); }
+.proposal-editor-group { margin: 12px 0; border-bottom: 1px solid var(--border-subtle); }
+.proposal-editor-group > summary { padding: 10px 0; cursor: pointer; font-weight: 600; }
+.proposal-editor-group > fieldset { border: 0; margin: 0; padding: 0 0 12px; }
+.proposal-editor-group > fieldset > legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 800px) { .proposal-drawer { width: min(560px, 85vw); } }
 .frame-object-list { max-height: 240px; overflow: auto; line-height: 1.8; }
 .viewport-preview-legend { position: absolute; left: var(--space-4); top: 94px; z-index: 2; padding: var(--space-2) var(--space-3); background: var(--surface-panel); border: 1px solid var(--model-preview); color: var(--text-primary); font-size: var(--text-caption); pointer-events: none; }
 .viewport-preview-legend span { display: inline-block; width: 18px; border-top: 2px dashed var(--model-preview); margin-right: var(--space-2); vertical-align: middle; }

@@ -31,8 +31,9 @@ test("T27 retries a disconnected continuation without replaying geometry and sol
     await replay(app, parameters);
     await send(page, "建立两层空间钢刚架并计算");
     await failNetwork(app);
-    await page.getByRole("button", { name: "确认应用建模阶段", exact: true }).click();
+    await page.getByRole("button", { name: "确认建模", exact: true }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("失败");
+    await page.getByText("操作详情 · 1 项", { exact: true }).click();
     await expect(page.getByText("本地提交回执已保留", { exact: false })).toBeVisible();
     const applied = await save(page, path);
     expect(applied.nodes).toHaveLength(12); expect(applied.members).toHaveLength(16);
@@ -46,7 +47,7 @@ test("T27 retries a disconnected continuation without replaying geometry and sol
     expect((await save(page, path)).supports).toHaveLength(0);
     await expect(page.getByRole("button", { name: "重试消息", exact: true })).toBeDisabled();
     await failNetwork(app);
-    await card.getByRole("button", { name: "确认应用分析条件阶段", exact: true }).dblclick();
+    await card.getByRole("button", { name: /^(确认条件|确认并计算)$/ }).dblclick();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已完成 · 本地分析完成");
     const computed = await save(page, path);
     expect(computed.nodes).toHaveLength(12); expect(computed.supports).toHaveLength(4);
@@ -74,7 +75,7 @@ test("T27 keeps an unconfirmed draft isolated on disconnect and blocks stale ret
     await createNode(page, ["2", "3", "4"]);
     await expect(page.getByRole("button", { name: "重试消息", exact: true })).toBeDisabled();
     await expect(page.getByText("上下文或阶段已变化", { exact: false })).toBeVisible();
-    await expect(page.getByRole("button", { name: "确认应用建模阶段", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "确认建模", exact: true })).toBeDisabled();
     expect((await save(page, path)).nodes).toHaveLength(1);
     expect(await page.getByRole("log").innerText()).not.toContain("sk-t21-fixture-only");
   });

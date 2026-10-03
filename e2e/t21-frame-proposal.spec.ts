@@ -1,3 +1,4 @@
+import { openProposalView, closeProposalDrawer, proposalDrawer } from "./proposal-drawer-actions";
 import { expect, test } from "@playwright/test";
 import { createNode } from "./modeling-actions";
 import { desktop, parameters, replay, save, send } from "./frame-proposal-actions";
@@ -7,26 +8,36 @@ test("T21 supplements missing cards, edits and regenerates the same isolated two
     await createNode(page, ["-2", "-3", "0"]);
     const before = await save(page, path);
     await replay(app, { storeys: { value: 2, source: "user" } });
+    await closeProposalDrawer(page);
     await send(page, "建立一个两层空间钢刚架");
     let card = page.getByRole("region", { name: "建模参数卡片" });
-    await expect(card.getByLabel("层数", { exact: true })).toHaveValue("2");
-    await expect(card.getByText("用户提供", { exact: true })).toHaveCount(1);
-    await expect(card.getByText("尚缺失", { exact: true })).toHaveCount(8);
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByLabel("层数", { exact: true })).toHaveValue("2");
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByText("用户提供", { exact: true })).toHaveCount(1);
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByText("尚缺失", { exact: true })).toHaveCount(8);
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await replay(app, parameters);
+    await closeProposalDrawer(page);
     await send(page, "X跨6米，Y跨4米，每层3米，其余请给建议");
-    await expect(card.getByTestId("frame-proposal-counts")).toHaveText("将创建 12 个节点、8 根柱、8 根梁。");
-    await expect(card.getByText("建议 · 待确认", { exact: true })).toHaveCount(5);
+    await expect(card.getByTestId("frame-proposal-counts")).toHaveText("12 节点 · 8 柱 · 8 梁");
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByText("建议 · 待确认", { exact: true })).toHaveCount(5);
     await expect(page.getByLabel("未应用三维方案")).toContainText("12 节点 / 16 杆件");
     expect(await save(page, path)).toEqual(before);
-    await card.getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
-    await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
-    await card.getByRole("button", { name: "更新参数预览", exact: true }).click();
-    await expect(card.getByLabel("X 向跨长 (m)", { exact: true })).toHaveValue("8");
-    await card.getByText("涉及对象与创建内容", { exact: true }).click();
-    await expect(card.getByText("预览 N12 · (8, 4, 6) m", { exact: true })).toBeVisible();
-    await card.getByText("涉及对象与创建内容", { exact: true }).click();
-    await card.getByRole("button", { name: "重新生成预览", exact: true }).click();
+    await openProposalView(page, card, "edit");
+    await proposalDrawer(page).getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
+    await expect(page.getByLabel("未应用三维方案")).toBeVisible();
+    await openProposalView(page, card, "edit");
+    await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByLabel("X 向跨长 (m)", { exact: true })).toHaveValue("8");
+    await openProposalView(page, card, "details");
+    await expect(proposalDrawer(page).getByText("预览 N12 · (8, 4, 6) m", { exact: true })).toBeVisible();
+    await openProposalView(page, card, "details");
+    await openProposalView(page, card, "actions");
+    await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
     await expect(page.getByLabel("未应用三维方案")).toContainText("16 杆件");
     for (const theme of ["dark", "light"]) {
       await page.getByRole("button", { name: "设置", exact: true }).click();
@@ -52,7 +63,8 @@ test("T21 supplements missing cards, edits and regenerates the same isolated two
         await page.screenshot({ path: `docs/evidence/T21-${theme}-${width}.png` });
       }
     }
-    await card.getByRole("button", { name: "拒绝方案", exact: true }).click();
+    await openProposalView(page, card, "actions");
+    await proposalDrawer(page).getByRole("button", { name: "拒绝方案", exact: true }).click();
     await expect(card).toHaveCount(0);
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     expect(await save(page, path)).toEqual(before);
@@ -63,20 +75,30 @@ test("T21 supplements missing cards, edits and regenerates the same isolated two
 
 test("T21 clarifies conflicts, rejects bad edits, accepts natural-language corrections and refuses proposals", async () => {
   await desktop(async (app, page) => {
+    await closeProposalDrawer(page);
     await replay(app, parameters); await send(page, "两层，每层3米，X6米，Y4米");
     const card = page.getByRole("region", { name: "建模参数卡片" });
+    await closeProposalDrawer(page);
     await replay(app, { xSpans: { value: [8], source: "user" } }); await send(page, "跨度是6米还是8米？");
-    await expect(card.getByRole("alert")).toContainText("当前 6 / 新值 8");
+    await expect(card.getByRole("alert")).toContainText("待澄清：[6] / [8]");
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
-    await card.getByLabel("X 向跨长 (m)", { exact: true }).fill("-1");
-    await card.getByRole("button", { name: "更新参数预览", exact: true }).click();
-    await expect(card.getByRole("alert").last()).toContainText("必须全部大于零");
-    await card.getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
-    await card.getByRole("button", { name: "更新参数预览", exact: true }).click();
+    await openProposalView(page, card, "edit");
+    await proposalDrawer(page).getByLabel("X 向跨长 (m)", { exact: true }).fill("-1");
+    await openProposalView(page, card, "edit");
+    await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
+    await expect(proposalDrawer(page).getByRole("alert").last()).toContainText("必须全部大于零");
+    await openProposalView(page, card, "edit");
+    await proposalDrawer(page).getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
+    await openProposalView(page, card, "edit");
+    await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
     await replay(app, { storeyHeights: { value: [3, 4], source: "user", replace: true } });
+    await closeProposalDrawer(page);
     await send(page, "第二层改成4米");
-    await expect(card.getByLabel("各层层高 (m)", { exact: true })).toHaveValue("3, 4");
-    await expect(card.getByLabel("X 向跨长 (m)", { exact: true })).toHaveValue("8");
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByLabel("各层层高 (m)", { exact: true })).toHaveValue("3, 4");
+    await openProposalView(page, card, "edit");
+    await expect(proposalDrawer(page).getByLabel("X 向跨长 (m)", { exact: true })).toHaveValue("8");
+    await closeProposalDrawer(page);
     await replay(app, {}, "discard_frame_proposal"); await send(page, "不要这个方案");
     await expect(card).toHaveCount(0);
     await expect(page.getByTestId("viewport-node-count")).toHaveText("0 个节点");
@@ -93,6 +115,7 @@ test("T21 retains current analysis while previewing and invalidates a proposal a
     await page.getByRole("button", { name: "添加节点荷载" }).click(); await page.getByRole("button", { name: "运行分析" }).click();
     await expect(page.getByRole("status")).toContainText("分析完成");
     const before = await save(page, path);
+    await closeProposalDrawer(page);
     await replay(app, parameters); await send(page, "创建两层空间钢刚架方案");
     expect(await save(page, path)).toEqual(before);
     await page.getByRole("button", { name: "运行分析" }).click(); await expect(page.getByRole("status")).toContainText("分析完成");
@@ -101,15 +124,18 @@ test("T21 retains current analysis while previewing and invalidates a proposal a
     expect(recomputed.latestAnalysis.input).toEqual({ ...before.latestAnalysis.input, projectRevision: before.revision });
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     const card = page.getByRole("region", { name: "建模参数卡片" });
-    await card.getByRole("button", { name: "重新生成预览", exact: true }).click();
+    await openProposalView(page, card, "actions");
+    await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
     await expect(page.getByLabel("未应用三维方案")).toBeVisible();
     await createNode(page, ["10", "0", "0"]);
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await expect(page.getByText("正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。", { exact: true })).toBeVisible();
     await replay(app, { collection: "summary" }, "read_model");
+    await closeProposalDrawer(page);
     await send(page, "读取当前已应用模型摘要");
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
-    await card.getByRole("button", { name: "重新生成预览", exact: true }).click();
+    await openProposalView(page, card, "actions");
+    await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
     await app.evaluate(() => {
       (globalThis as typeof globalThis & { t21Release?: () => void }).t21Release = undefined;
       globalThis.fetch = () => new Promise<Response>((done) => {
@@ -121,7 +147,8 @@ test("T21 retains current analysis while previewing and invalidates a proposal a
     await page.getByLabel("AI 消息草稿").fill("X跨改成9米");
     await page.getByRole("button", { name: "发送消息", exact: true }).click();
     await expect.poll(() => app.evaluate(() => Boolean((globalThis as typeof globalThis & { t21Release?: () => void }).t21Release))).toBe(true);
-    await card.getByRole("button", { name: "拒绝方案", exact: true }).click();
+    await openProposalView(page, card, "actions");
+    await proposalDrawer(page).getByRole("button", { name: "拒绝方案", exact: true }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已取消");
     await app.evaluate(async () => {
       (globalThis as typeof globalThis & { t21Release?: () => void }).t21Release?.();

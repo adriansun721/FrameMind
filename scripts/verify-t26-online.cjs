@@ -31,11 +31,14 @@ async function verify() {
     await page.getByRole("button", { name: "发送消息", exact: true }).click();
     const card = page.getByRole("region", { name: "选柱截面修改方案" });
     await expect(card).toBeVisible({ timeout: 90_000 });
-    await expect(card).toContainText("member_0001"); await expect(card).not.toContainText("member_0002");
-    await expect(card).toContainText("0.01 → 0.02");
+    await card.getByRole("button", { name: "详情", exact: true }).click();
+    const details = page.locator(".proposal-drawer");
+    await expect(details).toContainText("member_0001"); await expect(details).not.toContainText("member_0002");
+    await expect(details).toContainText("0.01 → 0.02");
+    await details.getByRole("button", { name: "关闭详情", exact: true }).click();
     await page.screenshot({ path: resolve("docs/evidence/T26-online-preview.png") });
     diagnostic.stage = "real-confirm-and-recompute";
-    await card.getByRole("button", { name: "确认应用截面修改阶段", exact: true }).click();
+    await card.getByRole("button", { name: /^(确认修改|确认并重算)$/ }).click();
     await expect(page.locator(".ai-comparison-reference").first()).toBeVisible({ timeout: 90_000 });
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已引用两次确定分析");
     diagnostic.stage = "verify-explicit-numeric-comparison";

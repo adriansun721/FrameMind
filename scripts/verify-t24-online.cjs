@@ -40,11 +40,11 @@ async function verify() {
     await page.getByLabel("AI 消息草稿").fill("建立两层空间钢刚架并计算用户自定义组合：X向一跨6米，Y向一跨4米，两层层高均3米，原点(0,0,0)米；钢材S355JR，柱HEA200，梁IPE200，截面转角0度。底层z=0的四个节点UX/UY/UZ/RX/RY/RZ全部约束，不添加节点力或力矩。将已有默认LC1改名恒载（说明：结构自重），启用全结构自重，归属恒载，重力全局(0,0,-9.81)m/s²；新建活载工况（说明：屋面均布力），只在顶层(0,0,6)到(6,0,6)米的那一根梁施加全局(0,0,-2)kN/m整杆均布力，归属活载。新建用户自定义组合试算，恒载系数1、活载系数0.5，并把该组合设为确认后计算来源。这些数值均为我提供，不添加任何规范系数或其他荷载。先生成建模卡片，等我确认后再用一个分析条件阶段汇总支座、均布荷载、自重、两工况和组合，等第二次确认后自动本地求解。");
     await page.getByRole("button", { name: "发送消息", exact: true }).click();
     const frame = page.getByRole("region", { name: "建模参数卡片" });
-    await expect(frame.getByRole("button", { name: "确认应用建模阶段", exact: true })).toBeEnabled({ timeout: 60_000 });
-    await frame.getByRole("button", { name: "确认应用建模阶段", exact: true }).click();
+    await expect(frame.getByRole("button", { name: "确认建模", exact: true })).toBeEnabled({ timeout: 60_000 });
+    await frame.getByRole("button", { name: "确认建模", exact: true }).click();
     diagnostic.stage = "multi-case-preview";
     const card = page.getByRole("region", { name: "分析条件卡片" });
-    await expect(card.getByRole("button", { name: "确认应用分析条件阶段", exact: true })).toBeEnabled({ timeout: 90_000 });
+    await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeEnabled({ timeout: 90_000 });
     await collect();
     const proposal = report.turns.flatMap((t) => t.tools).findLast((t) => t.output.conditions)?.output.conditions;
     assert.equal(proposal.supports.length, 4); assert.equal(proposal.nodalLoads.length, 0);
@@ -61,7 +61,7 @@ async function verify() {
     assert.deepEqual(ends.sort((a, b) => a.x - b.x), [{ x: 0, y: 0, z: 6 }, { x: 6, y: 0, z: 6 }]);
     assert.ok(proposal.supports.every((s) => before.nodes.find((n) => n.id === s.nodeId).position.z === 0));
     diagnostic.stage = "confirm-and-combination-solve";
-    await card.getByRole("button", { name: "确认应用分析条件阶段", exact: true }).click();
+    await card.getByRole("button", { name: /^(确认条件|确认并计算)$/ }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已完成 · 本地分析完成", { timeout: 30_000 });
     const applied = await save();
     assert.equal(applied.loadCases.length, 2); assert.equal(applied.uniformLoads.length, 1); assert.equal(applied.loadCombinations.length, 1);

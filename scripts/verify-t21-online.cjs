@@ -58,9 +58,11 @@ async function verify() {
     assert.equal(initial.parameters.storeys.source, "user");
     await ask("补齐参数：X向一跨6米，Y向一跨4米，两层层高均为3米，原点(0,0,0)米。钢材S355JR，柱HEA 200，梁IPE 200，截面转角0度。按这些明确参数更新当前卡片并生成预览。");
     const card = page.getByRole("region", { name: "建模参数卡片" });
-    await expect(card.getByTestId("frame-proposal-counts")).toHaveText("将创建 12 个节点、8 根柱、8 根梁。");
-    await card.getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
-    await card.getByRole("button", { name: "更新参数预览", exact: true }).click();
+    await expect(card.getByTestId("frame-proposal-counts")).toHaveText("12 节点 · 8 柱 · 8 梁");
+    await card.getByRole("button", { name: "编辑", exact: true }).click();
+    const editor = page.locator(".proposal-drawer");
+    await editor.getByLabel("X 向跨长 (m)", { exact: true }).fill("8");
+    await editor.getByRole("button", { name: "更新预览", exact: true }).click();
     const modified = await ask("第二层层高改成4米，其他参数保留当前卡片的值，重新生成预览。");
     assert.deepEqual(modified.parameters.xSpans.value, [8]);
     assert.deepEqual(modified.parameters.storeyHeights.value, [3, 4]);

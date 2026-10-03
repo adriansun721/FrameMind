@@ -200,19 +200,21 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
     await send(fixture.initialPrompt);
     const frame = page.getByRole("region", { name: "建模参数卡片" });
     await expect(frame).toBeVisible({ timeout: 90_000 });
-    const confirmFrame = frame.getByRole("button", { name: "确认应用建模阶段", exact: true });
+    const confirmFrame = frame.getByRole("button", { name: "确认建模", exact: true });
     await expect(confirmFrame).toBeDisabled();
-    await frame.getByLabel("Y 向跨长 (m)", { exact: true }).fill("4");
-    await frame.getByRole("button", { name: "更新参数预览", exact: true }).click();
+    await frame.getByRole("button", { name: "编辑", exact: true }).click();
+    const editor = page.locator(".proposal-drawer");
+    await editor.getByLabel("Y 向跨长 (m)", { exact: true }).fill("4");
+    await editor.getByRole("button", { name: "更新预览", exact: true }).click();
     await expect(confirmFrame).toBeEnabled();
-    await expect(frame.getByTestId("frame-proposal-counts")).toContainText("12 个节点、8 根柱、8 根梁");
+    await expect(frame.getByTestId("frame-proposal-counts")).toContainText("12 节点 · 8 柱 · 8 梁");
     assert.equal((await save()).nodes.length, 0);
-    await frame.getByText("空间刚架 · 建模方案", { exact: true }).scrollIntoViewIfNeeded();
+    await frame.getByText("空间刚架建模方案", { exact: true }).scrollIntoViewIfNeeded();
     await capture("frame-preview");
     report.stage = "conditions-confirmation";
     await confirmFrame.click();
     const conditions = page.getByRole("region", { name: "分析条件卡片" });
-    const confirmConditions = conditions.getByRole("button", { name: "确认应用分析条件阶段", exact: true });
+    const confirmConditions = conditions.getByRole("button", { name: "确认并计算", exact: true });
     await expect(confirmConditions).toBeEnabled({ timeout: 90_000 });
     if (online) {
       const proposed = (await collect(page)).flatMap((turn) => turn.tools).filter((tool) => tool.output.conditions).at(-1).output.conditions;
@@ -226,23 +228,27 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
         await expect(confirmConditions).toBeEnabled({ timeout: 90_000 });
       }
     }
-    if (await conditions.getByLabel("组合 1 名称", { exact: true }).inputValue() !== fixture.loads.loadCombinations[0].name) {
+    await conditions.getByRole("button", { name: "编辑", exact: true }).click();
+    if (await editor.getByLabel("组合 1 名称", { exact: true }).inputValue() !== fixture.loads.loadCombinations[0].name) {
       report.cardEdits = { ...report.cardEdits, combinationName: fixture.loads.loadCombinations[0].name };
-      await conditions.getByLabel("组合 1 名称", { exact: true }).fill(fixture.loads.loadCombinations[0].name);
-      await conditions.getByRole("button", { name: "更新条件预览", exact: true }).click();
+      await editor.getByLabel("组合 1 名称", { exact: true }).fill(fixture.loads.loadCombinations[0].name);
+      await editor.getByRole("button", { name: "更新预览", exact: true }).click();
       await expect(confirmConditions).toBeEnabled();
+      await conditions.getByRole("button", { name: "编辑", exact: true }).click();
     }
     // Review the actual target selectors before applying any loads. AI numbering guesses are not accepted.
     for (const [label, expected] of [["荷载 1 节点", fixture.loads.nodalLoads[0].nodeId], ["均布荷载 1 杆件", fixture.loads.uniformLoads[0].memberId]]) {
-      const selector = conditions.getByLabel(label, { exact: true }); const actual = await selector.inputValue();
+      const selector = editor.getByLabel(label, { exact: true }); const actual = await selector.inputValue();
       if (actual !== expected) {
         assert.ok(online, "Replay target must match the fixed fixture");
         report.cardEdits = { ...report.cardEdits, [label]: { before: actual, after: expected, reason: "核对固定演示坐标与真实稳定身份" } };
         await selector.selectOption(expected);
-        await conditions.getByRole("button", { name: "更新条件预览", exact: true }).click();
+        await editor.getByRole("button", { name: "更新预览", exact: true }).click();
         await expect(confirmConditions).toBeEnabled();
+        await conditions.getByRole("button", { name: "编辑", exact: true }).click();
       }
     }
+    await editor.getByRole("button", { name: "取消编辑", exact: true }).click();
     const geometry = await save(); verifyModel(geometry);
     assert.equal(geometry.supports.length, 0); assert.equal(geometry.nodalLoads.length, 0);
     assert.equal(geometry.uniformLoads.length, 0); assert.equal(geometry.selfWeight.enabled, false); assert.equal(geometry.analysisResults.length, 0);
@@ -273,16 +279,19 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
     await send(fixture.changePrompt);
     const section = page.getByRole("region", { name: "选柱截面修改方案" });
     await expect(section).toBeVisible({ timeout: 90_000 });
-    await expect(section.getByRole("button", { name: "确认应用截面修改阶段", exact: true })).toBeEnabled();
-    if (await section.getByLabel("新柱截面名称", { exact: true }).inputValue() !== fixture.sectionChange.section.name) {
+    await expect(section.getByRole("button", { name: "确认并重算", exact: true })).toBeEnabled();
+    await section.getByRole("button", { name: "编辑", exact: true }).click();
+    if (await editor.getByLabel("新柱截面名称", { exact: true }).inputValue() !== fixture.sectionChange.section.name) {
       report.cardEdits = { ...report.cardEdits, sectionName: fixture.sectionChange.section.name };
-      await section.getByLabel("新柱截面名称", { exact: true }).fill(fixture.sectionChange.section.name);
-      await section.getByRole("button", { name: "更新截面预览", exact: true }).click();
+      await editor.getByLabel("新柱截面名称", { exact: true }).fill(fixture.sectionChange.section.name);
+      await editor.getByRole("button", { name: "更新预览", exact: true }).click();
+    } else {
+      await editor.getByRole("button", { name: "取消编辑", exact: true }).click();
     }
     await expect(page.getByLabel("未应用三维方案")).toContainText("2 根选中柱");
     assert.deepEqual((await save()).members, before.members);
     await capture("section-preview");
-    await section.getByRole("button", { name: "确认应用截面修改阶段", exact: true }).click();
+    await section.getByRole("button", { name: "确认并重算", exact: true }).click();
     const automaticTurn = page.locator(".ai-turn").filter({ has: page.locator(".ai-user-message").filter({ hasText: "截面修改已确认且本地重算已完成" }) });
     await expect(automaticTurn).toHaveCount(1, { timeout: 30_000 });
     await expect(automaticTurn.getByTestId("ai-turn-status")).toHaveText(/^(已完成|失败|已取消) ·/, { timeout: 90_000 });

@@ -34,11 +34,11 @@ async function verify() {
     await page.getByLabel("AI 消息草稿").fill("建立两层空间钢刚架并计算：X向一跨6米，Y向一跨4米，两层层高均3米，原点(0,0,0)米；钢材S355JR，柱HEA200，梁IPE200，截面转角0度。底层z=0的四个节点UX/UY/UZ/RX/RY/RZ全部约束。只在顶层坐标(6,4,6)米的节点施加FX=5、FY=-2、FZ=-10 kN，MX=1、MY=2、MZ=-3 kN·m，归属默认工况。先生成建模卡片，按阶段等我确认，然后自动计算。");
     await page.getByRole("button", { name: "发送消息", exact: true }).click();
     const frame = page.getByRole("region", { name: "建模参数卡片" });
-    await expect(frame.getByRole("button", { name: "确认应用建模阶段", exact: true })).toBeEnabled({ timeout: 60_000 });
-    await frame.getByRole("button", { name: "确认应用建模阶段", exact: true }).click();
+    await expect(frame.getByRole("button", { name: "确认建模", exact: true })).toBeEnabled({ timeout: 60_000 });
+    await frame.getByRole("button", { name: "确认建模", exact: true }).click();
     diagnostic.stage = "conditions-preview";
     const card = page.getByRole("region", { name: "分析条件卡片" });
-    await expect(card.getByRole("button", { name: "确认应用分析条件阶段", exact: true })).toBeEnabled({ timeout: 60_000 });
+    await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeEnabled({ timeout: 60_000 });
     await collect();
     const conditions = report.turns.flatMap((t) => t.tools).find((t) => t.output.conditions)?.output.conditions;
     assert.equal(conditions.supports.length, 4); assert.equal(conditions.nodalLoads.length, 1);
@@ -52,7 +52,7 @@ async function verify() {
     assert.deepEqual(geometry.nodes.find((n) => n.id === conditions.nodalLoads[0].nodeId).position, { x: 6, y: 4, z: 6 });
     assert.ok(conditions.supports.every((s) => geometry.nodes.find((n) => n.id === s.nodeId).position.z === 0));
     diagnostic.stage = "local-confirm-and-solve";
-    await card.getByRole("button", { name: "确认应用分析条件阶段", exact: true }).click();
+    await card.getByRole("button", { name: /^(确认条件|确认并计算)$/ }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已完成 · 本地分析完成", { timeout: 30_000 });
     await page.keyboard.press("Control+s");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
