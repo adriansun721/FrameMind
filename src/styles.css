@@ -231,10 +231,12 @@ button { color: inherit; }
 .button.primary { border-color: var(--surface-action); background: var(--surface-action); color: var(--text-on-action); }
 .button.primary:hover { border-color: var(--surface-action-hover); background: var(--surface-action-hover); color: var(--text-on-action-hover); }
 
-.workspace { --resource-width: 230px; --assistant-width: 260px; min-width: 0; min-height: 0; display: grid; grid-template-columns: 48px var(--resource-width) minmax(0, 1fr) var(--assistant-width); }
-.workspace.resource-collapsed { --resource-width: 0px; }
-.workspace.assistant-collapsed { --assistant-width: 0px; }
+.workspace { min-width: 0; min-height: 0; display: grid; }
 .workspace > [hidden] { display: none; }
+.side-panel-resizer { grid-row: 1; z-index: 3; width: 7px; min-height: 0; cursor: col-resize; touch-action: none; user-select: none; }
+.side-panel-resizer.left { grid-column: 2; justify-self: end; margin-right: -3px; }
+.side-panel-resizer.right { grid-column: 4; justify-self: start; margin-left: -3px; }
+.side-panel-resizer:hover, .side-panel-resizer:focus-visible { background: var(--model-selected); outline: none; }
 .activity-bar { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; align-items: center; padding-top: var(--space-1); border-right: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
 .activity-button { position: relative; display: grid; place-items: center; width: 47px; height: 44px; padding: 0; border: 0; color: var(--text-muted); background: transparent; cursor: pointer; }
 .activity-button:hover { color: var(--text-primary); background: var(--surface-control); }
@@ -647,7 +649,6 @@ button { color: inherit; }
 .viewport-weight-marker small { font-size: var(--text-micro); overflow-wrap: anywhere; }
 
 @media (max-width: 1160px) {
-  .workspace { --resource-width: 220px; --assistant-width: 220px; }
   .document-title > span:first-child { max-width: 170px; }
   .tree-item small { display: none; }
   .view-hint { display: none; }

@@ -3,6 +3,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "re
 import { Anchor, ArrowDownToLine, Box, Calculator, ChevronDown, CircleDot, Crosshair, Files, FilePlus2, FolderOpen, Hexagon, Layers3, Library, Link2, Moon, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Save, Search, Settings2, Sun, Table2, Trash2, Undo2, Weight, X } from "lucide-react";
 import { SceneViewport, type ForceComponent, type ResultViewMode } from "./components/SceneViewport";
 import { BottomProperties } from "./components/BottomProperties";
+import { ResizableWorkspace } from "./components/ResizableWorkspace";
 import type { NodeDraft, MemberDraft } from "./components/model-editing";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
 import { LoadCaseManager } from "./components/LoadCaseManager";
@@ -498,7 +499,7 @@ export function App() {
       </div>
     </section>
 
-    <section className={`workspace ${resourcePanelOpen ? "" : "resource-collapsed"} ${propertyPanelOpen ? "" : "property-collapsed"} ${assistantPanelOpen ? "" : "assistant-collapsed"}`}>
+    <ResizableWorkspace resourceOpen={resourcePanelOpen} assistantOpen={assistantPanelOpen} resourcePanelId={sidebarModule === "project" ? "resource-panel" : `${sidebarModule}-panel`}>
       <nav className="activity-bar" aria-label="侧边导航">
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "project" ? "active" : ""}`} aria-label="资源管理器" aria-pressed={resourcePanelOpen && sidebarModule === "project"} aria-controls="resource-panel" title="资源管理器" onClick={() => switchSidebarModule("project")}><Files size={22} strokeWidth={1.5} /></button>
         <button className={`activity-button ${resourcePanelOpen && sidebarModule === "search" ? "active" : ""}`} aria-label="搜索" aria-pressed={resourcePanelOpen && sidebarModule === "search"} aria-controls="search-panel" title="搜索" onClick={() => switchSidebarModule("search")}><Search size={22} strokeWidth={1.5} /></button>
@@ -661,7 +662,7 @@ export function App() {
           setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
           return outcome.result;
         }} />
-    </section>
+    </ResizableWorkspace>
 
     <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>
 

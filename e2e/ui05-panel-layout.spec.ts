@@ -141,6 +141,75 @@ test("UI05 docks horizontal properties below the viewport and resizes without lo
   }
 });
 
+test("UI05 resizes both sidebars and preserves widths, drafts and the canvas", async ({}, testInfo) => {
+  const { app, page } = await launchFrameMind();
+  try {
+    await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setContentSize(1440, 900));
+    await createNode(page, ["1", "2", "3"]);
+    await page.getByRole("region", { name: "对象属性" }).getByLabel("X 坐标").fill("9.5");
+    await page.getByLabel("AI 消息草稿").fill("保留侧栏调整前的草稿");
+    await page.locator(".viewport canvas").evaluate((canvas) => {
+      (window as Window & { layoutCanvas?: Element }).layoutCanvas = canvas;
+    });
+    for (const [label, panelId, toggleName, direction] of [
+      ["调整项目面板宽度", "resource-panel", "切换资源管理器", 1],
+      ["调整 AI 对话面板宽度", "assistant-panel", "切换 AI 对话", -1],
+    ] as const) {
+      const separator = page.getByRole("separator", { name: label });
+      const panel = page.locator(`#${panelId}`);
+      const initialWidth = (await panel.boundingBox())!.width;
+      const initialCanvasWidth = await canvasWidth(page);
+      const handle = (await separator.boundingBox())!;
+      await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(handle.x + handle.width / 2 + direction * 80, handle.y + handle.height / 2, { steps: 5 });
+      await page.mouse.up();
+      await expect.poll(async () => (await panel.boundingBox())!.width).toBeCloseTo(initialWidth + 80, 0);
+      await expect.poll(() => canvasWidth(page)).toBeLessThan(initialCanvasWidth - 70);
+      await separator.focus();
+      await separator.press(direction === 1 ? "ArrowRight" : "ArrowLeft");
+      await expect.poll(async () => (await panel.boundingBox())!.width).toBeCloseTo(initialWidth + 96, 0);
+      const resizedWidth = await separator.getAttribute("aria-valuenow");
+      const toggle = page.getByRole("button", { name: toggleName, exact: true });
+      await toggle.click();
+      await expect(separator).toBeHidden();
+      await toggle.click();
+      await expect(separator).toHaveAttribute("aria-valuenow", resizedWidth!);
+    }
+    const resourceSeparator = page.getByRole("separator", { name: "调整项目面板宽度" });
+    const resourceWidth = await resourceSeparator.getAttribute("aria-valuenow");
+    await page.getByRole("button", { name: "资源库", exact: true }).click();
+    await expect(resourceSeparator).toHaveAttribute("aria-controls", "library-panel");
+    await expect.poll(async () => (await page.locator("#library-panel").boundingBox())!.width).toBe(Number(resourceWidth));
+    await page.getByRole("button", { name: "资源管理器", exact: true }).click();
+    await expect(page.getByRole("region", { name: "对象属性" }).getByLabel("X 坐标")).toHaveValue("9.5");
+    await expect(page.getByLabel("AI 消息草稿")).toHaveValue("保留侧栏调整前的草稿");
+    expect(await page.evaluate(() => document.querySelector(".viewport canvas") === (window as Window & { layoutCanvas?: Element }).layoutCanvas)).toBe(true);
+
+    for (const [width, height] of [[1440, 900], [1080, 680]]) {
+      await app.evaluate(({ BrowserWindow }, size) => BrowserWindow.getAllWindows()[0]!.setContentSize(size.width, size.height), { width, height });
+      for (const name of ["调整项目面板宽度", "调整 AI 对话面板宽度"]) {
+        const separator = page.getByRole("separator", { name });
+        await separator.focus();
+        await separator.press("End");
+        await expect.poll(async () => Number(await separator.getAttribute("aria-valuenow"))).toBe(Number(await separator.getAttribute("aria-valuemax")));
+      }
+      await expect.poll(() => canvasWidth(page)).toBeGreaterThanOrEqual(360);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+      await expectRenderedCanvas(page);
+      await page.screenshot({ path: testInfo.outputPath(`resized-sidebars-${width}.png`) });
+      for (const name of ["调整项目面板宽度", "调整 AI 对话面板宽度"]) {
+        const separator = page.getByRole("separator", { name });
+        await separator.focus();
+        await separator.press("Home");
+        await expect(separator).toHaveAttribute("aria-valuenow", "220");
+      }
+    }
+  } finally {
+    await app.close();
+  }
+});
+
 test("UI05 keeps the merged titlebar and every panel combination inside supported window sizes", async ({}, testInfo) => {
   const { app, page } = await launchFrameMind();
   try {
