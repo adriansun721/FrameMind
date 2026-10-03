@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "attemptId", "outcome", "summary", "skill", "implementation", "verification", "review", "acceptance", "humanRequired", "commit", "evidence", "handoff"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "enum": [1] },
+    "taskId": { "type": "string" },
+    "attemptId": { "type": "string" },
+    "outcome": { "type": "string", "enum": ["complete", "failed", "needs_human"] },
+    "summary": { "type": "string" },
+    "skill": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": { "path": { "type": "string" }, "sha256": { "type": "string" } }
+    },
+    "implementation": { "$ref": "#/$defs/phase" },
+    "verification": { "$ref": "#/$defs/phase" },
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["passed", "openFindings", "evidence"],
+      "properties": {
+        "passed": { "type": "boolean" }, "openFindings": { "type": "integer", "minimum": 0 },
+        "evidence": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "acceptance": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["index", "passed", "evidence"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 1 }, "passed": { "type": "boolean" },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "humanRequired": { "type": "boolean" },
+    "commit": { "type": "string" },
+    "evidence": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["path", "sha256", "kind"],
+        "properties": {
+          "path": { "type": "string" }, "sha256": { "type": "string" },
+          "kind": { "type": "string", "enum": ["implementation", "verification", "review", "acceptance", "human"] }
+        }
+      }
+    },
+    "handoff": { "type": "string" }
+  },
+  "$defs": {
+    "phase": {
+      "type": "object", "additionalProperties": false, "required": ["passed", "evidence"],
+      "properties": { "passed": { "type": "boolean" }, "evidence": { "type": "array", "items": { "type": "string" } } }
+    }
+  }
+}

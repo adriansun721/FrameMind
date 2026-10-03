@@ -1,0 +1,102 @@
+[
+    {
+        "name":  "Default repository parameter works without launching Codex",
+        "passed":  true
+    },
+    {
+        "name":  "Parse 44 tasks and simulate direct dependencies with agent priority",
+        "passed":  true
+    },
+    {
+        "name":  "Reject dirty initial worktree and changed plan without launching worker",
+        "passed":  true
+    },
+    {
+        "name":  "Two tasks commit with independent sessions and retain artifacts",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on fail; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on unread; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on no-thread; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on missing; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on hash; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on acceptance; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on review; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on no-commit; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Pause on plan-change; no dependent or independent task is launched",
+        "passed":  true
+    },
+    {
+        "name":  "Explicit resume uses a new session with prior handoff after failed exec",
+        "passed":  true
+    },
+    {
+        "name":  "Evidence mutation blocks starting next task",
+        "passed":  true
+    },
+    {
+        "name":  "Resume revalidates completed dependency evidence before retrying paused task",
+        "passed":  true
+    },
+    {
+        "name":  "Unknown interrupted launch requires explicit recovery and never automatically retries",
+        "passed":  true
+    },
+    {
+        "name":  "Corrupt state refuses execution without silently resetting tasks",
+        "passed":  true
+    },
+    {
+        "name":  "Human gate pauses, rejects wrong signoff, accepts committed human evidence",
+        "passed":  true
+    },
+    {
+        "name":  "Exclusive lock and Stop terminate owned worker, preserve streamed logs and allow resume",
+        "passed":  true
+    },
+    {
+        "name":  "Paused task with a surviving orphan worker blocks resume until owned worker is stopped",
+        "passed":  true
+    },
+    {
+        "name":  "Stop interrupts no-input without waiting forever on pipe I/O",
+        "passed":  true
+    },
+    {
+        "name":  "Stop interrupts inherited-output without waiting forever on pipe I/O",
+        "passed":  true
+    },
+    {
+        "name":  "Hard-killed scheduler job cleans worker and resume uses a fresh session",
+        "passed":  true
+    },
+    {
+        "name":  "Stop remains usable after plan becomes invalid during a live task",
+        "passed":  true
+    }
+]
