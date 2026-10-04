@@ -219,6 +219,9 @@ export function proposeTask(snapshot: AiSnapshot, input: unknown, previous?: Tas
   if (hasConditionInput) conditions = proposeConditions(conditionInput, conditions);
   const analysisValue = request.analysis ?? (request.analysisRequested === undefined ? undefined : { requested: request.analysisRequested, source: "user" });
   const analysis = mergeAnalysis(previous?.analysis, analysisValue);
+  if (analysis?.requested && !analysis.sourceId) analysis.sourceId = conditions?.analysisSourceId
+    ?? (conditions?.loadCases?.length === 1 && !conditions.loadCombinations?.length ? conditions.loadCases[0].ref : undefined)
+    ?? snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
   const goal = request.goal === undefined ? previous?.goal : text(request.goal, "任务目标");
   const next: TaskDraft = { id, version: (previous?.version ?? 0) + 1, projectId: snapshot.context.projectId, baseRevision: snapshot.context.modelRevision, ...(goal ? { goal } : {}), ...(frame ? { frame } : {}), ...(conditions ? { conditions } : {}), ...(analysis ? { analysis } : {}) };
   // Validate the merged draft now so a tool reply can distinguish missing input

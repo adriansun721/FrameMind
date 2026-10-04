@@ -1,8 +1,11 @@
 import type { AiTaskResult } from "../workspace/ai-task";
 import { resultReferenceLabel, type ResultReference } from "../workspace/ai-results";
 import type { AnalysisPairIds } from "../workspace/ai-comparison";
+import type { FrameProject } from "../domain/project";
+import { isAnalysisResultCurrent } from "../domain/analysis";
 
-export function AiResultExplanation({ result, onLocate, onCompare }: { result: Pick<AiTaskResult, "assistant" | "records">; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
+export function AiResultExplanation({ project, result, onLocate, onCompare }: { project: FrameProject; result: Pick<AiTaskResult, "assistant" | "records">; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
+  const current = (id: string) => { const analysis = project.analysisResults.find((item) => item.id === id); return Boolean(analysis && isAnalysisResultCurrent(project, analysis)); };
   const references = result.records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
   const comparisons = result.records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
   if (!result.assistant) return null;
@@ -14,10 +17,10 @@ export function AiResultExplanation({ result, onLocate, onCompare }: { result: P
       const comparison = comparisons.find((item) => item.token === part);
       if (comparison) return <button key={index} className="ai-result-reference ai-comparison-reference" onClick={() => onCompare({ beforeId: comparison.before.analysisId, afterId: comparison.after.analysisId })}>
         {comparison.after.object.label} · {comparison.after.component}：{comparison.before.value.toPrecision(8)} → {comparison.after.value.toPrecision(8)} {comparison.unit} · Δ {comparison.delta.toPrecision(8)} {comparison.unit}
-        <small>{comparison.before.source.id} · 输入 R{comparison.before.inputRevision} → R{comparison.after.inputRevision} · 查看同一对比表</small>
+        <small>{comparison.before.source.id} · 输入 R{comparison.before.inputRevision} → R{comparison.after.inputRevision}{!current(comparison.before.analysisId) || !current(comparison.after.analysisId) ? " · 含历史结果" : ""} · 查看同一对比表</small>
       </button>;
       return ref ? <button key={index} className="ai-result-reference" onClick={() => onLocate(ref)} title={`${ref.analysisId} · 输入 R${ref.inputRevision} · ${ref.source.id}`}>
-        {resultReferenceLabel(ref)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{ref.current ? "" : " · 历史结果"}</small>
+        {resultReferenceLabel(ref)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{current(ref.analysisId) ? "" : " · 历史结果"}</small>
       </button> : <span key={index}>{part}</span>;
     })}</p>
   </div>;

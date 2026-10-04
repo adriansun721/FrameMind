@@ -39,7 +39,7 @@ async function send(page: Page) {
   await page.getByRole("button", { name: "发送消息", exact: true }).click();
 }
 
-test("T25 reads real combination results, locates verified items and invalidates a pending explanation when the selected analysis changes", async () => {
+test("T25 reads real combination results, locates verified items and retains its bound analysis during browsing", async () => {
   test.setTimeout(90000);
   await desktop(async (app, page, path) => {
     await replay(app); await send(page);
@@ -68,13 +68,13 @@ test("T25 reads real combination results, locates verified items and invalidates
       const settings = page.getByRole("dialog", { name: "设置", exact: true });
       await settings.getByRole("button", { name: theme === "dark" ? "深色" : "浅色", exact: true }).click();
       await settings.getByRole("button", { name: "关闭", exact: true }).click();
-      await page.screenshot({ path: `docs/evidence/T25-${theme}.png` });
+      await page.screenshot({ path: `test-results/t2-05-t25-${theme}.png` });
       expect(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth)).toBe(true);
     }
     const records = await page.locator(".ai-tool-record").evaluateAll((items) => items.map((item) => ({
       input: JSON.parse(item.querySelector("pre")!.textContent!), output: JSON.parse(item.querySelector(".ai-tool-output")!.textContent!),
     })));
-    await writeFile("docs/evidence/T25-replay.json", JSON.stringify({ input: project, records }, null, 2) + "\n");
+    await writeFile("test-results/t2-05-t25-replay.json", JSON.stringify({ input: project, records }, null, 2) + "\n");
     await refs.first().click();
     await page.getByLabel("X 坐标", { exact: true }).fill("8");
     await page.getByRole("button", { name: "保存节点属性" }).click();
@@ -97,6 +97,8 @@ test("T25 reads real combination results, locates verified items and invalidates
     await expect(page.getByRole("button", { name: "取消对话", exact: true })).toBeVisible();
     // Same model and object selection, different selected analysis ID.
     await detail.getByRole("button", { name: "关闭引用结果", exact: true }).click();
+    await expect(page.getByRole("button", { name: "取消对话", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "取消对话", exact: true }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已取消");
   });
 });

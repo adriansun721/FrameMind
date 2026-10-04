@@ -26,15 +26,16 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
     <p>{proposal.source === "user" ? "用户提供" : "建议 · 待确认"} · {proposal.memberIds.length} 根柱 · 输入 R{snapshot.context.modelRevision}</p>
     <p>仅重新指定下列柱的截面，共享截面保持原参数。全部 {snapshot.model.members.length} 根杆件的响应将在重算后更新。</p>
     {proposal.memberIds.map((id) => {
-      const member = snapshot.model.members.find((item) => item.id === id)!;
-      const before = snapshot.model.sections.find((item) => item.id === member.sectionId)!;
+      const member = snapshot.model.members.find((item) => item.id === id);
+      const before = snapshot.model.sections.find((item) => item.id === member?.sectionId);
+      if (!member || !before) return <p key={id}>{id} · 目标或原截面已删除</p>;
       return <div className="section-change-object" key={id}><strong>{member.label} · {id}</strong><p>{before.name} → {proposal.section.name}</p>
         <dl>{Object.entries(SECTION_PARAMETERS).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{before[key as keyof typeof SECTION_PARAMETERS]} → {proposal.section[key as keyof typeof SECTION_PARAMETERS]}</dd></div>)}</dl>
       </div>;
     })}
     {snapshot.model.selfWeight.enabled && <p>自重已启用 · {snapshot.model.selfWeight.loadCaseId}。新面积同时改变质量和重算荷载，前后差异包含自重影响。</p>}
     {!snapshot.analysisCurrent && <p className="frame-draft-notice">当前输入没有成功分析基线，确认重算后需另行选择历史分析进行对比。</p>}
-    {!current && <p className="frame-draft-notice">模型或选中对象已变化，预览已失效。重新生成后核对新的对象范围。</p>}
+    {!current && <p className="frame-draft-notice">目标存在冲突，相关修改已暂停。</p>}
   </>;
   return <ProposalCard title="修改柱截面" label="选柱截面修改方案" visible={visible} current={current} busy={busy} dirty={dirty} details={details}
     updateDisabled={busy || !current}
@@ -49,7 +50,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
       { label: "自重", value: snapshot.model.selfWeight.enabled ? `已启用 · ${snapshot.model.selfWeight.loadCaseId} · 新面积会影响自重荷载` : "未启用" },
       { label: "后续", value: calculate ? "确认后重算全部杆件响应" : "确认后应用截面，响应需重算" },
     ]}>
-    {!current && <p className="frame-draft-notice">模型或选中对象已变化，预览已失效。重新生成后核对新的对象范围。</p>}
+    {!current && <p className="frame-draft-notice">目标存在冲突，相关修改已暂停。</p>}
     <form onSubmit={(event) => {
       event.preventDefault();
       try {

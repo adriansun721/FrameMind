@@ -156,7 +156,7 @@ test("T23 selects the reviewed existing load case for continuation and honours n
   });
 });
 
-test("T23 reports model-check and solve failures, retains confirmed work, and requires refreshing a stale conditions card", async () => {
+test("T23 reports model-check and solve failures, retains confirmed work, and refreshes compatible conditions", async () => {
   await desktop(async (app, page, path) => {
     await closeProposalDrawer(page);
     await workflowReplay(app, false); await send(page, "建立两层刚架并计算");
@@ -164,7 +164,7 @@ test("T23 reports model-check and solve failures, retains confirmed work, and re
     const card = page.getByRole("region", { name: "分析条件卡片" });
     await expect(card).toBeVisible();
     await createNode(page, ["20", "0", "0"]);
-    await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeDisabled();
+    await expect(card.getByRole("button", { name: /^(确认条件|确认并计算)$/ })).toBeEnabled();
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "重新生成条件预览", exact: true }).click();

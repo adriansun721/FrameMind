@@ -84,9 +84,8 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
         return { kind, id, label: object?.label ?? id, exists: Boolean(object) };
       }),
     },
-    // The task boundary must invalidate when its target context changes even if
-    // the underlying project revision is unchanged (for example, a new selection
-    // or comparison pair while the user is browsing the model).
+    // Engineering reads use this key to detect changes. Task targets and viewed
+    // result identities are bound separately at submission.
     snapshotKey: JSON.stringify({
       projectId: project.id,
       revision: project.revision,

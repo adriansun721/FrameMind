@@ -105,7 +105,7 @@ test("T21 clarifies conflicts, rejects bad edits, accepts natural-language corre
   });
 });
 
-test("T21 retains current analysis while previewing and invalidates a proposal after applied edits", async () => {
+test("T21 retains current analysis and refreshes a proposal after compatible applied edits", async () => {
   await desktop(async (app, page, path) => {
     await createNode(page, ["0", "0", "0"]); await createNode(page, ["4", "0", "0"]);
     await page.getByRole("button", { name: "创建材料与截面" }).click(); await page.getByRole("button", { name: "保存材料与截面" }).click();
@@ -129,7 +129,7 @@ test("T21 retains current analysis while previewing and invalidates a proposal a
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await createNode(page, ["10", "0", "0"]);
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
-    await expect(page.getByText("正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。", { exact: true })).toBeVisible();
+    await expect(card.getByRole("button", { name: "确认建模", exact: true })).toBeEnabled();
     await replay(app, { collection: "summary" }, "read_model");
     await closeProposalDrawer(page);
     await send(page, "读取当前已应用模型摘要");

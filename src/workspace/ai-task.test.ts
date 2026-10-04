@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DeepSeekChatRequest, DeepSeekChatResult } from "../../electron/contracts";
-import { addNode, createProject } from "../domain/project";
+import { addNode, createProject, updateNode } from "../domain/project";
+import { applyProjectEdits } from "../domain/project-operations";
 import { captureAiSnapshot } from "./ai-tools";
 import { startAiTask, type AiProgress, type AiTransport } from "./ai-task";
+import { columns } from "./section-stage.fixture";
 
 function replay(responses: DeepSeekChatResult[]) {
   const requests: DeepSeekChatRequest[] = [];
@@ -78,6 +80,78 @@ describe("AI progressive output", () => {
 });
 
 describe("AI conversation task boundary", () => {
+  it("continues a condition draft when an unrelated submitted selection is deleted", async () => {
+    let project = addNode(addNode(createProject(), { x: 0, y: 0, z: 0 }), { x: 0, y: 0, z: 4 });
+    const selected = project.nodes[0].id;
+    const target = project.nodes[1].id;
+    const initial = captureAiSnapshot(project, [{ kind: "node", id: selected }]);
+    const script = replay([
+      { status: "success", message: "准备条件", assistant: { role: "assistant", content: null,
+        tool_calls: [{ id: "conditions", type: "function", function: { name: "propose_analysis_conditions", arguments: JSON.stringify({ supports: [{ nodeId: target, restraints: [true, true, true, true, true, true], source: "user" }], nodalLoads: [] }) } }] } },
+      { status: "success", message: "完成", assistant: { role: "assistant", content: "已保留 N2 的支座草案。" } },
+    ]);
+    const result = await startAiTask(initial, "给 N2 添加固定支座", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => captureAiSnapshot(project, []),
+      onProgress: (event) => { if (event.toolResult?.conditions) project = applyProjectEdits(project, [{ type: "delete_node", id: selected }]).project; },
+    }).promise;
+    expect(result.status).toBe("completed");
+    expect(result.conditions?.supports).toMatchObject([{ nodeId: target }]);
+    expect(result.draftBaseProject?.nodes.map((node) => node.id)).toEqual([target]);
+    expect(script.requests).toHaveLength(2);
+    expect(project.supports).toHaveLength(0);
+  });
+  it("marks a retained result citation historical after manual input edits", async () => {
+    let project = columns();
+    const initial = captureAiSnapshot(project, []);
+    const script = replay([
+      { status: "success", message: "读取", assistant: { role: "assistant", content: null, tool_calls: [{ id: "old-result", type: "function", function: { name: "read_result", arguments: JSON.stringify({ kind: "node", id: project.nodes[1].id, quantity: "displacement", component: "x" }) } }] } },
+      { status: "success", message: "引用", assistant: { role: "assistant", content: "历史结果 [[result:old-result]]。" } },
+    ]);
+    const result = await startAiTask(initial, "读取位移", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => captureAiSnapshot(project, [], initial.analysis),
+      onProgress: (event) => { if (event.toolResult?.reference) project = updateNode(project, project.nodes[1].id, { x: 0, y: 0, z: 5 }); },
+    }).promise;
+    expect(result.status).toBe("completed");
+    expect(result.records.find((record) => record.result.reference)?.result.reference).toMatchObject({ current: false, object: { position: { z: 4 } } });
+  });
+  it("pauses a draft if the same component changes in its publication callback", async () => {
+    let project = addNode(createProject(), { x: 0, y: 0, z: 0 });
+    const initial = captureAiSnapshot(project, []);
+    const script = replay([{ status: "success", message: "工具请求", assistant: { role: "assistant", content: null,
+      tool_calls: [{ id: "draft", type: "function", function: { name: "propose_model_edits", arguments: JSON.stringify({ operations: [{ type: "update_node", id: project.nodes[0].id, position: { x: 1 } }] }) } }] } }]);
+    const result = await startAiTask(initial, "把X改成1", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => captureAiSnapshot(project, []),
+      onProgress: (event) => { if (event.toolResult?.modelEdits) project = updateNode(project, project.nodes[0].id, { x: 9, y: 0, z: 0 }); },
+    }).promise;
+    expect(result.status).toBe("missing-input");
+    expect(result.message).toContain("position.x");
+    expect(result.draftBaseProject?.nodes[0].position.x).toBe(0);
+    expect(project.nodes[0].position.x).toBe(9);
+    expect(script.requests).toHaveLength(1);
+  });
+  it("keeps the submitted target and replans from compatible edits before using a pending response", async () => {
+    let project = addNode(createProject(), { x: 0, y: 0, z: 0 });
+    const target = { kind: "node" as const, id: project.nodes[0].id };
+    const snapshot = captureAiSnapshot(project, [target]);
+    const requests: DeepSeekChatRequest[] = [];
+    const releases: ((value: DeepSeekChatResult) => void)[] = [];
+    const task = startAiTask(snapshot, "读取这个节点", {
+      isCurrent: () => true,
+      getCurrentSnapshot: () => captureAiSnapshot(project, [{ kind: "node", id: project.nodes.at(-1)!.id }]),
+      transport: { chatDeepSeek: (request) => { requests.push(request); return new Promise((resolve) => releases.push(resolve)); }, cancelDeepSeekChat: async () => {} },
+    });
+    project = addNode(project, { x: 5, y: 0, z: 0 });
+    releases[0](selectedRead);
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    releases[1](selectedRead);
+    await vi.waitFor(() => expect(requests).toHaveLength(3));
+    releases[2]({ status: "success", message: "完成", assistant: { role: "assistant", content: "已读取原目标及最新工程。" } });
+    const result = await task.promise;
+    expect(result.status).toBe("completed");
+    expect(result.context.selection).toMatchObject([target]);
+    expect(result.records.find((record) => record.call.function.name === "read_selection")?.result.context.selection).toMatchObject([target]);
+    expect(result.context.modelRevision).toBe(project.revision);
+  });
   it("pauses a pending response, resumes the same task and ignores the old response", async () => {
     const requests: DeepSeekChatRequest[] = [];
     const releases: ((response: DeepSeekChatResult) => void)[] = [];
@@ -267,7 +341,7 @@ describe("AI conversation task boundary", () => {
     expect(progress.filter((event) => event.phase === "tool")).toEqual([]);
   });
 
-  it("discards responses when the project, model, selection or session context becomes obsolete", async () => {
+  it("discards responses when the owning project or task session becomes obsolete", async () => {
     const project = addNode(createProject(), { x: 0, y: 0, z: 0 });
     const snapshot = captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]);
     let current = true;

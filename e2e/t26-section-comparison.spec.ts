@@ -87,7 +87,7 @@ test("T26 confirms selected column sections, automatically recomputes self weigh
   });
 });
 
-test("T26 cancels a pending comparison when the selected analysis pair changes", async () => {
+test("T26 keeps a pending comparison bound when the browsed analysis pair changes", async () => {
   await desktop(async (app, page, path) => {
     let p = columns();
     p = updateMember(p, p.members[0].id, { ...p.members[0], sectionId: p.sections[1].id });
@@ -103,11 +103,14 @@ test("T26 cancels a pending comparison when the selected analysis pair changes",
     await send(page, "解释前后差异"); await expect(page.getByRole("button", { name: "取消对话", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "历史分析与前后对比", exact: true }).click();
     await dialog.getByLabel("前一份结果").selectOption(p.analysisResults[1].id);
+    await expect(page.getByRole("button", { name: "取消对话", exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "关闭", exact: true }).click();
+    await page.getByRole("button", { name: "取消对话", exact: true }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已取消");
   });
 });
 
-test("T26 invalidates changed selections, supports card edits and rejection without modifying the shared model", async () => {
+test("T26 preserves submitted selections and supports card edits and rejection without modifying the shared model", async () => {
   await desktop(async (app, page, path) => {
     const before = await openExample(page, path); await replay(app);
     await closeProposalDrawer(page);
@@ -115,11 +118,11 @@ test("T26 invalidates changed selections, supports card edits and rejection with
     const card = page.getByRole("region", { name: "选柱截面修改方案" });
     await expect(card.getByRole("button", { name: /^(确认修改|确认并重算)$/ })).toBeEnabled();
     await page.getByLabel("选择杆件 M2", { exact: true }).check();
-    await expect(card.getByRole("button", { name: /^(确认修改|确认并重算)$/ })).toBeDisabled();
+    await expect(card.getByRole("button", { name: /^(确认修改|确认并重算)$/ })).toBeEnabled();
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "重新生成截面预览", exact: true }).click();
-    await expect(card).toContainText("2 根选中柱");
+    await expect(card).toContainText("1 根选中柱");
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByLabel("目标柱截面").selectOption("custom");
     await openProposalView(page, card, "edit");

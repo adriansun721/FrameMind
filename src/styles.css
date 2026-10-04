@@ -306,7 +306,10 @@ button { color: inherit; }
 .ai-history-item:focus-visible, .ai-history-expand:focus-visible, .ai-add-menu button:focus-visible { outline: 2px solid var(--focus-border); outline-offset: 2px; }
 .ai-workflow { padding: var(--space-5) 0 var(--space-8); overflow-wrap: anywhere; }
 .ai-turn { padding: var(--space-3) 0; overflow-wrap: anywhere; }
-.ai-user-message { display: flex; justify-content: flex-end; margin-bottom: var(--space-5); }
+.ai-user-message { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin-bottom: var(--space-5); }
+.ai-message-context { display: flex; flex-basis: 100%; align-items: center; justify-content: flex-end; gap: 4px; }
+.ai-message-context .ai-stale { white-space: nowrap; }
+.ai-card-targets { display: flex; align-items: center; justify-content: space-between; min-height: 28px; color: var(--text-muted); }
 .ai-user-message p { max-width: 80%; margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--space-6); background: var(--surface-control); white-space: pre-wrap; line-height: 1.6; }
 .ai-assistant-message { margin: var(--space-3) 0 0; white-space: pre-wrap; line-height: 1.6; }
 .ai-user-message, .ai-assistant-message { color: #fff; }

@@ -144,7 +144,7 @@ test("T20 reads a mixed batch of nodes and members through their stable identiti
   });
 });
 
-test("T20 cancels pending responses when the user cancels, changes context or removes credentials", async () => {
+test("T20 keeps browsing and compatible edits active while cancellation and credential removal stop responses", async () => {
   await withDesktop(async (app, page, projectPath) => {
     await configure(page);
     await createNode(page, ["0", "0", "0"]);
@@ -161,14 +161,17 @@ test("T20 cancels pending responses when the user cancels, changes context or re
 
     await pending(app, page, "请求期间切换选择");
     await page.getByRole("region", { name: "项目树" }).getByText("N2", { exact: true }).click();
-    await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已取消");
-    await releaseLate(app, "late-selection-response");
+    await expect(panel.getByRole("button", { name: "取消对话", exact: true })).toBeVisible();
+    await releaseLate(app, "selection-preserved-response");
+    await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已完成");
 
     await pending(app, page, "请求期间修改模型");
     await properties.getByLabel("X 坐标", { exact: true }).fill("7");
     await properties.getByRole("button", { name: "保存节点属性", exact: true }).click();
-    await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已取消");
+    await expect(panel.getByRole("button", { name: "取消对话", exact: true })).toBeVisible();
+    await replay(app, "read_selection", {}, "已重读人工编辑后的任务目标。");
     await releaseLate(app, "late-model-response");
+    await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已完成");
 
     await pending(app, page, "请求期间移除凭据");
     await page.getByRole("button", { name: "设置", exact: true }).click();
@@ -179,7 +182,7 @@ test("T20 cancels pending responses when the user cancels, changes context or re
     await expect(panel.getByTestId("ai-turn-status").last()).toContainText("已取消");
     await dialog.getByRole("button", { name: "关闭", exact: true }).click();
     await expect(panel.getByRole("button", { name: "发送消息", exact: true })).toBeVisible();
-    for (const reply of ["late-user-cancel-response", "late-selection-response", "late-model-response", "late-credential-response"]) {
+    for (const reply of ["late-user-cancel-response", "late-model-response", "late-credential-response"]) {
       await expect(panel.getByText(reply, { exact: true })).toHaveCount(0);
     }
     await page.keyboard.press("Control+s");

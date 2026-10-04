@@ -178,7 +178,7 @@ export function App() {
     return start && end ? calculateMemberGeometry(start.position, end.position, selectedMember.rotationDegrees) : null;
   }, [project.nodes, selectedMember]);
 
-  const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record", preserveConversation = false) => {
+  const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record") => {
     const previous = activeProjectRef.current;
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
@@ -193,9 +193,9 @@ export function App() {
     setHistoryVersion((value) => value + 1);
     if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId) {
       setResultReference(null); setResultFocus(null);
-      if (newSession || !preserveConversation) activeSessionRef.current += 1;
+      if (newSession) activeSessionRef.current += 1;
       setAnalysisFailure(null);
-      const activeAnalysis = analysisTaskRef.current;
+      const activeAnalysis = newSession ? analysisTaskRef.current : null;
       if (activeAnalysis) {
         analysisRunRef.current += 1;
         analysisTaskRef.current = null;
@@ -342,10 +342,14 @@ export function App() {
     }
   };
 
-  const runAnalysis = async (showResults = false): Promise<AiToolResult> => {
-    const source = activeProjectRef.current;
+  const runAnalysis = async (showResults = false, requestedSourceId?: string): Promise<AiToolResult> => {
+    const current = activeProjectRef.current;
+    if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
+    const source = requestedSourceId ? current.loadCombinations.some((item) => item.id === requestedSourceId)
+      ? selectLoadCombination(current, requestedSourceId) : selectLoadCase(current, requestedSourceId) : current;
     const context = captureAiSnapshot(source, []).context;
     if (analysisTaskRef.current) return { status: "failed", message: "已有本地分析正在执行", context };
+    if (source !== current) activateProject(source, false, "restore");
     const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
     const runId = ++analysisRunRef.current;
     setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已启动，正在检查模型" });
@@ -652,17 +656,27 @@ export function App() {
         comparison={comparisonPair} onComparison={(pair, open) => { setComparisonPair(pair); if (open) setComparisonOpen(true); }}
         onSectionConfirm={(confirmation) => {
           const current = activeProjectRef.current;
-          const outcome = sectionConfirmationRef.current.confirm(current, aiSelection, confirmation);
+          const outcome = sectionConfirmationRef.current.confirm(current, confirmation.selection, confirmation);
           if (outcome.project !== current) activateProject(outcome.project, false);
           setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
           return outcome.result;
+        }}
+        onLocateTargets={(targets) => {
+          const nodes = targets.filter((target) => target.kind === "node" && project.nodes.some((item) => item.id === target.id));
+          const members = targets.filter((target) => target.kind === "member" && project.members.some((item) => item.id === target.id));
+          setSelectedNodeIds(new Set(nodes.map((item) => item.id as NodeId)));
+          setSelectedMemberIds(new Set(members.map((item) => item.id as MemberId)));
+          const first = [...members, ...nodes][0];
+          selectObject(first ? first as Selection : null);
+          setPropertyPanelOpen(true); setDiagnosticFitRequest((value) => value + 1);
+          if (nodes.length + members.length !== targets.length) setStatus({ tone: "neutral", text: "部分任务目标已删除，仅定位仍存在的对象" });
         }}
         analysis={caseResult} onLocateResult={(ref) => {
           const result = project.analysisResults.find((item) => item.id === ref.analysisId);
           if (!result || result.projectId !== project.id) { setStatus({ tone: "error", text: "引用分析已不可用，请重新读取当前结果" }); return; }
           if (ref.source.id !== (project.activeLoadCombinationId ?? project.activeLoadCaseId)) {
             const next = ref.source.kind === "combination" ? selectLoadCombination(project, ref.source.id) : selectLoadCase(project, ref.source.id);
-            activateProject(next, false, "restore", true);
+            activateProject(next, false, "restore");
           }
           setResultReference(ref); setPropertyPanelOpen(true);
           const exists = (ref.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === ref.object.id);
@@ -675,12 +689,12 @@ export function App() {
           } else { setResultView(ref.quantity === "displacement" ? "deformation" : "model"); setResultFocus(null); }
           setDiagnosticFitRequest((value) => value + 1);
         }}
-        analysisBusy={analysisBusy} onAnalyze={() => runAnalysis(true)} onCancelAnalysis={cancelAnalysis}
+        analysisBusy={analysisBusy} onAnalyze={(sourceId) => runAnalysis(true, sourceId)} onCancelAnalysis={cancelAnalysis}
         onConditionsConfirm={(confirmation) => {
           const current = activeProjectRef.current;
           const outcome = conditionsConfirmationRef.current.confirm(current, confirmation);
           // This reviewed source selection belongs to the same confirmed task and must keep its continuation.
-          if (outcome.project !== current) activateProject(outcome.project, false, "record", true);
+          if (outcome.project !== current) activateProject(outcome.project, false, "record");
           setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
           return outcome.result;
         }}

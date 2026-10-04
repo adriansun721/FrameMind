@@ -96,13 +96,13 @@ test("T22 exposes failed atomic applications and leaves the existing project and
   });
 });
 
-test("T22 requires refreshing a stale model and confirming every subsequent stage", async () => {
+test("T22 refreshes compatible manual edits and requires confirmation for every subsequent stage", async () => {
   await desktop(async (app, page) => {
     await closeProposalDrawer(page);
     await replay(app, parameters); await send(page, "准备两层空间刚架方案");
     const card = page.getByRole("region", { name: "建模参数卡片" });
     await createNode(page, ["-2", "-3", "0"]);
-    await expect(card.getByRole("button", { name: "确认建模", exact: true })).toBeDisabled();
+    await expect(card.getByRole("button", { name: "确认建模", exact: true })).toBeEnabled();
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "重新生成预览", exact: true }).click();
@@ -119,7 +119,7 @@ test("T22 requires refreshing a stale model and confirming every subsequent stag
         await app.evaluate(({ BrowserWindow }, size) => BrowserWindow.getAllWindows()[0].setSize(size, 900), width);
         await card.getByRole("button", { name: "确认建模", exact: true }).scrollIntoViewIfNeeded();
         expect(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth)).toBe(true);
-        await page.screenshot({ path: `docs/evidence/T22-${theme}-${width}.png` });
+        await page.screenshot({ path: `test-results/t2-05-t22-${theme}-${width}.png` });
       }
     }
     await closeProposalDrawer(page);

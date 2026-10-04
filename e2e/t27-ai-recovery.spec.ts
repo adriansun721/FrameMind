@@ -76,7 +76,7 @@ test("T27 keeps an unconfirmed draft isolated on disconnect and blocks stale ret
     await createNode(page, ["2", "3", "4"]);
     await expect(page.getByRole("button", { name: "重试消息", exact: true })).toBeDisabled();
     await expect(page.getByText("上下文或阶段已变化", { exact: false })).toBeVisible();
-    await expect(page.getByRole("button", { name: "确认建模", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "确认建模", exact: true })).toBeEnabled();
     expect((await save(page, path)).nodes).toHaveLength(1);
     expect(await page.getByRole("log").innerText()).not.toContain("sk-t21-fixture-only");
   });
