@@ -89,7 +89,6 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
       projectId: project.id,
       revision: project.revision,
       model,
-      selection,
       analysisId: analysis?.id,
       analysisComplete,
       analysisCurrent,
