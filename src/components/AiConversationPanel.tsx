@@ -19,6 +19,9 @@ import { AiResultExplanation } from "./AiResultReferences";
 import { AiComposer } from "./AiComposer";
 import { AiTaskTimeline, type StageResolution } from "./AiTaskTimeline";
 import { conditionSummaries } from "./condition-summary";
+import { TaskDraftCard } from "./TaskDraftCard";
+import { prepareTaskDraftConfirmation, type TaskDraftConfirmation } from "../workspace/task-confirmation";
+import type { TaskDraft } from "../workspace/task-draft";
 
 interface ConversationTurn {
   id: string;
@@ -38,6 +41,7 @@ interface ConversationTurn {
   conditions?: ConditionsProposal;
   sectionChange?: SectionChangeProposal;
   modelEdits?: ModelEditProposal;
+  taskDraft?: TaskDraft;
 }
 interface ConversationHistory {
   id: string;
@@ -55,6 +59,8 @@ interface ConversationHistory {
   baselineId?: string;
   modelEdits?: ModelEditProposal;
   modelEditsSource: FrameProject;
+  taskDraft?: TaskDraft;
+  taskDraftSource: FrameProject;
 }
 // Chat stays in the application session and is never written into project files.
 const sessionHistories = new Map<string, ConversationHistory[]>();
@@ -73,13 +79,14 @@ interface Props {
   onPreview(preview: FramePreview | null): void;
   onConfirm(confirmation: FrameConfirmation): AiToolResult;
   onEditsConfirm(confirmation: PreparedModelEditConfirmation): AiToolResult;
+  onTaskConfirm(confirmation: TaskDraftConfirmation): AiToolResult;
   onConditionsConfirm(confirmation: ConditionsConfirmation): AiToolResult;
   onAnalyze(): Promise<AiToolResult>;
   onCancelAnalysis(): void;
   analysisBusy: boolean;
 }
 
-export function AiConversationPanel({ project, sessionId, selection, analysis, comparison, onComparison, onSectionConfirm, onLocateResult, open, onClose, onSettings, onPreview, onConfirm, onEditsConfirm, onConditionsConfirm, onAnalyze, onCancelAnalysis, analysisBusy }: Props) {
+export function AiConversationPanel({ project, sessionId, selection, analysis, comparison, onComparison, onSectionConfirm, onLocateResult, open, onClose, onSettings, onPreview, onConfirm, onEditsConfirm, onTaskConfirm, onConditionsConfirm, onAnalyze, onCancelAnalysis, analysisBusy }: Props) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -100,6 +107,11 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const modelEditsRef = useRef(modelEdits); modelEditsRef.current = modelEdits;
   const [modelEditsSource, setModelEditsSource] = useState(project);
   const modelEditsCurrent = modelEditsSource === project;
+  const [taskDraft, setTaskDraft] = useState<TaskDraft>();
+  const taskDraftRef = useRef(taskDraft); taskDraftRef.current = taskDraft;
+  const [taskDraftSource, setTaskDraftSource] = useState(project);
+  const taskDraftCurrent = taskDraftSource === project;
+  const taskDraftConfirmation = useMemo(() => taskDraft ? prepareTaskDraftConfirmation(taskDraftSource, taskDraft) : undefined, [taskDraftSource, taskDraft]);
   const baselineRef = useRef<string | undefined>(undefined);
   const sectionCurrent = sectionSource === project && JSON.stringify(sectionSelection) === JSON.stringify(selection);
   const sectionConfirmation = useMemo(() => sectionChange ? prepareSectionConfirmation(sectionSource, sectionSelection, sectionChange) : undefined, [sectionSource, sectionSelection, sectionChange]);
@@ -137,24 +149,24 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     setConversations((previous) => {
       const next = [{ id: conversationId, turns, updatedAt: Date.now(), proposal, proposalSource,
         conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested,
-        requestPrompt: requestPromptRef.current, baselineId: baselineRef.current, modelEdits, modelEditsSource },
+        requestPrompt: requestPromptRef.current, baselineId: baselineRef.current, modelEdits, modelEditsSource, taskDraft, taskDraftSource },
       ...previous.filter((item) => item.id !== conversationId)].slice(0, 30);
       sessionHistories.set(project.id, next);
       return next;
     });
-  }, [turns, conversationId, project.id, proposal, proposalSource, conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested, modelEdits, modelEditsSource]);
+  }, [turns, conversationId, project.id, proposal, proposalSource, conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested, modelEdits, modelEditsSource, taskDraft, taskDraftSource]);
 
   const newConversation = () => {
-    if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || modelEdits) return;
-    rejectProposal(); rejectConditions(); rejectSection(); rejectModelEdits();
+    if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || modelEdits || taskDraft) return;
+    rejectProposal(); rejectConditions(); rejectSection(); rejectModelEdits(); rejectTaskDraft();
     baselineRef.current = undefined;
     setConversationId(crypto.randomUUID()); setTurns([]); setDraft(""); setShowHome(true);
     followOutputRef.current = true;
   };
   const openConversation = (conversation: ConversationHistory) => {
-    if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || modelEdits) return;
+    if (busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || modelEdits || taskDraft) return;
     followOutputRef.current = true;
-    rejectProposal(); rejectConditions(); rejectSection(); rejectModelEdits();
+    rejectProposal(); rejectConditions(); rejectSection(); rejectModelEdits(); rejectTaskDraft();
     baselineRef.current = undefined;
     setConversationId(conversation.id); setTurns(conversation.turns.map((turn) => turn.result ? turn : {
       ...turn, result: { status: "cancelled", message: "会话切换已中断本次请求，请基于当前模型重新发送。", context: turn.context, records: [] },
@@ -164,6 +176,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     sectionRef.current = conversation.sectionChange; setSectionChange(conversation.sectionChange); setSectionSource(conversation.sectionSource); setSectionSelection(conversation.sectionSelection);
     setCalculationRequested(conversation.calculationRequested); requestPromptRef.current = conversation.requestPrompt; baselineRef.current = conversation.baselineId;
     modelEditsRef.current = conversation.modelEdits; setModelEdits(conversation.modelEdits); setModelEditsSource(conversation.modelEditsSource ?? project);
+    taskDraftRef.current = conversation.taskDraft; setTaskDraft(conversation.taskDraft); setTaskDraftSource(conversation.taskDraftSource ?? project);
   };
 
   // Drafts are presented in the card dock; they do not draw a coloured scene overlay.
@@ -171,7 +184,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   useEffect(() => () => previewCallback.current(null), []);
   const stageWorkflow = (draftId: string) => {
     const owner = [...turns].reverse().find((turn) => !turn.stageResolutions?.[draftId] && turn.result?.records.some((record) =>
-      [record.result.proposal?.id, record.result.conditions?.id, record.result.sectionChange?.id].includes(draftId)));
+      [record.result.taskDraft?.id, record.result.proposal?.id, record.result.conditions?.id, record.result.sectionChange?.id].includes(draftId)));
     return owner?.workflowId ?? owner?.id ?? turns.at(-1)?.workflowId ?? turns.at(-1)?.id;
   };
   const resolveStage = (draft: StageResolution["draft"], status: StageResolution["status"], exceptTurnId?: string) => {
@@ -180,7 +193,9 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       ...frameResourceOptions(snapshot, "material"), ...frameResourceOptions(snapshot, "beamSection"),
     ].map((option) => [option.value, option.label.split(" · ")[0]])) : undefined;
     let parameters: string | undefined;
-    if (!("parameters" in draft) && !("memberIds" in draft)) {
+    if ("projectId" in draft) {
+      parameters = `任务目标：${draft.goal ?? "未填写"}\n草案版本：V${draft.version} · 基础 R${draft.baseRevision}`;
+    } else if (!("parameters" in draft) && !("memberIds" in draft)) {
       const sourceId = draft.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId;
       const sourceName = [...(draft.loadCases ?? []), ...(draft.loadCombinations ?? [])].find((item) => item.ref === sourceId || item.id === sourceId)?.name
         ?? [...project.loadCases, ...project.loadCombinations].find((item) => item.id === sourceId)?.name ?? sourceId;
@@ -188,7 +203,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       parameters += `\n计算来源：${sourceName}`;
     }
     setTurns((previous) => previous.map((turn) => turn.id !== exceptTurnId && !turn.stageResolutions?.[draft.id]
-      && turn.result?.records.some((record) => [record.result.proposal?.id, record.result.conditions?.id, record.result.sectionChange?.id].includes(draft.id))
+      && turn.result?.records.some((record) => [record.result.taskDraft?.id, record.result.proposal?.id, record.result.conditions?.id, record.result.sectionChange?.id].includes(draft.id))
       ? { ...turn, stageResolutions: { ...turn.stageResolutions, [draft.id]: { status, draft, resourceNames, parameters } } } : turn));
   };
   const rejectProposal = (status: StageResolution["status"] = "cancelled") => { resolveStage(proposalRef.current, status); proposalRef.current = undefined; taskRef.current?.cancel(); setProposal(undefined); setProposalDirty(false); };
@@ -198,16 +213,25 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const rejectSection = () => { resolveStage(sectionRef.current, "cancelled"); sectionRef.current = undefined; taskRef.current?.cancel(); setSectionChange(undefined); setSectionDirty(false); setSectionError(""); setCalculationRequested(false); continuationRef.current = null; };
   const changeSection = (next: SectionChangeProposal) => { previousSectionRef.current = sectionRef.current; sectionRef.current = next; taskRef.current?.cancel(); setSectionChange(next); setSectionSource(project); setSectionSelection(selection); setSectionDirty(false); setSectionError(""); };
   const rejectModelEdits = () => { modelEditsRef.current = undefined; taskRef.current?.cancel(); setModelEdits(undefined); setModelEditsSource(project); };
+  const rejectTaskDraft = () => { resolveStage(taskDraftRef.current, "cancelled"); taskDraftRef.current = undefined; taskRef.current?.cancel(); setTaskDraft(undefined); setTaskDraftSource(project); };
   const confirmModelEdits = () => {
-    if (!modelEditsConfirmation || busy || analysisBusy || !modelEditsCurrent || modelEditsRef.current !== modelEdits || proposal || conditions || sectionChange) return;
+    if (!modelEditsConfirmation || busy || analysisBusy || !modelEditsCurrent || modelEditsRef.current !== modelEdits || proposal || conditions || sectionChange || taskDraft) return;
     const result = onEditsConfirm(modelEditsConfirmation);
     const draft = modelEdits!;
     setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), origin: "confirmation", prompt: "确认应用基础编辑", context: modelEditsConfirmation.baseProject === project ? snapshot.context : captureAiSnapshot(modelEditsSource, []).context, sourceProject: modelEditsSource,
       result: { ...result, records: [{ round: 0, call: { id: modelEditsConfirmation.requestId, type: "function", function: { name: "confirm_model_edits", arguments: JSON.stringify({ proposalId: draft.id, proposalVersion: draft.version, baseRevision: draft.baseRevision }) } }, result }] } }]);
     if (result.status === "applied") rejectModelEdits();
   };
+  const confirmTaskDraft = () => {
+    if (!taskDraftConfirmation || busy || analysisBusy || !taskDraftCurrent || taskDraftRef.current !== taskDraft || proposal || conditions || sectionChange || modelEdits) return;
+    const result = onTaskConfirm(taskDraftConfirmation);
+    const draft = taskDraft!;
+    setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), origin: "confirmation", prompt: "确认应用完整任务草案", context: taskDraftConfirmation.context, sourceProject: taskDraftConfirmation.baseProject,
+      result: { ...result, records: [{ round: 0, call: { id: taskDraftConfirmation.requestId, type: "function", function: { name: "confirm_task_draft", arguments: JSON.stringify({ taskId: draft.id, taskVersion: draft.version, baseRevision: taskDraftConfirmation.context.modelRevision }) } }, result }] } }]);
+    if (result.status === "applied") { resolveStage(taskDraftRef.current, "confirmed"); rejectTaskDraft(); }
+  };
   const confirmSection = () => {
-    if (!sectionConfirmation || busy || analysisBusy || sectionDirty || !sectionCurrent || sectionRef.current !== sectionChange || proposal || conditions) return;
+    if (!sectionConfirmation || busy || analysisBusy || sectionDirty || !sectionCurrent || sectionRef.current !== sectionChange || proposal || conditions || taskDraft) return;
     const result = onSectionConfirm(sectionConfirmation);
     setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), workflowId: stageWorkflow(sectionChange!.id), origin: "confirmation", prompt: "确认应用截面修改阶段", context: snapshot.context, sourceProject: project,
       result: { ...result, records: [{ round: 0, call: { id: sectionConfirmation.requestId, type: "function", function: { name: "confirm_section_change", arguments: JSON.stringify({ proposalId: sectionChange!.id, memberIds: sectionChange!.memberIds, baseRevision: project.revision }) } }, result }] } }]);
@@ -219,7 +243,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     }
   };
   const analyze = async (workflowId?: string) => {
-    if (busy || analysisBusy || proposalRef.current || conditionsRef.current || sectionRef.current || modelEditsRef.current) return;
+    if (busy || analysisBusy || proposalRef.current || conditionsRef.current || sectionRef.current || modelEditsRef.current || taskDraftRef.current) return;
     setCalculationRequested(false);
     const id = crypto.randomUUID();
     const context = snapshot.context;
@@ -235,7 +259,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       call: { id, type: "function", function: { name: "run_analysis", arguments: JSON.stringify({ projectId: context.projectId, modelRevision: context.modelRevision }) } }, result }] } } : turn));
   };
   const confirmConditions = () => {
-    if (!conditionsConfirmation || busy || analysisBusy || conditionsDirty || !conditionsCurrent || conditionsRef.current !== conditions || proposal || sectionChange) return;
+    if (!conditionsConfirmation || busy || analysisBusy || conditionsDirty || !conditionsCurrent || conditionsRef.current !== conditions || proposal || sectionChange || taskDraft) return;
     const result = onConditionsConfirm(conditionsConfirmation);
     setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), workflowId: stageWorkflow(conditions!.id), origin: "confirmation", prompt: "确认应用分析条件阶段",
       context: conditionsConfirmation.context, sourceProject: conditionsConfirmation.baseProject, result: { ...result, records: [{ round: 0,
@@ -247,7 +271,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     }
   };
   const confirmProposal = () => {
-    if (!confirmation || busy || analysisBusy || proposalDirty || !proposalCurrent || proposalRef.current !== proposal || sectionChange) return;
+    if (!confirmation || busy || analysisBusy || proposalDirty || !proposalCurrent || proposalRef.current !== proposal || sectionChange || taskDraft) return;
     const result = onConfirm(confirmation);
     setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), workflowId: stageWorkflow(proposal!.id), origin: "confirmation", prompt: "确认应用建模阶段",
       context: confirmation.context, sourceProject: confirmation.baseProject,
@@ -273,8 +297,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     if (open && !showHome && followOutputRef.current && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [turns, open, showHome]);
 
-  const submit = async (prompt = draft, continuing = false, retryOf?: string, requestText?: string) => {
-    if (!prompt.trim() || taskRef.current || busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || modelEdits) return;
+  const submit = async (prompt = draft, continuing = false, retryOf?: string, requestText?: string, taskDraftRevision = false) => {
+    if (!prompt.trim() || taskRef.current || busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || modelEdits || taskDraft && !taskDraftRevision) return;
     const text = prompt.trim();
     const taskText = requestText ?? text;
     const intent = continuing ? undefined : calculationIntent(text);
@@ -295,7 +319,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     setShowHome(false);
     setPaused(false);
     setBusy(true);
-    setTurns((previous) => [...previous.slice(-19), { id, workflowId: continuing ? previous.at(-1)?.workflowId ?? previous.at(-1)?.id : id, origin: "chat", prompt: text, requestText, context, sourceProject: project, continuing, proposal, conditions, sectionChange, modelEdits }]);
+    setTurns((previous) => [...previous.slice(-19), { id, workflowId: continuing ? previous.at(-1)?.workflowId ?? previous.at(-1)?.id : id, origin: "chat", prompt: text, requestText, context, sourceProject: project, continuing, proposal, conditions, sectionChange, modelEdits, taskDraft }]);
     const update = (changes: Partial<ConversationTurn>) => {
       if (generationRef.current === generation) {
         setTurns((previous) => previous.map((turn) => turn.id === id ? { ...turn, ...changes } : turn));
@@ -314,8 +338,9 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       conditions,
       sectionChange,
       modelEdits,
+      taskDraft,
       isCurrent: () => currentRef.current.project === project && currentRef.current.sessionId === sessionId
-        && currentRef.current.selectionKey === selectionKey && currentRef.current.analysis === analysis && currentRef.current.comparisonKey === comparisonKey && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions && sectionRef.current === sectionChange && modelEditsRef.current === modelEdits,
+        && currentRef.current.selectionKey === selectionKey && currentRef.current.analysis === analysis && currentRef.current.comparisonKey === comparisonKey && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions && sectionRef.current === sectionChange && modelEditsRef.current === modelEdits && taskDraftRef.current === taskDraft,
       getCurrentSnapshot: () => captureAiSnapshot(currentRef.current.project, JSON.parse(currentRef.current.selectionKey), currentRef.current.analysis, comparison),
       onProgress: (progress) => {
         if (generationRef.current === generation) setTurns((previous) => previous.map((turn) => turn.id === id
@@ -352,7 +377,13 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
         if (result.modelEdits) { modelEditsRef.current = result.modelEdits; setModelEdits(result.modelEdits); setModelEditsSource(project); }
         else rejectModelEdits();
       }
-      if (result.status === "completed" && !result.proposal && !result.conditions && !result.sectionChange && !result.modelEdits && result.sectionChange !== null && result.conditions !== null && result.proposal !== null && result.modelEdits !== null
+      if (result.taskDraft !== undefined && result.status !== "cancelled" && result.status !== "failed"
+        && result.records.some((record) => record.result.taskDraft !== undefined)
+        && currentRef.current.project === project && generationRef.current === generation && taskDraftRef.current === taskDraft) {
+        setTaskDraft(result.taskDraft ?? undefined); setTaskDraftSource(project);
+        if (result.taskDraft === null) rejectTaskDraft();
+      }
+      if (result.status === "completed" && !result.proposal && !result.conditions && !result.sectionChange && !result.modelEdits && !result.taskDraft && result.sectionChange !== null && result.conditions !== null && result.proposal !== null && result.modelEdits !== null && result.taskDraft !== null
         && !continuing && result.records.some((record) => record.result.analysisRequested)
         && calculationRequestedRef.current && intent !== "cancel") continuationRef.current = "analyze";
     } catch {
@@ -368,7 +399,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
 
   const canRetry = (turn: ConversationTurn) => turn === turns.at(-1) && turn.sourceProject === project
     && JSON.stringify(turn.context) === JSON.stringify(snapshot.context)
-    && turn.proposal === proposal && turn.conditions === conditions && turn.sectionChange === sectionChange && turn.modelEdits === modelEdits;
+    && turn.proposal === proposal && turn.conditions === conditions && turn.sectionChange === sectionChange && turn.modelEdits === modelEdits && turn.taskDraft === taskDraft;
 
   useEffect(() => {
     const continuation = continuationRef.current;
@@ -393,10 +424,10 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
 
   return <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!open}>
     <div className="panel-heading"><span>Frame</span><div className="ai-heading-actions">
-      <button className="icon-button" aria-label="历史对话" title="历史对话" aria-pressed={showHome} disabled={busy || analysisBusy} onClick={() => setShowHome((value) => !value)}><History size={15} /></button>
-      <button className="icon-button" aria-label="新建对话" title="新建对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty} onClick={newConversation}><SquarePen size={15} /></button>
+         <button className="icon-button" aria-label="历史对话" title="历史对话" aria-pressed={showHome} disabled={busy || analysisBusy || Boolean(taskDraft)} onClick={() => setShowHome((value) => !value)}><History size={15} /></button>
+      <button className="icon-button" aria-label="新建对话" title="新建对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(taskDraft)} onClick={newConversation}><SquarePen size={15} /></button>
       {busy && <button className="icon-button" aria-label="取消对话" title="结束本次对话请求" onClick={() => { taskRef.current?.cancel(); setCalculationRequested(false); continuationRef.current = null; }}><X size={14} /></button>}
-      <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || turns.length === 0} onClick={() => {
+      <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(taskDraft) || turns.length === 0} onClick={() => {
         const next = conversations.filter((item) => item.id !== conversationId);
         setConversations(next); sessionHistories.set(project.id, next); newConversation();
       }}><Trash2 size={14} /></button>
@@ -404,7 +435,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     </div></div>
     {showHome && <section className="ai-conversation-home" aria-label="历史对话列表">
       <div className="ai-history-list">{(historyExpanded ? conversations : conversations.slice(0, 3)).map((conversation) => <button type="button" className="ai-history-item" key={conversation.id}
-        disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty} onClick={() => openConversation(conversation)}>
+         disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(taskDraft)} onClick={() => openConversation(conversation)}>
         <span>{conversation.turns.find((turn) => turn.origin === "chat")?.prompt ?? "对话"}</span><time dateTime={new Date(conversation.updatedAt).toISOString()}>{new Date(conversation.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Taipei" })}</time>
       </button>)}</div>
       {conversations.length > 3 && <button type="button" className="ai-history-expand" aria-expanded={historyExpanded} onClick={() => setHistoryExpanded((value) => !value)}>{historyExpanded ? "收起历史记录" : `查看全部（${conversations.length} 个）`}</button>}
@@ -420,19 +451,20 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
           <span className="ai-turn-status" data-testid="ai-turn-status">{{ completed: "已完成", applied: "已应用", "missing-input": "缺少输入", "awaiting-confirmation": "等待确认", failed: "处理失败", cancelled: "已取消" }[turn.result.status]} · {turn.result.message}</span>
           {turn.origin === "chat" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <>
             <p className="frame-draft-notice">已确认模型和成功结果保留，本地编辑与计算可继续。
-              {turn.result.interruption?.draftsDiscarded ? "本次中断生成的草案未应用，需要重新准备。" : proposal || conditions || sectionChange ? "已有草案仍需在卡片中核对并确认。" : "本次任务未提交模型修改。"}
+              {turn.result.interruption?.draftsDiscarded ? "本次中断生成的草案未应用，需要重新准备。" : proposal || conditions || sectionChange || taskDraft ? "已有草案仍需在卡片中核对并确认。" : "本次任务未提交模型修改。"}
               {!canRetry(turn) && "上下文或阶段已变化，请基于当前模型发送新消息；已提交阶段无需重做。"}</p>
             <div className="ai-recovery-actions">
-            <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(modelEdits) || !canRetry(turn)} onClick={() => { if (canRetry(turn)) void submit(turn.prompt, turn.continuing, turn.result?.requestId, turn.requestText); }}><RotateCcw size={14} /></button>
+            <button className="icon-button" aria-label="重试消息" title="重新读取当前模型并重试" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(modelEdits) || Boolean(taskDraft) || !canRetry(turn)} onClick={() => { if (canRetry(turn)) void submit(turn.prompt, turn.continuing, turn.result?.requestId, turn.requestText); }}><RotateCcw size={14} /></button>
             {turn.result.status === "failed" && <button className="icon-button" aria-label="打开连接设置" title="打开连接设置" onClick={onSettings}><Settings2 size={14} /></button>}
           </div></>}
-          {turn.origin === "analysis" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <button disabled={busy || analysisBusy || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange)} onClick={() => void analyze(turn.workflowId ?? turn.id)}>继续本地计算</button>}
+          {turn.origin === "analysis" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <button disabled={busy || analysisBusy || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange) || Boolean(taskDraft)} onClick={() => void analyze(turn.workflowId ?? turn.id)}>继续本地计算</button>}
         </div>)}
       </article>)}
       {comparison && <button className="button ghost compact-button" onClick={() => onComparison(comparison, true)}>查看本次前后对比</button>}
       {calculationRequested && <p className="frame-draft-notice">已请求本地计算，等待必要阶段确认；未确认建议不会进入求解。<button onClick={() => { setCalculationRequested(false); continuationRef.current = null; }}>取消后续计算</button></p>}
     </div>
-    {(proposal || conditions || sectionChange || modelEdits || sectionError) && <section className="ai-card-dock" aria-label="待确认参数" hidden={showHome}>
+    {(proposal || conditions || sectionChange || modelEdits || taskDraft || sectionError) && <section className="ai-card-dock" aria-label="待确认参数" hidden={showHome}>
+      {taskDraft && <TaskDraftCard snapshot={captureAiSnapshot(taskDraftSource, [])} draft={taskDraft} busy={busy || analysisBusy} current={taskDraftCurrent} onConfirm={confirmTaskDraft} onReject={rejectTaskDraft} onRevise={(prompt) => { if (taskDraftCurrent) void submit(prompt, false, undefined, undefined, true); }} />}
       {proposal && <>
         {!proposalCurrent && <p className="frame-draft-notice">正式模型已变化，原预览已失效。更新参数或重新生成后核对当前模型。</p>}
         <FrameProposalCard key={`${proposal.id}:${proposal.version}`} snapshot={snapshot} proposal={proposal} busy={busy || analysisBusy} current={proposalCurrent && !sectionChange}
@@ -474,7 +506,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       {sectionError && <p role="alert">{sectionError}</p>}
     </section>}
     <AiComposer key={conversationId} draft={draft} onDraft={setDraft} busy={busy} paused={paused} analysisBusy={analysisBusy}
-      blocked={proposalDirty || conditionsDirty || sectionDirty || Boolean(modelEdits)} onSend={(prompt, requestText) => { void submit(prompt, false, undefined, requestText); }}
+      blocked={proposalDirty || conditionsDirty || sectionDirty || Boolean(modelEdits) || Boolean(taskDraft)} onSend={(prompt, requestText) => { void submit(prompt, false, undefined, requestText); }}
       onPause={() => { if (taskRef.current?.pause()) setPaused(true); }} onResume={() => { taskRef.current?.resume(); setPaused(false); }}
       onCancelAnalysis={onCancelAnalysis} onSettings={onSettings} />
   </aside>;

@@ -370,6 +370,10 @@ button { color: inherit; }
 .proposal-card-actions .proposal-confirm { margin-left: auto; background: var(--surface-action); color: var(--text-on-action); border-color: var(--surface-action); }
 .proposal-card-actions button:disabled { opacity: .45; cursor: not-allowed; }
 .proposal-card-actions button:focus-visible { outline: 2px solid var(--focus-border); outline-offset: 2px; }
+.task-draft-revision { display: grid; gap: 8px; margin: 14px 0; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.task-draft-revision label { display: grid; gap: 6px; }
+.task-draft-revision textarea { width: 100%; min-height: 44px; box-sizing: border-box; resize: vertical; padding: 8px; background: var(--surface-control); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; font: inherit; }
+.task-draft-revision button { justify-self: start; padding: 7px 10px; border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-primary); background: var(--surface-control); font: inherit; cursor: pointer; }
 .proposal-summary-card .frame-issues, .proposal-summary-card .frame-draft-notice { margin: 10px 0; line-height: 1.6; }
 .proposal-row-changed { text-decoration: underline; text-underline-offset: 3px; }
 .proposal-drawer { position: fixed; z-index: 8; top: 48px; right: 0; bottom: 0; width: min(560px, 55vw); margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--surface-panel); color: var(--text-primary); border: 0; border-left: 1px solid var(--border-strong); border-radius: 0; box-shadow: -8px 0 24px #0002; }

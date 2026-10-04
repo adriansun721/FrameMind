@@ -1,6 +1,8 @@
 import type { Vector3 } from "../domain/project";
 
-export type ConditionSource = "user" | "suggestion";
+/** Provenance carried by an unapplied task value. */
+export type TaskValueSource = "existing" | "user" | "catalog" | "suggestion" | "assumption" | "unknown";
+export type ConditionSource = TaskValueSource;
 export function conditionObject(value: unknown, allowed: string[]): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("分析条件必须是对象");
   const result = value as Record<string, unknown>;
@@ -18,6 +20,6 @@ export function conditionIdentity(value: unknown): string {
   return value;
 }
 export function conditionSource(value: unknown): ConditionSource {
-  if (value !== "user" && value !== "suggestion") throw new Error("请标明用户提供或待确认建议");
-  return value;
+  if (!["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(value as string)) throw new Error("请标明任务值来源");
+  return value as ConditionSource;
 }

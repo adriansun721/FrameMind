@@ -64,7 +64,7 @@ const modelTools = [
           value: ["material", "columnSection", "beamSection"].includes(name) ? { type: "string" }
             : name === "storeys" ? { type: "integer", minimum: 1, maximum: 100 }
             : name === "rotationDegrees" ? { type: "number" } : { type: "array", items: { type: "number" }, minItems: 1, maxItems: 100 },
-          source: { type: "string", enum: ["user", "suggestion"] }, replace: { type: "boolean", description: "Only true for an explicit user correction or clarification." },
+          source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] }, replace: { type: "boolean", description: "Only true for an explicit user correction or clarification." },
         },
       }])) } }, required: ["parameters"], additionalProperties: false } } },
   { type: "function", function: { name: "discard_analysis_conditions", description: "Discard unapplied analysis conditions, loads, cases and combinations. Keeps confirmed work.",
@@ -80,6 +80,43 @@ const modelTools = [
       },
     }])) } } } },
 ];
+const taskFrameParameterSchema = {
+  type: "object", additionalProperties: false,
+  properties: Object.fromEntries(["storeys", "xSpans", "ySpans", "storeyHeights", "origin", "material", "columnSection", "beamSection", "rotationDegrees"].map((name) => [name, {
+    type: "object", additionalProperties: false, required: ["value", "source"], properties: {
+      value: ["material", "columnSection", "beamSection"].includes(name) ? { type: "string" }
+        : name === "storeys" ? { type: "integer", minimum: 1, maximum: 100 }
+        : name === "rotationDegrees" ? { type: "number" } : { type: "array", items: { type: "number" }, minItems: 1, maxItems: 100 },
+      source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] },
+      replace: { type: "boolean", description: "Only true for an explicit user correction or clarification." },
+    },
+  }])),
+};
+const taskToolDefinitions = [
+  { type: "function", function: { name: "propose_task", description: "Prepare one unapplied whole-task draft containing geometry/resources, supports, loads and analysis intent. Existing model values are retained when omitted; new frame object references may be used by supports and loads. Never applies or solves.", parameters: {
+    type: "object", additionalProperties: false, properties: {
+      goal: { type: "string", maxLength: 2000 },
+      frame: { type: "object", additionalProperties: false, required: ["parameters"], properties: { parameters: taskFrameParameterSchema } },
+      parameters: taskFrameParameterSchema,
+      supports: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, required: ["nodeId", "restraints", "source"], properties: {
+        id: { type: "string" }, nodeId: { type: "string" }, restraints: { type: "array", minItems: 6, maxItems: 6, items: { type: "boolean" } },
+        source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] },
+      } } },
+      nodalLoads: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, required: ["nodeId", "loadCaseId", "force", "moment", "source"], properties: {
+        id: { type: "string" }, nodeId: { type: "string" }, loadCaseId: { type: "string" },
+        force: { type: "object", additionalProperties: false, required: ["x", "y", "z"], properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } },
+        moment: { type: "object", additionalProperties: false, required: ["x", "y", "z"], properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } },
+        source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] },
+      } } },
+      ...LOAD_STAGE_SCHEMA,
+      analysis: { type: "object", additionalProperties: false, required: ["requested"], properties: {
+        requested: { type: "boolean" }, sourceId: { type: "string", maxLength: 200 },
+        source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] },
+      } }, analysisRequested: { type: "boolean" },
+    },
+  } } },
+  { type: "function", function: { name: "discard_task_draft", description: "Discard the unapplied whole-task draft without changing the applied model.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
+];
 const modelEditTools = [
   { type: "function", function: { name: "propose_model_edits", description: "Preview one atomic batch of basic node/member creation, edits, copies or deletion using stable formal IDs. Never applies directly; user confirms the draft.", parameters: MODEL_EDIT_SCHEMA } },
   { type: "function", function: { name: "discard_model_edits", description: "Discard the pending basic-edit draft without changing the formal model.", parameters: { type: "object", properties: {}, additionalProperties: false } } },
@@ -87,7 +124,10 @@ const modelEditTools = [
 ];
 function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
   const editRequested = messages.some((message) => message.role === "user" && /基础编辑|批量|移到|转角|旋转|(?:(?:创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
-  return editRequested ? [...modelTools, ...modelEditTools] : modelTools;
+  const taskDraftActive = messages.some((message) => message.role === "system" && /当前完整任务草案：\{/.test(message.content));
+  const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
+  const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;
+  return editRequested ? [...base, ...modelEditTools] : base;
 }
 const MAX_CHAT_BYTES = 1_048_576;
 const MAX_TOOL_CALLS = 16;

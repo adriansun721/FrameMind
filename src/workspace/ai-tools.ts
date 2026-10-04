@@ -8,6 +8,7 @@ import { readResult, readResults, type ResultReference } from "./ai-results";
 import { proposeSectionChange, type SectionChangeProposal } from "./section-stage";
 import { readComparison, readComparisonResult, type AiAnalysisPair, type AnalysisPairIds, type ComparisonReference } from "./ai-comparison";
 import { MODEL_EDIT_TOOLS, modelEditToolInput, proposeModelEdits, type ModelEditProposal } from "./model-edits";
+import { buildTaskDraftPreview, proposeTask, type TaskDraft } from "./task-draft";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -37,7 +38,7 @@ export interface AiReceipt {
   input: { projectId: string; modelRevision: number; analysisId?: string; analysisInputRevision?: number };
   state: { project: "current"; model: "applied"; analysis: "absent" | "incomplete" | "current" | "expired" };
 }
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; sectionChange?: SectionChangeProposal | null; modelEdits?: ModelEditProposal | null; analysisRequested?: boolean; }
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; taskDraft?: TaskDraft | null; sectionChange?: SectionChangeProposal | null; modelEdits?: ModelEditProposal | null; analysisRequested?: boolean; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
@@ -209,12 +210,25 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal): AiToolResult {
+function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (call.function.name === "discard_task_draft") {
+      exactFields(input, []);
+      return { status: "completed", message: "完整任务草案已拒绝，正式模型保留", context: snapshot.context, taskDraft: null };
+    }
+    if (call.function.name === "propose_task") {
+      const taskDraft = proposeTask(snapshot, input, previousTaskDraft);
+      const preview = buildTaskDraftPreview(snapshot, taskDraft);
+      return { status: preview.status, message: preview.issues.length ? "完整任务草案需要集中补齐或澄清" : "完整任务草案已准备，尚未应用", context: snapshot.context,
+        taskDraft, data: { goal: taskDraft.goal, taskId: taskDraft.id, version: taskDraft.version, baseRevision: taskDraft.baseRevision,
+          issues: preview.issues, missing: preview.missing, changes: preview.changes, objectRefs: preview.objectRefs, analysis: preview.analysis,
+          frame: preview.frame ? { counts: { nodes: preview.frame.nodes.length, members: preview.frame.members.length }, parameters: taskDraft.frame?.parameters } : undefined,
+          conditions: preview.conditions ? { supports: preview.conditions.supports, nodalLoads: preview.conditions.nodalLoads, uniformLoads: preview.conditions.uniformLoads, selfWeight: preview.conditions.selfWeight, loadStageSummary: preview.conditions.loadStageSummary } : undefined } };
+    }
     if (call.function.name === "discard_model_edits") {
       exactFields(input, []);
       return { status: "completed", message: "基础编辑草案已拒绝，正式模型保留", context: snapshot.context, modelEdits: null };
@@ -347,7 +361,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       page: { empty: pageItems.length === 0, hasMore: offset + pageItems.length < filtered.length, nextOffset: offset + pageItems.length }, query: input.query, fields: input.fields, ...extra } };
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal): AiToolResult {
-  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange, previousModelEdits);
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft): AiToolResult {
+  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange, previousModelEdits, previousTaskDraft);
   return { ...result, receipt: buildReceipt(snapshot, value, result) };
 }

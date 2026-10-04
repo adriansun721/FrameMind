@@ -1,0 +1,120 @@
+import { describe, expect, it } from "vitest";
+import { captureAiSnapshot } from "./ai-tools";
+import { MATERIAL_CATALOG, SECTION_CATALOG } from "../domain/resource-library";
+import { addNode, addSupport, createProject, type FrameProject } from "../domain/project";
+import { buildTaskDraftPreview, proposeTask } from "./task-draft";
+import { TaskDraftStageConfirmation, prepareTaskDraftConfirmation } from "./task-confirmation";
+
+const frame = {
+  parameters: {
+    storeys: { value: 1, source: "user" }, xSpans: { value: [4], source: "user" }, ySpans: { value: [3], source: "user" },
+    storeyHeights: { value: [3], source: "user" }, origin: { value: [0, 0, 0], source: "user" },
+    material: { value: MATERIAL_CATALOG[0].catalogId, source: "suggestion" }, columnSection: { value: SECTION_CATALOG[0].catalogId, source: "suggestion" }, beamSection: { value: SECTION_CATALOG[1].catalogId, source: "suggestion" }, rotationDegrees: { value: 0, source: "suggestion" },
+  },
+};
+
+describe("T2-03 complete task drafts", () => {
+  it("merges geometry, resources, conditions and analysis intent under one version", () => {
+    const project = createProject("整体草案");
+    const snapshot = captureAiSnapshot(project, []);
+    const first = proposeTask(snapshot, { goal: "建立一层刚架并施加节点荷载", frame });
+    expect(first.projectId).toBe(project.id);
+    expect(first.version).toBe(1);
+    expect(buildTaskDraftPreview(snapshot, first).missing.map((item) => item.category)).toEqual(expect.arrayContaining(["support", "load"]));
+    const nodeRef = `draft:${first.frame!.id}:node:0:0:0`;
+    const topRef = `draft:${first.frame!.id}:node:0:1:1`;
+    const second = proposeTask(snapshot, { goal: first.goal, supports: [{ nodeId: nodeRef, restraints: [true, true, true, true, true, true], source: "user" }], nodalLoads: [{ nodeId: topRef, loadCaseId: "LC1", force: { x: 0, y: 0, z: -5 }, moment: { x: 0, y: 0, z: 0 }, source: "user" }], analysis: { requested: true, source: "user", sourceId: "LC1" } }, first);
+    const preview = buildTaskDraftPreview(snapshot, second);
+    expect(second.version).toBe(2);
+    expect(preview.status).toBe("awaiting-confirmation");
+    expect(preview.frame?.nodes).toHaveLength(8);
+    expect(preview.conditions?.supports).toHaveLength(1);
+    expect(preview.conditions?.nodalLoads).toHaveLength(1);
+    expect(preview.changes.map((change) => change.category)).toEqual(expect.arrayContaining(["geometry", "resource", "support", "load", "analysis"]));
+    expect(preview.conditions?.supports?.[0].nodeId).toBe(nodeRef.replace(/^draft:/, ""));
+  });
+
+  it("retains existing conditions and reports only a genuinely absent condition", () => {
+    const project = createProject();
+    const snapshot = captureAiSnapshot(project, []);
+    const draft = proposeTask(snapshot, { goal: "检查当前模型" });
+    const preview = buildTaskDraftPreview(snapshot, draft);
+    expect(preview.missing).toEqual(expect.arrayContaining([
+      expect.objectContaining({ category: "support" }), expect.objectContaining({ category: "load" }),
+    ]));
+  });
+
+  it("treats already applied support and load data as facts instead of proposed changes", () => {
+    const withNode = addNode(createProject(), { x: 0, y: 0, z: 0 });
+    const project = addSupport(withNode, withNode.nodes[0].id, [true, true, true, true, true, true]);
+    const snapshot = captureAiSnapshot(project, []);
+    const draft = proposeTask(snapshot, { goal: "核对已有边界条件" });
+    const preview = buildTaskDraftPreview(snapshot, draft);
+    expect(draft.conditions).toBeUndefined();
+    expect(preview.changes).toEqual([]);
+    expect(preview.missing.map((item) => item.category)).toContain("load");
+  });
+
+  it("does not ask for another load when an existing self-weight input is available", () => {
+    const base = createProject();
+    const project = { ...base, selfWeight: { ...base.selfWeight, enabled: true } };
+    const preview = buildTaskDraftPreview(captureAiSnapshot(project, []), proposeTask(captureAiSnapshot(project, []), { goal: "复核已有自重" }));
+    expect(preview.missing.map((item) => item.category)).not.toContain("load");
+  });
+
+  it("keeps explicit provenance for assumptions and blocks unknown values", () => {
+    const project = createProject();
+    const snapshot = captureAiSnapshot(project, []);
+    const draft = proposeTask(snapshot, {
+      conditions: {
+        supports: [{ nodeId: "node_missing", restraints: [true, true, true, true, true, true], source: "assumption" }],
+        nodalLoads: [{ nodeId: "node_missing", loadCaseId: "LC1", force: { x: 0, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 }, source: "unknown" }],
+        selfWeight: { enabled: false, loadCaseId: "LC1", gravity: { x: 0, y: 0, z: -9.81 }, source: "unknown" },
+      },
+      analysis: { requested: true, source: "unknown" },
+    });
+    const preview = buildTaskDraftPreview(snapshot, draft);
+    expect(preview.changes.find((change) => change.label === "结构自重")?.source).toBe("unknown");
+    expect(preview.changes.find((change) => change.category === "support")?.source).toBe("assumption");
+    expect(preview.changes.find((change) => change.category === "load" && change.label.includes("新增荷载"))?.source).toBe("unknown");
+    expect(preview.missing.some((item) => item.category === "analysis")).toBe(true);
+  });
+
+  it("applies the whole draft once, maps preview identities and keeps retries idempotent", () => {
+    const project = createProject();
+    const snapshot = captureAiSnapshot(project, []);
+    const first = proposeTask(snapshot, { frame });
+    const nodeRef = `draft:${first.frame!.id}:node:0:0:0`;
+    const topRef = `draft:${first.frame!.id}:node:0:1:1`;
+    const draft = proposeTask(snapshot, { supports: [{ nodeId: nodeRef, restraints: [true, true, true, true, true, true], source: "user" }], nodalLoads: [{ nodeId: topRef, loadCaseId: "LC1", force: { x: 1, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 }, source: "user" }] }, first);
+    const stage = new TaskDraftStageConfirmation();
+    const confirmation = prepareTaskDraftConfirmation(project, draft);
+    const applied = stage.confirm(project, confirmation);
+    expect(applied.result.status).toBe("applied");
+    expect(applied.project.nodes).toHaveLength(8);
+    expect(applied.project.supports).toHaveLength(1);
+    expect(applied.project.nodalLoads).toHaveLength(1);
+    expect(applied.project.supports[0].nodeId).toBe(applied.project.nodes[0].id);
+    expect(applied.project.nodalLoads[0].nodeId).toBe(applied.project.nodes[3].id);
+    const retry = stage.confirm(applied.project, confirmation);
+    expect(retry.project).toBe(applied.project);
+    expect(retry.result.message).toContain("未重复应用");
+    const revised = proposeTask(snapshot, { goal: "同一任务的补充说明" }, draft);
+    const revisedConfirmation = prepareTaskDraftConfirmation(project, revised);
+    const appliedRevision = stage.confirm(project, revisedConfirmation);
+    expect(appliedRevision.result.status).toBe("applied");
+    const oldVersion = stage.confirm(project, confirmation);
+    expect(oldVersion.result.status).toBe("failed");
+    expect(oldVersion.result.message).toContain("版本已过期");
+  });
+
+  it("does not leave partial resources when a late geometry command fails", () => {
+    const project: FrameProject = { ...createProject(), nextNodeNumber: Number.MAX_SAFE_INTEGER };
+    const snapshot = captureAiSnapshot(project, []);
+    const draft = proposeTask(snapshot, { frame, supports: [], nodalLoads: [] });
+    const before = structuredClone(project);
+    const outcome = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
+    expect(outcome.result.status).toBe("failed");
+    expect(outcome.project).toEqual(before);
+  });
+});

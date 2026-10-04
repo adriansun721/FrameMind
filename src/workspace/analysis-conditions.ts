@@ -1,7 +1,7 @@
 import { addNodalLoad, addSupport, selectLoadCase, selectLoadCombination, updateNodalLoad, updateSupport, type DofRestraints, type FrameProject, type LoadId, type NodeId, type SupportId, type Vector3 } from "../domain/project";
 import { applyProjectTransaction } from "../domain/project-operations";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
-import { conditionObject as object, conditionVector as vector, type ConditionSource as Source } from "./condition-input";
+import { conditionObject as object, conditionSource as source, conditionVector as vector, type ConditionSource as Source } from "./condition-input";
 import { applyLoadStage, LOAD_STAGE_FIELDS, loadStageIssues, loadStageReferences, parseLoadStage, type LoadStage } from "./load-stage";
 import type { FramePreview } from "./frame-proposal";
 
@@ -30,8 +30,8 @@ export function proposeConditions(input: unknown, previous?: ConditionsProposal)
       const entry = object(raw, key === "supports" ? ["id", "nodeId", "restraints", "source"] : ["id", "nodeId", "loadCaseId", "force", "moment", "source"]);
       if (typeof entry.nodeId !== "string" || !entry.nodeId.trim() || entry.nodeId.length > 200
         || entry.id !== undefined && (typeof entry.id !== "string" || !entry.id.trim() || entry.id.length > 200)) throw new Error("请指定有效的稳定节点/条件身份");
-      if (entry.source !== "user" && entry.source !== "suggestion") throw new Error("请标明用户提供或待确认建议");
-      const common = { ...(entry.id === undefined ? {} : { id: entry.id }), nodeId: entry.nodeId as NodeId, source: entry.source as Source };
+      const entrySource = source(entry.source);
+      const common = { ...(entry.id === undefined ? {} : { id: entry.id }), nodeId: entry.nodeId as NodeId, source: entrySource as Source };
       if (key === "supports") {
         if (!Array.isArray(entry.restraints) || entry.restraints.length !== 6 || !entry.restraints.every((v) => typeof v === "boolean")) throw new Error("支座必须逐项指定 UX/UY/UZ/RX/RY/RZ 六个布尔约束");
         return { ...common, restraints: [...entry.restraints] as DofRestraints };
@@ -57,6 +57,7 @@ export function conditionsIssues(project: Parameters<typeof loadStageIssues>[0] 
   const supportNodes = new Set<string>();
   const loadIds = new Set<string>();
   for (const entry of [...(proposal.supports ?? []), ...(proposal.nodalLoads ?? [])]) {
+    if (entry.source === "unknown") issues.push("支座或节点荷载来源未知，请补充或确认");
     if (!project.nodes.some((node) => node.id === entry.nodeId)) issues.push(`节点 ${entry.nodeId} 已不存在，请重新指定`);
     if ("restraints" in entry) {
       if (supportNodes.has(entry.nodeId)) issues.push(`节点 ${entry.nodeId} 在方案中重复设置支座`);

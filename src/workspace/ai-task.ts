@@ -4,6 +4,7 @@ import { frameResourceOptions, type FrameProposal } from "./frame-proposal";
 import type { ConditionsProposal } from "./analysis-conditions";
 import type { SectionChangeProposal } from "./section-stage";
 import type { ModelEditProposal } from "./model-edits";
+import type { TaskDraft } from "./task-draft";
 
 export type AiTransport = Pick<FrameMindDesktopApi, "chatDeepSeek" | "cancelDeepSeekChat">;
 export interface AiToolRecord { round: number; call: DeepSeekToolCall; result: AiToolResult; }
@@ -26,6 +27,7 @@ export interface AiTaskResult {
   conditions?: ConditionsProposal | null;
   sectionChange?: SectionChangeProposal | null;
   modelEdits?: ModelEditProposal | null;
+  taskDraft?: TaskDraft | null;
   lifecycle?: { request: { id: string; state: "initiated" }; response: { kind: "none" | "text" | "tool"; state: "received" | "not-received" }; task: { state: "completed" | "failed" | "cancelled"; status: AiStatus } };
 }
 export interface AiTaskOptions {
@@ -38,6 +40,7 @@ export interface AiTaskOptions {
   conditions?: ConditionsProposal;
   sectionChange?: SectionChangeProposal;
   modelEdits?: ModelEditProposal;
+  taskDraft?: TaskDraft;
   onProgress?(progress: AiProgress): void;
   onOutput?(output: Pick<AiTaskResult, "assistant" | "records">): void;
 }
@@ -66,14 +69,15 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   let conditions: ConditionsProposal | null | undefined = options.conditions;
   let sectionChange: SectionChangeProposal | null | undefined = options.sectionChange;
   let modelEdits: ModelEditProposal | null | undefined = options.modelEdits;
+  let taskDraft: TaskDraft | null | undefined = options.taskDraft;
   const taskSnapshot: AiSnapshot = { ...snapshot, context: { ...snapshot.context, goal: prompt.trim() } };
   const isCurrent = () => options.isCurrent() && options.getCurrentSnapshot().snapshotKey === taskSnapshot.snapshotKey;
   const initialReadCall: DeepSeekToolCall = { id: `${requestId}_state`, type: "function", function: { name: "read_model", arguments: JSON.stringify({ collection: "summary" }) } };
   let phase: AiProgress["phase"] = "requesting";
   let currentRound = 1;
   const messages: DeepSeekChatMessage[] = [
-    { role: "system", content: `你是 Frame，FrameMind 内负责结构建模与分析的 AI 助手。用户询问姓名或身份时，以 Frame 自称。通过 read_model、read_selection、read_objects 读取已应用模型，引用稳定对象身份、单位及真实工具数据。read_model 必须提供 collection（summary/nodes/members/materials/sections/supports/loads/load-cases），offset 默认为0，limit 默认为50且不超过100。read_selection 参数为{}，read_objects 参数为 {objects:[{kind:node或member,id:稳定身份}]}。新建结构请求的第一个工具必须是 propose_frame，即使只有层数等少数已知参数也先生成卡片，不要先读已有模型或选择。新建结构不需要已有节点或选中对象，资源列表已在本提示中。没有选中对象时禁止调用 read_selection。建模请求必须调用 propose_frame 生成参数卡片，不能仅用文字描述方案。仅支持沿全局 XYZ 正交网格、Z 向分层的空间刚接梁柱框架。parameters 是部分字段映射，各字段格式 {value,source:user或suggestion,replace?:boolean}。字段 storeys 为层数整数，必须与 storeyHeights 数组长度一致。xSpans/ySpans 为按顺序跨长数组(m)，storeyHeights 为每层层高数组(m)，origin 为三个坐标(m)，material/columnSection/beamSection 为资源标识，rotationDegrees 为度。用户未给定的值留空，或明确标记 suggestion，绝不冒充用户输入；仅对用户明确改正或澄清的字段使用 replace:true 和 source:user。两层的层高未知时不捏造用户层高，提供待确认建议或询问。当前卡片为补充参数的唯一依据，卡片编辑优先于对话历史。不支持的结构应说明并询问，不强行改成正交框架。用户明确拒绝或取消方案时调用 discard_frame_proposal，参数为{}。没有结果时不编造数值或规范结论。不执行脚本或计算，不得通过工具直接应用模型修改。完整方案由用户在卡片中点击“确认应用建模阶段”后本地原子应用；聊天中的同意不能替代该确认。已确认内容以当前已应用模型为准，后续新增修改必须重新生成预览并再次确认。可用钢材：${JSON.stringify(frameResourceOptions(snapshot, "material"))}。可用截面：${JSON.stringify(frameResourceOptions(snapshot, "beamSection"))}。当前参数卡片：${JSON.stringify(options.proposal?.parameters ?? null)}。上下文：${JSON.stringify(snapshot.context)}` },
-    { role: "system", content: `支座与节点力/力矩由 propose_analysis_conditions 准备，不直接应用。当前消息若说明“建模阶段已确认”，其中引用的原请求不是新的建模请求，此时禁止 propose_frame，继续读取正式对象并准备条件。必须先用 read_model 读取正式 nodes/supports/loads/load-cases，引用真实 nodeId/id/loadCaseId；禁止用预览身份或标签代替稳定身份。该工具部分字段 supports/nodalLoads 分别为数组；省略代表尚缺失，空数组仅代表用户明确没有新增该类条件。条目 source 为 user 或 suggestion。supports 条目 {id?:已有支座身份,nodeId,restraints:[UX,UY,UZ,RX,RY,RZ六个布尔值],source}；nodalLoads 条目 {id?:已有荷载身份,nodeId,loadCaseId,force:{x,y,z},moment:{x,y,z},source}。全局 XYZ，力 kN、力矩 kN·m，按右手规则。未知分量不要冒充用户提供，建议必须标记 suggestion。修改已有支座或荷载必须提供其 id，否则是新增。完整阶段由用户点击“确认应用分析条件阶段”。用户已要求建模并计算时，建模确认后继续准备必要条件，条件确认后本地续算；不要要求用户再次授权同一计算。拒绝条件时调用 discard_analysis_conditions。当前条件卡片：${JSON.stringify(options.conditions ?? null)}。` },
+    { role: "system", content: `你是 Frame，FrameMind 内负责结构建模与分析的 AI 助手。用户询问姓名或身份时，以 Frame 自称。通过 read_model、read_selection、read_objects 读取已应用模型，引用稳定对象身份、单位及真实工具数据。read_model 必须提供 collection（summary/nodes/members/materials/sections/supports/loads/load-cases），offset 默认为0，limit 默认为50且不超过100。read_selection 参数为{}，read_objects 参数为 {objects:[{kind:node或member,id:稳定身份}]}。当一项用户任务同时包含几何/材料截面、支座、荷载或分析意图时，优先调用 propose_task 生成一份完整任务草案；该工具的 frame.parameters 沿用 propose_frame 的字段格式，supports/nodalLoads 可引用本次 frame 生成的 draft:<frameId>:node:... 身份，省略字段表示尚缺，空数组表示用户明确没有该类变更。完整任务中的所有类别共享任务身份和版本，后续补充只发送改变字段，旧字段必须保留。只有用户点击“确认整体任务”才可应用，聊天同意不能替代按钮。若请求只涉及纯几何建模且不含其他类别，才使用 propose_frame。新建结构不需要已有节点或选中对象，资源列表已在本提示中。没有选中对象时禁止调用 read_selection。仅支持沿全局 XYZ 正交网格、Z 向分层的空间刚接梁柱框架。parameters 是部分字段映射，各字段格式 {value,source:existing/user/catalog/suggestion/assumption/unknown,replace?:boolean}。字段 storeys 为层数整数，必须与 storeyHeights 数组长度一致。xSpans/ySpans 为按顺序跨长数组(m)，storeyHeights 为每层层高数组(m)，origin 为三个坐标(m)，material/columnSection/beamSection 为资源标识，rotationDegrees 为度。existing 表示当前模型事实，catalog 表示目录来源，user 表示用户值，suggestion 表示建议，assumption 表示待确认假设，unknown 表示尚缺来源；unknown 必须补齐，不能当作已确认值。用户未给定的值留空，或明确标记 suggestion/assumption，绝不冒充用户输入；仅对用户明确改正或澄清的字段使用 replace:true 和 source:user。当前卡片为补充参数的唯一依据，卡片编辑优先于对话历史。不支持的结构应说明并询问，不强行改成正交框架。用户明确拒绝完整任务时调用 discard_task_draft，参数为{}；拒绝纯建模方案时调用 discard_frame_proposal。没有结果时不编造数值或规范结论。不执行脚本或计算，不得通过工具直接应用模型修改。已确认内容以当前已应用模型为准，后续新增修改必须重新生成完整草案并再次确认。可用钢材：${JSON.stringify(frameResourceOptions(snapshot, "material"))}。可用截面：${JSON.stringify(frameResourceOptions(snapshot, "beamSection"))}。当前完整任务草案：${JSON.stringify(options.taskDraft ?? null)}。当前纯建模参数卡片：${JSON.stringify(options.proposal?.parameters ?? null)}。上下文：${JSON.stringify(snapshot.context)}` },
+    { role: "system", content: `支座与节点力/力矩由 propose_analysis_conditions 准备，不直接应用。当前消息若说明“建模阶段已确认”，其中引用的原请求不是新的建模请求，此时禁止 propose_frame，继续读取正式对象并准备条件。必须先用 read_model 读取正式 nodes/supports/loads/load-cases，引用真实 nodeId/id/loadCaseId；禁止用预览身份或标签代替稳定身份。该工具部分字段 supports/nodalLoads 分别为数组；省略代表尚缺失，空数组仅代表用户明确没有新增该类条件。条目 source 为 existing/user/catalog/suggestion/assumption/unknown；unknown 必须补齐，existing/catalog 用于标记事实来源。supports 条目 {id?:已有支座身份,nodeId,restraints:[UX,UY,UZ,RX,RY,RZ六个布尔值],source}；nodalLoads 条目 {id?:已有荷载身份,nodeId,loadCaseId,force:{x,y,z},moment:{x,y,z},source}。全局 XYZ，力 kN、力矩 kN·m，按右手规则。未知分量不要冒充用户提供，建议必须标记 suggestion。修改已有支座或荷载必须提供其 id，否则是新增。完整阶段由用户点击“确认应用分析条件阶段”。用户已要求建模并计算时，建模确认后继续准备必要条件，条件确认后本地续算；不要要求用户再次授权同一计算。拒绝条件时调用 discard_analysis_conditions。当前条件卡片：${JSON.stringify(options.conditions ?? null)}。` },
     { role: "system", content: "仅当用户明确要求计算当前已应用模型，并且本轮无需准备任何变更阶段时，调用 request_analysis（参数{}）记录续算请求。该工具尚未计算，结果由本地应用实际求解后展示。只是解释计算过程、读取数据或问答时不要调用；建模或条件尚缺时必须先准备对应卡片，不能用 request_analysis 跳过这些阶段。" },
     { role: "system", content: `propose_analysis_conditions 还支持全部首版荷载与多工况组合，仍只预览。必须先读取 members/materials/sections/loads/load-cases 核对真实身份与已有参数；read_model loads 包含均布荷载和自重，load-cases 包含组合。uniformLoads:[{id?:已有均布荷载身份,memberId:正式杆件身份,coordinateSystem:global或local,loadCaseId,intensity:{x,y,z}:kN/m,source}]，只支持整杆均布力，全局XYZ或杆件局部xyz；不要把竖向全局Z误当局部z。selfWeight:{enabled,loadCaseId,gravity:{x,y,z}:全局m/s²,source}，全结构只一份自重，密度kg/m³与面积m²来自正式材料/截面，不创建等效均布荷载副本。loadCases:[{id?:已有LC身份,ref:唯一方案引用,name,description,source}]；loadCombinations:[{id?:已有CB身份,ref:唯一方案引用,name,terms:[{loadCaseId,factor:有限无量纲系数}],source}]。新建省略id，ref不可冒用其他正式身份；荷载loadCaseId及组合terms可引用工况ref，analysisSourceId可引用新工况/组合ref，确认后才映射正式身份。省略字段保留当前卡片，无新增用空数组；支座与节点荷载仍需明确或给空数组，不重复既有条件。部分自然语言更新应只发送用户改动字段，不能丢弃或重写未改动卡片。所有未知参数留缺失或标为suggestion，绝不自动确认建议。组合始终是用户自定义，允许零、负系数；不擅自添加规范系数、规范类别或符合性结论。用户要求组合计算时明确指定analysisSourceId，未指定时单一新增荷载工况作为来源，否则保留当前来源。` },
     { role: "system", content: `结果解释必须先 read_results（collection:summary/nodes/members，分页limit<=100）读取当前所选分析。当前分析身份：${snapshot.context.analysisId ?? "无成功结果"}。无成功结果时明确需要本地计算，不补造数值。read_result 用 {kind:node或member,id:稳定身份,quantity,component,position?:距杆起点m,analysisId?:当前身份} 核对每个引用项。节点 quantity 为 displacement(m)、rotation(rad)、reaction(kN)、reactionMoment(kN·m)，component 为全局 x/y/z；杆件为 sectionForces（正局部x面截面内力，必须给position）或 startEndForces/endEndForces（杆端节点作用力），component 为 N/Vy/Vz/T/My/Mz，注意符号不同。数值事实直接插入工具返回的 token（如 [[result:call_1]]），界面会显示真实对象、分量、数值和单位；禁止自行拼接、改写标记或引用旧对话标记。解释按“计算事实”和“原因推断”分开，推断须说明依据和不确定性，不把相关性当因果。current:false 必须称历史输入结果，给出分析身份、来源工况/用户自定义组合及输入版本，说明当前模型需重算。禁止从线弹性位移或内力断言安全、强度/稳定/变形合格或符合规范；没有规范验算。关键位移 summary 仅比较节点各平移分量绝对值，不代表连续全结构最大位移。` },
@@ -93,9 +97,10 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       conditions: interrupted ? options.conditions : conditions,
       sectionChange: interrupted ? options.sectionChange : sectionChange,
       modelEdits: interrupted ? options.modelEdits : modelEdits,
+      taskDraft: interrupted ? options.taskDraft : taskDraft,
       lifecycle: { request: { id: requestId, state: "initiated" }, response: { kind: assistant ? "text" : hasAgentTools ? "tool" : "none", state: assistant || hasAgentTools ? "received" : "not-received" }, task: { state: taskState, status } },
       interruption: interrupted ? { phase, round: currentRound, completedTools: records.filter((record) => record.result.status === "completed").length,
-        draftsDiscarded: proposal !== options.proposal || conditions !== options.conditions || sectionChange !== options.sectionChange || modelEdits !== options.modelEdits } : undefined };
+        draftsDiscarded: proposal !== options.proposal || conditions !== options.conditions || sectionChange !== options.sectionChange || modelEdits !== options.modelEdits || taskDraft !== options.taskDraft } : undefined };
   };
   const progress = (event: AiProgress) => {
     phase = event.phase; currentRound = event.round;
@@ -167,16 +172,17 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         progress({ phase: "tool", round, toolCall: call });
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-        const toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined, modelEdits ?? undefined);
+        const toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined, modelEdits ?? undefined, taskDraft ?? undefined);
         if (toolResult.proposal !== undefined) proposal = toolResult.proposal;
         if (toolResult.conditions !== undefined) conditions = toolResult.conditions;
         if (toolResult.sectionChange !== undefined) sectionChange = toolResult.sectionChange;
         if (toolResult.modelEdits !== undefined) modelEdits = toolResult.modelEdits;
+        if (toolResult.taskDraft !== undefined) taskDraft = toolResult.taskDraft;
         records.push({ round, call, result: toolResult });
         progress({ phase: "tool", round, toolCall: call, toolResult });
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-        if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null || toolResult.modelEdits === null) return result("completed", toolResult.message);
+        if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null || toolResult.modelEdits === null || toolResult.taskDraft === null) return result("completed", toolResult.message);
         if (toolResult.status !== "completed") return result(toolResult.status, toolResult.message);
         messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(toolResult) });
       }

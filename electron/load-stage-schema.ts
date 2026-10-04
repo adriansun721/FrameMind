@@ -1,5 +1,5 @@
 const identity = { type: "string" };
-const source = { type: "string", enum: ["user", "suggestion"] };
+const source = { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] };
 const vector = { type: "object", additionalProperties: false, required: ["x", "y", "z"], properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } };
 const list = (required: string[], properties: Record<string, unknown>) => ({ type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, required, properties } });
 const named = { id: { type: "string", description: "Existing stable ID to update; omit to create." }, ref: { type: "string", description: "Unique draft reference; use it in loads, combination terms and analysisSourceId. Resolved at confirmation." }, name: identity, source };

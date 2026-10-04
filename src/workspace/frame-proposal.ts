@@ -1,6 +1,7 @@
 import type { FrameMaterial, FrameMember, FrameNode, FrameSection, FrameSupport, FrameNodalLoad, FrameUniformLoad, FrameSelfWeight, MaterialId, MemberId, NodeId, SectionId } from "../domain/project";
 import { MATERIAL_CATALOG, SECTION_CATALOG } from "../domain/resource-library";
 import type { AiSnapshot, AiStatus } from "./ai-tools";
+import type { TaskValueSource } from "./condition-input";
 
 export const FRAME_FIELDS = {
   storeys: "层数",
@@ -9,7 +10,7 @@ export const FRAME_FIELDS = {
 } as const;
 export type FrameField = keyof typeof FRAME_FIELDS;
 export type ParameterValue = number | number[] | string;
-export interface FrameParameter { value: ParameterValue; source: "user" | "suggestion"; conflict?: ParameterValue; }
+export interface FrameParameter { value: ParameterValue; source: TaskValueSource; conflict?: ParameterValue; }
 export interface FrameProposal {
   id: string;
   version: number;
@@ -62,17 +63,18 @@ export function proposeFrame(input: unknown, previous?: FrameProposal): FramePro
   for (const [name, raw] of Object.entries(updates)) {
     const field = name as FrameField;
     const update = object(raw); keys(update, ["value", "source", "replace"]);
-    if (update.source !== "user" && update.source !== "suggestion") throw new Error(`${FRAME_FIELDS[field]}缺少用户提供/建议来源`);
+    if (!["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(update.source as string)) throw new Error(`${FRAME_FIELDS[field]}缺少有效来源`);
+    const updateSource = update.source as TaskValueSource;
     if (update.replace !== undefined && typeof update.replace !== "boolean") throw new Error("replace 必须是布尔值");
     validateValue(field, update.value);
     const current = parameters[field];
     const differs = current && JSON.stringify(current.value) !== JSON.stringify(update.value);
-    if (current?.source === "user" && update.source === "suggestion" && !differs) continue;
+    if (current?.source === "user" && updateSource === "suggestion" && !differs) continue;
     if (current?.conflict !== undefined && !update.replace && !differs) continue;
-    if (differs && current.source === "user" && (!update.replace || update.source !== "user")) {
+    if (differs && current.source === "user" && (!update.replace || updateSource !== "user")) {
       parameters[field] = { ...current, conflict: structuredClone(update.value) };
     } else {
-      parameters[field] = { value: structuredClone(update.value), source: update.source };
+      parameters[field] = { value: structuredClone(update.value), source: updateSource };
       if (differs || !current) changes.push({ field, before: current?.value, after: structuredClone(update.value) });
     }
   }
@@ -106,6 +108,7 @@ export function buildFramePreview(snapshot: AiSnapshot, proposal: FrameProposal)
   for (const field of Object.keys(FRAME_FIELDS) as FrameField[]) {
     if (!p[field]) preview.issues.push(`尚缺 ${FRAME_FIELDS[field]}`);
     else if (p[field]!.conflict !== undefined) preview.issues.push(`${FRAME_FIELDS[field]}待澄清：${JSON.stringify(p[field]!.value)} / ${JSON.stringify(p[field]!.conflict)}`);
+    else if (p[field]!.source === "unknown") preview.issues.push(`${FRAME_FIELDS[field]}来源未知，请补充或确认`);
   }
   if (preview.issues.length) return preview;
   if ((p.storeyHeights!.value as number[]).length !== p.storeys!.value) {

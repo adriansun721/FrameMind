@@ -14,6 +14,7 @@ interface Props {
 const DOFS = ["UX", "UY", "UZ", "RX", "RY", "RZ"];
 const AXES = ["x", "y", "z"] as const;
 const zero = () => ({ x: "0", y: "0", z: "0" });
+const sourceLabel: Record<string, string> = { existing: "已有", user: "用户提供", catalog: "目录", suggestion: "建议 · 待确认", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" };
 
 export function AnalysisConditionsCard({ project, proposal, busy, current, baseRevision, visible, calculate, previous, onDirty, onChange, onConfirm, onReject }: Props) {
   const [supports, setSupports] = useState(proposal.supports);
@@ -43,7 +44,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
   const summaries = conditionSummaries(project, proposal);
   const summaryFields = { 支座: "supports", 节点荷载: "nodalLoads", 均布荷载: "uniformLoads", 工况: "loadCases", 组合: "loadCombinations", 自重: "selfWeight" } as const;
   const changed = (key: keyof ConditionsProposal) => previous?.id === proposal.id && JSON.stringify(previous[key]) !== JSON.stringify(proposal[key]);
-  const sourceLabel = loadStageOptions(project, loadStageDraft(proposal)).sources.find((source) => source.value === (proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId))?.label;
+  const sourceName = loadStageOptions(project, loadStageDraft(proposal)).sources.find((source) => source.value === (proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId))?.label;
   const details = <>
     <p>V{proposal.version} · 基础 R{baseRevision} · 未应用</p>
     {summaries.map((summary) => <section key={summary.label}><h4>{summary.label}</h4>{summary.groups.map((group, i) => <p key={i}>{group.objects.join("、")}：{group.setting}{group.suggested && <small className="proposal-suggestion">建议</small>}</p>)}</section>)}
@@ -51,10 +52,10 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
     {proposal.supports?.map((s, i) => <p key={`support:${i}`}>{project.nodes.find((n) => n.id === s.nodeId)?.label} · {s.nodeId} · {s.id ?? "新增"}{s.id && ` · 原约束：${project.supports.find((v) => v.id === s.id)?.restraints.map((v, a) => `${DOFS[a]} ${v ? "约束" : "自由"}`).join(" / ")}`}</p>)}
     {proposal.nodalLoads?.map((l, i) => <p key={`load:${i}`}>{l.nodeId} · {l.id ?? "新增"}{l.id && ` · 原荷载：${JSON.stringify(project.nodalLoads.find((v) => v.id === l.id))}`}</p>)}
     {proposal.uniformLoads?.map((l, i) => <p key={`uniform:${i}`}>{l.memberId} · {l.id ?? "新增"}{l.id && ` · 原荷载：${JSON.stringify(project.uniformLoads.find((v) => v.id === l.id))}`}</p>)}
-    {proposal.loadCases?.map((c, i) => <p key={`case:${i}`}>{c.id ?? c.ref} · {c.name} · {c.source === "user" ? "用户提供" : "建议"}{c.id && ` · 原工况：${project.loadCases.find((v) => v.id === c.id)?.name}`}</p>)}
+    {proposal.loadCases?.map((c, i) => <p key={`case:${i}`}>{c.id ?? c.ref} · {c.name} · {sourceLabel[c.source]}{c.id && ` · 原工况：${project.loadCases.find((v) => v.id === c.id)?.name}`}</p>)}
     {proposal.loadCombinations?.map((c, i) => <p key={`combination:${i}`}>{c.id ?? c.ref} · {c.name}{c.id && ` · 原组合：${JSON.stringify(project.loadCombinations.find((v) => v.id === c.id))}`}</p>)}
     {proposal.selfWeight && <details><summary>材料密度与截面面积</summary><ul>{project.members.map((m) => <li key={m.id}>{m.label} · ρ={project.materials.find((v) => v.id === m.materialId)?.densityKgM3 ?? "缺失"} kg/m³ · A={project.sections.find((v) => v.id === m.sectionId)?.areaM2 ?? "缺失"} m²</li>)}</ul></details>}
-    <p>确认后计算来源：{sourceLabel}</p>
+    <p>确认后计算来源：{sourceName}</p>
   </>;
   return <ProposalCard title="分析条件与荷载组合" label="分析条件卡片" visible={visible} current={current} busy={busy} dirty={dirty} issues={issues}
     updateDisabled={busy || project.nodes.length === 0}
@@ -68,7 +69,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
         {group.objects.length} 项 · {group.objects.slice(0, 3).join("、")}{group.objects.length > 3 && "等"}<br />{group.setting}
         {group.suggested && <small className="proposal-suggestion">建议</small>}</div>)}</> })),
       ...(!summaries.length ? [{ label: "变更", value: "本阶段无新增或修改条件" }] : []),
-      { label: "计算来源", changed: changed("analysisSourceId"), value: sourceLabel ?? proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId },
+      { label: "计算来源", changed: changed("analysisSourceId"), value: sourceName ?? proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId },
     ]}>
     <p>全局 XYZ · 平移 UX/UY/UZ、转动 RX/RY/RZ · 勾选表示约束。力 kN，力矩 kN·m（右手规则）。</p>
     <form onSubmit={(event) => { event.preventDefault(); update(); }}>
@@ -79,7 +80,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
         {supports === undefined && <p className="frame-draft-notice">尚缺支座条件</p>}
         {supports?.length === 0 && <p>本阶段无新增或修改支座</p>}
         {supports?.map((s, index) => <div className="condition-entry" key={index}>
-          <strong>{s.id ? `修改 ${s.id}` : `新增支座 ${index + 1}`} · {s.source === "user" ? "用户提供" : "建议 · 待确认"}</strong>
+          <strong>{s.id ? `修改 ${s.id}` : `新增支座 ${index + 1}`} · {sourceLabel[s.source]}</strong>
           <label>支座节点<select aria-label={`支座 ${index + 1} 节点`} value={s.nodeId} onChange={(e) => { edit(); setSupports(supports.map((item, i) => i === index ? { ...item, nodeId: e.target.value as NodeId, source: "user" } : item)); }}><option value="">请选择节点</option>{nodeOptions}</select></label>
           <div className="condition-dofs">{DOFS.map((dof, axis) => <label key={dof}><input type="checkbox" aria-label={`支座 ${index + 1} ${dof}`} checked={s.restraints[axis]} onChange={(e) => { edit(); setSupports(supports.map((item, i) => i === index ? { ...item, source: "user", restraints: item.restraints.map((value, a) => a === axis ? e.target.checked : value) as typeof s.restraints } : item)); }} />{dof}</label>)}</div>
           {s.id && <p>原约束：{project.supports.find((item) => item.id === s.id)?.restraints.map((value, i) => `${DOFS[i]} ${value ? "约束" : "自由"}`).join(" · ") ?? "对象已不存在"}</p>}
@@ -92,7 +93,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
         {loads === undefined && <p className="frame-draft-notice">尚缺节点荷载条件</p>}
         {loads?.length === 0 && <p>本阶段无新增或修改节点荷载</p>}
         {loads?.map((load, index) => <div className="condition-entry" key={index}>
-          <strong>{load.id ? `修改 ${load.id}` : `新增节点荷载 ${index + 1}`} · {load.source === "user" ? "用户提供" : "建议 · 待确认"}</strong>
+          <strong>{load.id ? `修改 ${load.id}` : `新增节点荷载 ${index + 1}`} · {sourceLabel[load.source]}</strong>
           <label>荷载节点<select aria-label={`荷载 ${index + 1} 节点`} value={load.nodeId} onChange={(e) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, nodeId: e.target.value as NodeId, source: "user" } : item)); }}><option value="">请选择节点</option>{nodeOptions}</select></label>
           <label>工况<select aria-label={`荷载 ${index + 1} 工况`} value={load.loadCaseId} onChange={(e) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, loadCaseId: e.target.value, source: "user" } : item)); }}>{options.cases.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</select></label>
           <div className="condition-vectors">{(["force", "moment"] as const).flatMap((kind) => AXES.map((axis) => {

@@ -32,13 +32,15 @@ export function parseLoadStage(request: Record<string, unknown>): LoadStage {
   if (request.uniformLoads !== undefined) next.uniformLoads = entries(request.uniformLoads).map((raw) => {
     const e = object(raw, ["id", "memberId", "loadCaseId", "coordinateSystem", "intensity", "source"]);
     if (e.coordinateSystem !== "global" && e.coordinateSystem !== "local") throw new Error("均布荷载坐标系必须为 global 或 local");
+    const entrySource = source(e.source);
     return { ...(e.id === undefined ? {} : { id: identity(e.id) as LoadId }), memberId: identity(e.memberId) as MemberId,
-      loadCaseId: identity(e.loadCaseId), coordinateSystem: e.coordinateSystem, intensity: vector(e.intensity), source: source(e.source) };
+      loadCaseId: identity(e.loadCaseId), coordinateSystem: e.coordinateSystem, intensity: vector(e.intensity), source: entrySource };
   });
   if (request.selfWeight !== undefined) {
     const e = object(request.selfWeight, ["enabled", "loadCaseId", "gravity", "source"]);
     if (typeof e.enabled !== "boolean") throw new Error("自重启用状态无效");
-    next.selfWeight = { enabled: e.enabled, loadCaseId: identity(e.loadCaseId), gravity: vector(e.gravity), source: source(e.source) };
+    const entrySource = source(e.source);
+    next.selfWeight = { enabled: e.enabled, loadCaseId: identity(e.loadCaseId), gravity: vector(e.gravity), source: entrySource };
   }
   if (request.loadCases !== undefined) next.loadCases = entries(request.loadCases).map((raw) => {
     const { e, common } = namedEntry(raw, ["description"]);
@@ -95,6 +97,7 @@ export function loadStageIssues(project: ReadableLoadModel, stage: LoadStage): s
   const checkCase = (ref: string) => { if (!cases.some((c) => c.id === resolve(ref))) issues.push(`工况 ${ref} 已不存在或未在方案中定义`); };
   const ids = new Set<string>();
   for (const load of stage.uniformLoads ?? []) {
+    if (load.source === "unknown") issues.push("均布荷载来源未知，请补充或确认");
     if (!project.members.some((m) => m.id === load.memberId)) issues.push(`杆件 ${load.memberId} 已不存在`);
     if (load.id && (!project.uniformLoads.some((l) => l.id === load.id) || ids.has(load.id))) issues.push(`均布荷载 ${load.id} 不存在或重复修改`);
     if (load.id) ids.add(load.id);
@@ -103,14 +106,17 @@ export function loadStageIssues(project: ReadableLoadModel, stage: LoadStage): s
     catch (e) { issues.push((e as Error).message); }
   }
   if (stage.selfWeight) {
+    if (stage.selfWeight.source === "unknown") issues.push("结构自重来源未知，请补充或确认");
     checkCase(stage.selfWeight.loadCaseId);
     try { validateSelfWeight({ enabled: stage.selfWeight.enabled, gravity: stage.selfWeight.gravity, loadCaseId: "LC1" }); }
     catch (e) { issues.push((e as Error).message); }
   }
   for (const combo of stage.loadCombinations ?? []) {
+    if (combo.source === "unknown") issues.push("组合来源未知，请补充或确认");
     try { validateLoadCombination({ loadCases: cases }, { id: combo.id ?? "CB1", name: combo.name, terms: combo.terms.map((term) => ({ ...term, loadCaseId: resolve(term.loadCaseId) })) }); }
     catch (e) { issues.push((e as Error).message); }
   }
+  for (const loadCase of stage.loadCases ?? []) if (loadCase.source === "unknown") issues.push("工况来源未知，请补充或确认");
   return issues;
 }
 

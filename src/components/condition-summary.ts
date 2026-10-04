@@ -1,5 +1,6 @@
 import type { FrameProject, Vector3 } from "../domain/project";
 import type { ConditionsProposal } from "../workspace/analysis-conditions";
+import type { ConditionSource } from "../workspace/condition-input";
 
 export interface ConditionSummaryGroup { objects: string[]; setting: string; suggested: boolean; }
 export interface ConditionSummary { label: string; groups: ConditionSummaryGroup[]; }
@@ -15,13 +16,13 @@ export function conditionSummaries(project: FrameProject, proposal: ConditionsPr
       ?? project.loadCases.find((item) => item.id === id)?.name;
     return name ? `${name} (${id})` : id;
   };
-  const group = (label: string, entries: { object: string; setting: string; source: "user" | "suggestion" }[]): ConditionSummary => {
+  const group = (label: string, entries: { object: string; setting: string; source: ConditionSource }[]): ConditionSummary => {
     const groups = new Map<string, ConditionSummaryGroup>();
     for (const entry of entries) {
       const key = JSON.stringify([entry.setting, entry.source]);
       const previous = groups.get(key);
       if (previous) previous.objects.push(entry.object);
-      else groups.set(key, { objects: [entry.object], setting: entry.setting, suggested: entry.source === "suggestion" });
+      else groups.set(key, { objects: [entry.object], setting: entry.setting, suggested: !["user", "existing", "catalog"].includes(entry.source) });
     }
     return { label, groups: [...groups.values()] };
   };

@@ -24,6 +24,7 @@ import type { AnalysisPairIds } from "./workspace/ai-comparison";
 import { ConditionsStageConfirmation } from "./workspace/analysis-conditions";
 import type { FramePreview } from "./workspace/frame-proposal";
 import { FrameStageConfirmation } from "./workspace/frame-confirmation";
+import { TaskDraftStageConfirmation } from "./workspace/task-confirmation";
 import { ModelEditConfirmation } from "./workspace/model-edits";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
@@ -93,6 +94,7 @@ export function App() {
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
+  const taskDraftConfirmationRef = useRef(new TaskDraftStageConfirmation());
   const editConfirmationRef = useRef(new ModelEditConfirmation());
   const sectionConfirmationRef = useRef(new SectionStageConfirmation());
   const conditionsConfirmationRef = useRef(new ConditionsStageConfirmation());
@@ -181,6 +183,7 @@ export function App() {
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
+      taskDraftConfirmationRef.current = new TaskDraftStageConfirmation();
       editConfirmationRef.current = new ModelEditConfirmation();
       setComparisonPair(undefined);
       sectionConfirmationRef.current = new SectionStageConfirmation();
@@ -629,6 +632,16 @@ export function App() {
         onEditsConfirm={(confirmation) => {
           const current = activeProjectRef.current;
           const outcome = editConfirmationRef.current.confirm(current, confirmation);
+          if (outcome.project !== current) {
+            activateProject(outcome.project, false);
+            setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setSelection(null); setFormError(null);
+          }
+          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
+          return outcome.result;
+        }}
+        onTaskConfirm={(confirmation) => {
+          const current = activeProjectRef.current;
+          const outcome = taskDraftConfirmationRef.current.confirm(current, confirmation);
           if (outcome.project !== current) {
             activateProject(outcome.project, false);
             setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setSelection(null); setFormError(null);

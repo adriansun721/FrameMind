@@ -9,6 +9,7 @@ interface Props {
   onChange(proposal: FrameProposal): void; onDirty(dirty: boolean): void; onReject(): void;
 }
 const valueText = (value: ParameterValue | undefined) => Array.isArray(value) ? value.join(", ") : value === undefined ? "" : String(value);
+const sourceLabel: Record<string, string> = { existing: "已有", user: "用户提供", catalog: "目录", suggestion: "建议 · 待确认", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" };
 
 export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevision, visible, onConfirm, onChange, onDirty, onReject }: Props) {
   const fields = Object.keys(FRAME_FIELDS) as FrameField[];
@@ -37,12 +38,12 @@ export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevis
         ?? frameResourceOptions(snapshot, field).find((option) => option.value === p?.value)?.label.split(" · ")[0] ?? valueText(p?.value)
         : frameResourceOptions(snapshot, field).find((option) => option.value === p?.value)?.label ?? valueText(p?.value)
       : valueText(p?.value);
-    return <span className={proposal.changes.some((change) => change.field === field) ? "proposal-row-changed" : undefined}>{p ? `${text}${unit}` : "缺失"}{p?.source === "suggestion" && <small className="proposal-suggestion">建议</small>}</span>;
+    return <span className={proposal.changes.some((change) => change.field === field) ? "proposal-row-changed" : undefined}>{p ? `${text}${unit}` : "缺失"}{p && <small className={p.source === "suggestion" || p.source === "assumption" || p.source === "unknown" ? "proposal-suggestion" : "proposal-source"}>{sourceLabel[p.source]}</small>}</span>;
   };
   const details = <>
     <p>V{proposal.version} · 基础 R{baseRevision} · 未应用</p>
     <p>正交网格 · Z 向分层 · 各层双向梁、连续柱 · 所有杆端刚接</p>
-    <dl className="proposal-summary">{fields.map((field) => <div key={field}><dt>{FRAME_FIELDS[field]}</dt><dd>{parameter(field, "", false)}{proposal.parameters[field]?.source === "user" && <small className="proposal-source">用户提供</small>}</dd></div>)}</dl>
+    <dl className="proposal-summary">{fields.map((field) => <div key={field}><dt>{FRAME_FIELDS[field]}</dt><dd>{parameter(field, "", false)}</dd></div>)}</dl>
     <p>支座与荷载尚未设置。此方案未进入正式模型或分析输入。</p>
     <h4>涉及对象与创建内容</h4><div className="frame-object-list">
       {[...preview.nodes, ...preview.members].slice(objectPage * 100, (objectPage + 1) * 100).map((object) => <div key={object.id}>{object.label} · {"position" in object
@@ -69,7 +70,7 @@ export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevis
         const isResource = ["material", "columnSection", "beamSection"].includes(field);
         const change = (value: string) => { setTexts((previous) => ({ ...previous, [field]: value })); setDirty(true); onDirty(true); setError(""); };
         return <div className="frame-parameter" key={field}>
-          <label><span>{FRAME_FIELDS[field]}</span><small>{parameter ? parameter.source === "user" ? "用户提供" : "建议 · 待确认" : "尚缺失"}</small>
+          <label><span>{FRAME_FIELDS[field]}</span><small>{parameter ? sourceLabel[parameter.source] : "尚缺失"}</small>
             {isResource ? <select aria-label={FRAME_FIELDS[field]} value={texts[field]} disabled={busy} onChange={(event) => change(event.target.value)}>
               <option value="">请选择</option>
               {parameter && !frameResourceOptions(snapshot, field).some((option) => option.value === texts[field]) && <option value={texts[field]}>{texts[field]}（资源不存在）</option>}

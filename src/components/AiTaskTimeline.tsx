@@ -4,10 +4,11 @@ import type { AiProgress, AiTaskResult, AiToolRecord } from "../workspace/ai-tas
 import { FRAME_FIELDS, type FrameProposal } from "../workspace/frame-proposal";
 import type { ConditionsProposal } from "../workspace/analysis-conditions";
 import type { SectionChangeProposal } from "../workspace/section-stage";
+import type { TaskDraft } from "../workspace/task-draft";
 
 export interface StageResolution {
   status: "confirmed" | "cancelled" | "updated";
-  draft?: FrameProposal | ConditionsProposal | SectionChangeProposal;
+  draft?: FrameProposal | ConditionsProposal | SectionChangeProposal | TaskDraft;
   resourceNames?: Record<string, string>;
   parameters?: string;
 }
@@ -30,6 +31,7 @@ interface Step {
 export const TOOL_LABELS: Record<string, string> = {
   read_model: "读取当前模型", read_selection: "读取选中对象", read_objects: "读取指定对象",
   propose_frame: "整理建模参数", discard_frame_proposal: "取消建模方案", confirm_frame_stage: "确认建模参数",
+  propose_task: "整理完整任务草案", discard_task_draft: "取消完整任务草案", confirm_task_draft: "确认完整任务",
   propose_analysis_conditions: "整理支座和荷载条件", discard_analysis_conditions: "取消分析条件", confirm_analysis_conditions: "确认分析条件",
   run_analysis: "检查并计算已确认模型", request_analysis: "准备本地计算",
   read_results: "读取分析结果", read_result: "核对结果引用",
@@ -55,6 +57,7 @@ function toolLabel(record: Pick<AiToolRecord, "call">): string {
 
 function stageParameters(draft: StageResolution["draft"], resourceNames: Record<string, string> = {}): string | undefined {
   if (!draft) return;
+  if ("projectId" in draft) return `任务目标：${draft.goal ?? "未填写"}\n草案版本：V${draft.version} · 基础 R${draft.baseRevision}`;
   if ("parameters" in draft) return Object.entries(FRAME_FIELDS).map(([key, label]) => {
     const parameter = draft.parameters[key as keyof typeof FRAME_FIELDS];
     const value = parameter?.value;
@@ -92,17 +95,18 @@ function timelineSteps(turns: readonly TimelineTurn[], paused: boolean): Step[] 
       const status = record.result?.status;
       if (turn.origin === "confirmation" && status === "applied") continue;
       const awaitingWithoutStage = status === "awaiting-confirmation"
-        && !record.result?.proposal && !record.result?.conditions && !record.result?.sectionChange;
+      && !record.result?.proposal && !record.result?.conditions && !record.result?.sectionChange && !record.result?.taskDraft;
       steps.push({ id: `${turn.id}:${id}`, label: awaitingWithoutStage ? "等待确认" : toolLabel(record),
         state: awaitingWithoutStage ? "waiting" : status === "completed" || status === "applied" || status === "missing-input" || status === "awaiting-confirmation" ? "done" : status === "failed" ? "issue" : status === "cancelled" ? "cancelled" : turn.result ? "cancelled" : "active",
         detail: status === "failed" || awaitingWithoutStage ? record.result?.message : undefined });
       if (status === "missing-input") steps.push({ id: `${turn.id}:${id}:missing`, label: "发现待补充参数", state: "issue", detail: record.result?.message });
     }
     const result = turn.result;
-    const stage = result?.proposal ? { draft: result.proposal, label: "建模参数" }
+    const stage = result?.taskDraft ? { draft: result.taskDraft, label: "完整任务草案" }
+      : result?.proposal ? { draft: result.proposal, label: "建模参数" }
       : result?.conditions ? { draft: result.conditions, label: "分析条件" }
         : result?.sectionChange ? { draft: result.sectionChange, label: "截面参数" } : undefined;
-    const preparedStage = stage && result?.records.some((record) => [record.result.proposal?.id, record.result.conditions?.id, record.result.sectionChange?.id].includes(stage.draft.id));
+    const preparedStage = stage && result?.records.some((record) => [record.result.taskDraft?.id, record.result.proposal?.id, record.result.conditions?.id, record.result.sectionChange?.id].includes(stage.draft.id));
     if (stage && preparedStage && (result?.status === "missing-input" || result?.status === "awaiting-confirmation")) {
       const resolution = turn.stageResolutions?.[stage.draft.id];
       steps.push({ id: `${turn.id}:stage`, label: resolution?.status === "confirmed" ? `${stage.label}已确认` : resolution?.status === "updated" ? `${stage.label}已更新` : resolution?.status === "cancelled" ? `${stage.label}已取消` : `等待填写并确认${stage.label}`,

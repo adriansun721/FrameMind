@@ -1,5 +1,6 @@
 import type { FrameProject, MemberId, Vector3 } from "../domain/project";
 import type { LoadStage } from "../workspace/load-stage";
+import type { ConditionSource } from "../workspace/condition-input";
 
 const AXES = ["x", "y", "z"] as const;
 type VectorDraft = Record<typeof AXES[number], string>;
@@ -39,7 +40,7 @@ export function loadStageOptions(project: FrameProject, draft: LoadStageDraft) {
   for (const c of draft.loadCombinations ?? []) if (c.id && c.ref !== c.id) combos.push({ value: c.ref, label: `${c.id} · ${c.name}（用户自定义组合）` });
   return { cases, sources: [...cases, ...combos] };
 }
-const provenance = (source: "user" | "suggestion") => source === "user" ? "用户提供" : "建议 · 待确认";
+const provenance = (source: ConditionSource) => ({ user: "用户提供", suggestion: "建议 · 待确认", existing: "已有", catalog: "目录", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" }[source]);
 
 export function LoadStageFields({ project, draft, busy, onChange }: { project: FrameProject; draft: LoadStageDraft; busy: boolean; onChange(draft: LoadStageDraft): void }) {
   const { cases } = loadStageOptions(project, draft);

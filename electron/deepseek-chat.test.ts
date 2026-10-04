@@ -61,6 +61,60 @@ test("common Chinese node/member edit wording exposes the reviewed edit tools", 
   expect(names).toContain("update_member");
 });
 
+test("whole-task wording exposes a single reviewed task-draft tool", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init ?? {});
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核对完整任务草案。" } }] }));
+  });
+  const result = await connection.chat({ requestId: "whole-task", messages: [{ role: "user", content: "建立几何、支座和荷载的完整任务，集中补齐后一次确认" }] });
+  expect(result.status).toBe("success");
+  const names = (JSON.parse(requests[0].body as string).tools as { function: { name: string } }[]).map((tool) => tool.function.name);
+  expect(names).toContain("propose_task");
+  expect(names).toContain("discard_task_draft");
+});
+
+test("whole-task tool advertises geometry and analysis fields accepted by the task parser", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init ?? {});
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核对完整任务草案。" } }] }));
+  });
+  await connection.chat({ requestId: "whole-task-schema", messages: [{ role: "user", content: "建立几何、支座和荷载的完整任务" }] });
+  const tools = JSON.parse(requests[0].body as string).tools as { function: { name: string; parameters: any } }[];
+  const schema = tools.find((tool) => tool.function.name === "propose_task")!.function.parameters;
+  const parameterProperties = schema.properties.frame.properties.parameters.properties;
+  expect(schema.properties.frame.required).toEqual(["parameters"]);
+  expect(parameterProperties).toHaveProperty("storeys");
+  expect(parameterProperties).toHaveProperty("material");
+  expect(schema.properties.analysis.properties).toMatchObject({ requested: { type: "boolean" }, sourceId: { type: "string" } });
+});
+
+test("mixed build-and-load wording exposes the whole-task tool", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init ?? {});
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核对完整任务草案。" } }] }));
+  });
+  await connection.chat({ requestId: "mixed-task", messages: [{ role: "user", content: "建立一个刚架并设置底部支座和顶部荷载" }] });
+  const names = (JSON.parse(requests[0].body as string).tools as { function: { name: string } }[]).map((tool) => tool.function.name);
+  expect(names).toContain("propose_task");
+});
+
+test("an active whole-task draft keeps the tool available for short revisions", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init ?? {});
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "已准备草案修订。" } }] }));
+  });
+  await connection.chat({ requestId: "task-revision", messages: [
+    { role: "system", content: '当前完整任务草案：{"id":"task_1","version":1}' },
+    { role: "user", content: "把荷载改为顶部向下 5 kN" },
+  ] });
+  const names = (JSON.parse(requests[0].body as string).tools as { function: { name: string } }[]).map((tool) => tool.function.name);
+  expect(names).toContain("propose_task");
+});
+
 test("Chinese edit intent also matches target-first coordinate wording", async () => {
   const requests: RequestInit[] = [];
   const connection = await setup(async (_url, init) => {
