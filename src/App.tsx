@@ -36,12 +36,13 @@ import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECT
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { applyProjectEdits } from "./domain/project-operations";
-import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, sameInputValue, type AnalysisResult } from "./domain/analysis";
+import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisComparison, type AnalysisForceVector } from "./domain/analysis-comparison";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
+import { TaskScheduler, type ScheduledTaskHandle, type TaskSchedulerSnapshot } from "./workspace/task-scheduler";
 import type { AppTheme } from "../electron/contracts";
 
 type StatusTone = "neutral" | "success" | "error";
@@ -139,6 +140,10 @@ export function App() {
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const analysisRunRef = useRef(0);
   const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
+  const analysisSchedulerRef = useRef(new TaskScheduler<unknown, unknown>({ maxConcurrent: 1 }));
+  const analysisHandlesRef = useRef(new Map<string, ScheduledTaskHandle<unknown>>());
+  const analysisExecutionRef = useRef(new Map<string, { runId: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; source: FrameProject }>());
+  const [taskQueue, setTaskQueue] = useState<TaskSchedulerSnapshot>(() => analysisSchedulerRef.current.snapshot());
   const dirty = useMemo(() => savedProject === null ? project.revision !== savedRevision : !sameInputValue(project, savedProject), [project, savedProject, savedRevision]);
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
   const activeCase = project.loadCases.find((item) => item.id === project.activeLoadCaseId)!;
@@ -159,6 +164,17 @@ export function App() {
     ...project.loadCases.map((source) => ({ id: source.id, combination: false })),
     ...project.loadCombinations.map((source) => ({ id: source.id, combination: true })),
   ];
+
+  useEffect(() => {
+    const scheduler = analysisSchedulerRef.current;
+    const refresh = () => setTaskQueue(scheduler.snapshot(project.id));
+    refresh();
+    return scheduler.subscribe((event) => {
+      if (event.ownership.projectId !== project.id) return;
+      refresh();
+      if (event.type === "created" && event.task.kind === "analysis" && event.task.status === "queued") setStatus({ tone: "neutral", text: "分析任务已排队，启动时将读取最新模型" });
+    });
+  }, [project.id]);
 
   const selectedNode = selection?.kind === "node" ? project.nodes.find((item) => item.id === selection.id) ?? null : null;
   const selectedMember = selection?.kind === "member" ? project.members.find((item) => item.id === selection.id) ?? null : null;
@@ -194,6 +210,7 @@ export function App() {
     if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId) {
       setResultReference(null); setResultFocus(null);
       if (newSession) activeSessionRef.current += 1;
+      if (newSession) analysisSchedulerRef.current.cancelProject(previous.id);
       setAnalysisFailure(null);
       const activeAnalysis = newSession ? analysisTaskRef.current : null;
       if (activeAnalysis) {
@@ -330,14 +347,16 @@ export function App() {
     } catch (error) { setFormError(error instanceof Error ? error.message : "保存自重设置失败"); }
   };
   const cancelAnalysis = () => {
+    const handles = [...analysisHandlesRef.current.values()];
     const activeAnalysis = analysisTaskRef.current;
-    if (!activeAnalysis) return;
+    if (!activeAnalysis && !handles.length) return;
     analysisRunRef.current += 1;
     analysisTaskRef.current = null;
-    activeAnalysis.task.cancel();
+    for (const handle of handles) handle.cancel();
+    activeAnalysis?.task.cancel();
     setAnalysisBusy(false);
     setAnalysisPhase(null);
-    if (isProjectCheckpointCurrent(activeAnalysis.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) {
+    if (activeAnalysis && isProjectCheckpointCurrent(activeAnalysis.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) {
       setStatus({ tone: "neutral", text: "分析已取消，当前模型和已有结果仍可继续使用" });
     }
   };
@@ -345,48 +364,78 @@ export function App() {
   const runAnalysis = async (showResults = false, requestedSourceId?: string): Promise<AiToolResult> => {
     const current = activeProjectRef.current;
     if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
-    const source = requestedSourceId ? current.loadCombinations.some((item) => item.id === requestedSourceId)
-      ? selectLoadCombination(current, requestedSourceId) : selectLoadCase(current, requestedSourceId) : current;
+    const source = requestedSourceId && current.loadCombinations.some((item) => item.id === requestedSourceId)
+      ? selectLoadCombination(current, requestedSourceId) : requestedSourceId ? selectLoadCase(current, requestedSourceId) : current;
     const context = captureAiSnapshot(source, []).context;
-    if (analysisTaskRef.current) return { status: "failed", message: "已有本地分析正在执行", context };
     if (source !== current) activateProject(source, false, "restore");
-    const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
-    const runId = ++analysisRunRef.current;
-    setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已启动，正在检查模型" });
-    let task: AnalysisTask;
+    const projectId = current.id;
+    const latestSource = () => {
+      const latest = activeProjectRef.current;
+      if (latest.id !== projectId) throw new Error("项目已切换，旧分析任务已取消");
+      if (!requestedSourceId) return latest;
+      if (![...latest.loadCases, ...latest.loadCombinations].some((item) => item.id === requestedSourceId)) throw new Error(`任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`);
+      return latest.loadCombinations.some((item) => item.id === requestedSourceId) ? selectLoadCombination(latest, requestedSourceId) : selectLoadCase(latest, requestedSourceId);
+    };
+    setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已提交，等待计算资源" });
     try {
-      const inputProject = captureAnalysisInput(source);
-      task = startAnalysisTask(inputProject, {
-        onPhase: (phase) => {
-          if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
-          setAnalysisPhase(phase); setStatus({ tone: "neutral", text: `${ANALYSIS_PHASE_TEXT[phase]}…` });
+      const handle = analysisSchedulerRef.current.submit({
+        projectId, kind: "analysis", goal: requestedSourceId ? `计算 ${requestedSourceId}` : "计算当前模型", queuedRevision: current.revision,
+        getInput: () => captureAnalysisInput(latestSource()),
+        execute: async (input, taskContext) => {
+          const executionSource = latestSource();
+          const checkpoint = captureProjectCheckpoint(executionSource, activeSessionRef.current);
+          const runId = ++analysisRunRef.current;
+          setAnalysisBusy(true); setAnalysisPhase(null); setStatus({ tone: "neutral", text: "分析任务已启动，正在检查模型" });
+          const task = startAnalysisTask(input as AnalysisInputSnapshot, {
+            onPhase: (phase) => {
+              taskContext.reportPhase(phase);
+              if (analysisTaskRef.current?.id !== runId || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
+              setAnalysisPhase(phase); setStatus({ tone: "neutral", text: `${ANALYSIS_PHASE_TEXT[phase]}…` });
+            },
+          });
+          analysisExecutionRef.current.set(taskContext.ownership.taskId, { runId, checkpoint, source: executionSource });
+          analysisTaskRef.current = { id: runId, checkpoint, task };
+          taskContext.signal.addEventListener("abort", () => task.cancel(), { once: true });
+          try {
+            const result = await task.promise;
+            taskContext.bindAnalysis(result.id);
+            return result;
+          } finally {
+            if (analysisTaskRef.current?.id === runId) analysisTaskRef.current = null;
+          }
         },
       });
+      analysisHandlesRef.current.set(handle.taskId, handle);
+      return await handle.promise.then((result): AiToolResult => {
+        const execution = analysisExecutionRef.current.get(handle.ownerTaskId);
+        const analysisResult = result as AnalysisResult;
+        if (!execution || !isProjectCheckpointCurrent(execution.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
+        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
+        setResultReference(null); setResultFocus(null);
+        if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
+        return { status: "completed", message: `本地分析完成 · ${analysisResult.nodes.length} 个节点、${analysisResult.members.length} 根杆件，已展示结果`, context,
+          data: { analysisId: analysisResult.id, modelRevision: execution.checkpoint.revision, units: execution.source.units,
+            analysisSourceId: analysisResult.input.combination?.definition.id ?? analysisResult.input.loadCase?.id,
+            loadCase: analysisResult.input.combination ? undefined : analysisResult.input.loadCase, combination: analysisResult.input.combination,
+            nodes: analysisResult.nodes, members: analysisResult.members } };
+      }).catch((error): AiToolResult => {
+        const execution = analysisExecutionRef.current.get(handle.ownerTaskId);
+        const scheduled = analysisSchedulerRef.current.get(handle.ownerTaskId);
+        if (scheduled?.status === "cancelled" || error instanceof AnalysisCancelledError || !execution || !isProjectCheckpointCurrent(execution.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "本地分析已取消，已确认模型和已有结果保留；可继续计算或修改条件后再次确认", context };
+        if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: execution.checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
+        else setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" });
+        return { status: "failed", message: `${error instanceof Error ? error.message : "分析失败"}。已确认模型保留；请检查诊断并准备新的条件阶段或继续计算`, context,
+          data: error instanceof AnalysisFailure ? { stage: error.stage, diagnostics: error.diagnostics } : undefined };
+      }).finally(() => {
+        analysisHandlesRef.current.delete(handle.taskId);
+        analysisExecutionRef.current.delete(handle.ownerTaskId);
+        const pendingAnalysis = [...analysisHandlesRef.current.keys()].some((id) => analysisSchedulerRef.current.get(id)?.kind === "analysis");
+        if (!pendingAnalysis) { setAnalysisBusy(false); setAnalysisPhase(null); }
+      });
     } catch (error) {
-      setAnalysisBusy(false); setAnalysisPhase(null); setStatus({ tone: "error", text: error instanceof Error ? error.message : "无法启动分析任务" });
-      return { status: "failed", message: error instanceof Error ? error.message : "无法启动分析任务", context };
+      setAnalysisBusy(false); setAnalysisPhase(null); setStatus({ tone: "error", text: error instanceof Error ? error.message : "无法排队分析任务" });
+      return { status: "failed", message: error instanceof Error ? error.message : "无法排队分析任务", context };
     }
-    analysisTaskRef.current = { id: runId, checkpoint, task };
-    return task.promise.then((result): AiToolResult => {
-      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
-      const updated = attachAnalysisResult(activeProjectRef.current, result); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${result.nodes.length} 个节点结果，${result.members.length} 根杆件结果` });
-      setResultReference(null); setResultFocus(null);
-      if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
-      return { status: "completed", message: `本地分析完成 · ${result.nodes.length} 个节点、${result.members.length} 根杆件，已展示结果`, context,
-        data: { analysisId: result.id, modelRevision: checkpoint.revision, units: source.units,
-          analysisSourceId: result.input.combination?.definition.id ?? result.input.loadCase?.id,
-          loadCase: result.input.combination ? undefined : result.input.loadCase, combination: result.input.combination,
-          nodes: result.nodes, members: result.members } };
-    }).catch((error): AiToolResult => {
-      if (runId !== analysisRunRef.current || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") || error instanceof AnalysisCancelledError) return { status: "cancelled", message: "本地分析已取消，已确认模型和已有结果保留；可继续计算或修改条件后再次确认", context };
-      if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
-      else setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" });
-      return { status: "failed", message: `${error instanceof Error ? error.message : "分析失败"}。已确认模型保留；请检查诊断并准备新的条件阶段或继续计算`, context,
-        data: error instanceof AnalysisFailure ? { stage: error.stage, diagnostics: error.diagnostics } : undefined };
-    }).finally(() => {
-      if (runId !== analysisRunRef.current) return;
-      analysisTaskRef.current = null; setAnalysisBusy(false); setAnalysisPhase(null);
-    });
   };
 
   const saveNodeEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedNode) return; try { const updated = applyProjectEdits(project, [{ type: "update_node", id: selectedNode.id, position: { x: parseNumber(nodeDraft.x, "X 坐标"), y: parseNumber(nodeDraft.y, "Y 坐标"), z: parseNumber(nodeDraft.z, "Z 坐标") } }]).project; activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedNode.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新节点失败"); } };
@@ -462,6 +511,7 @@ export function App() {
 
   useEffect(() => () => {
     const activeAnalysis = analysisTaskRef.current;
+    analysisSchedulerRef.current.cancelProject(activeProjectRef.current.id);
     if (!activeAnalysis) return;
     analysisRunRef.current += 1;
     analysisTaskRef.current = null;
@@ -506,6 +556,7 @@ export function App() {
           onUniformLoad={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}
           onLoadCases={() => setLoadCaseManagerOpen(true)} />
         {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={() => void runAnalysis()}><Calculator size={15} />计算</button>}
+        {taskQueue.queued.length > 0 && <span className="task-queue-summary" role="status" aria-label={`等待中的任务 ${taskQueue.queued.length}`}>队列 {taskQueue.queued.length} · 启动时读取最新模型</span>}
         <span className="toolbar-divider" />
         <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canUndo} aria-label={projectHistoryRef.current.canUndo ? "撤销" : "撤销（尚未实现）"} title="撤销（Ctrl+Z）" onClick={() => restoreHistory("undo")}><Undo2 size={15} /></button>
         <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canRedo} aria-label={projectHistoryRef.current.canRedo ? "重做" : "重做（尚未实现）"} title="重做（Ctrl+Y）" onClick={() => restoreHistory("redo")}><Redo2 size={15} /></button>
@@ -689,7 +740,7 @@ export function App() {
           } else { setResultView(ref.quantity === "displacement" ? "deformation" : "model"); setResultFocus(null); }
           setDiagnosticFitRequest((value) => value + 1);
         }}
-        analysisBusy={analysisBusy} onAnalyze={(sourceId) => runAnalysis(true, sourceId)} onCancelAnalysis={cancelAnalysis}
+        analysisBusy={analysisBusy} scheduler={analysisSchedulerRef.current} onAnalyze={(sourceId) => runAnalysis(true, sourceId)} onCancelAnalysis={cancelAnalysis}
         onConditionsConfirm={(confirmation) => {
           const current = activeProjectRef.current;
           const outcome = conditionsConfirmationRef.current.confirm(current, confirmation);

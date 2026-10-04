@@ -196,6 +196,7 @@ button { color: inherit; }
 .task-tab:disabled { color: var(--text-disabled); cursor: not-allowed; }
 
 .task-toolbar { min-width: 0; display: flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3); border-bottom: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.task-queue-summary { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: var(--text-caption); }
 .task-context { padding: 0 var(--space-2); color: var(--text-secondary); font-size: var(--text-caption); font-weight: 600; }
 .model-toolbar { min-width: 0; display: flex; align-items: center; gap: var(--space-px); }
 .tool-button { height: 26px; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); padding: 0 var(--space-3); border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: var(--text-body); white-space: nowrap; }
@@ -316,6 +317,7 @@ button { color: inherit; }
 :root[data-theme="light"] .ai-user-message, :root[data-theme="light"] .ai-assistant-message { color: #000; }
 .ai-user-message[hidden] { display: none; }
 .ai-task-timeline { margin: var(--space-3) 0 var(--space-5); color: var(--text-muted); font-size: var(--text-body); }
+.ai-queue-notice { margin: var(--space-3) 0; padding: var(--space-2) 0; color: var(--text-muted); font-size: var(--text-caption); border-bottom: 1px solid var(--border-subtle); }
 .ai-task-timeline ol { list-style: none; margin: 0; padding: 0; }
 .ai-process-step { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; padding-bottom: 10px; line-height: 1.6; }
 .ai-process-step:last-child { padding-bottom: 0; }

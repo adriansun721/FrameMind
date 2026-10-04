@@ -251,7 +251,7 @@ describe("AI conversation task boundary", () => {
     const result = await startAiTask(snapshot, "你好", {
       transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
     }).promise;
-    expect(result).toMatchObject({ status: "completed", assistant: "你好", records: [{ round: 0, result: { status: "completed" } }] });
+    expect(result).toMatchObject({ status: "completed", workKind: "conversation", assistant: "你好", records: [{ round: 0, result: { status: "completed" } }] });
     expect(result.message).toContain("未读取模型工具");
   });
 
@@ -267,7 +267,7 @@ describe("AI conversation task boundary", () => {
       onProgress: (event) => progress.push(event) });
     const result = await task.promise;
 
-    expect(result).toMatchObject({ status: "completed", assistant: "选中 N1，坐标为 (4, 0, 0) m。", context: snapshot.context,
+    expect(result).toMatchObject({ status: "completed", workKind: "agent", assistant: "选中 N1，坐标为 (4, 0, 0) m。", context: snapshot.context,
       records: [{ round: 0, result: { status: "completed" } }, { round: 1, call: selectedRead.assistant!.tool_calls![0], result: { status: "completed" } }] });
     expect(script.requests).toHaveLength(2);
     expect(script.requests[0].messages[0]).toMatchObject({ role: "system" });

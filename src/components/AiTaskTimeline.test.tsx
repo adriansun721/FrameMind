@@ -10,7 +10,7 @@ test("an unapplied model request shows its waiting state and actionable read-onl
     function: { name: "update_node", arguments: '{"id":"node_0001","position":{"x":99,"y":0,"z":0}}' } };
   const result = executeAiTool(snapshot, call);
   render(<AiTaskTimeline paused={false} turns={[{ id: "turn-1", origin: "chat", result: {
-    status: result.status, message: result.message, context: snapshot.context,
+    status: result.status, workKind: "agent", message: result.message, context: snapshot.context,
     records: [{ round: 1, call, result }],
   } }]} />);
 

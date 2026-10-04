@@ -9,6 +9,7 @@ import type { FrameProject } from "../domain/project";
 import { coordinateFrame, coordinateModelEdits, coordinateSection, coordinateTaskDraft, engineeringDraftTargets, targetConflicts, validateConditions } from "./draft-coordination";
 
 export type AiTransport = Pick<FrameMindDesktopApi, "chatDeepSeek" | "cancelDeepSeekChat">;
+export type AiWorkKind = "conversation" | "agent";
 export interface AiToolRecord { round: number; call: DeepSeekToolCall; result: AiToolResult; }
 export interface AiProgress {
   phase: "requesting" | "tool" | "responding";
@@ -21,6 +22,7 @@ export interface AiTaskResult {
   retryOf?: string;
   interruption?: { phase: AiProgress["phase"]; round: number; completedTools: number; draftsDiscarded: boolean };
   status: AiStatus;
+  workKind: AiWorkKind;
   message: string;
   context: AiContext;
   assistant?: string;
@@ -96,8 +98,9 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   const result = (status: AiStatus, message: string, assistant?: string): AiTaskResult => {
     const interrupted = status === "failed" || status === "cancelled";
     const hasAgentTools = records.some((record) => record.round > 0);
+    const workKind: AiWorkKind = hasAgentTools ? "agent" : "conversation";
     const taskState = status === "completed" ? "completed" : status === "cancelled" ? "cancelled" : "failed";
-    return { requestId, retryOf: options.retryOf, status, message, context: taskSnapshot.context, assistant, records: records.slice(),
+    return { requestId, retryOf: options.retryOf, status, workKind, message, context: taskSnapshot.context, assistant, records: records.slice(),
       proposal: interrupted ? options.proposal : proposal,
       conditions: interrupted ? options.conditions : conditions,
       sectionChange: interrupted ? options.sectionChange : sectionChange,
