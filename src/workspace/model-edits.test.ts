@@ -76,8 +76,9 @@ describe("T2-02 shared manual and tool editing", () => {
       ]);
       const history = new ProjectHistory();
       history.record(project, applied.project);
-      expect(history.undo(applied.project)).toBe(project);
-      expect(history.redo(project)).toBe(applied.project);
+      const restored = history.undo(applied.project)!;
+      expect(restored).toMatchObject(project);
+      expect(history.redo(restored)).toEqual(applied.project);
     }
   });
 

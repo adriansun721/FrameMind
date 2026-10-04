@@ -49,8 +49,9 @@ describe("T24 confirmed load stages via public tools and solver", () => {
     expect(solved.input.combination?.definition.terms).toEqual([{ loadCaseId: "LC1", factor: 1 }, { loadCaseId: "LC2", factor: -0.5 }]);
     expect(decodeProject(encodeProject(applied.project))).toEqual(applied.project);
     const history = new ProjectHistory(); history.record(p, applied.project);
-    expect(history.undo(applied.project)).toBe(p);
-    expect(history.redo(p)).toBe(applied.project);
+    const restored = history.undo(applied.project)!;
+    expect(restored).toMatchObject(p);
+    expect(history.redo(restored)).toEqual(applied.project);
     expect(stage.confirm(applied.project, confirmation).project).toBe(applied.project);
     expect(stage.confirm(p, confirmation).project).toBe(p);
   });

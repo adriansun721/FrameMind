@@ -2,6 +2,7 @@
 
 - 日期：2026-10-02
 - 状态：已接受
+- 持久化后续规则：[ADR-0042](0042-project-task-persistence-and-restart.md) 扩展正式项目保存、独立本机聊天及用户主动重启续作，替换限于会话内的恢复规则。
 - 范围：PLAN.md T27；US-027、US-061、US-062；AC-13、AC-14、AC-15
 - 后续规则：模型引用、选择与分析浏览的失效规则由 [ADR-0038](0038-stable-task-targets-and-manual-edit-coordination.md) 替换；T2-05 绑定发送时目标，兼容人工编辑重读与协调，实际冲突才暂停。下文保留 T27 的原始决定与验证背景。
 

@@ -3,6 +3,7 @@ import { applyProjectTransaction } from "../domain/project-operations";
 import { SECTION_CATALOG } from "../domain/resource-library";
 import { captureAiSnapshot, type AiObjectRef, type AiSnapshot, type AiToolResult } from "./ai-tools";
 import type { FramePreview } from "./frame-proposal";
+import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
 export const SECTION_PARAMETERS = { areaM2: "A (m²)", secondMomentYM4: "Iy (m⁴)", secondMomentZM4: "Iz (m⁴)", torsionalConstantM4: "J (m⁴)" } as const;
 export interface SectionChangeProposal {
@@ -82,9 +83,9 @@ export class SectionStageConfirmation {
     const failed = (message: string) => ({ project, result: { status: "failed" as const, message, context } });
     if (project.id !== confirmation.baseProject.id) return failed("项目已切换，请重新准备截面方案");
     const key = `${project.id}:${confirmation.proposal.id}:${confirmation.proposal.version}`;
-    const receipt = this.applied.get(key);
+    const receipt = savedOperation(project, key) ?? this.applied.get(key);
     if (receipt) return { project, result: { ...receipt, message: "该截面阶段已确认过，本次未重复应用" } };
-    if (project !== confirmation.baseProject) return failed("正式模型已变化，请重新生成截面预览");
+    if (!sameProjectInput(project, confirmation.baseProject)) return failed("正式模型已变化，请重新生成截面预览");
     if (selection.length !== confirmation.selection.length || selection.some((ref) => !confirmation.selection.some((item) => item.kind === ref.kind && item.id === ref.id))) return failed("选中对象已变化，请重新生成截面预览");
     try {
       const targets = selectedColumns(snapshot);
@@ -106,7 +107,7 @@ export class SectionStageConfirmation {
       });
       const result: AiToolResult = { status: "applied", message: "截面修改阶段已应用，可整组撤销和重做", context: { ...context, modelRevision: next.revision },
         data: { requestId: confirmation.requestId, memberIds: confirmation.proposal.memberIds, section: confirmation.proposal.section, baseRevision: project.revision, appliedRevision: next.revision } };
-      this.applied.set(key, result); return { project: next, result };
+      this.applied.set(key, result); return { project: recordOperation(next, key, result), result };
     } catch (error) { return failed(error instanceof Error ? error.message : "截面修改失败，正式模型保留"); }
   }
 }

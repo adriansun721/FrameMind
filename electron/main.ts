@@ -10,11 +10,13 @@ import {
   type ExportReportPdfRequest,
 } from "./contracts";
 import { ProjectFileStore } from "./project-files";
+import { ChatHistoryStore } from "./chat-history";
 import { DeepSeekConnection } from "./deepseek";
 import { renderReportPdf } from "./report-pdf";
 
 const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
+const chatHistories = new ChatHistoryStore(join(app.getPath("userData"), "chat-history"));
 
 let deepSeek: DeepSeekConnection;
 const productionUrl = pathToFileURL(join(__dirname, "../dist/index.html")).href;
@@ -52,6 +54,15 @@ ipcMain.handle(DesktopChannel.SetTheme, (event, theme: unknown) => {
     ? { color: "#f0f0f0", symbolColor: "#484848" }
     : { color: "#202020", symbolColor: "#b6b6b6" });
   window?.setBackgroundColor(theme === "light" ? "#f7f7f7" : "#1a1a1a");
+});
+
+ipcMain.handle(DesktopChannel.SaveChatHistory, (event, request: { projectId: string; content: string }) => {
+  requireTrustedSender(event);
+  return chatHistories.save(request.projectId, request.content);
+});
+ipcMain.handle(DesktopChannel.LoadChatHistory, (event, projectId: string) => {
+  requireTrustedSender(event);
+  return chatHistories.load(projectId);
 });
 
 function createWindow(): void {

@@ -4,6 +4,7 @@ import type { NodalLoadProposal, SupportProposal } from "./analysis-conditions";
 import { applyProjectTransaction } from "../domain/project-operations";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
 import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
+import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
 export interface TaskDraftConfirmation {
   readonly requestId: string;
@@ -215,9 +216,9 @@ export class TaskDraftStageConfirmation {
     const latest = this.latestVersion.get(taskKey);
     if (latest !== undefined && confirmation.draft.version < latest) return failed("任务草案版本已过期，请使用最新修订");
     const key = `${taskKey}:${confirmation.draft.version}`;
-    const previous = this.applied.get(key);
+    const previous = savedOperation(project, key) ?? this.applied.get(key);
     if (previous) return { project, result: { ...previous, message: "该完整任务已确认过，本次仅返回幂等回执，未重复应用，也未恢复模型" } };
-    if (project !== confirmation.baseProject || project.revision !== confirmation.context.modelRevision) return failed("正式模型已变化，请重新生成完整任务草案");
+    if (!sameProjectInput(project, confirmation.baseProject) || project.revision !== confirmation.context.modelRevision) return failed("正式模型已变化，请重新生成完整任务草案");
     try {
       const outcome = applyTask(project, confirmation.draft);
       const requestedSource = confirmation.draft.analysis?.sourceId ?? confirmation.draft.conditions?.analysisSourceId;
@@ -228,7 +229,7 @@ export class TaskDraftStageConfirmation {
           objects: outcome.verification.objects } };
       this.applied.set(key, result);
       this.latestVersion.set(taskKey, confirmation.draft.version);
-      return { project: outcome.project, result };
+      return { project: recordOperation(outcome.project, key, result), result };
     } catch (error) { return failed(error instanceof Error ? error.message : "完整任务应用失败，正式模型保持原状"); }
   }
 }

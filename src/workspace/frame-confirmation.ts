@@ -2,6 +2,7 @@ import { addMaterial, addMember, addNode, addSection, type FrameProject, type Ma
 import { applyProjectTransaction } from "../domain/project-operations";
 import { captureAiSnapshot, type AiContext, type AiToolResult } from "./ai-tools";
 import { buildFramePreview, type FramePreview, type FrameProposal } from "./frame-proposal";
+import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
 export interface FrameConfirmation {
   readonly requestId: string;
@@ -64,9 +65,9 @@ export class FrameStageConfirmation {
     const context = captureAiSnapshot(project, []).context;
     const failed = (message: string) => ({ project, result: { status: "failed" as const, message, context } });
     if (project.id !== confirmation.context.projectId) return failed("项目已切换，请重新生成并确认方案");
-    const receipt = this.applied.get(key);
+    const receipt = savedOperation(project, key) ?? this.applied.get(key);
     if (receipt) return { project, result: { ...receipt, message: "该阶段已确认过，本次未重复应用" } };
-    if (project !== confirmation.baseProject || project.revision !== confirmation.context.modelRevision) {
+    if (!sameProjectInput(project, confirmation.baseProject) || project.revision !== confirmation.context.modelRevision) {
       return failed("正式模型已变化，请重新生成预览并再次确认");
     }
     if (confirmation.preview.status !== "awaiting-confirmation") return failed("方案尚不完整，请补齐或澄清参数后确认");
@@ -78,7 +79,7 @@ export class FrameStageConfirmation {
           objects: { nodes: next.nodes.slice(project.nodes.length), members: next.members.slice(project.members.length),
             materials: next.materials.slice(project.materials.length), sections: next.sections.slice(project.sections.length) } } };
       this.applied.set(key, result);
-      return { project: next, result };
+      return { project: recordOperation(next, key, result), result };
     } catch (error) {
       return failed(error instanceof Error ? error.message : "阶段应用失败，正式模型保持原状");
     }

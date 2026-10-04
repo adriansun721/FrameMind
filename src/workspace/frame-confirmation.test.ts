@@ -33,7 +33,7 @@ describe("confirmed AI stage through public project, tool and history boundaries
     expect(summary).toMatchObject({ status: "completed", data: { counts: { nodes: 13, members: 16 } } });
     const history = new ProjectHistory(); history.record(project, outcome.project);
     const restored = history.undo(outcome.project)!;
-    expect(restored).toEqual(project);
+    expect(restored).toMatchObject(project);
     expect(history.canUndo).toBe(false);
     expect(history.redo(restored)).toEqual(outcome.project);
   });

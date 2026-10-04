@@ -8,6 +8,8 @@ const desktopApi: FrameMindDesktopApi = {
   saveProject: (request: { path: string | null; content: string }) =>
     ipcRenderer.invoke(DesktopChannel.SaveProject, request),
   openProject: () => ipcRenderer.invoke(DesktopChannel.OpenProject),
+  saveChatHistory: (request) => ipcRenderer.invoke(DesktopChannel.SaveChatHistory, request),
+  loadChatHistory: (projectId) => ipcRenderer.invoke(DesktopChannel.LoadChatHistory, projectId),
   getDeepSeekSettings: () => ipcRenderer.invoke(DesktopChannel.GetDeepSeekSettings),
   saveDeepSeekSettings: (request) => ipcRenderer.invoke(DesktopChannel.SaveDeepSeekSettings, request),
   removeDeepSeekCredential: () => ipcRenderer.invoke(DesktopChannel.RemoveDeepSeekCredential),

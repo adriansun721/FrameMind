@@ -53,7 +53,7 @@ describe("FrameMind project file", () => {
     });
 
     expect(() => decodeProject(futureFile)).toThrow(
-      "项目版本 99 暂不受支持（当前支持版本 1）",
+      "项目版本 99 暂不受支持（当前支持版本 2）",
     );
   });
 

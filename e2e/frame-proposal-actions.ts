@@ -52,7 +52,13 @@ export async function save(page: Page, path: string) {
   await expect(page.locator('footer[role="status"]')).toContainText("已保存");
   // The previous save feedback can remain visible while a newer atomic write is in flight.
   // Wait for the public dirty marker to clear before reading the newly saved project.
-  await expect(page.getByLabel("未保存修改", { exact: true })).toHaveCount(0);
+  await expect.poll(async () => {
+    const dirty = await page.getByLabel("未保存修改", { exact: true }).count();
+    // Task completion can publish its receipt just after the model save begins.
+    // Save that newer public state too instead of reading a stale project file.
+    if (dirty) await page.keyboard.press("Control+s");
+    return dirty;
+  }).toBe(0);
   // A repeated save may retain the prior feedback while the atomic file replacement is still in flight.
   let saved = "";
   await expect.poll(async () => {

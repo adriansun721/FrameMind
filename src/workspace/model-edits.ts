@@ -1,6 +1,7 @@
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
 import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
+import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
 export interface ModelEditProposal {
   id: string;
@@ -111,9 +112,9 @@ export class ModelEditConfirmation {
     const draft = confirmation.proposal;
     if (project.id !== draft.projectId) return failed("项目已切换，请重新准备编辑草案");
     const key = `${draft.projectId}:${draft.id}:${draft.version}`;
-    const previous = this.applied.get(key);
+    const previous = savedOperation(project, key) ?? this.applied.get(key);
     if (previous) return { project, result: { ...previous, message: "该编辑已确认过，本次未重复应用" } };
-    if (project !== confirmation.baseProject || project.revision !== draft.baseRevision) return failed("正式模型已变化，请重新生成编辑草案并确认");
+    if (!sameProjectInput(project, confirmation.baseProject) || project.revision !== draft.baseRevision) return failed("正式模型已变化，请重新生成编辑草案并确认");
     try {
       const outcome = applyProjectEdits(project, parseProjectEditOperations(draft.operations));
       if (JSON.stringify(outcome.receipt) !== JSON.stringify(draft.preview)) return failed("草案内容与预览不一致，请重新核对");
@@ -136,7 +137,7 @@ export class ModelEditConfirmation {
       const result: AiToolResult = { status: "applied", message: "基础编辑已应用，可整组撤销和重做", context: snapshot.context,
         data: { requestId: confirmation.requestId, proposalId: draft.id, proposalVersion: draft.version, ...outcome.receipt, readback } };
       this.applied.set(key, result);
-      return { project: outcome.project, result };
+      return { project: recordOperation(outcome.project, key, result), result };
     } catch (error) { return failed(error instanceof Error ? error.message : "基础编辑失败，正式模型保留"); }
   }
 }

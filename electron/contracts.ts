@@ -1,6 +1,8 @@
 export const enum DesktopChannel {
   SaveProject = "project:save",
   OpenProject = "project:open",
+  SaveChatHistory = "chat-history:save",
+  LoadChatHistory = "chat-history:load",
   SetTheme = "app:theme",
   GetDeepSeekSettings = "deepseek:settings",
   SaveDeepSeekSettings = "deepseek:save",
@@ -81,6 +83,8 @@ export interface FrameMindDesktopApi {
   setTheme(theme: AppTheme): Promise<void>;
   saveProject(request: SaveProjectRequest): Promise<SaveProjectResult>;
   openProject(): Promise<OpenProjectResult>;
+  saveChatHistory(request: { projectId: string; content: string }): Promise<void>;
+  loadChatHistory(projectId: string): Promise<string | null>;
   getDeepSeekSettings(): Promise<DeepSeekSettings>;
   saveDeepSeekSettings(request: SaveDeepSeekSettingsRequest): Promise<DeepSeekResult>;
   removeDeepSeekCredential(): Promise<DeepSeekResult>;

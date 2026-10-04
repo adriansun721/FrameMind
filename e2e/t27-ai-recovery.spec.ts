@@ -33,11 +33,9 @@ test("T27 retries a disconnected continuation without replaying geometry and sol
     await failNetwork(app);
     await page.getByRole("button", { name: "确认建模", exact: true }).click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("失败");
-    await page.locator(".ai-turn-details > summary").first().click();
-    await page.getByText("操作详情 · 1 项", { exact: true }).click();
-    await expect(page.getByText("本地提交回执已保留", { exact: false })).toBeVisible();
     const applied = await save(page, path);
     expect(applied.nodes).toHaveLength(12); expect(applied.members).toHaveLength(16);
+    expect(applied.confirmedOperations).toHaveLength(1);
     await page.screenshot({ path: "docs/evidence/T27-recovery.png" });
 
     await conditions(app);
@@ -99,12 +97,9 @@ test("T27 retries with a new identity and ignores a cancelled request arriving a
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已完成");
     await app.evaluate(() => (globalThis as typeof globalThis & { t27Release?: () => void }).t27Release?.());
     await expect(page.getByText("迟到的旧回复", { exact: true })).toHaveCount(0);
-    const records = page.getByRole("log").locator(".ai-turn");
-    for (const summary of await page.locator(".ai-turn-details > summary").all()) await summary.click();
-    await records.nth(0).getByText("任务与恢复记录", { exact: true }).click();
-    await records.nth(1).getByText("任务与恢复记录", { exact: true }).click();
-    const oldRecord = JSON.parse(await records.nth(0).locator(".ai-context-details").nth(1).locator("pre").innerText());
-    const retryRecord = JSON.parse(await records.nth(1).locator(".ai-context-details").nth(1).locator("pre").innerText());
+    const saved = await save(page, path);
+    const oldRecord = saved.taskState.conversations[0].turns[0].result;
+    const retryRecord = saved.taskState.conversations[0].turns[1].result;
     expect(retryRecord.requestId).not.toBe(oldRecord.requestId);
     expect(retryRecord.retryOf).toBe(oldRecord.requestId);
     expect((await save(page, path)).nodes).toHaveLength(0);

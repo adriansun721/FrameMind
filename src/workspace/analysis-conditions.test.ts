@@ -40,8 +40,9 @@ describe("AI conditions through public tools, confirmation, history and local so
     expect(solved.nodes[0].reactionMoment.y).toBeCloseTo(-13.5, 10);
     expect(solved.nodes[0].reactionMoment.z).toBeCloseTo(-18.75, 10);
     const history = new ProjectHistory(); history.record(p, applied.project);
-    expect(history.undo(applied.project)).toBe(p);
-    expect(history.redo(p)).toBe(applied.project);
+    const restored = history.undo(applied.project)!;
+    expect(restored).toMatchObject(p);
+    expect(history.redo(restored)).toEqual(applied.project);
   });
 
   it("preserves missing fields separately from explicitly empty conditions and rejects stale references and malformed requests", () => {
@@ -113,6 +114,7 @@ describe("AI conditions through public tools, confirmation, history and local so
     expect(solved.input.loadCase?.id).toBe("LC2");
     expect(solved.nodes[1].displacement.x).toBeCloseTo(0.000016, 10);
     const history = new ProjectHistory(); history.record(base, applied);
-    expect(history.undo(applied)).toBe(base); expect(history.redo(base)).toBe(applied);
+    const restored = history.undo(applied)!;
+    expect(restored).toMatchObject(base); expect(history.redo(restored)).toEqual(applied);
   });
 });

@@ -140,6 +140,7 @@ export function App() {
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const analysisRunRef = useRef(0);
   const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
+  const pendingAnalysisInputsRef = useRef(new Map<string, AnalysisInputSnapshot>());
   const analysisSchedulerRef = useRef(new TaskScheduler<unknown, unknown>({ maxConcurrent: 1 }));
   const analysisHandlesRef = useRef(new Map<string, ScheduledTaskHandle<unknown>>());
   const analysisExecutionRef = useRef(new Map<string, { runId: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; source: FrameProject }>());
@@ -361,12 +362,14 @@ export function App() {
     }
   };
 
-  const runAnalysis = async (showResults = false, requestedSourceId?: string): Promise<AiToolResult> => {
+  const runAnalysis = async (showResults = false, requestedSourceId?: string, frozenInput?: AnalysisInputSnapshot): Promise<AiToolResult> => {
     const current = activeProjectRef.current;
+    requestedSourceId ??= current.activeLoadCombinationId ?? current.activeLoadCaseId;
     if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
     const source = requestedSourceId && current.loadCombinations.some((item) => item.id === requestedSourceId)
       ? selectLoadCombination(current, requestedSourceId) : requestedSourceId ? selectLoadCase(current, requestedSourceId) : current;
     const context = captureAiSnapshot(source, []).context;
+    if (frozenInput && !sameInputValue(captureAnalysisInput(source), frozenInput)) return { status: "failed", message: "当前模型与保存的计算输入不一致，请核对后重新请求计算", context };
     if (source !== current) activateProject(source, false, "restore");
     const projectId = current.id;
     const latestSource = () => {
@@ -379,9 +382,14 @@ export function App() {
     setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已提交，等待计算资源" });
     try {
       const handle = analysisSchedulerRef.current.submit({
-        projectId, kind: "analysis", goal: requestedSourceId ? `计算 ${requestedSourceId}` : "计算当前模型", queuedRevision: current.revision,
-        getInput: () => captureAnalysisInput(latestSource()),
+        projectId, kind: "analysis", goal: requestedSourceId ? `计算 ${requestedSourceId}` : "计算当前模型", queuedRevision: current.revision, analysisSourceId: requestedSourceId,
+        getInput: () => {
+          const input = captureAnalysisInput(latestSource());
+          if (frozenInput && !sameInputValue(input, frozenInput)) throw new Error("当前模型与保存的计算输入不一致");
+          return frozenInput ?? input;
+        },
         execute: async (input, taskContext) => {
+          pendingAnalysisInputsRef.current.set(taskContext.ownership.taskId, input as AnalysisInputSnapshot);
           const executionSource = latestSource();
           const checkpoint = captureProjectCheckpoint(executionSource, activeSessionRef.current);
           const runId = ++analysisRunRef.current;
@@ -427,6 +435,7 @@ export function App() {
         return { status: "failed", message: `${error instanceof Error ? error.message : "分析失败"}。已确认模型保留；请检查诊断并准备新的条件阶段或继续计算`, context,
           data: error instanceof AnalysisFailure ? { stage: error.stage, diagnostics: error.diagnostics } : undefined };
       }).finally(() => {
+        pendingAnalysisInputsRef.current.delete(handle.taskId);
         analysisHandlesRef.current.delete(handle.taskId);
         analysisExecutionRef.current.delete(handle.ownerTaskId);
         const pendingAnalysis = [...analysisHandlesRef.current.keys()].some((id) => analysisSchedulerRef.current.get(id)?.kind === "analysis");
@@ -684,6 +693,18 @@ export function App() {
       </section>
 
       <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+        onTaskStateChange={(state) => {
+          const current = activeProjectRef.current;
+          if (state.projectId !== current.id) return;
+          const analyses = new Map(state.analyses.map((item) => [item.taskId, item]));
+          for (const [taskId, input] of pendingAnalysisInputsRef.current) if (input.projectId === current.id && state.scheduled.some((task) => task.id === taskId && !["completed", "cancelled"].includes(task.status))) analyses.set(taskId, { taskId, input });
+          const nextState = { ...state, analyses: [...analyses.values()] };
+          if (sameInputValue(current.taskState, nextState)) return;
+          const next = { ...current, taskState: nextState };
+          activeProjectRef.current = next; setProject(next);
+        }}
+        onResumeAnalysis={(input) => runAnalysis(true, input.combination?.definition.id ?? input.loadCase?.id, input)}
+        onPersistenceError={(message) => setStatus({ tone: "error", text: message })}
         onEditsConfirm={(confirmation) => {
           const current = activeProjectRef.current;
           const outcome = editConfirmationRef.current.confirm(current, confirmation);

@@ -4,6 +4,7 @@ import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
 import { conditionObject as object, conditionSource as source, conditionVector as vector, type ConditionSource as Source } from "./condition-input";
 import { applyLoadStage, LOAD_STAGE_FIELDS, loadStageIssues, loadStageReferences, parseLoadStage, type LoadStage } from "./load-stage";
 import type { FramePreview } from "./frame-proposal";
+import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
 export interface SupportProposal { id?: SupportId; nodeId: NodeId; restraints: DofRestraints; source: Source; }
 export interface NodalLoadProposal { id?: LoadId; nodeId: NodeId; loadCaseId: string; force: Vector3; moment: Vector3; source: Source; }
@@ -105,9 +106,9 @@ export class ConditionsStageConfirmation {
     const failed = (message: string) => ({ project, result: { status: "failed" as const, message, context } });
     if (project.id !== confirmation.context.projectId) return failed("项目已切换，请重新准备分析条件");
     const key = `${project.id}:${confirmation.proposal.id}:${confirmation.proposal.version}`;
-    const receipt = this.applied.get(key);
+    const receipt = savedOperation(project, key) ?? this.applied.get(key);
     if (receipt) return { project, result: { ...receipt, message: "该分析条件阶段已确认过，本次未重复应用" } };
-    if (project !== confirmation.baseProject || project.revision !== confirmation.context.modelRevision) return failed("正式模型已变化，请更新条件预览并再次确认");
+    if (!sameProjectInput(project, confirmation.baseProject) || project.revision !== confirmation.context.modelRevision) return failed("正式模型已变化，请更新条件预览并再次确认");
     try {
       const { id: _id, version: _version, ...input } = confirmation.proposal;
       const proposal = proposeConditions(input);
@@ -132,7 +133,7 @@ export class ConditionsStageConfirmation {
           baseRevision: project.revision, appliedRevision: next.revision, units: next.units, analysisSourceId: next.activeLoadCombinationId ?? next.activeLoadCaseId, references, supports: next.supports, nodalLoads: next.nodalLoads,
           uniformLoads: next.uniformLoads, selfWeight: next.selfWeight, loadCases: next.loadCases, loadCombinations: next.loadCombinations, combinationBasis: "用户自定义 · 无量纲系数 · 线弹性" } };
       this.applied.set(key, result);
-      return { project: next, result };
+      return { project: recordOperation(next, key, result), result };
     } catch (error) { return failed(error instanceof Error ? error.message : "条件应用失败，原模型保留"); }
   }
 }

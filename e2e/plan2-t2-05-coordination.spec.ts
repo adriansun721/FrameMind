@@ -142,6 +142,7 @@ test("T2-05 isolates a response after opening the project again", async () => {
     await openExample(page, path); await pending(app);
     await page.getByLabel("选择杆件 M1", { exact: true }).check();
     await start(page, "把这些柱改为加大截面");
+    page.once("dialog", (dialog) => dialog.accept());
     await page.keyboard.press("Control+o");
     await expect(page.getByRole("button", { name: "取消对话", exact: true })).toHaveCount(0);
     await replay(app, { collection: "summary" }, "read_model");

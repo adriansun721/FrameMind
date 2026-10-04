@@ -1,8 +1,9 @@
 import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisResult } from "./analysis";
+import type { ConfirmedOperation, PersistedTaskState } from "../workspace/task-persistence";
 
 export const PROJECT_FORMAT = "framemind-project" as const;
-export const PROJECT_FORMAT_VERSION = 1 as const;
+export const PROJECT_FORMAT_VERSION = 2 as const;
 
 declare const projectIdBrand: unique symbol;
 declare const nodeIdBrand: unique symbol;
@@ -81,6 +82,9 @@ export interface FrameProject {
   nextLoadCombinationNumber: number;
   analysisResults: AnalysisResult[];
   latestAnalysis?: AnalysisResult;
+  taskState?: PersistedTaskState;
+  confirmedOperations?: ConfirmedOperation[];
+  migration?: { fromVersion: 1; missing: string[] };
   nextNodeNumber: number;
   nextMaterialNumber: number;
   nextSectionNumber: number;

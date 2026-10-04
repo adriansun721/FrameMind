@@ -37,6 +37,8 @@ import {
   type CatalogSource,
 } from "./project";
 import { ANALYSIS_DOF_ORDER, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
+import { decodeTaskState, decodeConfirmedOperations } from "../workspace/task-persistence";
+import { redactPersistence } from "../../electron/persistence-redaction";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -344,14 +346,14 @@ function decodeCounter(value: unknown, fallback: number, label: string, highest:
 export function encodeProject(project: FrameProject): string {
   // Compact JSON avoids repeating indentation across every captured 12×12 matrix.
   // The schema and legacy latestAnalysis field remain compatible.
-  return `${JSON.stringify(project)}\n`;
+  return `${JSON.stringify(redactPersistence(project))}\n`;
 }
 
 export function decodeProject(source: string): FrameProject {
   let value: unknown;
   try { value = JSON.parse(source); } catch { throw new Error("文件不是有效的 FrameMind 项目"); }
   if (!isRecord(value) || value.format !== PROJECT_FORMAT) throw new Error("文件不是有效的 FrameMind 项目");
-  if (value.formatVersion !== PROJECT_FORMAT_VERSION) {
+  if (value.formatVersion !== 1 && value.formatVersion !== PROJECT_FORMAT_VERSION) {
     throw new Error(`项目版本 ${String(value.formatVersion)} 暂不受支持（当前支持版本 ${PROJECT_FORMAT_VERSION}）`);
   }
   if (!Array.isArray(value.nodes)) throw new Error("项目节点列表无效");
@@ -425,5 +427,9 @@ export function decodeProject(source: string): FrameProject {
   for (const load of nodalLoads) if (!nodes.some((node) => node.id === load.nodeId)) throw new Error(`节点荷载 ${load.label} 引用了不存在的节点 ${load.nodeId}`);
   if (latestAnalysis && latestAnalysis.projectId !== project.id) throw new Error("分析结果项目标识与文件不一致");
   if (latestAnalysis && latestAnalysis.projectRevision >= project.revision) throw new Error("分析结果版本必须早于当前项目版本");
+  project.confirmedOperations = decodeConfirmedOperations(value.confirmedOperations, project.id);
+  project.taskState = decodeTaskState(value.taskState, project, decodeProject, decodeAnalysisInput);
+  if (value.formatVersion === 1) project.migration = { fromVersion: 1, missing: ["task-state", "confirmation-receipts", "section-geometry"] };
+  else if (isRecord(value.migration) && value.migration.fromVersion === 1 && Array.isArray(value.migration.missing) && value.migration.missing.every((item) => typeof item === "string")) project.migration = { fromVersion: 1, missing: value.migration.missing };
   return project;
 }

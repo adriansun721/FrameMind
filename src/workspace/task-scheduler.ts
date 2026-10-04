@@ -33,6 +33,7 @@ export interface ScheduledTaskDescriptor {
   operationCount: number;
   phase?: string;
   analysisId?: string;
+  analysisSourceId?: string;
   error?: string;
 }
 
@@ -70,6 +71,7 @@ export interface ScheduledTaskSubmission<TInput, TResult> {
   parentTaskId?: string;
   queuedRevision?: number;
   analysisId?: string;
+  analysisSourceId?: string;
   /** Read the current project only when the task obtains the resource slot. */
   getInput(): TInput;
   execute(input: TInput, context: ScheduledTaskContext<TInput>): Promise<TResult>;
@@ -195,7 +197,7 @@ export class TaskScheduler<TInput, TResult> {
         id: this.createId(), projectId: submission.projectId, kind: submission.kind,
         goal: submission.goal.trim(), status: "queued", parentTaskId: submission.parentTaskId,
         queuedAt: this.now(), queuedRevision: submission.queuedRevision,
-        supplementCount: 0, operationCount: 1, analysisId: submission.analysisId,
+        supplementCount: 0, operationCount: 1, analysisId: submission.analysisId, analysisSourceId: submission.analysisSourceId,
       };
       task = { descriptor, operations: [], running: false };
       this.tasks.set(descriptor.id, task);
@@ -220,6 +222,10 @@ export class TaskScheduler<TInput, TResult> {
   get(taskId: string): ScheduledTaskDescriptor | undefined {
     const task = this.tasks.get(taskId);
     return task ? cloneDescriptor(task.descriptor) : undefined;
+  }
+
+  exportProject(projectId: string): ScheduledTaskDescriptor[] {
+    return [...this.tasks.values()].filter((task) => task.descriptor.projectId === projectId).map((task) => cloneDescriptor(task.descriptor));
   }
 
   snapshot(projectId?: string): TaskSchedulerSnapshot {
