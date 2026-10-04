@@ -8,6 +8,8 @@ import type { TaskDraft } from "./task-draft";
 import type { DiagnosticComparison, DiagnosticCopy, DiagnosticTrial } from "./diagnostic-trial";
 import type { FrameProject } from "../domain/project";
 import { coordinateFrame, coordinateModelEdits, coordinateSection, coordinateTaskDraft, engineeringDraftTargets, targetConflicts, validateConditions } from "./draft-coordination";
+import { createExplorationBudget, type ExplorationBudgetOptions, type ExplorationBudgetSnapshot } from "./exploration-budget";
+import { startDiagnosticToolTask, type DiagnosticToolTask } from "./diagnostic-tool-task";
 
 export type AiTransport = Pick<FrameMindDesktopApi, "chatDeepSeek" | "cancelDeepSeekChat">;
 export type AiWorkKind = "conversation" | "agent";
@@ -17,6 +19,7 @@ export interface AiProgress {
   round: number;
   toolCall?: DeepSeekToolCall;
   toolResult?: AiToolResult;
+  exploration?: ExplorationBudgetSnapshot;
 }
 export interface AiTaskResult {
   requestId?: string;
@@ -37,6 +40,7 @@ export interface AiTaskResult {
   diagnosticTrial?: DiagnosticTrial;
   diagnosticComparison?: DiagnosticComparison;
   draftBaseProject?: FrameProject;
+  exploration?: ExplorationBudgetSnapshot;
   lifecycle?: { request: { id: string; state: "initiated" }; response: { kind: "none" | "text" | "tool"; state: "received" | "not-received" }; task: { state: "completed" | "failed" | "cancelled"; status: AiStatus } };
 }
 export interface AiTaskOptions {
@@ -53,11 +57,31 @@ export interface AiTaskOptions {
   diagnosticCopy?: DiagnosticCopy;
   onProgress?(progress: AiProgress): void;
   onOutput?(output: Pick<AiTaskResult, "assistant" | "records">): void;
+  /** Supplying this enables bounded autonomous exploration for this task. */
+  exploration?: ExplorationBudgetOptions;
+  onExploration?(snapshot: ExplorationBudgetSnapshot): void;
 }
 export interface AiTask { requestId: string; promise: Promise<AiTaskResult>; cancel(): void; pause(): boolean; resume(): void; }
 
 const MAX_ROUNDS = 8;
 const MAX_TOOL_RECORDS = 64;
+
+function explorationStopMessage(snapshot: ExplorationBudgetSnapshot): string {
+  switch (snapshot.stopReason) {
+    case "budget-exhausted": return `探索预算已用尽（${Math.round(snapshot.elapsedMs / 1000)} 秒活动时间，模式：${snapshot.mode}）。${snapshot.nextSteps.join(" ")}`;
+    case "no-progress": return `探索已停止：连续 ${snapshot.noProgressRounds} 轮没有新证据。${snapshot.nextSteps.join(" ")}`;
+    case "repeated-failure": return `探索已停止：同一失败已重复 ${snapshot.repeatedFailures} 次。${snapshot.nextSteps.join(" ")}`;
+    case "resource-limit": return `探索已达到资源上限（轮次 ${snapshot.rounds}、调用 ${snapshot.toolCalls}、候选 ${snapshot.candidates}、分析 ${snapshot.analyses}）。${snapshot.nextSteps.join(" ")}`;
+    case "cancelled": return `探索已取消。${snapshot.nextSteps.join(" ")}`;
+    default: return "探索未完成，请根据已保留证据决定下一步。";
+  }
+}
+
+function outcomeFingerprint(result: AiToolResult): { evidenceKey?: string; failureKey?: string } {
+  if (result.status === "failed") return { failureKey: `${result.message}:${JSON.stringify(result.data ?? null)}` };
+  if (result.status !== "completed" && result.status !== "applied") return {};
+  return { evidenceKey: JSON.stringify({ status: result.status, data: result.data ?? null, reference: result.reference ?? null, diagnosticTrial: result.diagnosticTrial ? { id: result.diagnosticTrial.id, status: result.diagnosticTrial.status } : null }) };
+}
 
 function publicDiagnosticResult(result: AiToolResult): AiToolResult {
   const output = { ...result } as AiToolResult & { diagnosticCopy?: unknown };
@@ -92,12 +116,15 @@ function publicDiagnosticResult(result: AiToolResult): AiToolResult {
 
 export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTaskOptions): AiTask {
   const requestId = `ai_${crypto.randomUUID()}`;
+  const exploration = options.exploration ? createExplorationBudget(options.exploration) : undefined;
+  const explorationNow = options.exploration?.now ?? (() => Date.now());
   let cancelled = false;
   let settled = false;
   let paused = false;
   let releasePause: (() => void) | undefined;
   let interruptRequest: (() => void) | undefined;
   let activeRequestId: string | undefined;
+  let activeDiagnosticTask: DiagnosticToolTask | undefined;
   let requestAttempt = 0;
   const waitForResume = async () => {
     while (paused && !cancelled) await new Promise<void>((resolve) => { releasePause = resolve; });
@@ -136,7 +163,9 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
     ...(options.history ?? []), { role: "user", content: prompt.trim() },
   ];
   const result = (status: AiStatus, message: string, assistant?: string): AiTaskResult => {
-    const interrupted = status === "failed" || status === "cancelled";
+    const explorationStop = exploration?.snapshot().stopReason;
+    const stoppedWithEvidence = explorationStop === "budget-exhausted" || explorationStop === "no-progress" || explorationStop === "repeated-failure" || explorationStop === "resource-limit";
+    const interrupted = (status === "failed" || status === "cancelled") && !stoppedWithEvidence;
     const hasAgentTools = records.some((record) => record.round > 0);
     const workKind: AiWorkKind = hasAgentTools ? "agent" : "conversation";
     const taskState = status === "completed" ? "completed" : status === "cancelled" ? "cancelled" : "failed";
@@ -150,13 +179,15 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       diagnosticTrial: interrupted ? undefined : diagnosticTrial,
       diagnosticComparison: interrupted ? undefined : diagnosticComparison,
       draftBaseProject,
+      exploration: exploration?.snapshot(),
       lifecycle: { request: { id: requestId, state: "initiated" }, response: { kind: assistant ? "text" : hasAgentTools ? "tool" : "none", state: assistant || hasAgentTools ? "received" : "not-received" }, task: { state: taskState, status } },
       interruption: interrupted ? { phase, round: currentRound, completedTools: records.filter((record) => record.result.status === "completed").length,
         draftsDiscarded: proposal !== options.proposal || conditions !== options.conditions || sectionChange !== options.sectionChange || modelEdits !== options.modelEdits || taskDraft !== options.taskDraft } : undefined };
   };
   const progress = (event: AiProgress) => {
     phase = event.phase; currentRound = event.round;
-    options.onProgress?.(event);
+    options.onProgress?.({ ...event, exploration: exploration?.snapshot() });
+    if (exploration) options.onExploration?.(exploration.snapshot());
   };
   const run = async (): Promise<AiTaskResult> => {
     let refreshConflicts: string[] = [];
@@ -167,7 +198,8 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
     }
     rounds: for (let round = 1; ; round += 1) {
       if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-      if (round > MAX_ROUNDS) return result("failed", "工具读取轮次已达上限，请缩小对象范围或分开提问");
+      if (exploration && !exploration.beginRound()) return result("failed", explorationStopMessage(exploration.snapshot()));
+      if (round > (exploration?.snapshot().maxRounds ?? MAX_ROUNDS)) return result("failed", "工具读取轮次已达上限，请缩小对象范围或分开提问");
       const refresh = () => {
         const live = options.getCurrentSnapshot();
         const current = captureAiSnapshot({ ...live.editProject, activeLoadCaseId: snapshot.model.activeLoadCaseId, activeLoadCombinationId: snapshot.model.activeLoadCombinationId,
@@ -224,21 +256,41 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (refresh()) continue rounds;
+        if (exploration && !exploration.recordRequest()) return result("failed", explorationStopMessage(exploration.snapshot()));
         activeRequestId = requestAttempt === 0 ? requestId : `${requestId}_resume_${requestAttempt}`;
         const interruption = new Promise<undefined>((resolve) => { interruptRequest = () => resolve(undefined); });
+        let timedOut = false;
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+        const budgetSnapshot = exploration?.snapshot();
+        const remainingMs = budgetSnapshot ? Math.max(1, budgetSnapshot.budgetMs - budgetSnapshot.elapsedMs) : undefined;
+        const budgetTimeout = remainingMs === undefined ? undefined : new Promise<undefined>((resolve) => {
+          timeout = setTimeout(() => {
+            timedOut = true;
+            exploration!.stop("budget-exhausted");
+            void options.transport.cancelDeepSeekChat(activeRequestId!).catch(() => {});
+            resolve(undefined);
+          }, remainingMs);
+        });
         try {
-          response = await Promise.race([options.transport.chatDeepSeek({ requestId: activeRequestId, messages }), interruption]);
+          response = await Promise.race([options.transport.chatDeepSeek({ requestId: activeRequestId, messages }), interruption, ...(budgetTimeout ? [budgetTimeout] : [])]);
         } finally {
+          if (timeout !== undefined) clearTimeout(timeout);
           interruptRequest = undefined;
           activeRequestId = undefined;
         }
-        if (!response) requestAttempt += 1;
+        if (!response) {
+          if (timedOut) return result("failed", explorationStopMessage(exploration!.snapshot()));
+          requestAttempt += 1;
+        }
       }
       if (paused) await waitForResume();
       if (cancelled) return result("cancelled", "对话已取消");
       if (!isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
       if (refresh()) continue;
-      if (response.status !== "success" || !response.assistant) return result(response.status === "cancelled" ? "cancelled" : "failed", response.message);
+      if (response.status !== "success" || !response.assistant) {
+        if (response.status !== "cancelled" && exploration) exploration.recordOutcome({ failureKey: `${response.status}:${response.message}` });
+        return result(response.status === "cancelled" ? "cancelled" : "failed", exploration?.snapshot().phase === "stopped" ? explorationStopMessage(exploration.snapshot()) : response.message);
+      }
       const assistant = response.assistant;
       if (!assistant.tool_calls?.length) {
         progress({ phase: "responding", round });
@@ -275,12 +327,44 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       messages.push(assistant);
       for (const call of assistant.tool_calls) {
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-        if (records.length >= MAX_TOOL_RECORDS) return result("failed", "工具读取数量已达上限，请缩小对象范围或分开提问");
+        if (!exploration && records.length >= MAX_TOOL_RECORDS) return result("failed", "工具读取数量已达上限，请缩小对象范围或分开提问");
         progress({ phase: "tool", round, toolCall: call });
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (refresh()) continue rounds;
-        const toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined, modelEdits ?? undefined, taskDraft ?? undefined, diagnosticCopy ?? undefined);
+        if (exploration && !exploration.recordToolCall()) return result("failed", explorationStopMessage(exploration.snapshot()));
+        const isDiagnosticCall = ["inspect_diagnostics", "run_diagnostic_trial"].includes(call.function.name);
+        const isAnalysisCall = Boolean(exploration && (isDiagnosticCall || call.function.name === "request_analysis"));
+        let toolResult: AiToolResult | undefined;
+        let analysisWithinBudget = true;
+        while (!toolResult) {
+          if (paused) await waitForResume();
+          if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
+          if (isAnalysisCall && !exploration!.beginAnalysis()) return result("failed", explorationStopMessage(exploration!.snapshot()));
+          const analysisStartedAt = isAnalysisCall ? explorationNow() : 0;
+          let timedOut = false;
+          let timeout: ReturnType<typeof setTimeout> | undefined;
+          if (isDiagnosticCall) {
+            activeDiagnosticTask = startDiagnosticToolTask(taskSnapshot, call, diagnosticCopy ?? undefined);
+            const interruption = new Promise<undefined>((resolve) => { interruptRequest = () => resolve(undefined); });
+            const budgetSnapshot = exploration?.snapshot();
+            const remainingMs = budgetSnapshot ? Math.max(1, budgetSnapshot.budgetMs - budgetSnapshot.elapsedMs) : undefined;
+            const budgetTimeout = remainingMs === undefined ? undefined : new Promise<undefined>((resolve) => {
+              timeout = setTimeout(() => { timedOut = true; exploration!.stop("budget-exhausted"); activeDiagnosticTask?.cancel(); resolve(undefined); }, remainingMs);
+            });
+            try { toolResult = await Promise.race([activeDiagnosticTask.promise, interruption, ...(budgetTimeout ? [budgetTimeout] : [])]); }
+            finally { interruptRequest = undefined; activeDiagnosticTask = undefined; }
+          } else {
+            toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined, modelEdits ?? undefined, taskDraft ?? undefined, diagnosticCopy ?? undefined);
+          }
+          if (timeout !== undefined) clearTimeout(timeout);
+          if (isAnalysisCall) analysisWithinBudget = exploration!.finishAnalysis(explorationNow() - analysisStartedAt);
+          if (!toolResult) {
+            if (timedOut) return result("failed", explorationStopMessage(exploration!.snapshot()));
+            continue;
+          }
+        }
+        if (exploration && call.function.name === "run_diagnostic_trial" && !exploration.recordCandidate()) return result("failed", explorationStopMessage(exploration.snapshot()));
         if (toolResult.proposal !== undefined) proposal = toolResult.proposal;
         if (toolResult.conditions !== undefined) conditions = toolResult.conditions;
         if (toolResult.sectionChange !== undefined) sectionChange = toolResult.sectionChange;
@@ -296,8 +380,19 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
         if (refresh()) continue rounds;
+        if (!analysisWithinBudget) return result("failed", explorationStopMessage(exploration!.snapshot()));
         if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null || toolResult.modelEdits === null || toolResult.taskDraft === null) return result("completed", toolResult.message);
-        if (toolResult.status !== "completed") return result(toolResult.status, toolResult.message);
+        if (toolResult.status !== "completed") {
+          if (toolResult.status === "missing-input" || toolResult.status === "awaiting-confirmation") exploration?.waitForUser();
+          if (toolResult.status === "failed" && exploration) {
+            const canRetry = exploration.recordOutcome(outcomeFingerprint(toolResult));
+            if (!canRetry) return result("failed", explorationStopMessage(exploration.snapshot()));
+            messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(publicResult) });
+            continue;
+          }
+          return result(toolResult.status, exploration?.snapshot().phase === "stopped" ? explorationStopMessage(exploration.snapshot()) : toolResult.message);
+        }
+        if (exploration && !exploration.recordOutcome(outcomeFingerprint(toolResult))) return result("failed", explorationStopMessage(exploration.snapshot()));
         messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(publicResult) });
       }
     }
@@ -309,21 +404,28 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   return { requestId, promise, pause: () => {
     if (settled || cancelled || paused) return false;
     paused = true;
+    exploration?.pause();
+    if (exploration) options.onExploration?.(exploration.snapshot());
     interruptRequest?.();
     if (activeRequestId) {
       const id = activeRequestId;
       void Promise.resolve().then(() => options.transport.cancelDeepSeekChat(id)).catch(() => {});
     }
+    activeDiagnosticTask?.cancel();
     return true;
   }, resume: () => {
     if (!paused || settled || cancelled) return;
     paused = false;
+    exploration?.resume();
+    if (exploration) options.onExploration?.(exploration.snapshot());
     releasePause?.();
   }, cancel: () => {
     if (settled || cancelled) return;
     cancelled = true;
+    exploration?.stop("cancelled");
     releasePause?.();
     interruptRequest?.();
+    activeDiagnosticTask?.cancel();
     resolveCancellation(result("cancelled", "对话已取消"));
     const id = activeRequestId ?? requestId;
     void Promise.resolve().then(() => options.transport.cancelDeepSeekChat(id)).catch(() => {});

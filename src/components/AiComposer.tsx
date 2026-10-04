@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, FilePlus2, Paperclip, Play, Plus, Puzzle, Settings2, Square, X } from "lucide-react";
+import type { ExplorationMode } from "../workspace/exploration-budget";
 
 interface Attachment { id: string; name: string; content: string; }
 interface Props {
@@ -14,9 +15,11 @@ interface Props {
   onResume(): void;
   onCancelAnalysis(): void;
   onSettings(): void;
+  explorationMode: ExplorationMode;
+  onExplorationMode(mode: ExplorationMode): void;
 }
 
-export function AiComposer({ draft, onDraft, busy, paused, analysisBusy, blocked, onSend, onPause, onResume, onCancelAnalysis, onSettings }: Props) {
+export function AiComposer({ draft, onDraft, busy, paused, analysisBusy, blocked, onSend, onPause, onResume, onCancelAnalysis, onSettings, explorationMode, onExplorationMode }: Props) {
   const [menu, setMenu] = useState<"add" | "plugins" | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [fileError, setFileError] = useState("");
@@ -83,6 +86,10 @@ export function AiComposer({ draft, onDraft, busy, paused, analysisBusy, blocked
             <button type="button" onClick={() => setMenu("add")}>返回</button>
           </>}
         </div>}
+      </div>
+      <div className="ai-exploration-mode" role="group" aria-label="探索深度">
+        <button type="button" aria-pressed={explorationMode === "normal"} disabled={busy || analysisBusy || blocked} onClick={() => onExplorationMode("normal")}>正常</button>
+        <button type="button" aria-pressed={explorationMode === "deep"} disabled={busy || analysisBusy || blocked} onClick={() => onExplorationMode("deep")}>深度</button>
       </div>
       {analysisBusy ? <button type="button" className="icon-button ai-send-button" aria-label="取消本地计算" title="取消本地计算" onClick={onCancelAnalysis}><Square size={12} fill="currentColor" /></button>
         : busy ? <button type="button" className="icon-button ai-send-button" aria-label={paused ? "继续输出" : "暂停输出"} title={paused ? "继续输出" : "暂停输出"} onClick={paused ? onResume : onPause}>{paused ? <Play size={14} fill="currentColor" /> : <Square size={12} fill="currentColor" />}</button>

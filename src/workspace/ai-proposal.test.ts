@@ -40,6 +40,19 @@ describe("AI proposal public tool and task boundaries", () => {
     expect(requests).toBe(1);
   });
 
+  it("completes an exploration-enabled proposal and retains the waiting card", async () => {
+    let requests = 0;
+    const task = startAiTask(snapshot, "建立两层刚架", { isCurrent: () => true, getCurrentSnapshot: () => snapshot, exploration: { mode: "normal" }, transport: {
+      cancelDeepSeekChat: async () => {}, chatDeepSeek: async () => {
+        requests += 1;
+        return { status: "success", message: "工具", assistant: { role: "assistant", content: null, tool_calls: [call(complete)] } };
+      },
+    } });
+    const result = await task.promise;
+    expect(result).toMatchObject({ status: "awaiting-confirmation", proposal: expect.any(Object), exploration: { phase: "waiting-user", requests: 1 } });
+    expect(requests).toBe(1);
+  });
+
   it("shows incomplete parameter cards with sources and never fabricates partial geometry", () => {
     const result = executeAiTool(snapshot, call({ storeyHeights: { value: [3, 3], source: "suggestion" } }));
     expect(result.status).toBe("missing-input");

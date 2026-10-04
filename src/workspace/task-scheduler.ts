@@ -57,7 +57,7 @@ export interface ScheduledTaskContext<TInput> {
   readonly signal: AbortSignal;
   readonly input: TInput;
   reportPhase(phase: string): void;
-  setStatus(status: Extract<ScheduledTaskStatus, "running" | "waiting-input" | "waiting-confirmation" | "paused" | "cancelled">): void;
+  setStatus(status: Extract<ScheduledTaskStatus, "running" | "waiting-input" | "waiting-confirmation" | "paused" | "failed" | "cancelled">): void;
   setKind(kind: ScheduledTaskKind): void;
   bindAnalysis(analysisId: string): void;
 }

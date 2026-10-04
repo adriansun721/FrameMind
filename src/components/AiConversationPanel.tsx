@@ -24,6 +24,7 @@ import { prepareTaskDraftConfirmation, type TaskDraftConfirmation } from "../wor
 import type { TaskDraft } from "../workspace/task-draft";
 import { coordinateFrame, coordinateModelEdits, coordinateSection, coordinateTaskDraft, engineeringDraftTargets, sameEngineeringState, targetConflicts, validateConditions } from "../workspace/draft-coordination";
 import { TaskScheduler, type TaskSchedulerSnapshot } from "../workspace/task-scheduler";
+import type { ExplorationMode, ExplorationBudgetSnapshot } from "../workspace/exploration-budget";
 
 interface ConversationTurn {
   id: string;
@@ -34,6 +35,7 @@ interface ConversationTurn {
   sourceProject: FrameProject;
   progress?: AiProgress;
   progressEvents?: AiProgress[];
+  exploration?: ExplorationBudgetSnapshot;
   workflowId?: string;
   stageResolutions?: Record<string, StageResolution>;
   result?: AiTaskResult;
@@ -100,6 +102,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
   const [busy, setBusy] = useState(false);
   const [queueSnapshot, setQueueSnapshot] = useState<TaskSchedulerSnapshot>(() => scheduler.snapshot(project.id));
   const [paused, setPaused] = useState(false);
+  const [explorationMode, setExplorationMode] = useState<ExplorationMode>("normal");
   const [showHome, setShowHome] = useState(true);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [conversationId, setConversationId] = useState<string>(() => crypto.randomUUID());
@@ -403,7 +406,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       return;
     }
     let underlying: ReturnType<typeof startAiTask> | null = null;
-    const supplementingActiveTask = (taskDraftRevision || continuing)
+    const supplementingActiveTask = (taskDraftRevision || continuing || Boolean(proposal || conditions || sectionChange || modelEdits || taskDraft))
       && scheduler.snapshot(project.id).active.some((task) => task.kind === "agent");
     const handle = scheduler.submit({
       projectId: project.id, kind: "agent", relation: supplementingActiveTask ? "supplement" : "new",
@@ -425,7 +428,13 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
           onProgress: (progress) => {
             taskContext.reportPhase(progress.phase);
             if (generationRef.current === generation) setTurns((previous) => previous.map((turn) => turn.id === id
-              ? { ...turn, progress, progressEvents: [...(turn.progressEvents ?? []), progress] } : turn));
+              ? { ...turn, progress, exploration: progress.exploration, progressEvents: [...(turn.progressEvents ?? []), progress] } : turn));
+          },
+          exploration: { mode: explorationMode },
+          onExploration: (snapshot) => {
+            if (snapshot.phase === "paused") taskContext.setStatus("paused");
+            else if (snapshot.phase === "running") taskContext.setStatus("running");
+            if (generationRef.current === generation) setTurns((previous) => previous.map((turn) => turn.id === id ? { ...turn, exploration: snapshot } : turn));
           },
           onOutput: (output) => update({ output }),
         });
@@ -435,6 +444,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
           taskContext.setKind(result.workKind);
           if (result.status === "missing-input") taskContext.setStatus("waiting-input");
           else if (result.status === "awaiting-confirmation") taskContext.setStatus("waiting-confirmation");
+          else if (result.status === "failed") taskContext.setStatus("failed");
           else if (result.status === "cancelled") taskContext.setStatus("cancelled");
           return result;
         }
@@ -451,8 +461,8 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     taskRef.current = task;
     update({ scheduledTaskId: handle.taskId });
     try {
-      const result = await task.promise;
-      update({ result, output: undefined });
+          const result = await task.promise;
+          update({ result, output: undefined });
       if (result.proposal !== undefined && result.status !== "cancelled" && result.status !== "failed"
         && result.records.some((record) => record.result.proposal !== undefined)
         && currentRef.current.project.id === project.id && generationRef.current === generation && proposalRef.current === proposal) {
@@ -547,10 +557,14 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       {[...workflows].map(([id, workflow]) => <article className="ai-workflow ai-turn" key={id}>
         <div className="ai-user-message"><p>{workflow[0].origin === "chat" && !workflow[0].continuing ? workflow[0].prompt : "继续处理已确认任务"}</p><div className="ai-message-context">{workflow[0].context.selection.length > 0 && <button className="icon-button" aria-label="定位任务目标" title="定位发送时目标" onClick={() => onLocateTargets(workflow[0].context.selection)}><Crosshair size={14} /></button>}{workflow.some((turn) => !sameEngineeringState(turn.sourceProject, project)) && <span className="ai-stale">历史版本</span>}</div></div>
         <AiTaskTimeline turns={workflow} paused={paused && (turns.at(-1)?.workflowId ?? turns.at(-1)?.id) === id} />
-        {(turns.at(-1)?.workflowId ?? turns.at(-1)?.id) === id && !workflow.at(-1)?.result && <span className="ai-turn-status" data-testid="ai-turn-status">{paused ? "已暂停输出" : "处理中 · 正在读取当前模型"}</span>}
+        {(turns.at(-1)?.workflowId ?? turns.at(-1)?.id) === id && !workflow.at(-1)?.result && <>
+          <span className="ai-turn-status" data-testid="ai-turn-status">{paused ? "已暂停输出" : "处理中 · 正在读取当前模型"}</span>
+          {workflow.at(-1)?.exploration && <span className="ai-exploration-status" role="status">{workflow.at(-1)!.exploration!.mode === "deep" ? "深度探索" : "正常探索"} · 活动 {Math.floor(workflow.at(-1)!.exploration!.elapsedMs / 1000)} 秒 · 轮次 {workflow.at(-1)!.exploration!.rounds} · 调用 {workflow.at(-1)!.exploration!.toolCalls}</span>}
+        </>}
         {workflow.map((turn) => (turn.result || turn.output) && <AiResultExplanation key={turn.id} project={project} result={(turn.result ?? turn.output)!} onLocate={onLocateResult} onCompare={(pair) => onComparison(pair, true)} />)}
         {workflow.map((turn) => turn.result && <div key={turn.id}>
           <span className="ai-turn-status" data-testid="ai-turn-status">{{ completed: "已完成", applied: "已应用", "missing-input": "缺少输入", "awaiting-confirmation": "等待确认", failed: "处理失败", cancelled: "已取消" }[turn.result.status]} · {turn.result.message}</span>
+          {turn.result.exploration && <span className="ai-exploration-status" role="status">{turn.result.exploration.mode === "deep" ? "深度探索" : "正常探索"} · 预算 {Math.round(turn.result.exploration.budgetMs / 1000)} 秒 · 活动 {Math.floor(turn.result.exploration.elapsedMs / 1000)} 秒 · 等待 {Math.floor(turn.result.exploration.waitingMs / 1000)} 秒 · 轮次 {turn.result.exploration.rounds} · 调用 {turn.result.exploration.toolCalls} · 候选 {turn.result.exploration.candidates} · 分析 {turn.result.exploration.analyses}{turn.result.exploration.stopReason ? ` · ${turn.result.exploration.stopReason}` : ""}</span>}
           {turn.origin === "chat" && (turn.result.status === "failed" || turn.result.status === "cancelled") && <>
             <p className="frame-draft-notice">已确认模型和成功结果保留，本地编辑与计算可继续。
               {turn.result.interruption?.draftsDiscarded ? "本次中断生成的草案未应用，需要重新准备。" : proposal || conditions || sectionChange || taskDraft ? "已有草案仍需在卡片中核对并确认。" : "本次任务未提交模型修改。"}
@@ -609,7 +623,7 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
       </section>}
       {sectionError && <p role="alert">{sectionError}</p>}
     </section>}
-    <AiComposer key={conversationId} draft={draft} onDraft={setDraft} busy={busy} paused={paused} analysisBusy={analysisBusy}
+    <AiComposer key={conversationId} draft={draft} onDraft={setDraft} busy={busy} paused={paused} analysisBusy={analysisBusy} explorationMode={explorationMode} onExplorationMode={setExplorationMode}
       blocked={proposalDirty || conditionsDirty || sectionDirty || Boolean(modelEdits) || Boolean(taskDraft)} onSend={(prompt, requestText) => { void submit(prompt, false, undefined, requestText); }}
       onPause={() => { if (taskRef.current?.pause()) setPaused(true); }} onResume={() => { taskRef.current?.resume(); setPaused(false); }}
       onCancelAnalysis={onCancelAnalysis} onSettings={onSettings} />

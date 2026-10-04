@@ -376,3 +376,69 @@ describe("AI conversation task boundary", () => {
     expect(result.assistant).toBeUndefined();
   });
 });
+
+describe("AI exploration budget", () => {
+  it("reports the selected deep mode and retains counters in the result", async () => {
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content: "已检查。" } }]);
+    const result = await startAiTask(snapshot, "检查模型", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+      exploration: { mode: "deep" },
+    }).promise;
+    expect(result).toMatchObject({ status: "completed", exploration: { mode: "deep", rounds: 1, requests: 1, toolCalls: 0, phase: "running" } });
+  });
+
+  it("stops repeated tool evidence before the generic round limit", async () => {
+    const project = addNode(createProject(), { x: 0, y: 0, z: 0 });
+    const snapshot = captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]);
+    const responses = Array.from({ length: 4 }, (_, index) => ({
+      ...selectedRead,
+      assistant: { ...selectedRead.assistant!, tool_calls: [{ ...selectedRead.assistant!.tool_calls![0], id: `repeat_${index}` }] },
+    }));
+    const script = replay(responses);
+    const result = await startAiTask(snapshot, "重复读取", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+      exploration: { mode: "normal", noProgressRoundLimit: 2 },
+    }).promise;
+    expect(result.status).toBe("failed");
+    expect(result.message).toContain("没有新证据");
+    expect(result.exploration).toMatchObject({ phase: "stopped", stopReason: "no-progress", rounds: 3, toolCalls: 3, evidenceCount: 1 });
+    expect(script.requests).toHaveLength(3);
+    expect(result.records).toHaveLength(4);
+  });
+
+  it("retains diagnostic state and stops repeated tool failures", async () => {
+    const snapshot = captureAiSnapshot(createProject(), []);
+    const responses = Array.from({ length: 3 }, (_, index) => ({
+      status: "success" as const, message: "工具请求", assistant: { role: "assistant" as const, content: null,
+        tool_calls: [{ id: `bad_${index}`, type: "function" as const, function: { name: "execute_script", arguments: JSON.stringify({ script: "eval()" }) } }] },
+    }));
+    const script = replay(responses);
+    const result = await startAiTask(snapshot, "诊断失败", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+      exploration: { mode: "normal", repeatedFailureLimit: 2 },
+    }).promise;
+    expect(result).toMatchObject({ status: "failed", exploration: { stopReason: "repeated-failure", rounds: 2, toolCalls: 2 }, records: expect.any(Array) });
+    expect(result.message).toContain("同一失败");
+    expect(script.requests).toHaveLength(2);
+  });
+
+  it("publishes paused and cancelled budget states without accepting a late response", async () => {
+    const snapshot = captureAiSnapshot(createProject(), []);
+    let finish!: (value: DeepSeekChatResult) => void;
+    const budgetPhases: string[] = [];
+    const task = startAiTask(snapshot, "可控中断", {
+      transport: { chatDeepSeek: () => new Promise((resolve) => { finish = resolve; }), cancelDeepSeekChat: async () => {} },
+      isCurrent: () => true, getCurrentSnapshot: () => snapshot, exploration: { mode: "normal" },
+      onExploration: (state) => budgetPhases.push(state.phase),
+    });
+    await Promise.resolve();
+    expect(task.pause()).toBe(true);
+    expect(budgetPhases).toContain("paused");
+    task.cancel();
+    finish({ status: "success", message: "迟到", assistant: { role: "assistant", content: "不应发布" } });
+    const result = await task.promise;
+    expect(result).toMatchObject({ status: "cancelled", exploration: { phase: "stopped", stopReason: "cancelled" } });
+    expect(result.assistant).toBeUndefined();
+  });
+});
