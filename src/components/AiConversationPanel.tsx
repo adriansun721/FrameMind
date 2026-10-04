@@ -228,7 +228,13 @@ export function AiConversationPanel({ project, sessionId, selection, analysis, c
     const draft = taskDraft!;
     setTurns((previous) => [...previous.slice(-19), { id: crypto.randomUUID(), origin: "confirmation", prompt: "确认应用完整任务草案", context: taskDraftConfirmation.context, sourceProject: taskDraftConfirmation.baseProject,
       result: { ...result, records: [{ round: 0, call: { id: taskDraftConfirmation.requestId, type: "function", function: { name: "confirm_task_draft", arguments: JSON.stringify({ taskId: draft.id, taskVersion: draft.version, baseRevision: taskDraftConfirmation.context.modelRevision }) } }, result }] } }]);
-    if (result.status === "applied") { resolveStage(taskDraftRef.current, "confirmed"); rejectTaskDraft(); }
+    if (result.status === "applied") {
+      // A complete task owns its analysis intent. Once the atomic receipt has
+      // been verified, continue directly with the formal model now on screen.
+      if (draft.analysis?.requested) setCalculationRequested(true);
+      if (draft.analysis?.requested || calculationRequestedRef.current) continuationRef.current = "analyze";
+      resolveStage(taskDraftRef.current, "confirmed"); rejectTaskDraft();
+    }
   };
   const confirmSection = () => {
     if (!sectionConfirmation || busy || analysisBusy || sectionDirty || !sectionCurrent || sectionRef.current !== sectionChange || proposal || conditions || taskDraft) return;

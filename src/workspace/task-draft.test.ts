@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { captureAiSnapshot } from "./ai-tools";
 import { MATERIAL_CATALOG, SECTION_CATALOG } from "../domain/resource-library";
 import { addNode, addSupport, createProject, type FrameProject } from "../domain/project";
+import { ProjectHistory } from "../domain/project-history";
 import { buildTaskDraftPreview, proposeTask } from "./task-draft";
 import { TaskDraftStageConfirmation, prepareTaskDraftConfirmation } from "./task-confirmation";
 
@@ -96,6 +97,10 @@ describe("T2-03 complete task drafts", () => {
     expect(applied.project.nodalLoads).toHaveLength(1);
     expect(applied.project.supports[0].nodeId).toBe(applied.project.nodes[0].id);
     expect(applied.project.nodalLoads[0].nodeId).toBe(applied.project.nodes[3].id);
+    expect(applied.result.data).toMatchObject({
+      verification: { status: "verified", objects: { nodes: expect.any(Array), members: expect.any(Array), supports: expect.any(Array), nodalLoads: expect.any(Array) } },
+      analysis: { requested: false },
+    });
     const retry = stage.confirm(applied.project, confirmation);
     expect(retry.project).toBe(applied.project);
     expect(retry.result.message).toContain("未重复应用");
@@ -108,6 +113,52 @@ describe("T2-03 complete task drafts", () => {
     expect(oldVersion.result.message).toContain("版本已过期");
   });
 
+  it("returns a verified continuation intent and never reapplies an old confirmation after undo", () => {
+    const project = createProject();
+    const snapshot = captureAiSnapshot(project, []);
+    const first = proposeTask(snapshot, { frame });
+    const nodeRef = `draft:${first.frame!.id}:node:0:0:0`;
+    const topRef = `draft:${first.frame!.id}:node:0:1:1`;
+    const draft = proposeTask(snapshot, {
+      supports: [{ nodeId: nodeRef, restraints: [true, true, true, true, true, true], source: "user" }],
+      nodalLoads: [{ nodeId: topRef, loadCaseId: "LC1", force: { x: 0, y: 0, z: -5 }, moment: { x: 0, y: 0, z: 0 }, source: "user" }],
+      analysis: { requested: true, source: "user", sourceId: "LC1" },
+    }, first);
+    const stage = new TaskDraftStageConfirmation();
+    const confirmation = prepareTaskDraftConfirmation(project, draft);
+    const applied = stage.confirm(project, confirmation);
+    expect(applied.result.data).toMatchObject({ analysis: { requested: true, sourceId: "LC1" } });
+
+    const history = new ProjectHistory();
+    history.record(project, applied.project);
+    const undone = history.undo(applied.project)!;
+    expect(undone.nodes).toHaveLength(0);
+    const replay = stage.confirm(undone, confirmation);
+    expect(replay.project).toBe(undone);
+    expect(replay.result.status).toBe("applied");
+    expect(replay.result.message).toContain("未重复应用");
+    expect(replay.result.data).toEqual(applied.result.data);
+  });
+
+  it("assigns distinct receipt identities to duplicate no-ID condition entries", () => {
+    const project = createProject();
+    const snapshot = captureAiSnapshot(project, []);
+    const first = proposeTask(snapshot, { frame });
+    const nodeRef = `draft:${first.frame!.id}:node:0:0:0`;
+    const topRef = `draft:${first.frame!.id}:node:0:1:1`;
+    const draft = proposeTask(snapshot, {
+      supports: [{ nodeId: nodeRef, restraints: [true, true, true, true, true, true], source: "user" }],
+      nodalLoads: [
+        { nodeId: topRef, loadCaseId: "LC1", force: { x: 1, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 }, source: "user" },
+        { nodeId: topRef, loadCaseId: "LC1", force: { x: 1, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 }, source: "user" },
+      ],
+    }, first);
+    const outcome = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
+    expect(outcome.result.status).toBe("applied");
+    const ids = (outcome.result.data as { objects: { nodalLoads: string[] } }).objects.nodalLoads;
+    expect(new Set(ids).size).toBe(2);
+  });
+
   it("does not leave partial resources when a late geometry command fails", () => {
     const project: FrameProject = { ...createProject(), nextNodeNumber: Number.MAX_SAFE_INTEGER };
     const snapshot = captureAiSnapshot(project, []);
@@ -115,6 +166,22 @@ describe("T2-03 complete task drafts", () => {
     const before = structuredClone(project);
     const outcome = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
     expect(outcome.result.status).toBe("failed");
+    expect(outcome.project).toEqual(before);
+  });
+
+  it("rolls back geometry and resources when a later support command fails", () => {
+    const project: FrameProject = { ...createProject(), nextSupportNumber: Number.MAX_SAFE_INTEGER };
+    const snapshot = captureAiSnapshot(project, []);
+    const first = proposeTask(snapshot, { frame });
+    const nodeRef = `draft:${first.frame!.id}:node:0:0:0`;
+    const draft = proposeTask(snapshot, {
+      supports: [{ nodeId: nodeRef, restraints: [true, true, true, true, true, true], source: "user" }],
+      nodalLoads: [],
+    }, first);
+    const before = structuredClone(project);
+    const outcome = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
+    expect(outcome.result.status).toBe("failed");
+    expect(outcome.result.message).toContain("编号状态");
     expect(outcome.project).toEqual(before);
   });
 });
