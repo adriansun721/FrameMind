@@ -1,10 +1,11 @@
 import { expect, it } from "vitest";
 import { decodeProject, encodeProject } from "./project-file";
+import { updateNode } from "./project";
 import { columns } from "../workspace/section-stage.fixture";
 import { captureAnalysisInput } from "./analysis";
 import { captureAiSnapshot, executeAiTool } from "../workspace/ai-tools";
 import { proposeModelEdits } from "../workspace/model-edits";
-import { mergeLocalChat, persistTaskState, type ConversationHistory } from "../workspace/task-persistence";
+import { mergeLocalChat, persistTaskState, recoveryIssues, type ConversationHistory } from "../workspace/task-persistence";
 
 function history(): ConversationHistory {
   const project = columns();
@@ -91,4 +92,13 @@ it("retains chat sent after a formal save and interrupted prose without importin
   expect(merged.turns[1].result?.assistant).toBe("后续回复");
   expect(merged.turns[1].modelEdits).toBeUndefined();
   expect(persistTaskState(project.id, [merged], []).conversations[0].turns).toHaveLength(1);
+});
+
+it("does not let a later local-only chat hide changed calculation provenance", () => {
+  const saved = history(); const base = saved.taskDraftSource;
+  saved.modelEdits = undefined; saved.calculationRequested = true;
+  const current = updateNode(base, base.nodes[1].id, { x: 0, y: 0, z: 5 });
+  const local = { ...saved, turns: [...saved.turns, { ...saved.turns[0], id: "local-later", prompt: "后续聊天" }] };
+  const merged = mergeLocalChat(current, [saved], [local])[0];
+  expect(recoveryIssues(current, merged).join(" ")).toContain("模型已变化");
 });

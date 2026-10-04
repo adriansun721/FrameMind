@@ -139,8 +139,9 @@ export function recoveryIssues(project: FrameProject, conversation: Conversation
   const receipts = applied.map((record) => project.confirmedOperations?.find((entry) => sameInputValue(entry.result, record.result)));
   if (receipts.some((receipt) => !receipt)) issues.push("任务成功记录缺少对应回执，需重新核对");
   const latest = receipts.at(-1);
+  const lastTaskTurn = [...conversation.turns].reverse().find((turn) => !turn.localOnly);
   if (!hasDraft && latest && !sameInputValue(JSON.parse(latest.engineeringState), JSON.parse(engineeringState(project)))) issues.push("回执对应模型已撤销或修改，恢复前请重新核对");
-  if (!hasDraft && !latest && conversation.calculationRequested && !sameEngineeringState(conversation.turns.at(-1)?.sourceProject ?? conversation.taskDraftSource, project)) issues.push("已应用任务的模型已变化或已撤销，需核对后重新请求计算");
+  if (!hasDraft && !latest && conversation.calculationRequested && !sameEngineeringState(lastTaskTurn?.sourceProject ?? conversation.taskDraftSource, project)) issues.push("已应用任务的模型已变化或已撤销，需核对后重新请求计算");
   if (conversation.analysisSourceId && ![...project.loadCases, ...project.loadCombinations].some((item) => item.id === conversation.analysisSourceId)) issues.push("原计算来源已删除");
   return issues;
 }

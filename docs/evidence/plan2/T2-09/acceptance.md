@@ -13,16 +13,18 @@
 
 | 入口 | 验证行为 |
 | --- | --- |
-| `src/domain/project-restart.test.ts`、`project-file.test.ts` | 旧格式迁移、身份／资源／荷载／历史保留、摘要与本机正文分离、队列与暂停／失败状态、未来／损坏／跨项目拒绝、本机旧草案不复活 |
+| `src/domain/project-restart.test.ts`、`project-file.test.ts` | 旧格式迁移、身份／资源／荷载／历史保留、摘要与本机正文分离、队列与暂停／失败状态、未来／损坏／跨项目拒绝、本机旧草案不复活、保存后的聊天／中断正文保留、进行中的已完成诊断事实保留、只读聊天不掩盖计算来源变化 |
 | `src/workspace/task-restart.test.ts` | 元数据保存不破坏确认，重开幂等、撤销后重开不重新应用、已应用待算与回执／模型核对 |
 | `electron/chat-history.test.ts`、`project-files.test.ts` | 25 轮完整本机聊天、项目隔离、凭据去除、路径校验、写入失败保留原记录及原项目 |
-| `e2e/plan2-t2-09-restart.spec.ts` | 实际关闭并重启 Electron；未确认草案、已应用待算、计算中及失败阶段；用户继续、无凭据离线求解、冻结输入同源、撤销回执与模型一致 |
+| `e2e/plan2-t2-09-restart.spec.ts` | 实际关闭并重启 Electron；未确认草案、已应用待算、计算中及失败阶段；用户继续、无凭据离线求解、冻结输入同源、撤销回执与模型一致、清空聊天后不复活、保存后的本机聊天保留、排队任务恢复仍绑定原目标 |
 
 桌面截图：[重开后的撤销回执](reopened-receipt.png)、[离线恢复计算](offline-resumed-analysis.png)。截图辅助说明界面，正确性由公开入口的工程／结果断言验证。
 
-验证结果：`npm run build` 通过（包含前后端类型检查）；`npm test -- --maxWorkers=4` 完整运行 50 个文件、358 项测试，全部通过。只限制并发，保留原有 5 秒用例超时和数值判据；并行运行 Electron 时曾触发两个大报告用例超时，分开运行后通过。
+验证结果：`npm run build` 通过（包含前后端类型检查）；最终 `npm test -- --maxWorkers=4` 完整运行 50 个文件、361 项测试，全部通过（20.11 秒）。只限制并发，保留原有 5 秒用例超时和数值判据；并行运行 Electron 时曾触发两个大报告用例超时，分开运行后通过。
 
-`node scripts/run-e2e-isolated.cjs e2e/plan2-t2-09-restart.spec.ts e2e/plan2-t2-05-coordination.spec.ts e2e/t06-analysis-task.spec.ts e2e/t27-ai-recovery.spec.ts`：17 项桌面测试通过（48.4 秒），其中 T2-09 四类阶段全部通过。旧会话恢复回归改用公开工程回执／任务记录核查，不要求恢复已删除的旧详情界面；重开未保存任务的测试明确处理用户丢弃修改提示。
+`node scripts/run-e2e-isolated.cjs e2e/plan2-t2-09-restart.spec.ts e2e/plan2-t2-05-coordination.spec.ts e2e/t06-analysis-task.spec.ts e2e/t27-ai-recovery.spec.ts`：18 项桌面测试通过（1.2 分钟），其中 T2-09 五项测试覆盖四类阶段和队列恢复。旧会话恢复回归改用公开工程回执／任务记录核查，不要求恢复已删除的旧详情界面；重开未保存任务的测试明确处理用户丢弃修改提示。
+
+代码审查：[Standards 与 Spec 独立审查及修复记录](review.md)。Standards 累计 3 项、Spec 2 项已全部处理；各正确性修复均有失败回归与通过结果。
 
 ## 未承诺的验收
 
