@@ -9,6 +9,16 @@ import { proposeSectionChange, type SectionChangeProposal } from "./section-stag
 import { readComparison, readComparisonResult, type AiAnalysisPair, type AnalysisPairIds, type ComparisonReference } from "./ai-comparison";
 import { MODEL_EDIT_TOOLS, modelEditToolInput, proposeModelEdits, type ModelEditProposal } from "./model-edits";
 import { buildTaskDraftPreview, proposeTask, type TaskDraft } from "./task-draft";
+import {
+  compareDiagnosticTrials,
+  createDiagnosticCopy,
+  readDiagnosticCopy,
+  runDiagnosticTrial,
+  type DiagnosticComparison,
+  type DiagnosticCopy,
+  type DiagnosticOperation,
+  type DiagnosticTrial,
+} from "./diagnostic-trial";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -36,9 +46,9 @@ export interface AiReceipt {
   object: { kind: "project"; id: string; name: string };
   objects: readonly AiObjectRef[];
   input: { projectId: string; modelRevision: number; analysisId?: string; analysisInputRevision?: number };
-  state: { project: "current"; model: "applied"; analysis: "absent" | "incomplete" | "current" | "expired" };
+  state: { project: "current"; model: "applied" | "diagnostic-copy" | "no-diagnostic-copy"; analysis: "absent" | "incomplete" | "current" | "expired" };
 }
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; taskDraft?: TaskDraft | null; sectionChange?: SectionChangeProposal | null; modelEdits?: ModelEditProposal | null; analysisRequested?: boolean; }
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; taskDraft?: TaskDraft | null; sectionChange?: SectionChangeProposal | null; modelEdits?: ModelEditProposal | null; analysisRequested?: boolean; diagnosticCopy?: DiagnosticCopy | null; diagnosticState?: "copy" | "discarded"; diagnosticTrial?: DiagnosticTrial; diagnosticComparison?: DiagnosticComparison; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
@@ -130,6 +140,37 @@ const mutationTools = new Set(["create_node", "create_nodes", "update_node", "up
   "create_member", "create_members", "update_member", "update_members", "delete_member", "delete_members",
   "set_material", "set_section", "set_support", "set_load", "apply_model_changes"]);
 
+function diagnosticCopyIsCurrent(snapshot: AiSnapshot, copy: DiagnosticCopy): boolean {
+  return copy.source.projectId === snapshot.context.projectId && copy.source.projectRevision === snapshot.context.modelRevision
+    && copy.source.activeLoadCaseId === snapshot.model.activeLoadCaseId
+    && copy.source.activeLoadCombinationId === snapshot.model.activeLoadCombinationId;
+}
+
+function diagnosticCallInput(name: string, input: Record<string, unknown>): void {
+  if (name === "inspect_diagnostics" || name === "create_diagnostic_copy" || name === "discard_diagnostic_copy") {
+    exactFields(input, []); return;
+  }
+  if (name === "read_diagnostic") {
+    exactFields(input, ["collection", "offset", "limit"]);
+    if (!["summary", "nodes", "members", "supports", "loads", "trials"].includes(String(input.collection))) throw new Error("请选择有效的诊断集合");
+    if (input.offset !== undefined && (!Number.isSafeInteger(input.offset) || Number(input.offset) < 0)) throw new Error("offset 必须是非负整数");
+    if (input.limit !== undefined && (!Number.isSafeInteger(input.limit) || Number(input.limit) < 1 || Number(input.limit) > 100)) throw new Error("limit 必须是 1 至 100 的整数");
+    return;
+  }
+  if (name === "compare_diagnostic_trials") {
+    exactFields(input, ["beforeTrialId", "afterTrialId"]);
+    if (typeof input.beforeTrialId !== "string" || typeof input.afterTrialId !== "string" || !input.beforeTrialId || !input.afterTrialId) throw new Error("比较需要两个诊断试算身份");
+    return;
+  }
+  if (name === "run_diagnostic_trial") {
+    exactFields(input, ["label", "operations", "sourceId"]);
+    if (typeof input.label !== "string" || !input.label.trim() || input.label.length > 200) throw new Error("试算标签无效");
+    if (!Array.isArray(input.operations) || input.operations.length > 20) throw new Error("operations 必须是最多 20 项的候选改动");
+    if (input.sourceId !== undefined && (typeof input.sourceId !== "string" || !/^LC[1-9]\d*$|^CB[1-9]\d*$/.test(input.sourceId))) throw new Error("sourceId 必须是工况或组合身份");
+    return;
+  }
+}
+
 function validateCall(value: unknown): ToolCall {
   const call = record(value);
   exactFields(call, ["id", "type", "function"]);
@@ -187,7 +228,7 @@ function buildReceipt(snapshot: AiSnapshot, value: unknown, result: AiToolResult
     : input.id && (input.kind === "node" || input.kind === "member") ? [{ kind: input.kind, id: input.id } as AiObjectRef] : snapshot.context.selection;
   return { call: { ...call, initiated, completed: true, status: result.status }, object: { kind: "project", id: snapshot.context.projectId, name: snapshot.context.projectName }, objects,
     input: { projectId: snapshot.context.projectId, modelRevision: snapshot.context.modelRevision, analysisId: snapshot.analysis?.id, analysisInputRevision: snapshot.analysis?.input.projectRevision },
-    state: { project: "current", model: "applied", analysis: snapshot.context.analysis?.status === "incomplete" ? "incomplete" : snapshot.analysis ? snapshot.analysisCurrent ? "current" : "expired" : "absent" } };
+    state: { project: "current", model: result.diagnosticState === "discarded" ? "no-diagnostic-copy" : result.diagnosticCopy ? "diagnostic-copy" : "applied", analysis: snapshot.context.analysis?.status === "incomplete" ? "incomplete" : snapshot.analysis ? snapshot.analysisCurrent ? "current" : "expired" : "absent" } };
 }
 
 function validateInput(name: string, input: Record<string, unknown>): void {
@@ -209,12 +250,42 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft): AiToolResult {
+function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft, previousDiagnosticCopy?: DiagnosticCopy | null): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (["inspect_diagnostics", "create_diagnostic_copy", "run_diagnostic_trial", "read_diagnostic", "compare_diagnostic_trials", "discard_diagnostic_copy"].includes(call.function.name)) {
+      diagnosticCallInput(call.function.name, input);
+      if (call.function.name === "inspect_diagnostics") {
+        const outcome = runDiagnosticTrial(createDiagnosticCopy(snapshot.editProject, snapshot.analysis?.id ? { analysisId: snapshot.analysis.id } : undefined), { label: "正式模型诊断检查", operations: [] });
+        const check = outcome.trial.evidence;
+        return { status: "completed", message: outcome.trial.status === "complete" ? "正式模型诊断试算完成；数值成功不等于工程条件已验证" : "已完成正式模型诊断，发现结构化输入、拓扑、约束或求解阶段问题", context: snapshot.context,
+          data: { source: { projectId: snapshot.context.projectId, projectRevision: snapshot.context.modelRevision }, check, trial: outcome.trial } };
+      }
+      if (call.function.name === "create_diagnostic_copy") {
+        const copy = createDiagnosticCopy(snapshot.editProject, snapshot.analysis?.id ? { analysisId: snapshot.analysis.id } : undefined);
+        return { status: "completed", message: "已建立带独立身份的诊断副本；正式模型保持不变", context: snapshot.context, diagnosticCopy: copy, diagnosticState: "copy",
+          data: { copyId: copy.id, source: copy.source, modelRevision: copy.model.revision } };
+      }
+      if (call.function.name === "discard_diagnostic_copy") return { status: "completed", message: "已丢弃诊断副本，正式模型及正式结果保留", context: snapshot.context, diagnosticCopy: null, diagnosticState: "discarded" };
+      if (!previousDiagnosticCopy) return { status: "missing-input", message: "请先创建诊断副本，再进行试算、读取或比较", context: snapshot.context };
+      if (!diagnosticCopyIsCurrent(snapshot, previousDiagnosticCopy)) return { status: "missing-input", message: "正式模型已变化，旧诊断副本来源过期；请重新读取并创建副本", context: snapshot.context };
+      if (call.function.name === "run_diagnostic_trial") {
+        try {
+          const outcome = runDiagnosticTrial(previousDiagnosticCopy, { label: input.label as string, operations: input.operations as DiagnosticOperation[], sourceId: input.sourceId as string | undefined });
+          return { status: "completed", message: outcome.trial.status === "complete" ? "隔离试算完成；数值成功不等于工程条件已验证" : "隔离试算完成并保留失败证据", context: snapshot.context,
+            diagnosticCopy: outcome.copy, diagnosticState: "copy", diagnosticTrial: outcome.trial, data: { trial: outcome.trial, copyId: outcome.copy.id } };
+        } catch (error) { return { status: "failed", message: error instanceof Error ? error.message : "诊断试算参数无效", context: snapshot.context }; }
+      }
+      if (call.function.name === "read_diagnostic") {
+        const data = readDiagnosticCopy(previousDiagnosticCopy, { collection: input.collection as "summary" | "nodes" | "members" | "supports" | "loads" | "trials", offset: input.offset as number | undefined, limit: input.limit as number | undefined });
+        return { status: "completed", message: "已读取诊断副本及其来源", context: snapshot.context, diagnosticCopy: previousDiagnosticCopy, diagnosticState: "copy", data };
+      }
+      const comparison = compareDiagnosticTrials(previousDiagnosticCopy, input.beforeTrialId as string, input.afterTrialId as string);
+      return { status: "completed", message: comparison.compatible ? "已比较同一诊断副本中的两次试算" : comparison.summary, context: snapshot.context, diagnosticCopy: previousDiagnosticCopy, diagnosticState: "copy", diagnosticComparison: comparison, data: comparison };
+    }
     if (call.function.name === "discard_task_draft") {
       exactFields(input, []);
       return { status: "completed", message: "完整任务草案已拒绝，正式模型保留", context: snapshot.context, taskDraft: null };
@@ -360,7 +431,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       page: { empty: pageItems.length === 0, hasMore: offset + pageItems.length < filtered.length, nextOffset: offset + pageItems.length }, query: input.query, fields: input.fields, ...extra } };
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft): AiToolResult {
-  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange, previousModelEdits, previousTaskDraft);
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft, previousDiagnosticCopy?: DiagnosticCopy | null): AiToolResult {
+  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange, previousModelEdits, previousTaskDraft, previousDiagnosticCopy);
   return { ...result, receipt: buildReceipt(snapshot, value, result) };
 }

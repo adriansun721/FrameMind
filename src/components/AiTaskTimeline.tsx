@@ -35,6 +35,7 @@ export const TOOL_LABELS: Record<string, string> = {
   propose_analysis_conditions: "整理支座和荷载条件", discard_analysis_conditions: "取消分析条件", confirm_analysis_conditions: "确认分析条件",
   run_analysis: "检查并计算已确认模型", request_analysis: "准备本地计算",
   read_results: "读取分析结果", read_result: "核对结果引用",
+  inspect_diagnostics: "检查模型诊断证据", create_diagnostic_copy: "建立诊断副本", run_diagnostic_trial: "隔离试算候选处理", read_diagnostic: "读取诊断证据", compare_diagnostic_trials: "比较诊断试算", discard_diagnostic_copy: "丢弃诊断副本",
   propose_section_change: "整理柱截面参数", discard_section_change: "取消截面方案", confirm_section_change: "确认截面参数",
   read_comparison: "读取前后分析对比", read_comparison_result: "核对前后差值引用",
   propose_model_edits: "整理基础编辑", discard_model_edits: "取消基础编辑", confirm_model_edits: "确认基础编辑",

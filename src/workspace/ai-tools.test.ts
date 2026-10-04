@@ -118,4 +118,21 @@ describe("read-only AI tools", () => {
     expect(JSON.stringify(project)).toBe(before);
     expect(snapshot.model.nodes[0].position.x).toBe(1);
   });
+
+  it("runs diagnostic checks and candidate trials without publishing a formal result", () => {
+    let project = addNode(addNode(createProject("诊断工具"), { x: 0, y: 0, z: 0 }), { x: 4, y: 0, z: 0 });
+    project = addMaterial(project, { name: "Steel", elasticModulusGPa: 200, poissonRatio: 0.3, densityKgM3: 7850 });
+    project = addSection(project, { name: "Box", areaM2: 0.01, secondMomentYM4: 0.0002, secondMomentZM4: 0.0001, torsionalConstantM4: 0.00015 });
+    project = addMember(project, { startNodeId: project.nodes[0].id, endNodeId: project.nodes[1].id, materialId: project.materials[0].id, sectionId: project.sections[0].id, rotationDegrees: 0 });
+    const snapshot = captureAiSnapshot(project, []);
+    expect(executeAiTool(snapshot, call("inspect_diagnostics", {}))).toMatchObject({ status: "completed", data: { check: { status: "invalid", diagnostics: expect.arrayContaining([expect.objectContaining({ code: "missing-restraints" })]) } } });
+    const created = executeAiTool(snapshot, call("create_diagnostic_copy", {}));
+    const copy = created.diagnosticCopy!;
+    const trial = executeAiTool(snapshot, call("run_diagnostic_trial", { label: "候选固定端", operations: [{ type: "set_support", nodeId: project.nodes[0].id, restraints: [true, true, true, true, true, true] }] }), undefined, undefined, undefined, undefined, undefined, copy);
+    expect(trial).toMatchObject({ status: "completed", diagnosticTrial: { status: "complete", engineeringValidity: "numerically-solved-not-engineering-validated" } });
+    expect(project.supports).toHaveLength(0);
+    expect(project.analysisResults).toHaveLength(0);
+    expect(executeAiTool(snapshot, call("read_diagnostic", { collection: "trials" }), undefined, undefined, undefined, undefined, undefined, trial.diagnosticCopy)).toMatchObject({ data: { total: 1, items: [{ label: "候选固定端" }] } });
+    expect(executeAiTool(captureAiSnapshot(updateNode(project, project.nodes[0].id, { x: 1, y: 0, z: 0 }), []), call("read_diagnostic", { collection: "summary" }), undefined, undefined, undefined, undefined, undefined, copy).status).toBe("missing-input");
+  });
 });
