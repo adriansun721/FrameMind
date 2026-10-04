@@ -75,6 +75,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   const [conversations, setConversations] = useState(() => project.taskState?.conversations ?? sessionHistories.get(project.id) ?? []);
   const [restoring, setRestoring] = useState(Boolean(project.taskState?.conversations.length));
   const [recoveryMessage, setRecoveryMessage] = useState("");
+  const [chatLoaded, setChatLoaded] = useState(false);
   const savedTasks = useRef(project.taskState?.scheduled ?? []);
   const [remainingSavedTasks, setRemainingSavedTasks] = useState(savedTasks.current.filter((task) => ["queued", "running", "paused", "waiting-input", "waiting-confirmation", "failed"].includes(task.status)));
   const [proposal, setProposal] = useState<FrameProposal | undefined>();
@@ -166,16 +167,18 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
     const scheduled = [...savedTasks.current, ...scheduler.exportProject(project.id)];
     const analyses = (persistedProject.taskState?.analyses ?? []).filter((item) => scheduled.some((task) => task.id === item.taskId && !["completed", "cancelled"].includes(task.status)));
     onTaskStateChange(persistTaskState(project.id, conversations, [...new Map(scheduled.map((task) => [task.id, task])).values()], analyses));
-    if (!conversations.length || restoring) return;
+    if (!chatLoaded || restoring) return;
     void window.frameMind.saveChatHistory({ projectId: project.id, content: JSON.stringify(redactPersistence(conversations)) }).catch(() => onPersistenceError("本机聊天记录写入失败，工程仍可保存"));
-  }, [conversations, queueSnapshot, restoring, remainingSavedTasks]);
+  }, [conversations, queueSnapshot, restoring, remainingSavedTasks, chatLoaded]);
 
   useEffect(() => {
     let current = true;
     void window.frameMind.loadChatHistory(project.id).then((content) => {
-      if (!current || !content) return;
+      if (!current) return;
+      if (!content) { setChatLoaded(true); return; }
       const histories: ConversationHistory[] = JSON.parse(content);
       setConversations((previous) => mergeLocalChat(project, previous, histories));
+      setChatLoaded(true);
     }).catch(() => onPersistenceError("本机聊天记录读取失败，项目任务记录仍可恢复"));
     return () => { current = false; };
   }, []);
@@ -511,7 +514,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   };
 
   const sameDraft = (left: { id: string; version: number } | undefined, right: { id: string; version: number } | undefined) => left === right || Boolean(left && right && left.id === right.id && left.version === right.version);
-  const canRetry = (turn: ConversationTurn) => turn === turns.at(-1) && sameEngineeringState(turn.sourceProject, project)
+  const canRetry = (turn: ConversationTurn) => turn === [...turns].reverse().find((entry) => !entry.localOnly) && sameEngineeringState(turn.sourceProject, project)
     && !targetConflicts(project, turn.context.selection).length
     && sameDraft(turn.proposal, proposal) && sameDraft(turn.conditions, conditions) && sameDraft(turn.sectionChange, sectionChange) && sameDraft(turn.modelEdits, modelEdits) && sameDraft(turn.taskDraft, taskDraft);
 

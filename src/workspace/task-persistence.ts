@@ -12,10 +12,11 @@ import type { TaskDraft } from "./task-draft";
 import type { StageResolution } from "../components/AiTaskTimeline";
 import type { ScheduledTaskDescriptor } from "./task-scheduler";
 import { redactPersistence } from "../../electron/persistence-redaction";
-import { sameEngineeringState, targetConflicts } from "./draft-coordination";
+import { engineeringContent, sameEngineeringState, targetConflicts } from "./draft-coordination";
 
 export interface ConversationTurn {
   id: string;
+  localOnly?: boolean;
   origin: "chat" | "confirmation" | "analysis";
   prompt: string;
   requestText?: string;
@@ -68,7 +69,7 @@ export interface PersistedTaskState {
 export interface ConfirmedOperation { key: string; result: AiToolResult; engineeringState: string; }
 
 function engineeringState(project: FrameProject): string {
-  return JSON.stringify([project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations"] as const).map((key) => project[key])]);
+  return JSON.stringify(engineeringContent(project));
 }
 
 export function projectInput(project: FrameProject): FrameProject {
@@ -80,16 +81,23 @@ export function sameProjectInput(left: FrameProject, right: FrameProject): boole
   return sameInputValue(projectInput(left), projectInput(right));
 }
 
+function taskEvidence(turn: ConversationTurn): AiTaskResult | undefined {
+  const result = turn.result ?? (turn.output ? { status: "cancelled" as const, workKind: "agent" as const, message: "应用重启已中断本次操作，已完成的工具证据保留", context: turn.context, records: turn.output.records } : undefined);
+  if (!result) return undefined;
+  return { ...result, assistant: undefined, draftBaseProject: result.draftBaseProject ? projectInput(result.draftBaseProject) : undefined,
+    records: result.records.filter((record) => record.result.status === "applied" || record.result.diagnosticTrial || record.result.diagnosticComparison || record.result.diagnosticCopy || record.result.taskDraft || record.result.proposal || record.result.conditions || record.result.modelEdits || record.result.sectionChange || ["run_analysis", "inspect_diagnostics", "read_diagnostic", "discard_diagnostic_copy"].includes(record.call.function.name)) };
+}
+
 /** The project carries engineering goals and tool evidence; prose stays local. */
 export function persistTaskState(projectId: string, conversations: ConversationHistory[], scheduled: ScheduledTaskDescriptor[], analyses: PersistedTaskState["analyses"] = []): PersistedTaskState {
   const compact = conversations.filter((conversation) => !conversation.localOnly).map((conversation) => ({ ...conversation,
     proposalSource: projectInput(conversation.proposalSource), conditionsSource: projectInput(conversation.conditionsSource),
     sectionSource: projectInput(conversation.sectionSource), modelEditsSource: projectInput(conversation.modelEditsSource), taskDraftSource: projectInput(conversation.taskDraftSource),
-    turns: conversation.turns.map((turn) => {
+    turns: conversation.turns.filter((turn) => !turn.localOnly).map((turn) => {
       const { requestText: _text, output: _output, progress: _progress, progressEvents: _events, ...saved } = turn;
+      const result = taskEvidence(turn);
       return { ...saved, sourceProject: projectInput(turn.sourceProject),
-        ...(turn.result ? { result: { ...turn.result, assistant: undefined, draftBaseProject: turn.result.draftBaseProject ? projectInput(turn.result.draftBaseProject) : undefined,
-          records: turn.result.records.filter((record) => record.result.status === "applied" || record.result.diagnosticTrial || record.result.diagnosticComparison || record.result.diagnosticCopy || record.result.taskDraft || record.result.proposal || record.result.conditions || record.result.modelEdits || record.result.sectionChange || record.call.function.name === "run_analysis") } } : {}) };
+        ...(result ? { result } : {}) };
     }),
   }));
   return redactPersistence({ version: 1, projectId, conversations: compact, scheduled, analyses });
@@ -97,7 +105,12 @@ export function persistTaskState(projectId: string, conversations: ConversationH
 
 export function recoveredTurns(conversation: ConversationHistory): ConversationTurn[] {
   return conversation.turns.map((turn) => turn.result ? turn : { ...turn,
-    result: { status: "cancelled", workKind: "agent", message: "应用重启已中断本次操作，等待用户选择继续", context: turn.context, records: turn.output?.records ?? [] } });
+    result: { status: "cancelled", workKind: "agent", message: "应用重启已中断本次操作，等待用户选择继续", context: turn.context, records: turn.output?.records ?? [], assistant: turn.output?.assistant } });
+}
+
+function localTurn(project: FrameProject, turn: ConversationTurn): ConversationTurn {
+  return { ...turn, localOnly: true, sourceProject: project, proposal: undefined, conditions: undefined, sectionChange: undefined, modelEdits: undefined, taskDraft: undefined, scheduledTaskId: undefined, output: undefined,
+    result: { status: "completed", workKind: "conversation", context: turn.context, records: [], message: "本机聊天记录（仅供查看）", assistant: turn.result?.assistant ?? turn.output?.assistant } };
 }
 
 /** Only prose can be joined from local history; the saved project owns executable state. */
@@ -106,14 +119,14 @@ export function mergeLocalChat(project: FrameProject, saved: ConversationHistory
     const history = local.find((entry) => entry.id === item.id);
     return history ? { ...item, turns: item.turns.map((turn) => {
       const full = history.turns.find((entry) => entry.id === turn.id);
+      const assistant = full?.result?.assistant ?? full?.output?.assistant;
       return { ...turn, ...(full?.requestText ? { requestText: full.requestText } : {}),
-        ...(turn.result && full?.result?.assistant ? { result: { ...turn.result, assistant: full.result.assistant } } : {}) };
-    }) } : item;
+        ...(assistant !== undefined ? turn.result ? { result: { ...turn.result, assistant } } : { output: { assistant, records: [] } } : {}) };
+    }).concat(history.turns.filter((turn) => !item.turns.some((saved) => saved.id === turn.id)).map((turn) => localTurn(project, turn))) } : item;
   }).concat(local.filter((history) => !saved.some((item) => item.id === history.id)).map((history) => ({
     ...history, localOnly: true, proposal: undefined, conditions: undefined, sectionChange: undefined, modelEdits: undefined, taskDraft: undefined,
     calculationRequested: false, targets: [], sectionSelection: [], proposalSource: project, conditionsSource: project, sectionSource: project, modelEditsSource: project, taskDraftSource: project,
-    turns: history.turns.map((turn) => ({ ...turn, sourceProject: project, proposal: undefined, conditions: undefined, sectionChange: undefined, modelEdits: undefined, taskDraft: undefined, scheduledTaskId: undefined,
-      result: turn.result ? { ...turn.result, status: "completed" as const, records: [], message: "本机聊天记录（仅供查看）" } : undefined })),
+    turns: history.turns.map((turn) => localTurn(project, turn)),
   })));
 }
 
@@ -126,7 +139,8 @@ export function recoveryIssues(project: FrameProject, conversation: Conversation
   const receipts = applied.map((record) => project.confirmedOperations?.find((entry) => sameInputValue(entry.result, record.result)));
   if (receipts.some((receipt) => !receipt)) issues.push("任务成功记录缺少对应回执，需重新核对");
   const latest = receipts.at(-1);
-  if (!hasDraft && conversation.calculationRequested && (latest ? !sameInputValue(JSON.parse(latest.engineeringState), JSON.parse(engineeringState(project))) : !sameEngineeringState(conversation.turns.at(-1)?.sourceProject ?? conversation.taskDraftSource, project))) issues.push("已应用任务的模型已变化或已撤销，需核对后重新请求计算");
+  if (!hasDraft && latest && !sameInputValue(JSON.parse(latest.engineeringState), JSON.parse(engineeringState(project)))) issues.push("回执对应模型已撤销或修改，恢复前请重新核对");
+  if (!hasDraft && !latest && conversation.calculationRequested && !sameEngineeringState(conversation.turns.at(-1)?.sourceProject ?? conversation.taskDraftSource, project)) issues.push("已应用任务的模型已变化或已撤销，需核对后重新请求计算");
   if (conversation.analysisSourceId && ![...project.loadCases, ...project.loadCombinations].some((item) => item.id === conversation.analysisSourceId)) issues.push("原计算来源已删除");
   return issues;
 }

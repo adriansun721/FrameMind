@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { decodeProject, encodeProject } from "./project-file";
 import { columns } from "../workspace/section-stage.fixture";
 import { captureAnalysisInput } from "./analysis";
-import { captureAiSnapshot } from "../workspace/ai-tools";
+import { captureAiSnapshot, executeAiTool } from "../workspace/ai-tools";
 import { proposeModelEdits } from "../workspace/model-edits";
 import { mergeLocalChat, persistTaskState, type ConversationHistory } from "../workspace/task-persistence";
 
@@ -26,6 +26,20 @@ it("migrates version 1 without changing identities, loads, resources or historic
   expect(migrated.migration?.missing).toContain("task-state");
   expect(decodeProject(encodeProject(migrated)).migration).toEqual(migrated.migration);
   expect(JSON.parse(legacy).formatVersion).toBe(1);
+});
+
+it("saves completed diagnostic evidence while the next AI response is still pending", () => {
+  const conversation = history(); const project = conversation.taskDraftSource;
+  const call = { id: "diagnostic", type: "function" as const, function: { name: "create_diagnostic_copy", arguments: "{}" } };
+  const result = executeAiTool(captureAiSnapshot(project, []), call);
+  expect(result.status).toBe("completed");
+  conversation.turns[0] = { ...conversation.turns[0], result: undefined, output: { assistant: "本机正文", records: [{ round: 1, call, result }] } };
+  const content = encodeProject({ ...project, taskState: persistTaskState(project.id, [conversation], []) });
+  expect(content).not.toContain("本机正文");
+  const recovered = decodeProject(content).taskState!.conversations[0].turns[0];
+  expect(recovered.result?.records[0].result.diagnosticCopy?.id).toBe(result.diagnosticCopy?.id);
+  expect(recovered.result?.status).toBe("cancelled");
+  expect(recovered.result?.records[0].result.context.projectId).toBe(project.id);
 });
 
 it("round-trips failed drafts, interrupted and queued tasks, and frozen calculation input without carrying local prose", () => {
@@ -64,4 +78,17 @@ it("merges local prose without resurrecting a draft absent from the saved projec
   expect(view.modelEdits).toBeUndefined(); expect(view.calculationRequested).toBe(false);
   expect(view.turns[0].result?.assistant).toContain("LOCAL-ANSWER");
   expect(persistTaskState(project.id, [view], []).conversations).toHaveLength(0);
+});
+
+it("retains chat sent after a formal save and interrupted prose without importing unsaved task state", () => {
+  const saved = history(); const project = saved.taskDraftSource;
+  saved.turns[0] = { ...saved.turns[0], result: undefined };
+  const local = { ...saved, turns: [{ ...saved.turns[0], output: { assistant: "已输出的正文", records: [] } },
+    { ...saved.turns[0], id: "later", prompt: "保存后的消息", output: { assistant: "后续回复", records: [] }, modelEdits: saved.modelEdits }] };
+  const merged = mergeLocalChat(project, [saved], [local])[0];
+  expect(merged.turns.map((turn) => turn.prompt)).toEqual(["继续当前任务", "保存后的消息"]);
+  expect(merged.turns[0].output?.assistant).toBe("已输出的正文");
+  expect(merged.turns[1].result?.assistant).toBe("后续回复");
+  expect(merged.turns[1].modelEdits).toBeUndefined();
+  expect(persistTaskState(project.id, [merged], []).conversations[0].turns).toHaveLength(1);
 });

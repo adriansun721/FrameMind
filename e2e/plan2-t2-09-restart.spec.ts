@@ -2,7 +2,7 @@ import { _electron as electron, expect, test, type ElectronApplication, type Pag
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
-import { parameters, replay, save, send } from "./frame-proposal-actions";
+import { desktop, parameters, replay, save, send } from "./frame-proposal-actions";
 import { columns } from "../src/workspace/section-stage.fixture";
 import { encodeProject } from "../src/domain/project-file";
 import { captureAiSnapshot } from "../src/workspace/ai-tools";
@@ -49,8 +49,14 @@ test("T2-09 restarts the desktop with an unconfirmed draft, full local chat and 
     await page.keyboard.press("Control+z");
     const undone = await save(page, path);
     expect(undone.nodes).toHaveLength(0); expect(undone.confirmedOperations).toHaveLength(1);
+    await app!.evaluate(() => { globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "保存之后的本机回复" } }] })); });
+    await send(page, "保存后的聊天 B");
+    await expect.poll(async () => readFile(join(directory, "chat-history", `${pending.id}.json`), "utf8")).toContain("保存后的聊天 B");
     await app!.close(); page = await launch(); await open(page);
     await page.getByRole("button", { name: "恢复任务", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText("回执对应模型已撤销或修改");
+    await expect(page.getByRole("log")).toContainText("保存后的聊天 B");
+    await expect(page.getByRole("log")).toContainText("保存之后的本机回复");
     expect((await save(page, path)).nodes).toHaveLength(0);
     await expect(page.getByRole("region", { name: "建模参数卡片" })).toHaveCount(0);
     await mkdir("docs/evidence/plan2/T2-09", { recursive: true });
@@ -58,11 +64,35 @@ test("T2-09 restarts the desktop with an unconfirmed draft, full local chat and 
     const chats = await readFile(join(directory, "chat-history", `${pending.id}.json`), "utf8");
     expect(chats).not.toContain("sk-t209"); expect(chats).toContain("准备两层刚架");
     expect(JSON.stringify(undone)).not.toContain("sk-t209");
+    await page.getByRole("button", { name: "清空对话", exact: true }).click();
+    await save(page, path);
+    await app!.close(); page = await launch(); await open(page);
+    await expect(page.locator(".ai-history-item")).toHaveCount(0);
   } finally {
     await app?.close();
     if (!resolve(directory).startsWith(resolve(tmpdir()) + sep)) throw new Error("Invalid test cleanup path");
     await rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
   }
+});
+
+test("T2-09 restores a queued task with its saved target even after selection changes", async () => {
+  await desktop(async (app, page, path) => {
+    const project = columns(); const history = conversation(project);
+    history.targets = [{ kind: "member", id: "member_0001" }];
+    history.turns = [{ id: "queued-turn", origin: "chat", prompt: "修改选柱截面", context: captureAiSnapshot(project, history.targets).context, sourceProject: project, scheduledTaskId: "saved-queue" }];
+    const scheduled = [{ id: "saved-queue", projectId: project.id, kind: "agent" as const, goal: "修改选柱截面", status: "queued" as const, queuedAt: 1, supplementCount: 0, operationCount: 1 }];
+    await writeFile(path, encodeProject({ ...project, taskState: persistTaskState(project.id, [history], scheduled) }), "utf8");
+    await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
+    await expect(page.locator('footer[role="status"]')).toContainText("已打开");
+    await page.getByLabel("选择杆件 M2", { exact: true }).check();
+    await replay(app, { sectionId: "section_0002", source: "user" }, "propose_section_change");
+    await page.getByRole("button", { name: "继续任务", exact: true }).click();
+    const card = page.getByRole("region", { name: "选柱截面修改方案" });
+    await expect(card).toContainText("M1"); await expect(card).not.toContainText("M2");
+    const saved = await save(page, path);
+    expect(saved.taskState.scheduled.some((task: { id: string }) => task.id === "saved-queue")).toBe(false);
+    expect(saved.members.map((member: { sectionId: string }) => member.sectionId)).toEqual(["section_0001", "section_0001"]);
+  });
 });
 
 for (const stage of ["applied", "failed"] as const) test(`T2-09 resumes the saved ${stage} stage without resubmitting confirmed conditions`, async () => {

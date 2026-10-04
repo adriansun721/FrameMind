@@ -8,9 +8,11 @@ import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
 
 export interface DraftCoordination<T> { draft: T; conflicts: string[]; }
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+export function engineeringContent(project: FrameProject): unknown[] {
+  return [project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations"] as const).map((key) => project[key])];
+}
 export function sameEngineeringState(base: FrameProject, current: FrameProject): boolean {
-  return base.id === current.id && base.revision === current.revision && (["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations"] as const)
-    .every((key) => same(base[key], current[key]));
+  return base.revision === current.revision && same(engineeringContent(base), engineeringContent(current));
 }
 const newIssues = (before: readonly string[], after: readonly string[]) => after.filter((issue) => !before.includes(issue));
 
