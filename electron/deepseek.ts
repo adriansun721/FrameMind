@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { LOAD_STAGE_SCHEMA } from "./load-stage-schema";
+import { MODEL_EDIT_SCHEMA, MODEL_EDIT_TOOL_DEFINITIONS } from "./model-edit-schema";
 import { DEEPSEEK_MODELS, type DeepSeekModel, type DeepSeekSettings, type DeepSeekStatus, type DeepSeekResult,
   type DeepSeekChatRequest, type DeepSeekChatResult, type DeepSeekAssistantMessage, type DeepSeekChatMessage,
   type DeepSeekToolCall } from "./contracts";
@@ -79,6 +80,15 @@ const modelTools = [
       },
     }])) } } } },
 ];
+const modelEditTools = [
+  { type: "function", function: { name: "propose_model_edits", description: "Preview one atomic batch of basic node/member creation, edits, copies or deletion using stable formal IDs. Never applies directly; user confirms the draft.", parameters: MODEL_EDIT_SCHEMA } },
+  { type: "function", function: { name: "discard_model_edits", description: "Discard the pending basic-edit draft without changing the formal model.", parameters: { type: "object", properties: {}, additionalProperties: false } } },
+  ...MODEL_EDIT_TOOL_DEFINITIONS,
+];
+function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
+  const editRequested = messages.some((message) => message.role === "user" && /基础编辑|批量|移到|转角|旋转|(?:(?:创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
+  return editRequested ? [...modelTools, ...modelEditTools] : modelTools;
+}
 const MAX_CHAT_BYTES = 1_048_576;
 const MAX_TOOL_CALLS = 16;
 
@@ -310,7 +320,7 @@ export class DeepSeekConnection {
         const response = await this.fetcher("https://api.deepseek.com/chat/completions", {
           method: "POST", redirect: "error", signal: controller.signal,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${credential.apiKey}` },
-          body: JSON.stringify({ model: credential.model, messages: request.messages, tools: modelTools,
+          body: JSON.stringify({ model: credential.model, messages: request.messages, tools: toolsForMessages(request.messages),
             tool_choice: "auto", thinking: { type: "disabled" }, stream: false, max_tokens: 2048 }),
         });
         if (controller.signal.aborted || !response.ok) {

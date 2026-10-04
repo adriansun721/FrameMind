@@ -47,6 +47,31 @@ test("a selected-object conversation receives read-only tool calls and sends the
   expect(JSON.stringify([first, second])).not.toContain("sk-private-t20");
 });
 
+test("common Chinese node/member edit wording exposes the reviewed edit tools", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init ?? {});
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核对基础编辑草案。" } }] }));
+  });
+  const result = await connection.chat({ requestId: "edit-intent", messages: [{ role: "user", content: "把 N1 移到 X=-1，并把 M1 转角改成30度" }] });
+  expect(result.status).toBe("success");
+  const names = (JSON.parse(requests[0].body as string).tools as { function: { name: string } }[]).map((tool) => tool.function.name);
+  expect(names).toContain("propose_model_edits");
+  expect(names).toContain("update_node");
+  expect(names).toContain("update_member");
+});
+
+test("Chinese edit intent also matches target-first coordinate wording", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init ?? {});
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核对基础编辑草案。" } }] }));
+  });
+  await connection.chat({ requestId: "edit-intent-target-first", messages: [{ role: "user", content: "把节点 N1 的坐标改为 X=-1" }] });
+  const names = (JSON.parse(requests[0].body as string).tools as { function: { name: string } }[]).map((tool) => tool.function.name);
+  expect(names).toContain("propose_model_edits");
+});
+
 test("malformed, injected and excessive chat inputs fail before a network request", async () => {
   const fetcher = vi.fn<typeof fetch>();
   const connection = await setup(fetcher);

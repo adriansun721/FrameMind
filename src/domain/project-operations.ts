@@ -7,6 +7,11 @@ import {
   type FrameProject,
   type MemberId,
   type MemberProperties,
+  type FrameNode,
+  type FrameMember,
+  type FrameSupport,
+  type FrameNodalLoad,
+  type FrameUniformLoad,
   type NodeId,
   type Vector3,
 } from "./project";
@@ -87,4 +92,68 @@ export function deleteNodes(project: FrameProject, ids: readonly NodeId[]): Fram
 
 export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): FrameProject {
   return applyProjectTransaction(project, ids.map((id) => (current) => deleteMember(current, id)));
+}
+
+export type ProjectEditOperation =
+  | { type: "create_node"; position: Vector3 }
+  | { type: "update_node"; id: NodeId; position: Partial<Vector3> }
+  | { type: "duplicate_node" | "delete_node"; id: NodeId }
+  | { type: "create_member"; properties: MemberProperties }
+  | { type: "update_member"; id: MemberId; changes: Partial<MemberProperties> }
+  | { type: "duplicate_member" | "delete_member"; id: MemberId };
+
+export interface ProjectEditChange {
+  kind: "node" | "member" | "support" | "nodal-load" | "uniform-load";
+  id: string;
+  before?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad;
+  after?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad;
+}
+export interface ProjectEditReceipt {
+  projectId: string;
+  baseRevision: number;
+  appliedRevision: number;
+  changes: ProjectEditChange[];
+  created: { operationIndex: number; kind: "node" | "member"; id: string; sourceId?: string }[];
+  affectedMemberIds: MemberId[];
+}
+
+/** Manual edits and reviewed tool drafts execute the same commands and return the same object diff. */
+export function applyProjectEdits(project: FrameProject, operations: readonly ProjectEditOperation[]): { project: FrameProject; receipt: ProjectEditReceipt } {
+  const created: ProjectEditReceipt["created"] = [];
+  const next = applyProjectTransaction(project, operations.map((operation, operationIndex) => (current) => {
+    let changed: FrameProject;
+    switch (operation.type) {
+      case "create_node": changed = addNode(current, operation.position); break;
+      case "update_node": {
+        const node = current.nodes.find((item) => item.id === operation.id);
+        if (!node) throw new Error(`节点 ${operation.id} 不存在`);
+        changed = updateNode(current, operation.id, { ...node.position, ...operation.position }); break;
+      }
+      case "duplicate_node": changed = duplicateNode(current, operation.id); break;
+      case "delete_node": changed = deleteNode(current, operation.id); break;
+      case "create_member": changed = addMember(current, operation.properties); break;
+      case "update_member": changed = updateMember(current, operation.id, operation.changes); break;
+      case "duplicate_member": changed = duplicateMember(current, operation.id); break;
+      case "delete_member": changed = deleteMember(current, operation.id); break;
+    }
+    if (operation.type === "create_node" || operation.type === "duplicate_node" || operation.type === "create_member" || operation.type === "duplicate_member") {
+      const kind = operation.type.endsWith("node") ? "node" as const : "member" as const;
+      const object = (kind === "node" ? changed.nodes : changed.members).at(-1)!;
+      created.push({ operationIndex, kind, id: object.id, ...("id" in operation ? { sourceId: operation.id } : {}) });
+    }
+    return changed;
+  }));
+  const changes: ProjectEditChange[] = [];
+  const collections = [["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"]] as const;
+  for (const [kind, collection] of collections) {
+    const before = new Map(project[collection].map((object) => [object.id as string, object]));
+    const after = new Map(next[collection].map((object) => [object.id as string, object]));
+    for (const id of new Set([...before.keys(), ...after.keys()])) {
+      if (JSON.stringify(before.get(id)) !== JSON.stringify(after.get(id))) changes.push({ kind, id, before: before.get(id), after: after.get(id) });
+    }
+  }
+  const nodeIds = new Set(changes.filter((change) => change.kind === "node").map((change) => change.id));
+  const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
+    || changes.some((change) => change.kind === "member" && change.id === member.id)).map((member) => member.id))];
+  return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds } };
 }

@@ -24,16 +24,17 @@ import type { AnalysisPairIds } from "./workspace/ai-comparison";
 import { ConditionsStageConfirmation } from "./workspace/analysis-conditions";
 import type { FramePreview } from "./workspace/frame-proposal";
 import { FrameStageConfirmation } from "./workspace/frame-confirmation";
+import { ModelEditConfirmation } from "./workspace/model-edits";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
-  addMaterial, addCatalogMaterial, addMember, addNode, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateMember, updateNode, updateSection, updateSupport, updateNodalLoad,
+  addMaterial, addCatalogMaterial, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateSection, updateSupport, updateNodalLoad,
   addUniformLoad, updateUniformLoad, deleteUniformLoad, updateSelfWeight, DEFAULT_LOAD_CASE, selectLoadCase, selectLoadCombination,
   type DofRestraints, type FrameProject, type MaterialId, type MemberId, type NodeId, type SectionId,
 } from "./domain/project";
 import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECTION_CATALOG } from "./domain/resource-library";
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
-import { batchUpdateMembers, batchUpdateNodes, deleteMembers, deleteNodes, duplicateMembers, duplicateNodes } from "./domain/project-operations";
+import { applyProjectEdits } from "./domain/project-operations";
 import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, sameInputValue, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisComparison, type AnalysisForceVector } from "./domain/analysis-comparison";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
@@ -92,6 +93,7 @@ export function App() {
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
+  const editConfirmationRef = useRef(new ModelEditConfirmation());
   const sectionConfirmationRef = useRef(new SectionStageConfirmation());
   const conditionsConfirmationRef = useRef(new ConditionsStageConfirmation());
   const [historyVersion, setHistoryVersion] = useState(0);
@@ -179,6 +181,7 @@ export function App() {
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
+      editConfirmationRef.current = new ModelEditConfirmation();
       setComparisonPair(undefined);
       sectionConfirmationRef.current = new SectionStageConfirmation();
       conditionsConfirmationRef.current = new ConditionsStageConfirmation();
@@ -269,7 +272,7 @@ export function App() {
   const submitNode = (event: React.FormEvent) => {
     event.preventDefault(); const position = { x: Number(newNodeDraft.x), y: Number(newNodeDraft.y), z: Number(newNodeDraft.z) };
     if (Object.values(newNodeDraft).some((value) => value.trim() === "") || !Object.values(position).every(Number.isFinite)) { setFormError("请输入有效的有限数值"); return; }
-    try { const updated = addNode(project, position); activateProject(updated, false); const node = updated.nodes.at(-1)!; setSelection({ kind: "node", id: node.id }); setNodeDraft(newNodeDraft); setNodeDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${node.label}` }); }
+    try { const updated = applyProjectEdits(project, [{ type: "create_node", position }]).project; activateProject(updated, false); const node = updated.nodes.at(-1)!; setSelection({ kind: "node", id: node.id }); setNodeDraft(newNodeDraft); setNodeDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${node.label}` }); }
     catch (error) { setFormError(error instanceof Error ? error.message : "创建节点失败"); }
   };
   const submitResources = (event: React.FormEvent) => {
@@ -297,7 +300,7 @@ export function App() {
   const submitMember = (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const updated = addMember(project, { startNodeId: newMemberDraft.startNodeId as NodeId, endNodeId: newMemberDraft.endNodeId as NodeId, materialId: newMemberDraft.materialId as MaterialId, sectionId: newMemberDraft.sectionId as SectionId, rotationDegrees: parseNumber(newMemberDraft.rotationDegrees, "截面转角") });
+      const updated = applyProjectEdits(project, [{ type: "create_member", properties: { startNodeId: newMemberDraft.startNodeId as NodeId, endNodeId: newMemberDraft.endNodeId as NodeId, materialId: newMemberDraft.materialId as MaterialId, sectionId: newMemberDraft.sectionId as SectionId, rotationDegrees: parseNumber(newMemberDraft.rotationDegrees, "截面转角") } }]).project;
       activateProject(updated, false); const member = updated.members.at(-1)!; setSelection({ kind: "member", id: member.id }); setMemberDraft(newMemberDraft); setMemberDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建 ${member.label}` });
     } catch (error) { setFormError(error instanceof Error ? error.message : "创建杆件失败"); }
   };
@@ -379,8 +382,8 @@ export function App() {
     });
   };
 
-  const saveNodeEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedNode) return; try { const updated = updateNode(project, selectedNode.id, { x: parseNumber(nodeDraft.x, "X 坐标"), y: parseNumber(nodeDraft.y, "Y 坐标"), z: parseNumber(nodeDraft.z, "Z 坐标") }); activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedNode.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新节点失败"); } };
-  const saveMemberEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMember) return; try { const updated = updateMember(project, selectedMember.id, { startNodeId: memberDraft.startNodeId as NodeId, endNodeId: memberDraft.endNodeId as NodeId, materialId: memberDraft.materialId as MaterialId, sectionId: memberDraft.sectionId as SectionId, rotationDegrees: parseNumber(memberDraft.rotationDegrees, "截面转角") }); activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedMember.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新杆件失败"); } };
+  const saveNodeEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedNode) return; try { const updated = applyProjectEdits(project, [{ type: "update_node", id: selectedNode.id, position: { x: parseNumber(nodeDraft.x, "X 坐标"), y: parseNumber(nodeDraft.y, "Y 坐标"), z: parseNumber(nodeDraft.z, "Z 坐标") } }]).project; activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedNode.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新节点失败"); } };
+  const saveMemberEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMember) return; try { const updated = applyProjectEdits(project, [{ type: "update_member", id: selectedMember.id, changes: { startNodeId: memberDraft.startNodeId as NodeId, endNodeId: memberDraft.endNodeId as NodeId, materialId: memberDraft.materialId as MaterialId, sectionId: memberDraft.sectionId as SectionId, rotationDegrees: parseNumber(memberDraft.rotationDegrees, "截面转角") } }]).project; activateProject(updated, false); setStatus({ tone: "success", text: `已更新 ${selectedMember.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新杆件失败"); } };
   const saveMaterialEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMaterial) return; try { const updated = updateMaterial(project, selectedMaterial.id, materialToNumbers(materialDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新材料 ${selectedMaterial.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新材料失败"); } };
   const saveSectionEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedSection) return; try { const updated = updateSection(project, selectedSection.id, sectionToNumbers(sectionDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新截面 ${selectedSection.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新截面失败"); } };
   const saveSupportEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedSupport) return; try { activateProject(updateSupport(project, selectedSupport.id, supportNodeId as NodeId, supportRestraints), false); setStatus({ tone: "success", text: `已更新支座 ${selectedSupport.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新支座失败"); } };
@@ -398,10 +401,10 @@ export function App() {
     try {
       if (kind === "node") {
         const ids = [...selectedNodeIds] as NodeId[]; if (!ids.length) return;
-        const count = project.nodes.length; const updated = duplicateNodes(project, ids); activateProject(updated, false); const copies = updated.nodes.slice(count); setSelectedNodeIds(new Set(copies.map((item) => item.id))); selectObject(copies.at(-1) ? { kind: "node", id: copies.at(-1)!.id } : null, updated); setStatus({ tone: "success", text: `已复制 ${copies.length} 个节点` });
+        const count = project.nodes.length; const updated = applyProjectEdits(project, ids.map((id) => ({ type: "duplicate_node", id }))).project; activateProject(updated, false); const copies = updated.nodes.slice(count); setSelectedNodeIds(new Set(copies.map((item) => item.id))); selectObject(copies.at(-1) ? { kind: "node", id: copies.at(-1)!.id } : null, updated); setStatus({ tone: "success", text: `已复制 ${copies.length} 个节点` });
       } else {
         const ids = [...selectedMemberIds] as MemberId[]; if (!ids.length) return;
-        const count = project.members.length; const updated = duplicateMembers(project, ids); activateProject(updated, false); const copies = updated.members.slice(count); setSelectedMemberIds(new Set(copies.map((item) => item.id))); selectObject(copies.at(-1) ? { kind: "member", id: copies.at(-1)!.id } : null, updated); setStatus({ tone: "success", text: `已复制 ${copies.length} 个杆件` });
+        const count = project.members.length; const updated = applyProjectEdits(project, ids.map((id) => ({ type: "duplicate_member", id }))).project; activateProject(updated, false); const copies = updated.members.slice(count); setSelectedMemberIds(new Set(copies.map((item) => item.id))); selectObject(copies.at(-1) ? { kind: "member", id: copies.at(-1)!.id } : null, updated); setStatus({ tone: "success", text: `已复制 ${copies.length} 个杆件` });
       }
     } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "复制失败" }); }
   };
@@ -409,10 +412,10 @@ export function App() {
     try {
       if (kind === "node") {
         const ids = [...selectedNodeIds] as NodeId[]; if (!ids.length) return;
-        const updated = deleteNodes(project, ids); activateProject(updated, false); setSelectedNodeIds(new Set()); setSelectedMemberIds((current) => new Set([...current].filter((id) => updated.members.some((member) => member.id === id)))); setSelection(null); setStatus({ tone: "success", text: `已删除 ${ids.length} 个节点及其关联对象` });
+        const updated = applyProjectEdits(project, ids.map((id) => ({ type: "delete_node", id }))).project; activateProject(updated, false); setSelectedNodeIds(new Set()); setSelectedMemberIds((current) => new Set([...current].filter((id) => updated.members.some((member) => member.id === id)))); setSelection(null); setStatus({ tone: "success", text: `已删除 ${ids.length} 个节点及其关联对象` });
       } else {
         const ids = [...selectedMemberIds] as MemberId[]; if (!ids.length) return;
-        const updated = deleteMembers(project, ids); activateProject(updated, false); setSelectedMemberIds(new Set()); setSelection(null); setStatus({ tone: "success", text: `已删除 ${ids.length} 个杆件` });
+        const updated = applyProjectEdits(project, ids.map((id) => ({ type: "delete_member", id }))).project; activateProject(updated, false); setSelectedMemberIds(new Set()); setSelection(null); setStatus({ tone: "success", text: `已删除 ${ids.length} 个杆件` });
       }
     } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "删除失败" }); }
   };
@@ -422,11 +425,11 @@ export function App() {
     try {
       if (batchDialog === "node") {
         const offset = { x: parseNumber(batchDraft.x, "X 偏移"), y: parseNumber(batchDraft.y, "Y 偏移"), z: parseNumber(batchDraft.z, "Z 偏移") };
-        const updated = batchUpdateNodes(project, [...selectedNodeIds].map((id) => { const node = project.nodes.find((item) => item.id === id)!; return { id: id as NodeId, position: { x: node.position.x + offset.x, y: node.position.y + offset.y, z: node.position.z + offset.z } }; }));
+        const updated = applyProjectEdits(project, [...selectedNodeIds].map((id) => { const node = project.nodes.find((item) => item.id === id)!; return { type: "update_node", id: id as NodeId, position: { x: node.position.x + offset.x, y: node.position.y + offset.y, z: node.position.z + offset.z } }; })).project;
         activateProject(updated, false); selectObject(selection, updated); setBatchDialog(null); setFormError(null); setStatus({ tone: "success", text: `已批量移动 ${selectedNodeIds.size} 个节点` });
       } else if (batchDialog === "member") {
         const rotationDegrees = parseNumber(batchDraft.rotationDegrees, "截面转角");
-        const updated = batchUpdateMembers(project, [...selectedMemberIds].map((id) => ({ id: id as MemberId, changes: { rotationDegrees } })));
+        const updated = applyProjectEdits(project, [...selectedMemberIds].map((id) => ({ type: "update_member", id: id as MemberId, changes: { rotationDegrees } }))).project;
         activateProject(updated, false); selectObject(selection, updated); setBatchDialog(null); setFormError(null); setStatus({ tone: "success", text: `已批量修改 ${selectedMemberIds.size} 个杆件` });
       }
     } catch (error) { setFormError(error instanceof Error ? error.message : "批量修改失败"); }
@@ -623,6 +626,16 @@ export function App() {
       </section>
 
       <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+        onEditsConfirm={(confirmation) => {
+          const current = activeProjectRef.current;
+          const outcome = editConfirmationRef.current.confirm(current, confirmation);
+          if (outcome.project !== current) {
+            activateProject(outcome.project, false);
+            setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setSelection(null); setFormError(null);
+          }
+          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
+          return outcome.result;
+        }}
         comparison={comparisonPair} onComparison={(pair, open) => { setComparisonPair(pair); if (open) setComparisonOpen(true); }}
         onSectionConfirm={(confirmation) => {
           const current = activeProjectRef.current;

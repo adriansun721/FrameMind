@@ -7,6 +7,7 @@ import { getActiveAnalysisResult, isAnalysisResultCurrent, type AnalysisResult }
 import { readResult, readResults, type ResultReference } from "./ai-results";
 import { proposeSectionChange, type SectionChangeProposal } from "./section-stage";
 import { readComparison, readComparisonResult, type AiAnalysisPair, type AnalysisPairIds, type ComparisonReference } from "./ai-comparison";
+import { MODEL_EDIT_TOOLS, modelEditToolInput, proposeModelEdits, type ModelEditProposal } from "./model-edits";
 
 export interface AiObjectRef { kind: "node" | "member"; id: string; }
 export interface AiSelectedObject extends AiObjectRef { label: string; exists: boolean; }
@@ -36,20 +37,20 @@ export interface AiReceipt {
   input: { projectId: string; modelRevision: number; analysisId?: string; analysisInputRevision?: number };
   state: { project: "current"; model: "applied"; analysis: "absent" | "incomplete" | "current" | "expired" };
 }
-export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; sectionChange?: SectionChangeProposal | null; analysisRequested?: boolean; }
+export interface AiToolResult { status: AiStatus; message: string; context: AiContext; receipt?: AiReceipt; data?: unknown; reference?: ResultReference; comparisonReference?: ComparisonReference; proposal?: FrameProposal | null; conditions?: ConditionsProposal | null; sectionChange?: SectionChangeProposal | null; modelEdits?: ModelEditProposal | null; analysisRequested?: boolean; }
 type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? T
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
   | "nodalLoads" | "uniformLoads" | "selfWeight" | "loadCases" | "loadCombinations"
   | "activeLoadCaseId" | "activeLoadCombinationId">;
-export interface AiSnapshot { readonly context: AiContext; readonly snapshotKey: string; readonly model: ReadonlyTree<AiModel>; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
+export interface AiSnapshot { readonly context: AiContext; readonly snapshotKey: string; readonly model: ReadonlyTree<AiModel>; readonly editProject: FrameProject; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
 
-function freeze<T>(value: T): ReadonlyTree<T> {
+function freeze<T>(value: T): T {
   if (value && typeof value === "object") {
     Object.values(value).forEach((child) => freeze(child));
     Object.freeze(value);
   }
-  return value as ReadonlyTree<T>;
+  return value;
 }
 
 export function captureAiSnapshot(project: FrameProject, selection: readonly AiObjectRef[], analysis = getActiveAnalysisResult(project), comparisonIds?: AnalysisPairIds): AiSnapshot {
@@ -95,6 +96,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
       comparison: comparisonIds,
     }),
     model: structuredClone(model),
+    editProject: structuredClone({ ...project, analysisResults: [], latestAnalysis: undefined }),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
     analysisCurrent,
@@ -207,12 +209,27 @@ function validateInput(name: string, input: Record<string, unknown>): void {
   } else throw new Error(`未定义工具 ${name}；仅允许读取模型、选择或对象`);
 }
 
-function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal): AiToolResult {
+function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal): AiToolResult {
   let call: ToolCall;
   let input: Record<string, unknown>;
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (call.function.name === "discard_model_edits") {
+      exactFields(input, []);
+      return { status: "completed", message: "基础编辑草案已拒绝，正式模型保留", context: snapshot.context, modelEdits: null };
+    }
+    if (call.function.name === "propose_model_edits" || MODEL_EDIT_TOOLS.has(call.function.name) || call.function.name === "apply_model_changes") {
+      try {
+        const args = MODEL_EDIT_TOOLS.has(call.function.name) ? modelEditToolInput(call.function.name, input) : input;
+        const modelEdits = proposeModelEdits(snapshot.editProject, args, previousModelEdits);
+        return { status: "awaiting-confirmation", message: "基础编辑草案已准备，尚未修改正式模型", context: snapshot.context, modelEdits,
+          data: { units: snapshot.model.units, ...modelEdits.preview } };
+      } catch (error) {
+        if (call.function.name !== "propose_model_edits") return { status: "awaiting-confirmation", message: "模型修改尚未确认，本阶段只读；请使用手动编辑或完整基础编辑草案", context: snapshot.context };
+        throw error;
+      }
+    }
     if (call.function.name === "read_comparison" || call.function.name === "read_comparison_result") {
       if (!snapshot.comparison) return { status: "missing-input", message: "请先选择两次确定的成功分析作为前后对比", context: snapshot.context };
       if (call.function.name === "read_comparison") return { status: "completed", message: "已读取两次确定分析的对比及来源", context: snapshot.context, data: readComparison(snapshot.comparison, input) };
@@ -330,7 +347,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       page: { empty: pageItems.length === 0, hasMore: offset + pageItems.length < filtered.length, nextOffset: offset + pageItems.length }, query: input.query, fields: input.fields, ...extra } };
 }
 
-export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal): AiToolResult {
-  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange);
+export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal): AiToolResult {
+  const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange, previousModelEdits);
   return { ...result, receipt: buildReceipt(snapshot, value, result) };
 }

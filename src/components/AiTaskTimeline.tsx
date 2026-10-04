@@ -35,6 +35,11 @@ export const TOOL_LABELS: Record<string, string> = {
   read_results: "读取分析结果", read_result: "核对结果引用",
   propose_section_change: "整理柱截面参数", discard_section_change: "取消截面方案", confirm_section_change: "确认截面参数",
   read_comparison: "读取前后分析对比", read_comparison_result: "核对前后差值引用",
+  propose_model_edits: "整理基础编辑", discard_model_edits: "取消基础编辑", confirm_model_edits: "确认基础编辑",
+  create_node: "准备创建节点", create_nodes: "准备批量创建节点", update_node: "准备修改节点", update_nodes: "准备批量修改节点",
+  duplicate_node: "准备复制节点", duplicate_nodes: "准备批量复制节点", delete_node: "准备删除节点", delete_nodes: "准备批量删除节点",
+  create_member: "准备创建杆件", create_members: "准备批量创建杆件", update_member: "准备修改杆件", update_members: "准备批量修改杆件",
+  duplicate_member: "准备复制杆件", duplicate_members: "准备批量复制杆件", delete_member: "准备删除杆件", delete_members: "准备批量删除杆件",
 };
 
 function toolLabel(record: Pick<AiToolRecord, "call">): string {

@@ -3,6 +3,7 @@ import { executeAiTool, type AiContext, type AiSnapshot, type AiStatus, type AiT
 import { frameResourceOptions, type FrameProposal } from "./frame-proposal";
 import type { ConditionsProposal } from "./analysis-conditions";
 import type { SectionChangeProposal } from "./section-stage";
+import type { ModelEditProposal } from "./model-edits";
 
 export type AiTransport = Pick<FrameMindDesktopApi, "chatDeepSeek" | "cancelDeepSeekChat">;
 export interface AiToolRecord { round: number; call: DeepSeekToolCall; result: AiToolResult; }
@@ -24,6 +25,7 @@ export interface AiTaskResult {
   proposal?: FrameProposal | null;
   conditions?: ConditionsProposal | null;
   sectionChange?: SectionChangeProposal | null;
+  modelEdits?: ModelEditProposal | null;
   lifecycle?: { request: { id: string; state: "initiated" }; response: { kind: "none" | "text" | "tool"; state: "received" | "not-received" }; task: { state: "completed" | "failed" | "cancelled"; status: AiStatus } };
 }
 export interface AiTaskOptions {
@@ -35,6 +37,7 @@ export interface AiTaskOptions {
   proposal?: FrameProposal;
   conditions?: ConditionsProposal;
   sectionChange?: SectionChangeProposal;
+  modelEdits?: ModelEditProposal;
   onProgress?(progress: AiProgress): void;
   onOutput?(output: Pick<AiTaskResult, "assistant" | "records">): void;
 }
@@ -62,6 +65,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
   let proposal: FrameProposal | null | undefined = options.proposal;
   let conditions: ConditionsProposal | null | undefined = options.conditions;
   let sectionChange: SectionChangeProposal | null | undefined = options.sectionChange;
+  let modelEdits: ModelEditProposal | null | undefined = options.modelEdits;
   const taskSnapshot: AiSnapshot = { ...snapshot, context: { ...snapshot.context, goal: prompt.trim() } };
   const isCurrent = () => options.isCurrent() && options.getCurrentSnapshot().snapshotKey === taskSnapshot.snapshotKey;
   const initialReadCall: DeepSeekToolCall = { id: `${requestId}_state`, type: "function", function: { name: "read_model", arguments: JSON.stringify({ collection: "summary" }) } };
@@ -88,9 +92,10 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       proposal: interrupted ? options.proposal : proposal,
       conditions: interrupted ? options.conditions : conditions,
       sectionChange: interrupted ? options.sectionChange : sectionChange,
+      modelEdits: interrupted ? options.modelEdits : modelEdits,
       lifecycle: { request: { id: requestId, state: "initiated" }, response: { kind: assistant ? "text" : hasAgentTools ? "tool" : "none", state: assistant || hasAgentTools ? "received" : "not-received" }, task: { state: taskState, status } },
       interruption: interrupted ? { phase, round: currentRound, completedTools: records.filter((record) => record.result.status === "completed").length,
-        draftsDiscarded: proposal !== options.proposal || conditions !== options.conditions || sectionChange !== options.sectionChange } : undefined };
+        draftsDiscarded: proposal !== options.proposal || conditions !== options.conditions || sectionChange !== options.sectionChange || modelEdits !== options.modelEdits } : undefined };
   };
   const progress = (event: AiProgress) => {
     phase = event.phase; currentRound = event.round;
@@ -162,15 +167,16 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         progress({ phase: "tool", round, toolCall: call });
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-        const toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined);
+        const toolResult = executeAiTool(taskSnapshot, call, proposal ?? undefined, conditions ?? undefined, sectionChange ?? undefined, modelEdits ?? undefined);
         if (toolResult.proposal !== undefined) proposal = toolResult.proposal;
         if (toolResult.conditions !== undefined) conditions = toolResult.conditions;
         if (toolResult.sectionChange !== undefined) sectionChange = toolResult.sectionChange;
+        if (toolResult.modelEdits !== undefined) modelEdits = toolResult.modelEdits;
         records.push({ round, call, result: toolResult });
         progress({ phase: "tool", round, toolCall: call, toolResult });
         if (paused) await waitForResume();
         if (cancelled || !isCurrent()) return result("cancelled", "对话上下文已改变，请基于当前模型重新发送");
-        if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null) return result("completed", toolResult.message);
+        if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null || toolResult.modelEdits === null) return result("completed", toolResult.message);
         if (toolResult.status !== "completed") return result(toolResult.status, toolResult.message);
         messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(toolResult) });
       }

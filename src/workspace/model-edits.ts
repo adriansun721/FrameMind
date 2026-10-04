@@ -1,0 +1,142 @@
+import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
+import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
+import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
+
+export interface ModelEditProposal {
+  id: string;
+  version: number;
+  projectId: string;
+  baseRevision: number;
+  operations: ProjectEditOperation[];
+  preview: ProjectEditReceipt;
+}
+
+interface ModelEditReadback {
+  projectId: string;
+  modelRevision: number;
+  objects: { kind: ProjectEditReceipt["changes"][number]["kind"]; id: string; exists: boolean; object?: unknown }[];
+}
+
+function object(value: unknown, fields: readonly string[]): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("编辑参数必须是 JSON 对象");
+  const input = value as Record<string, unknown>;
+  const extra = Object.keys(input).find((key) => !fields.includes(key));
+  if (extra) throw new Error(`编辑参数含未定义字段 ${extra}`);
+  return input;
+}
+function identity(value: unknown): string {
+  if (typeof value !== "string" || !value.trim() || value.length > 200) throw new Error("编辑必须引用稳定对象身份");
+  return value;
+}
+function vector(value: unknown, partial: boolean): Partial<Vector3> {
+  const input = object(value, ["x", "y", "z"]);
+  if (!Object.keys(input).length || (!partial && Object.keys(input).length !== 3)
+    || Object.values(input).some((component) => typeof component !== "number" || !Number.isFinite(component))) throw new Error("坐标必须是有限数值，创建节点需提供 XYZ");
+  return { ...input };
+}
+function memberProperties(value: unknown, partial: boolean) {
+  const fields = ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"];
+  const input = object(value, fields);
+  if (!Object.keys(input).length || (!partial && fields.some((key) => input[key] === undefined))) throw new Error("杆件参数不完整");
+  for (const key of fields.slice(0, 4)) if (input[key] !== undefined) identity(input[key]);
+  if (input.rotationDegrees !== undefined && (typeof input.rotationDegrees !== "number" || !Number.isFinite(input.rotationDegrees))) throw new Error("截面转角必须是有限数值（度）");
+  return input as Partial<{ startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number }>;
+}
+
+export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 100) throw new Error("operations 必须包含 1 至 100 项基础编辑");
+  return value.map((value) => {
+    const input = object(value, ["type", "id", "position", "properties", "changes"]);
+    switch (input.type) {
+      case "create_node": object(input, ["type", "position"]); return { type: input.type, position: vector(input.position, false) as Vector3 };
+      case "update_node": object(input, ["type", "id", "position"]); return { type: input.type, id: identity(input.id) as NodeId, position: vector(input.position, true) };
+      case "create_member": object(input, ["type", "properties"]); return { type: input.type, properties: memberProperties(input.properties, false) as Extract<ProjectEditOperation, { type: "create_member" }>["properties"] };
+      case "update_member": object(input, ["type", "id", "changes"]); return { type: input.type, id: identity(input.id) as MemberId, changes: memberProperties(input.changes, true) };
+      case "duplicate_node": case "delete_node": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) as NodeId };
+      case "duplicate_member": case "delete_member": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) as MemberId };
+      default: throw new Error(`未定义基础编辑 ${String(input.type)}`);
+    }
+  });
+}
+
+export function proposeModelEdits(project: FrameProject, input: unknown, previous?: ModelEditProposal): ModelEditProposal {
+  const args = object(input, ["operations"]);
+  const operations = parseProjectEditOperations(args.operations);
+  const { receipt } = applyProjectEdits(project, operations);
+  return { id: previous?.id ?? `edits_${crypto.randomUUID()}`, version: (previous?.version ?? 0) + 1,
+    projectId: project.id, baseRevision: project.revision, operations, preview: receipt };
+}
+
+export const MODEL_EDIT_TOOLS = new Set(["create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
+  "create_member", "create_members", "update_member", "update_members", "duplicate_member", "duplicate_members", "delete_member", "delete_members"]);
+
+/** Legacy singular/plural calls become the same reviewed draft as the canonical batch tool. */
+export function modelEditToolInput(name: string, input: Record<string, unknown>): unknown {
+  if (name.endsWith("s")) {
+    const singular = name.slice(0, -1);
+    const field = name.startsWith("create_") ? name.endsWith("nodes") ? "nodes" : "members" : name.startsWith("update_") ? "updates" : "ids";
+    object(input, [field]);
+    if (!Array.isArray(input[field])) throw new Error(`${field} 必须是数组`);
+    return { operations: input[field].map((entry) => (field === "ids" ? { type: singular, id: entry }
+      : (modelEditToolInput(singular, object(entry, singular === "create_node" ? ["position", "x", "y", "z"] : singular === "update_node" ? ["id", "position", "x", "y", "z"] : singular === "create_member" ? ["properties", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"] : ["id", "changes"])) as { operations: unknown[] }).operations[0])) };
+  }
+  const node = name.endsWith("node");
+  if (name.startsWith("create_") || name.startsWith("update_")) {
+    const property = node ? "position" : name.startsWith("create_") ? "properties" : "changes";
+    const flatFields = node ? ["x", "y", "z"] : name.startsWith("create_") ? ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"] : [];
+    object(input, [...(name.startsWith("update_") ? ["id"] : []), property, ...flatFields]);
+    if (input[property] !== undefined && flatFields.some((key) => input[key] !== undefined)) throw new Error("不能混用嵌套和直接参数");
+    const properties = input[property] ?? Object.fromEntries(flatFields.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));
+    return { operations: [{ type: name, ...(name.startsWith("update_") ? { id: input.id } : {}), [property]: properties }] };
+  }
+  object(input, ["id"]);
+  return { operations: [{ type: name, id: input.id }] };
+}
+
+function freeze<T>(value: T): T {
+  if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); }
+  return value;
+}
+export function prepareModelEditConfirmation(project: FrameProject, proposal: ModelEditProposal) {
+  return Object.freeze({ requestId: `confirm_${crypto.randomUUID()}`, baseProject: project, proposal: freeze(structuredClone(proposal)) });
+}
+export type PreparedModelEditConfirmation = ReturnType<typeof prepareModelEditConfirmation>;
+
+export class ModelEditConfirmation {
+  private applied = new Map<string, AiToolResult>();
+
+  confirm(project: FrameProject, confirmation: PreparedModelEditConfirmation): { project: FrameProject; result: AiToolResult } {
+    const context = captureAiSnapshot(project, []).context;
+    const failed = (message: string) => ({ project, result: { status: "failed" as const, message, context } });
+    const draft = confirmation.proposal;
+    if (project.id !== draft.projectId) return failed("项目已切换，请重新准备编辑草案");
+    const key = `${draft.projectId}:${draft.id}:${draft.version}`;
+    const previous = this.applied.get(key);
+    if (previous) return { project, result: { ...previous, message: "该编辑已确认过，本次未重复应用" } };
+    if (project !== confirmation.baseProject || project.revision !== draft.baseRevision) return failed("正式模型已变化，请重新生成编辑草案并确认");
+    try {
+      const outcome = applyProjectEdits(project, parseProjectEditOperations(draft.operations));
+      if (JSON.stringify(outcome.receipt) !== JSON.stringify(draft.preview)) return failed("草案内容与预览不一致，请重新核对");
+      const snapshot = captureAiSnapshot(outcome.project, []);
+      const collections = {
+        node: outcome.project.nodes,
+        member: outcome.project.members,
+        support: outcome.project.supports,
+        "nodal-load": outcome.project.nodalLoads,
+        "uniform-load": outcome.project.uniformLoads,
+      } as const;
+      const readback: ModelEditReadback = {
+        projectId: snapshot.context.projectId,
+        modelRevision: snapshot.context.modelRevision,
+        objects: outcome.receipt.changes.map(({ kind, id }) => {
+          const object = collections[kind].find((item) => item.id === id);
+          return { kind, id, exists: Boolean(object), ...(object ? { object } : {}) };
+        }),
+      };
+      const result: AiToolResult = { status: "applied", message: "基础编辑已应用，可整组撤销和重做", context: snapshot.context,
+        data: { requestId: confirmation.requestId, proposalId: draft.id, proposalVersion: draft.version, ...outcome.receipt, readback } };
+      this.applied.set(key, result);
+      return { project: outcome.project, result };
+    } catch (error) { return failed(error instanceof Error ? error.message : "基础编辑失败，正式模型保留"); }
+  }
+}
