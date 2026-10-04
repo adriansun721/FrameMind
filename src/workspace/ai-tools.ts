@@ -65,9 +65,10 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
   const resultSnapshot = (result: AnalysisResult) => structuredClone({ ...result, process: undefined });
   const analysisComplete = Boolean(analysis && analysis.status === "complete" && analysis.nodes.length === analysis.input.nodes.length && analysis.members.length === analysis.input.members.length);
+  const analysisCurrent = analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false;
   const analysisContext: AiAnalysisContext = analysis ? {
     id: analysis.id, inputRevision: analysis.input.projectRevision, createdAt: analysis.createdAt, status: analysisComplete ? "complete" : "incomplete",
-    current: analysisComplete && isAnalysisResultCurrent(project, analysis),
+    current: analysisCurrent,
     source: analysis.input.combination ? { id: analysis.input.combination.definition.id, name: analysis.input.combination.definition.name, kind: "combination" } :
       { id: analysis.input.loadCase?.id ?? "LC1", name: analysis.input.loadCase?.name ?? "旧版工况", kind: "case" },
   } : { status: "absent", current: false };
@@ -91,13 +92,13 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
       selection,
       analysisId: analysis?.id,
       analysisComplete,
-      analysisCurrent: analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false,
+      analysisCurrent,
       comparison: comparisonIds,
     }),
     model: structuredClone(model),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
-    analysisCurrent: analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false,
+    analysisCurrent,
   }) as AiSnapshot;
 }
 
