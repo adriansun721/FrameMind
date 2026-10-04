@@ -70,6 +70,16 @@ describe("read-only AI tools", () => {
       .toMatchObject({ status: "missing-input", data: { missing: [{ kind: "node", id: "missing_node" }] } });
   });
 
+  it("changes the task fingerprint when selection or comparison context changes", () => {
+    const project = addNode(addNode(createProject(), { x: 0, y: 0, z: 0 }), { x: 4, y: 0, z: 0 });
+    const first = captureAiSnapshot(project, [{ kind: "node", id: project.nodes[0].id }]);
+    const second = captureAiSnapshot(project, [{ kind: "node", id: project.nodes[1].id }]);
+    const compared = captureAiSnapshot(project, first.context.selection.map(({ kind, id }) => ({ kind, id })), undefined, { beforeId: "analysis-before", afterId: "analysis-after" });
+
+    expect(second.snapshotKey).not.toBe(first.snapshotKey);
+    expect(compared.snapshotKey).not.toBe(first.snapshotKey);
+  });
+
   it("returns bounded field/range pages, explicit empty-page semantics and a real state receipt", () => {
     const project = addNode(addNode(createProject("状态回归"), { x: 0, y: 0, z: 0 }), { x: 4, y: 0, z: 0 });
     const snapshot = captureAiSnapshot(project, []);

@@ -81,7 +81,19 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
         return { kind, id, label: object?.label ?? id, exists: Boolean(object) };
       }),
     },
-    snapshotKey: JSON.stringify({ projectId: project.id, revision: project.revision, model, analysisId: analysis?.id, analysisComplete }),
+    // The task boundary must invalidate when its target context changes even if
+    // the underlying project revision is unchanged (for example, a new selection
+    // or comparison pair while the user is browsing the model).
+    snapshotKey: JSON.stringify({
+      projectId: project.id,
+      revision: project.revision,
+      model,
+      selection,
+      analysisId: analysis?.id,
+      analysisComplete,
+      analysisCurrent: analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false,
+      comparison: comparisonIds,
+    }),
     model: structuredClone(model),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
