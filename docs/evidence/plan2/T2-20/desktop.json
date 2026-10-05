@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "previewIsolated": true,
+  "units": "mm-N",
+  "undoRedo": true,
+  "nativeAnalysis": "analysis_f588f0c2-e255-4109-9eeb-f5cce5b62ced",
+  "restartPreserved": true,
+  "nodes": [
+    {
+      "id": "node_0001",
+      "label": "N1",
+      "position": {
+        "x": -2,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0002",
+      "label": "N2",
+      "position": {
+        "x": 2,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0003",
+      "label": "N3",
+      "position": {
+        "x": 0,
+        "y": -2,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0004",
+      "label": "N4",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0005",
+      "label": "N5",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    }
+  ],
+  "members": [
+    {
+      "id": "member_0003",
+      "label": "M3",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0005",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 17.5
+    },
+    {
+      "id": "member_0004",
+      "label": "M4",
+      "startNodeId": "node_0005",
+      "endNodeId": "node_0002",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 17.5
+    },
+    {
+      "id": "member_0005",
+      "label": "M5",
+      "startNodeId": "node_0003",
+      "endNodeId": "node_0005",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 17.5
+    },
+    {
+      "id": "member_0006",
+      "label": "M6",
+      "startNodeId": "node_0005",
+      "endNodeId": "node_0004",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 17.5
+    }
+  ]
+}
