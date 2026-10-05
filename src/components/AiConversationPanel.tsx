@@ -1,4 +1,5 @@
 import { useUnits } from "./UnitPresentation";
+import { TopologyImpact } from "./TopologyImpact";
 import { CANONICAL_UNITS } from "../domain/units";
 import { convertToolQuantities } from "../workspace/unit-tools";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -651,6 +652,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
         </dl>
         <p className="frame-draft-notice">草案仅来自当前项目修订 R{modelEdits.baseRevision}；确认后形成一个可撤销的整体历史项。节点删除会级联其支座、节点荷载、关联杆件及均布荷载。</p>
         <details className="proposal-details"><summary>查看逐项变化</summary><p>坐标 {units.unit("m")} · 截面转角 {units.unit("°")}</p><ol>{modelEdits.preview.changes.map((change) => <li key={`${change.kind}:${change.id}`}><span>{change.kind} · {change.id}</span><code>{editPreviewText(change.before ?? null)} -&gt; {editPreviewText(change.after ?? null)}</code></li>)}</ol></details>
+        {modelEdits.preview.topology && <TopologyImpact receipts={modelEdits.preview.topology} />}
         {!modelEditsCurrent && <p className="frame-draft-notice">正式模型已变化，请重新生成草案。</p>}
         <div className="proposal-card-actions"><button type="button" onClick={() => rejectModelEdits()}>取消编辑</button><button type="button" className="proposal-confirm" disabled={busy || analysisBusy || conflicts.length > 0 || !modelEditsCurrent || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange)} onClick={confirmModelEdits}>确认编辑</button></div>
       </section>}

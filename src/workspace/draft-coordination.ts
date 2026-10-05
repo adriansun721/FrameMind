@@ -59,7 +59,9 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
     ...conditionTargets(base, drafts.taskDraft?.conditions),
     ...conditionTargets(base, drafts.conditions ?? undefined),
     ...(drafts.sectionChange?.memberIds ?? []).map((id) => ({ kind: "member" as const, id })),
-    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => "id" in item && !item.type.endsWith("analysis_case")
+    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => "memberIds" in item
+      ? [...item.memberIds.map((id) => ({ kind: "member" as const, id })), ...(item.nodeId ? [{ kind: "node" as const, id: item.nodeId }] : [])]
+      : "id" in item && !item.type.endsWith("analysis_case")
       ? [{ kind: item.type.endsWith("node") ? "node" as const : "member" as const, id: item.id }] : []),
   ];
 }
@@ -96,6 +98,18 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   if (sameEngineeringState(base, current)) return { draft, conflicts: [] };
   const conflicts: string[] = [];
   const operations = draft.operations.map((operation) => {
+    if ("memberIds" in operation) {
+      const ids = new Set(operation.memberIds);
+      const nodes = new Set(base.members.filter((member) => ids.has(member.id)).flatMap((member) => [member.startNodeId, member.endNodeId]));
+      const materials = new Set(base.members.filter((member) => ids.has(member.id)).map((member) => member.materialId));
+      const sections = new Set(base.members.filter((member) => ids.has(member.id)).map((member) => member.sectionId));
+      if (operation.nodeId) nodes.add(operation.nodeId);
+      const impact = (project: FrameProject) => [project.members.filter((member) => ids.has(member.id)), project.nodes.filter((node) => nodes.has(node.id)),
+        project.uniformLoads.filter((load) => ids.has(load.memberId)), project.supports.filter((support) => nodes.has(support.nodeId)), project.nodalLoads.filter((load) => nodes.has(load.nodeId)),
+        project.materials.filter((material) => materials.has(material.id)), project.sections.filter((section) => sections.has(section.id))];
+      if (!same(impact(base), impact(current))) conflicts.push("连接／分割目标、端点或边界荷载已变化，请重读并重新确认拓扑影响");
+      return operation;
+    }
     if (!("id" in operation)) return operation;
     const before = (operation.type.endsWith("analysis_case") ? base.analysisCases : operation.type.endsWith("node") ? base.nodes : base.members).find((item) => item.id === operation.id);
     const actual = (operation.type.endsWith("analysis_case") ? current.analysisCases : operation.type.endsWith("node") ? current.nodes : current.members).find((item) => item.id === operation.id);

@@ -589,6 +589,9 @@ button { color: inherit; }
 .node-dialog form { margin: 0; }
 .dialog-form { padding: var(--space-6) var(--space-7) var(--space-7); }
 .wide-dialog { width: min(680px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+.topology-form .field select.topology-member-select { height: 96px; }
+.topology-form p, .topology-form small, .topology-impact { font-size: var(--text-caption); line-height: 1.6; overflow-wrap: anywhere; }
+.topology-preview { margin: var(--space-3) 0; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); background: var(--surface-panel-muted); }
 .coordinate-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
 .field { display: block; margin-bottom: var(--space-3); }
 .field > span { display: block; margin: 0 0 var(--space-1); color: var(--text-secondary); font-size: var(--text-caption); }

@@ -4,6 +4,7 @@ export const GEOMETRY_CONTRACT = {
   coordinates: "finite-double-no-grid-clipping",
   connectivity: "explicit-node-id-only",
   intersections: "do-not-connect-or-split",
+  topology: { pointOnMemberToleranceM: 1e-9, localAxisTolerance: 1e-9, operation: "explicit-reviewed-engineering-topology", nodeReuse: "explicit-exact-identity", solverSubdivision: "does-not-create-engineering-objects" },
   duplicates: { comparison: "exact-xyz", automaticMerge: false },
   snapping: { defaultEnabled: true, userControllable: true, nodeRadiusPixels: 12, planeMembership: "exact-normal-coordinate", numericInput: "exact-xyz-only", parallelRayTolerance: 1e-10, automaticGridSnap: false },
   memberLength: { minimumExclusive: 1e-12, scaleWithCoordinates: false },

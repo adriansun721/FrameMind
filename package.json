@@ -14,6 +14,7 @@
     "evidence:plan2:t217": "npm run build:native && npm run build && npx vitest run src/domain/units.test.ts src/components/UnitPresentation.test.tsx && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-17-units.spec.ts",
     "evidence:plan2:t218": "npm run build:native && npm run build && npx vitest run src/domain/free-geometry.test.ts src/components/scene-coordinates.test.ts && node scripts/verify-plan2-t218.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-18-geometry.spec.ts",
     "evidence:plan2:t219": "npm run build && npx vitest run src/domain/work-plane.test.ts src/components/WorkPlaneDrawing.test.tsx electron/deepseek-chat.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-19-drawing.spec.ts",
+    "evidence:plan2:t220": "npm run build:native && npm run build && npx vitest run src/workspace/topology.test.ts src/components/TopologyEditor.test.tsx && node scripts/verify-plan2-t220.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-20-topology.spec.ts",
     "evidence:plan2:t216": "npm run build:native && npm run build && node scripts/verify-plan2-t216.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-16-analysis-cases.spec.ts",
     "package:win:native-production": "npm run build:native && npm run build && electron-builder --config electron-builder.production-native.yml --win nsis --x64 --publish never",
     "build": "npm run typecheck && npm run build:main && vite build",

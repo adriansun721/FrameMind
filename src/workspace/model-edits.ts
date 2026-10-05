@@ -48,8 +48,14 @@ function memberProperties(value: unknown, partial: boolean) {
 export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 100) throw new Error("operations 必须包含 1 至 100 项基础编辑");
   return value.map((value) => {
-    const input = object(value, ["type", "id", "position", "properties", "changes"]);
+    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "nodeId"]);
     switch (input.type) {
+      case "split_member": case "connect_members": {
+        object(input, ["type", "memberIds", "position", "nodeId"]);
+        if (!Array.isArray(input.memberIds)) throw new Error("memberIds 必须是正式杆件身份数组");
+        return { type: input.type, memberIds: input.memberIds.map((id) => identity(id) as MemberId), position: vector(input.position, false) as Vector3,
+          ...(input.nodeId !== undefined ? { nodeId: identity(input.nodeId) as NodeId } : {}) };
+      }
       case "create_node": object(input, ["type", "position"]); return { type: input.type, position: vector(input.position, false) as Vector3 };
       case "update_node": object(input, ["type", "id", "position"]); return { type: input.type, id: identity(input.id) as NodeId, position: vector(input.position, true) };
       case "create_member": object(input, ["type", "properties"]); return { type: input.type, properties: memberProperties(input.properties, false) as Extract<ProjectEditOperation, { type: "create_member" }>["properties"] };
@@ -76,11 +82,15 @@ export function proposeModelEdits(project: FrameProject, input: unknown, previou
     projectId: project.id, baseRevision: project.revision, operations, preview: receipt };
 }
 
-export const MODEL_EDIT_TOOLS = new Set(["draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
+export const MODEL_EDIT_TOOLS = new Set(["split_member", "connect_members", "draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
   "create_member", "create_members", "update_member", "update_members", "duplicate_member", "duplicate_members", "delete_member", "delete_members"]);
 
 /** Legacy singular/plural calls become the same reviewed draft as the canonical batch tool. */
 export function modelEditToolInput(name: string, input: Record<string, unknown>, project?: FrameProject): unknown {
+  if (name === "split_member" || name === "connect_members") {
+    object(input, ["memberIds", "position", "nodeId"]);
+    return { operations: [{ type: name, ...input }] };
+  }
   if (name === "draw_member") {
     if (!project) throw new Error("绘杆草案需要当前工程");
     object(input, ["start", "end", "materialId", "sectionId", "rotationDegrees"]);

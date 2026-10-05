@@ -3,6 +3,10 @@ const position = { type: "object", additionalProperties: false, minProperties: 1
   properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } };
 const member = { type: "object", additionalProperties: false, minProperties: 1,
   properties: { startNodeId: identity, endNodeId: identity, materialId: identity, sectionId: identity, rotationDegrees: { type: "number" } } };
+const topologyProperties = (type: string) => ({
+  memberIds: { type: "array", minItems: type === "split_member" ? 1 : 2, maxItems: type === "split_member" ? 1 : 100, uniqueItems: true, items: identity },
+  position: { ...position, required: ["x", "y", "z"] }, nodeId: identity,
+});
 
 const analysisCase = { type: "object", additionalProperties: false, required: ["name", "method", "loadSourceId", "settings"], properties: {
   name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static"] }, loadSourceId: identity,
@@ -16,6 +20,9 @@ export const MODEL_EDIT_SCHEMA = {
       { type: "object", additionalProperties: false, required: ["type", "id", "position"], properties: { type: { const: "update_node" }, id: identity, position } },
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_member" }, properties: { ...member, required: Object.keys(member.properties) } } },
       { type: "object", additionalProperties: false, required: ["type", "id", "changes"], properties: { type: { const: "update_member" }, id: identity, changes: member } },
+      ...["split_member", "connect_members"].map((type) => ({ type: "object", additionalProperties: false, required: ["type", "memberIds", "position"], properties: {
+        type: { const: type }, ...topologyProperties(type),
+      } })),
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_analysis_case" }, properties: analysisCase } },
       { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_analysis_case" }, id: identity, properties: analysisCase } },
       ...["delete_analysis_case", "duplicate_node", "delete_node", "duplicate_member", "delete_member"].map((type) => ({ type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: type }, id: identity } })),
@@ -33,6 +40,9 @@ const memberProperties = { properties: { ...member, required: ["startNodeId", "e
 const memberUpdate = { id: identity, changes: member };
 const ids = (type: string) => operation(type, { id: identity }, ["id"]);
 export const MODEL_EDIT_TOOL_DEFINITIONS = [
+  ...["split_member", "connect_members"].map((name) => ({ type: "function", function: { name,
+    description: "Prepare explicit engineering topology for user confirmation, NOT internal solver subdivision. split_member takes one member; connect_members takes 2-100 members at a common point. Existing exact-position node requires explicit nodeId. Preserve material, section, local orientation and uniform intensity over disjoint child ranges; refuse endpoint identity conflicts. Read the replacement identity mapping after confirmation before further edits.",
+    parameters: { type: "object", additionalProperties: false, required: ["memberIds", "position"], properties: topologyProperties(name) } } })),
   { type: "function", function: { name: "draw_member", description: "Prepare one atomic member segment and any new endpoints for user confirmation. Explicit nodeId reuses that existing identity and must match its position exactly. Omitting nodeId creates a new node; no grid snap, automatic merge, crossing connection or split. Coordinates use canonical metres unless inputUnits declares length.",
     parameters: { type: "object", additionalProperties: false, required: ["start", "end", "materialId", "sectionId"], properties: {
       start: { type: "object", additionalProperties: false, required: ["position"], properties: { position: { ...position, required: ["x", "y", "z"] }, nodeId: identity } },

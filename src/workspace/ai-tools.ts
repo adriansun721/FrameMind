@@ -327,6 +327,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
         return { status: "awaiting-confirmation", message: "基础编辑草案已准备，尚未修改正式模型", context: snapshot.context, modelEdits,
           data: { units: snapshot.model.units, ...modelEdits.preview } };
       } catch (error) {
+        if (call.function.name === "split_member" || call.function.name === "connect_members") throw error;
         if (call.function.name !== "propose_model_edits") return { status: "awaiting-confirmation", message: "模型修改尚未确认，本阶段只读；请使用手动编辑或完整基础编辑草案", context: snapshot.context };
         throw error;
       }

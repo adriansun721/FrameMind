@@ -17,6 +17,7 @@ import {
   type NodeId,
   type Vector3,
 } from "./project";
+import { changeTopology, type TopologyInput, type TopologyReceipt } from "./topology";
 
 export type ProjectMutation = (project: FrameProject) => FrameProject;
 
@@ -97,6 +98,7 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
+  | ({ type: "split_member" | "connect_members" } & TopologyInput)
   | { type: "create_node"; position: Vector3 }
   | { type: "update_node"; id: NodeId; position: Partial<Vector3> }
   | { type: "duplicate_node" | "delete_node"; id: NodeId }
@@ -120,11 +122,13 @@ export interface ProjectEditReceipt {
   changes: ProjectEditChange[];
   created: { operationIndex: number; kind: "node" | "member"; id: string; sourceId?: string }[];
   affectedMemberIds: MemberId[];
+  topology?: TopologyReceipt[];
 }
 
 /** Manual edits and reviewed tool drafts execute the same commands and return the same object diff. */
 export function applyProjectEdits(project: FrameProject, operations: readonly ProjectEditOperation[]): { project: FrameProject; receipt: ProjectEditReceipt } {
   const created: ProjectEditReceipt["created"] = [];
+  const topology: TopologyReceipt[] = [];
   // Consecutive node updates describe one geometry draft, not intermediate physical models.
   const updateGroups = new Map<number, Extract<ProjectEditOperation, { type: "update_node" }>[]>();
   const groupedIndices = new Set<number>();
@@ -141,6 +145,13 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
+      case "split_member": case "connect_members": {
+        const outcome = changeTopology(current, operation, operation.type === "split_member" ? "split" : "connect");
+        changed = outcome.project; topology.push(outcome.receipt);
+        for (const node of changed.nodes) if (!current.nodes.some((item) => item.id === node.id)) created.push({ operationIndex, kind: "node", id: node.id });
+        for (const mapping of outcome.receipt.mappings) for (const segment of mapping.segments) created.push({ operationIndex, kind: "member", id: segment.memberId, sourceId: mapping.sourceMemberId });
+        break;
+      }
       case "create_node": changed = addNode(current, operation.position); break;
       case "update_node": changed = updateNodes(current, updateGroups.get(operationIndex)!); break;
       case "duplicate_node": changed = duplicateNode(current, operation.id); break;
@@ -172,5 +183,5 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
   const nodeIds = new Set(changes.filter((change) => change.kind === "node").map((change) => change.id));
   const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
     || changes.some((change) => change.kind === "member" && change.id === member.id)).map((member) => member.id))];
-  return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds } };
+  return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds, ...(topology.length ? { topology } : {}) } };
 }
