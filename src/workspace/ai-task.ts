@@ -204,7 +204,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       if (round > (exploration?.snapshot().maxRounds ?? MAX_ROUNDS)) return result("failed", "工具读取轮次已达上限，请缩小对象范围或分开提问");
       const refresh = () => {
         const live = options.getCurrentSnapshot();
-        const current = captureAiSnapshot({ ...live.editProject, activeLoadCaseId: snapshot.model.activeLoadCaseId, activeLoadCombinationId: snapshot.model.activeLoadCombinationId,
+        const current = captureAiSnapshot({ ...live.editProject, activeAnalysisCaseId: snapshot.model.activeAnalysisCaseId, activeLoadCaseId: snapshot.model.activeLoadCaseId, activeLoadCombinationId: snapshot.model.activeLoadCombinationId,
           analysisResults: snapshot.comparison ? [snapshot.comparison.before, snapshot.comparison.after] : [] }, targets, snapshot.analysis, snapshot.context.comparison);
         if (current.snapshotKey === taskSnapshot.snapshotKey) return false;
         const base = draftBaseProject;

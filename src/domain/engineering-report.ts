@@ -12,6 +12,7 @@ export interface EngineeringReport {
 }
 
 export function reportSourceLabel(result: AnalysisResult): string {
+  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name} · 线性静力 · ${result.input.analysisCase.loadSourceId}`;
   const source = result.input.combination?.definition ?? result.input.loadCase;
   return source ? `${source.id} · ${source.name}${result.input.combination ? " · 用户定义组合" : ""}` : "LC1 · 默认工况";
 }

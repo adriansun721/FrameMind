@@ -38,7 +38,7 @@ export function loadStageOptions(project: FrameProject, draft: LoadStageDraft) {
   // Updated objects may be referenced by their draft alias as well as their stable identity.
   for (const c of draft.loadCases ?? []) if (c.id && c.ref !== c.id) cases.push({ value: c.ref, label: `${c.id} · ${c.name}` });
   for (const c of draft.loadCombinations ?? []) if (c.id && c.ref !== c.id) combos.push({ value: c.ref, label: `${c.id} · ${c.name}（用户自定义组合）` });
-  return { cases, sources: [...cases, ...combos] };
+  return { cases, sources: [...cases, ...combos, ...project.analysisCases.map((c) => ({ value: c.id, label: `${c.id} · ${c.name}（线性静力 · ${c.loadSourceId}）` }))] };
 }
 const provenance = (source: ConditionSource) => ({ user: "用户提供", suggestion: "建议 · 待确认", existing: "已有", catalog: "目录", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" }[source]);
 

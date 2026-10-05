@@ -1,4 +1,4 @@
-import { addNodalLoad, addSupport, selectLoadCase, selectLoadCombination, updateNodalLoad, updateSupport, type DofRestraints, type FrameProject, type LoadId, type NodeId, type SupportId, type Vector3 } from "../domain/project";
+import { addNodalLoad, addSupport, selectAnalysisSource, updateNodalLoad, updateSupport, type DofRestraints, type FrameProject, type LoadId, type NodeId, type SupportId, type Vector3 } from "../domain/project";
 import { applyProjectTransaction } from "../domain/project-operations";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
 import { conditionObject as object, conditionSource as source, conditionVector as vector, type ConditionSource as Source } from "./condition-input";
@@ -46,14 +46,14 @@ export function proposeConditions(input: unknown, previous?: ConditionsProposal)
   return next;
 }
 
-export function conditionsIssues(project: Parameters<typeof loadStageIssues>[0] & { nodes: readonly { id: string }[]; supports: readonly { id: string; nodeId: string; label: string }[]; nodalLoads: readonly { id: string }[] }, proposal: ConditionsProposal): string[] {
+export function conditionsIssues(project: Parameters<typeof loadStageIssues>[0] & { nodes: readonly { id: string }[]; supports: readonly { id: string; nodeId: string; label: string }[]; nodalLoads: readonly { id: string }[]; analysisCases?: readonly { id: string }[] }, proposal: ConditionsProposal): string[] {
   const issues: string[] = [];
   if (proposal.supports === undefined) issues.push("尚缺支座条件；明确无新增支座时填空列表");
   if (proposal.nodalLoads === undefined) issues.push("尚缺节点力/力矩；明确无新增节点荷载时填空列表");
   const { references } = loadStageReferences(project, proposal);
   const resolve = (ref: string) => references.get(ref) ?? ref;
   const caseIds = [...project.loadCases.map((c) => c.id), ...(proposal.loadCases ?? []).map((c) => resolve(c.ref))];
-  const sourceIds = [...caseIds, ...project.loadCombinations.map((c) => c.id), ...(proposal.loadCombinations ?? []).map((c) => resolve(c.ref))];
+  const sourceIds = [...(project.analysisCases ?? []).map((c) => c.id), ...caseIds, ...project.loadCombinations.map((c) => c.id), ...(proposal.loadCombinations ?? []).map((c) => resolve(c.ref))];
   if (proposal.analysisSourceId && !sourceIds.includes(resolve(proposal.analysisSourceId))) issues.push(`计算来源 ${proposal.analysisSourceId} 已不存在`);
   const supportNodes = new Set<string>();
   const loadIds = new Set<string>();
@@ -125,12 +125,12 @@ export class ConditionsStageConfirmation {
           current = l.id ? updateNodalLoad(current, l.id, l.nodeId, l.force, l.moment, caseId) : addNodalLoad(current, l.nodeId, l.force, l.moment, caseId);
         }
         const sourceId = proposal.analysisSourceId && (references[proposal.analysisSourceId] ?? proposal.analysisSourceId);
-        if (sourceId && sourceId !== (current.activeLoadCombinationId ?? current.activeLoadCaseId)) current = current.loadCases.some((source) => source.id === sourceId) ? selectLoadCase(current, sourceId) : selectLoadCombination(current, sourceId);
+        if (sourceId && sourceId !== (current.activeAnalysisCaseId ?? current.activeLoadCombinationId ?? current.activeLoadCaseId)) current = selectAnalysisSource(current, sourceId);
         return current;
       });
       const result: AiToolResult = { status: "applied", message: "分析条件阶段已应用，可整组撤销和重做", context: captureAiSnapshot(next, []).context,
         data: { requestId: confirmation.requestId, proposalId: confirmation.proposal.id, proposalVersion: confirmation.proposal.version,
-          baseRevision: project.revision, appliedRevision: next.revision, units: next.units, analysisSourceId: next.activeLoadCombinationId ?? next.activeLoadCaseId, references, supports: next.supports, nodalLoads: next.nodalLoads,
+          baseRevision: project.revision, appliedRevision: next.revision, units: next.units, analysisSourceId: next.activeAnalysisCaseId ?? next.activeLoadCombinationId ?? next.activeLoadCaseId, references, supports: next.supports, nodalLoads: next.nodalLoads,
           uniformLoads: next.uniformLoads, selfWeight: next.selfWeight, loadCases: next.loadCases, loadCombinations: next.loadCombinations, combinationBasis: "用户自定义 · 无量纲系数 · 线弹性" } };
       this.applied.set(key, result);
       return { project: recordOperation(next, key, result), result };

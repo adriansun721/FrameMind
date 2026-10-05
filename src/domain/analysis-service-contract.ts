@@ -35,7 +35,7 @@ export function analysisDependencies(input: AnalysisInputSnapshot): AnalysisRunR
 }
 
 export function analysisSourceId(input: AnalysisInputSnapshot): string {
-  return input.combination?.definition.id ?? input.loadCase?.id ?? "LC1";
+  return input.analysisCase?.id ?? input.combination?.definition.id ?? input.loadCase?.id ?? "LC1";
 }
 
 export function validAnalysisOrigin(origin: AnalysisOrigin, input: AnalysisInputSnapshot): boolean {

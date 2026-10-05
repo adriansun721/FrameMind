@@ -53,7 +53,7 @@ const modelTools = [
     parameters: { type: "object", properties: {}, additionalProperties: false } } },
   { type: "function", function: { name: "read_model", description: "Read the applied model identity, engineering revision, analysis context, summary or a paginated collection. All values come from the current model snapshot; collection reads support bounded fields/query filtering.",
     parameters: { type: "object", properties: {
-      collection: { type: "string", enum: ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases"] },
+      collection: { type: "string", enum: ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases", "analysis-cases"] },
       offset: { type: "integer", minimum: 0 }, limit: { type: "integer", minimum: 1, maximum: 100 }, fields: { type: "array", minItems: 1, maxItems: 12, items: { type: "string" } },
       query: { type: "object", additionalProperties: false, required: ["field"], properties: { field: { type: "string" }, equals: {}, min: { type: "number" }, max: { type: "number" } } },
     }, required: ["collection"], additionalProperties: false } } },
@@ -124,7 +124,7 @@ const taskToolDefinitions = [
   { type: "function", function: { name: "discard_task_draft", description: "Discard the unapplied whole-task draft without changing the applied model.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
 ];
 const modelEditTools = [
-  { type: "function", function: { name: "propose_model_edits", description: "Preview one atomic batch of basic node/member creation, edits, copies or deletion using stable formal IDs. Never applies directly; user confirms the draft.", parameters: MODEL_EDIT_SCHEMA } },
+  { type: "function", function: { name: "propose_model_edits", description: "Preview one atomic batch of node/member edits and create/update/delete_analysis_case operations (properties: name, method=static, loadSourceId=LC or CB, settings={solver:native-static}) using stable formal IDs. Never applies directly; user confirms the draft.", parameters: MODEL_EDIT_SCHEMA } },
   { type: "function", function: { name: "discard_model_edits", description: "Discard the pending basic-edit draft without changing the formal model.", parameters: { type: "object", properties: {}, additionalProperties: false } } },
   ...MODEL_EDIT_TOOL_DEFINITIONS,
 ];

@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "records": [
+    {
+      "id": "axial",
+      "passed": true,
+      "analysisSourceId": "AC1",
+      "loadSourceId": "LC1",
+      "numericalRegression": "exact node and member equality with registered T2-14 references after JSON zero normalization"
+    },
+    {
+      "id": "uniform-local",
+      "passed": true,
+      "analysisSourceId": "AC1",
+      "loadSourceId": "LC1",
+      "numericalRegression": "exact node and member equality with registered T2-14 references after JSON zero normalization"
+    },
+    {
+      "id": "self-weight",
+      "passed": true,
+      "analysisSourceId": "AC1",
+      "loadSourceId": "LC1",
+      "numericalRegression": "exact node and member equality with registered T2-14 references after JSON zero normalization"
+    },
+    {
+      "id": "combination-negative",
+      "passed": true,
+      "analysisSourceId": "AC1",
+      "loadSourceId": "CB1",
+      "numericalRegression": "exact node and member equality with registered T2-14 references after JSON zero normalization"
+    },
+    {
+      "id": "combination-zero",
+      "passed": true,
+      "analysisSourceId": "AC1",
+      "loadSourceId": "CB1",
+      "numericalRegression": "exact node and member equality with registered T2-14 references after JSON zero normalization"
+    },
+    {
+      "id": "spatial-chain",
+      "passed": true,
+      "analysisSourceId": "AC1",
+      "loadSourceId": "LC1",
+      "numericalRegression": "exact node and member equality with registered T2-14 references after JSON zero normalization"
+    },
+    {
+      "id": "unsupported-method",
+      "passed": true,
+      "status": "rejected-in-model-check"
+    },
+    {
+      "id": "unsupported-settings",
+      "passed": true,
+      "status": "rejected-in-model-check"
+    },
+    {
+      "id": "foreign-load-source",
+      "passed": true,
+      "status": "rejected-in-model-check"
+    },
+    {
+      "id": "foreign-analysis-source",
+      "passed": true,
+      "status": "rejected-in-model-check"
+    },
+    {
+      "id": "invalid-analysis-id",
+      "passed": true,
+      "status": "rejected-in-model-check"
+    }
+  ]
+}

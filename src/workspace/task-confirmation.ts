@@ -1,4 +1,4 @@
-import { addMaterial, addMember, addNode, addSection, addNodalLoad, addSupport, updateNodalLoad, updateSupport, selectLoadCase, selectLoadCombination, type FrameProject, type MemberId, type NodeId, type SectionId, type MaterialId } from "../domain/project";
+import { addMaterial, addMember, addNode, addSection, addNodalLoad, addSupport, updateNodalLoad, updateSupport, selectAnalysisSource, type FrameProject, type MemberId, type NodeId, type SectionId, type MaterialId } from "../domain/project";
 import { applyLoadStage, type LoadStage } from "./load-stage";
 import type { NodalLoadProposal, SupportProposal } from "./analysis-conditions";
 import { applyProjectTransaction } from "../domain/project-operations";
@@ -195,7 +195,7 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
       const sourceId = draft.analysis?.sourceId ?? proposed.analysisSourceId;
       if (sourceId) {
         const resolved = resolveCase(sourceId);
-        current = current.loadCases.some((item) => item.id === resolved) ? selectLoadCase(current, resolved) : selectLoadCombination(current, resolved);
+        current = selectAnalysisSource(current, resolved);
       }
     }
     return current;

@@ -21,6 +21,7 @@ import type {
   MemberId,
 } from "../domain/project";
 import {
+  selectAnalysisSource,
   addNodalLoad,
   addSupport,
   addUniformLoad,
@@ -46,6 +47,7 @@ export interface DiagnosticCopySource {
   analysisId?: string;
   activeLoadCaseId?: string;
   activeLoadCombinationId?: string;
+  activeAnalysisCaseId?: string;
   snapshotKey: string;
 }
 
@@ -138,7 +140,7 @@ function diagnosticTargets(diagnostics: readonly AnalysisDiagnostic[]): Analysis
 }
 
 function sourceFor(project: FrameProject, kind: DiagnosticSourceKind, analysisId?: string): DiagnosticCopySource {
-  return { kind, projectId: project.id, projectRevision: project.revision, analysisId, activeLoadCaseId: project.activeLoadCaseId, activeLoadCombinationId: project.activeLoadCombinationId, snapshotKey: JSON.stringify({ projectId: project.id, revision: project.revision, activeLoadCaseId: project.activeLoadCaseId, activeLoadCombinationId: project.activeLoadCombinationId }) };
+  return { kind, projectId: project.id, projectRevision: project.revision, analysisId, activeLoadCaseId: project.activeLoadCaseId, activeAnalysisCaseId: project.activeAnalysisCaseId, activeLoadCombinationId: project.activeLoadCombinationId, snapshotKey: JSON.stringify({ projectId: project.id, revision: project.revision, activeLoadCaseId: project.activeLoadCaseId, activeAnalysisCaseId: project.activeAnalysisCaseId, activeLoadCombinationId: project.activeLoadCombinationId }) };
 }
 
 export function createDiagnosticCopy(project: FrameProject, source?: Partial<DiagnosticCopySource>): DiagnosticCopy {
@@ -231,9 +233,7 @@ export function validateDiagnosticOperations(value: unknown): DiagnosticOperatio
 
 export function captureDiagnosticInput(copy: DiagnosticCopy, sourceId?: string) {
   if (!sourceId) return captureAnalysisInput(copy.model);
-  if (/^CB[1-9]\d*$/.test(sourceId)) return captureAnalysisInput({ ...copy.model, activeLoadCombinationId: sourceId });
-  if (/^LC[1-9]\d*$/.test(sourceId)) return captureAnalysisInput({ ...copy.model, activeLoadCombinationId: undefined, activeLoadCaseId: sourceId }, sourceId);
-  throw new Error(`分析来源 ${sourceId} 无效`);
+  return captureAnalysisInput(selectAnalysisSource(copy.model, sourceId));
 }
 
 export function checkDiagnosticCopy(copy: DiagnosticCopy, sourceId?: string): DiagnosticCheck {

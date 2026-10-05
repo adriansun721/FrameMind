@@ -23,7 +23,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
     moment: { x: String(load.moment.x), y: String(load.moment.y), z: String(load.moment.z) } })));
   const [dirty, setDirty] = useState(false);
   const [loadStage, setLoadStage] = useState(() => loadStageDraft(proposal));
-  const [analysisSourceId, setAnalysisSourceId] = useState(proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
+  const [analysisSourceId, setAnalysisSourceId] = useState(proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
   const [error, setError] = useState("");
   const edit = () => { setDirty(true); onDirty(true); setError(""); };
   const nodeOptions = project.nodes.map((node) => <option key={node.id} value={node.id}>{node.label} · {node.id} · ({node.position.x}, {node.position.y}, {node.position.z}) m</option>);
@@ -44,7 +44,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
   const summaries = conditionSummaries(project, proposal);
   const summaryFields = { 支座: "supports", 节点荷载: "nodalLoads", 均布荷载: "uniformLoads", 工况: "loadCases", 组合: "loadCombinations", 自重: "selfWeight" } as const;
   const changed = (key: keyof ConditionsProposal) => previous?.id === proposal.id && JSON.stringify(previous[key]) !== JSON.stringify(proposal[key]);
-  const sourceName = loadStageOptions(project, loadStageDraft(proposal)).sources.find((source) => source.value === (proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId))?.label;
+  const sourceName = loadStageOptions(project, loadStageDraft(proposal)).sources.find((source) => source.value === (proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId))?.label;
   const details = <>
     <p>V{proposal.version} · 基础 R{baseRevision} · 未应用</p>
     {summaries.map((summary) => <section key={summary.label}><h4>{summary.label}</h4>{summary.groups.map((group, i) => <p key={i}>{group.objects.join("、")}：{group.setting}{group.suggested && <small className="proposal-suggestion">建议</small>}</p>)}</section>)}
@@ -62,20 +62,20 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
     confirmLabel={calculate ? "确认并计算" : "确认条件"} onConfirm={onConfirm} details={details} onCancelEdit={() => {
       setSupports(proposal.supports);
       setLoads(proposal.nodalLoads?.map((l) => ({ ...l, force: { x: String(l.force.x), y: String(l.force.y), z: String(l.force.z) }, moment: { x: String(l.moment.x), y: String(l.moment.y), z: String(l.moment.z) } })));
-      setLoadStage(loadStageDraft(proposal)); setAnalysisSourceId(proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
+      setLoadStage(loadStageDraft(proposal)); setAnalysisSourceId(proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
       setDirty(false); setError(""); onDirty(false);
     }} rows={[
       ...summaries.map((summary) => ({ label: summary.label, changed: changed(summaryFields[summary.label as keyof typeof summaryFields]), value: <>{summary.groups.map((group, i) => <div className="proposal-condition-group" key={i}>
         {group.objects.length} 项 · {group.objects.slice(0, 3).join("、")}{group.objects.length > 3 && "等"}<br />{group.setting}
         {group.suggested && <small className="proposal-suggestion">建议</small>}</div>)}</> })),
       ...(!summaries.length ? [{ label: "变更", value: "本阶段无新增或修改条件" }] : []),
-      { label: "计算来源", changed: changed("analysisSourceId"), value: sourceName ?? proposal.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId },
+      { label: "计算来源", changed: changed("analysisSourceId"), value: sourceName ?? proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId },
     ]}>
     <p>全局 XYZ · 平移 UX/UY/UZ、转动 RX/RY/RZ · 勾选表示约束。力 kN，力矩 kN·m（右手规则）。</p>
     <form onSubmit={(event) => { event.preventDefault(); update(); }}>
       <div className="frame-parameter"><label>确认后计算来源<select aria-label="确认后计算来源" value={analysisSourceId} disabled={busy} onChange={(event) => { edit(); setAnalysisSourceId(event.target.value); }}>
         {options.sources.map((source) => <option key={source.value} value={source.value}>{source.label}</option>)}
-      </select></label><p>当前：{project.activeLoadCombinationId ?? project.activeLoadCaseId} → 确认后：{options.sources.find((source) => source.value === analysisSourceId)?.label ?? analysisSourceId}。计算使用该来源的正式荷载。</p></div>
+      </select></label><p>当前：{project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId} → 确认后：{options.sources.find((source) => source.value === analysisSourceId)?.label ?? analysisSourceId}。计算使用该来源的正式荷载。</p></div>
       <details className="proposal-editor-group" open={supports === undefined || supports.length > 0}><summary>支座约束</summary><fieldset disabled={busy}><legend>支座约束</legend>
         {supports === undefined && <p className="frame-draft-notice">尚缺支座条件</p>}
         {supports?.length === 0 && <p>本阶段无新增或修改支座</p>}

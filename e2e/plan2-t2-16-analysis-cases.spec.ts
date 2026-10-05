@@ -1,0 +1,96 @@
+import { _electron as electron, expect, test, type Page } from "@playwright/test";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { decodeProject } from "../src/domain/project-file";
+import { isAnalysisResultCurrent } from "../src/domain/analysis";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
+
+async function fileAction(page: Page, action: string) {
+  await page.getByRole("button", { name: "文件", exact: true }).click();
+  await page.getByRole("menuitem", { name: new RegExp(action) }).click();
+}
+
+test("T2-16 migrates, reuses loads in native analyses, tracks dependencies and reopens deleted-source history", async () => {
+  test.setTimeout(120000);
+  const directory = await mkdtemp(join(tmpdir(), "framemind-t216-"));
+  const projectPath = join(directory, "analysis-cases.framemind");
+  const evidence = "docs/evidence/plan2/T2-16";
+  await mkdir(evidence, { recursive: true });
+  const samples = JSON.parse(await readFile("docs/evidence/plan2/T2-14/wire-samples.json", "utf8"));
+  const legacy = samples.find((s: { id: string }) => s.id === "axial").project;
+  delete legacy.analysisCases; delete legacy.nextAnalysisCaseNumber;
+  await writeFile(projectPath, JSON.stringify(legacy));
+  const env = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: projectPath };
+  delete env.ELECTRON_RUN_AS_NODE; delete env.VITE_DEV_SERVER_URL;
+  let app = await electron.launch({ args: ["."], env });
+  try {
+    let page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page); await fileAction(page, "打开项目");
+    await page.getByLabel("当前分析工况").selectOption("AC1");
+    await page.getByRole("button", { name: "运行分析", exact: true }).click();
+    await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
+    await expect(page.locator(".analysis-result-panel")).toContainText("AC1");
+    await page.getByRole("button", { name: "管理分析工况" }).click();
+    let manager = page.getByRole("dialog", { name: "分析工况管理" });
+    await manager.getByRole("button", { name: "新建分析工况", exact: true }).click();
+    await manager.getByLabel("分析工况名称").fill("共享轴向荷载复核");
+    await manager.getByLabel("复用荷载定义").selectOption("LC1");
+    await expect(manager.getByLabel("分析方法").locator('option[value="modal"]')).toHaveAttribute("disabled", "");
+    await manager.getByRole("button", { name: "创建分析工况", exact: true }).click();
+    await manager.getByRole("button", { name: "计算此分析工况", exact: true }).click();
+    await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
+    await expect(page.locator(".analysis-result-panel")).toContainText("AC2 · 共享轴向荷载复核");
+    await fileAction(page, "保存项目");
+    await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+    const saved = decodeProject(await readFile(projectPath, "utf8"));
+    expect(saved.analysisResults).toHaveLength(2);
+    expect(saved.nodalLoads).toHaveLength(1);
+    expect(saved.analysisResults.every((r) => r.input.solver?.implementation === "framemind-native/2" && isAnalysisResultCurrent(saved, r))).toBe(true);
+    expect(saved.analysisResults[0].nodes).toEqual(saved.analysisResults[1].nodes);
+
+    await page.getByRole("button", { name: "管理工况" }).click();
+    const loads = page.getByRole("dialog", { name: "荷载工况管理" });
+    await loads.getByRole("button", { name: "新建工况", exact: true }).click();
+    await loads.getByLabel("工况名称").fill("未参与分析");
+    await loads.getByRole("button", { name: "创建工况", exact: true }).click();
+    await loads.getByRole("button", { name: "关闭工况管理" }).click();
+    await page.getByRole("button", { name: "管理分析工况" }).click();
+    manager = page.getByRole("dialog", { name: "分析工况管理" });
+    await expect(manager.getByRole("listitem").filter({ hasText: "AC1" })).toContainText("结果当前");
+    await expect(manager.getByRole("listitem").filter({ hasText: "AC2" })).toContainText("结果当前");
+    await manager.getByRole("button", { name: "关闭分析工况管理" }).click();
+    await page.getByLabel("当前工况").selectOption("LC1");
+    await page.getByRole("region", { name: "项目树" }).getByText("L1 · N2", { exact: true }).click();
+    await page.getByLabel("FX", { exact: true }).fill("16");
+    await page.getByRole("button", { name: "保存荷载属性", exact: true }).click();
+    await page.getByRole("button", { name: "管理分析工况" }).click();
+    manager = page.getByRole("dialog", { name: "分析工况管理" });
+    await expect(manager.getByRole("listitem").filter({ hasText: "AC1" })).toContainText("结果已过期");
+    await expect(manager.getByRole("listitem").filter({ hasText: "AC2" })).toContainText("结果已过期");
+    await manager.getByText("分析支持矩阵", { exact: true }).click();
+    await page.screenshot({ path: join(evidence, "analysis-case-manager.png") });
+    await manager.getByRole("button", { name: "关闭分析工况管理" }).click();
+    await page.getByRole("button", { name: "管理工况" }).click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "删除工况", exact: true }).click();
+    await page.getByRole("button", { name: "关闭工况管理" }).click();
+    await fileAction(page, "保存项目");
+    await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+    const removed = decodeProject(await readFile(projectPath, "utf8"));
+    expect(removed.analysisCases).toHaveLength(0);
+    expect(removed.analysisResults).toHaveLength(2);
+    expect(removed.analysisResults[0].input.nodalLoads[0].force.x).toBe(8);
+    expect(removed.analysisResults.every((r) => !isAnalysisResultCurrent(removed, r))).toBe(true);
+    await app.close(); app = await electron.launch({ args: ["."], env }); page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page); await fileAction(page, "打开项目");
+    await page.getByRole("button", { name: "管理分析工况" }).click();
+    const history = page.getByRole("region", { name: "历史分析来源" });
+    await expect(history.getByRole("button")).toHaveCount(2);
+    await history.getByRole("button").filter({ hasText: "AC1" }).click();
+    await expect(page.locator(".analysis-result-panel")).toContainText("AC1");
+    await expect(page.locator(".analysis-result-panel")).toContainText("过期");
+    await page.screenshot({ path: join(evidence, "deleted-source-history.png") });
+    await writeFile(join(evidence, "desktop-verification.json"), JSON.stringify({ passed: true, nativeSolver: "framemind-native/2", sources: saved.analysisResults.map((r) => r.service?.sourceId), historyIds: removed.analysisResults.map((r) => r.id), frozenForceKN: 8, tests: ["old-source-migration", "load-reuse", "unused-definition", "shared-dependency", "delete-and-reopen-history"] }, null, 2));
+  } finally { await app.close(); await rm(directory, { recursive: true, force: true }); }
+});

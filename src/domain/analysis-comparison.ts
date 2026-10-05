@@ -1,4 +1,5 @@
 import { getAnalysisSourceId } from "./project";
+import { requireAnalysisCapability } from "./analysis-capabilities";
 import { sameInputValue, type AnalysisResult, type MemberAnalysisResult, type NodeAnalysisResult } from "./analysis";
 
 export interface AnalysisComparisonChange {
@@ -64,11 +65,16 @@ function compareCollection<T extends { id: string; label: string }>(
 
 export function compareAnalysisResults(before: AnalysisResult, after: AnalysisResult): AnalysisComparison {
   const issues: string[] = [];
+  try {
+    requireAnalysisCapability(before.input.analysisCase?.method ?? "static", "resultComparison");
+    requireAnalysisCapability(after.input.analysisCase?.method ?? "static", "resultComparison");
+    if ((before.input.analysisCase?.method ?? "static") !== (after.input.analysisCase?.method ?? "static")) issues.push("分析方法不同，不能比较");
+  } catch (error) { issues.push(error instanceof Error ? error.message : "不支持此结果比较"); }
   if (before.projectId !== after.projectId) issues.push("两份结果属于不同项目，不能比较");
   if (before.input.assumptions.units !== after.input.assumptions.units) issues.push("单位约定不同，不能比较");
   if (before.input.dofOrder.join(",") !== after.input.dofOrder.join(",")) issues.push("自由度顺序不同，不能比较");
-  const beforeSource = getAnalysisSourceId(before.input);
-  const afterSource = getAnalysisSourceId(after.input);
+  const beforeSource = before.input.analysisCase?.legacySourceId ?? getAnalysisSourceId(before.input);
+  const afterSource = after.input.analysisCase?.legacySourceId ?? getAnalysisSourceId(after.input);
   if (beforeSource !== afterSource) issues.push(`来源工况或组合不同（${beforeSource} 与 ${afterSource}），不能比较`);
   if (before.input.combination || after.input.combination) {
     const left = before.input.combination?.definition;

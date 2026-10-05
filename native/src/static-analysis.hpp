@@ -173,6 +173,7 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
         for (size_t i=0;i<elements.size();++i) for (int axis=0;axis<3;++axis) require(std::isfinite(weighted.intensity[i][axis]) && std::isfinite(loads.intensity[i][axis]) && std::abs(weighted.intensity[i][axis]-loads.intensity[i][axis])<=1e-9,
             "Combination effective distributed loads mismatch",{{"kind","member"},{"id",elements[i].member["id"]}},std::string("intensity.")+"xyz"[axis]);
     }
+    source=analysisCaseSource(input,source);
     require(request.at("sourceId")==source && request.at("dependencies")==dependencies,"Source dependency mismatch");
     phase("assembly");
     Vector force=loads.nodal; std::vector<Vector> equivalentLocal, equivalentGlobal; std::vector<Triplet> entries;

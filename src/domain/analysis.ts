@@ -1,7 +1,8 @@
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
-import { getAnalysisLoadCaseId, getAnalysisSourceId, requireLoadCase, requireLoadCombination, validateLoadCombination } from "./project";
+import { getAnalysisSourceId, requireLoadCase, requireLoadCombination, requireAnalysisCase, validateAnalysisCase, validateLoadCombination, selectAnalysisSource } from "./project";
+import { requireAnalysisCapability } from "./analysis-capabilities";
 import type { AnalysisRunRecord } from "./analysis-service-contract";
 import type {
   DofRestraints,
@@ -16,6 +17,7 @@ import type {
   FrameSelfWeight,
   FrameLoadCase,
   FrameLoadCombination,
+  FrameAnalysisCase,
   Vector3,
 } from "./project";
 
@@ -54,6 +56,7 @@ export interface AnalysisInputSnapshot {
   assumptions: AnalysisAssumptions;
   solver?: AnalysisSolverConfig;
   loadCase?: FrameLoadCase;
+  analysisCase?: FrameAnalysisCase;
   nodes: FrameNode[];
   members: FrameMember[];
   materials: FrameMaterial[];
@@ -332,6 +335,11 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
 }
 
 export function captureAnalysisInput(project: FrameProject, loadCaseId?: string): AnalysisInputSnapshot {
+  if (loadCaseId === undefined && project.activeAnalysisCaseId) {
+    const analysisCase = validateAnalysisCase(project, requireAnalysisCase(project, project.activeAnalysisCaseId));
+    const source = selectAnalysisSource(project, analysisCase.loadSourceId);
+    return freezeAnalysisInput(structuredClone({ ...captureAnalysisInput(source), analysisCase }));
+  }
   if (loadCaseId === undefined && project.activeLoadCombinationId) {
     const definition = requireLoadCombination(project, project.activeLoadCombinationId);
     validateLoadCombination(project, definition);
@@ -356,6 +364,7 @@ export function captureAnalysisInput(project: FrameProject, loadCaseId?: string)
 
 /** All constituent loads use the one structural basis supplied here. No historic results are combined. */
 export function buildCombinationInput(base: AnalysisInputSnapshot, definition: FrameLoadCombination, cases: CombinationCaseInput[]): AnalysisInputSnapshot {
+  requireAnalysisCapability(base.analysisCase?.method ?? "static", "loadCombination");
   const validated = validateLoadCombination({ loadCases: cases.map((item) => item.loadCase) }, definition);
   if (cases.length !== validated.terms.length || new Set(cases.map((item) => item.loadCase.id)).size !== cases.length) throw new Error("组合工况来源不完整或重复");
   const loadCase = cases[0].loadCase;
@@ -394,7 +403,7 @@ export function validateCombinationInput(input: AnalysisInputSnapshot): void {
   const rebuilt = buildCombinationInput(input, input.combination.definition, input.combination.cases);
   if (!sameInputValue(input, rebuilt)) throw new Error("组合有效荷载与工况、系数或单位依据不一致");
   for (const source of input.combination.cases) {
-    requireAnalysisInput({ ...input, combination: undefined, ...source });
+    requireAnalysisInput({ ...input, analysisCase: undefined, combination: undefined, ...source });
   }
 }
 
@@ -406,11 +415,14 @@ export function getLoadCaseResult(project: FrameProject, id = project.activeLoad
 export function getAnalysisResultForSource(project: FrameProject, id: string): AnalysisResult | undefined {
   // Results are append-only by run. The last matching record is the active result
   // for a source while earlier records remain available for comparison.
-  return [...project.analysisResults].reverse().find((result) => getAnalysisSourceId(result.input) === id);
+  const legacySource = project.analysisCases.find((c) => c.id === id)?.legacySourceId;
+  const history = [...project.analysisResults].reverse();
+  return history.find((result) => getAnalysisSourceId(result.input) === id)
+    ?? (legacySource ? history.find((result) => getAnalysisSourceId(result.input) === legacySource) : undefined);
 }
 
 export function getActiveAnalysisResult(project: FrameProject): AnalysisResult | undefined {
-  return getAnalysisResultForSource(project, project.activeLoadCombinationId ?? project.activeLoadCaseId);
+  return getAnalysisResultForSource(project, project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
 }
 
 export function sameInputValue(left: unknown, right: unknown): boolean {
@@ -423,22 +435,48 @@ export function sameInputValue(left: unknown, right: unknown): boolean {
 }
 
 export function isAnalysisResultCurrent(project: FrameProject, result: AnalysisResult): boolean {
-  const currentInput = (input: AnalysisInputSnapshot) => ({ ...input, projectRevision: 0,
-    solver: isNativeSolver(result.input.solver) ? { ...result.input.solver! } : input.solver });
-  if (result.input.combination) {
-    if (result.projectId !== project.id || !project.loadCombinations.some((item) => item.id === result.input.combination!.definition.id)) return false;
-    try {
-      const current = captureAnalysisInput({ ...project, activeLoadCombinationId: result.input.combination.definition.id });
-      return sameInputValue(currentInput(current), { ...result.input, projectRevision: 0 });
-    } catch { return false; }
-  }
-  const id = getAnalysisLoadCaseId(result.input);
-  if (result.projectId !== project.id || !project.loadCases.some((item) => item.id === id)) return false;
+  if (result.projectId !== project.id) return false;
   if (!result.input.loadCase) return result.projectRevision === project.revision - 1;
-  return sameInputValue(currentInput(captureAnalysisInput(project, id)), { ...result.input, projectRevision: 0 });
+  try {
+    const current = captureAnalysisInput(selectAnalysisSource(project, getAnalysisSourceId(result.input)));
+    // Native adapters replace the reference preset at dispatch. Compare the
+    // actual supported adapter preset, never the project revision or library metadata.
+    const solver = isNativeSolver(result.input.solver) ? result.input.solver : current.solver;
+    return sameInputValue(analysisInputDependencies({ ...current, solver }), analysisInputDependencies(result.input));
+  } catch { return false; }
+}
+
+/** Numerical dependencies only; the complete frozen input remains the history source. */
+export function analysisInputDependencies(input: AnalysisInputSnapshot): unknown {
+  const sorted = <T extends { id: string }>(items: T[]) => [...items].sort((a, b) => a.id.localeCompare(b.id));
+  const materialIds = new Set(input.members.map((m) => m.materialId));
+  const sectionIds = new Set(input.members.map((m) => m.sectionId));
+  const selfWeight = (value: FrameSelfWeight | undefined) => value?.enabled ? value : { enabled: false };
+  const hasSelfWeight = input.selfWeight?.enabled || input.combination?.cases.some((c) => c.selfWeight.enabled && input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0));
+  const conditions = (value: Pick<AnalysisInputSnapshot, "loadCase" | "nodalLoads" | "uniformLoads" | "selfWeight">) => ({
+    loadCase: value.loadCase, nodalLoads: sorted(value.nodalLoads), uniformLoads: sorted(value.uniformLoads ?? []), selfWeight: selfWeight(value.selfWeight),
+  });
+  return {
+    projectId: input.projectId, dofOrder: input.dofOrder, assumptions: input.assumptions, solver: input.solver,
+    analysisCase: input.analysisCase ? { id: input.analysisCase.id, method: input.analysisCase.method, loadSourceId: input.analysisCase.loadSourceId, settings: input.analysisCase.settings } : undefined,
+    nodes: sorted(input.nodes).map(({ id, position }) => ({ id, position })),
+    members: sorted(input.members), supports: sorted(input.supports),
+    materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight ? { densityKgM3 } : {}) })),
+    sections: sorted(input.sections.filter((s) => sectionIds.has(s.id))).map(({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 }) => ({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 })),
+    conditions: input.combination ? {
+      id: input.combination.definition.id,
+      terms: [...input.combination.definition.terms].sort((a, b) => a.loadCaseId.localeCompare(b.loadCaseId)),
+      cases: input.combination.cases.filter((c) => input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions),
+    } : conditions(input),
+  };
 }
 
 function requireAnalysisInput(project: FrameProject | AnalysisInputSnapshot): void {
+  if ("analysisCase" in project && project.analysisCase) {
+    const input = project as AnalysisInputSnapshot;
+    const definition = validateAnalysisCase({ loadCases: input.loadCase ? [input.loadCase] : [], loadCombinations: input.combination ? [input.combination.definition] : [] }, input.analysisCase!);
+    if (definition.loadSourceId !== (input.combination?.definition.id ?? input.loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
+  }
   const diagnostics = checkAnalysisInput(project);
   if (diagnostics.length) throw new AnalysisFailure("model-check", diagnostics);
 }

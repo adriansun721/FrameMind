@@ -9,7 +9,7 @@ import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
 export interface DraftCoordination<T> { draft: T; conflicts: string[]; }
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 export function engineeringContent(project: FrameProject): unknown[] {
-  return [project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations"] as const).map((key) => project[key])];
+  return [project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysisCases"] as const).map((key) => project[key])];
 }
 export function sameEngineeringState(base: FrameProject, current: FrameProject): boolean {
   return base.revision === current.revision && same(engineeringContent(base), engineeringContent(current));
@@ -59,7 +59,7 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
     ...conditionTargets(base, drafts.taskDraft?.conditions),
     ...conditionTargets(base, drafts.conditions ?? undefined),
     ...(drafts.sectionChange?.memberIds ?? []).map((id) => ({ kind: "member" as const, id })),
-    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => "id" in item
+    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => "id" in item && !item.type.endsWith("analysis_case")
       ? [{ kind: item.type.endsWith("node") ? "node" as const : "member" as const, id: item.id }] : []),
   ];
 }
@@ -97,19 +97,20 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   const conflicts: string[] = [];
   const operations = draft.operations.map((operation) => {
     if (!("id" in operation)) return operation;
-    const before = (operation.type.endsWith("node") ? base.nodes : base.members).find((item) => item.id === operation.id);
-    const actual = (operation.type.endsWith("node") ? current.nodes : current.members).find((item) => item.id === operation.id);
+    const before = (operation.type.endsWith("analysis_case") ? base.analysisCases : operation.type.endsWith("node") ? base.nodes : base.members).find((item) => item.id === operation.id);
+    const actual = (operation.type.endsWith("analysis_case") ? current.analysisCases : operation.type.endsWith("node") ? current.nodes : current.members).find((item) => item.id === operation.id);
     if (!before || !actual) { conflicts.push(`${operation.id}：任务目标已删除`); return operation; }
     if (operation.type === "update_node" && "position" in before && "position" in actual) {
       return { ...operation, position: merge(before.position, operation.position, actual.position, `${operation.id}.position`, conflicts) };
     }
+    if (operation.type === "update_analysis_case") return { ...operation, properties: merge(before, operation.properties, actual, operation.id, conflicts) };
     if (operation.type === "update_member") return { ...operation, changes: merge(before, operation.changes, actual, operation.id, conflicts) };
     if (!same(before, actual)) conflicts.push(`${operation.id}：对象已编辑，删除或复制的意图需重新确认`);
     return operation;
   });
   // Deleting a node or member also removes its conditions and connected members.
   for (const change of draft.preview.changes.filter((item) => item.before && !item.after)) {
-    const collection = { node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads }[change.kind];
+    const collection = { node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases }[change.kind];
     if (!same(change.before, collection.find((item) => item.id === change.id))) conflicts.push(`${change.id}：级联删除对象已变化`);
   }
   try {

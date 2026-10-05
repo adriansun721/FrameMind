@@ -142,7 +142,7 @@ export function recoveryIssues(project: FrameProject, conversation: Conversation
   const lastTaskTurn = [...conversation.turns].reverse().find((turn) => !turn.localOnly);
   if (!hasDraft && latest && !sameInputValue(JSON.parse(latest.engineeringState), JSON.parse(engineeringState(project)))) issues.push("回执对应模型已撤销或修改，恢复前请重新核对");
   if (!hasDraft && !latest && conversation.calculationRequested && !sameEngineeringState(lastTaskTurn?.sourceProject ?? conversation.taskDraftSource, project)) issues.push("已应用任务的模型已变化或已撤销，需核对后重新请求计算");
-  if (conversation.analysisSourceId && ![...project.loadCases, ...project.loadCombinations].some((item) => item.id === conversation.analysisSourceId)) issues.push("原计算来源已删除");
+  if (conversation.analysisSourceId && ![...project.loadCases, ...project.loadCombinations, ...project.analysisCases].some((item) => item.id === conversation.analysisSourceId)) issues.push("原计算来源已删除");
   return issues;
 }
 

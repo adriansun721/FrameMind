@@ -29,7 +29,8 @@ export function LoadCombinationManager({ project, onChange, onClose }: { project
   const remove = () => {
     try {
       const result = getAnalysisResultForSource(project, editingId);
-      if (result && !window.confirm(`删除 ${editingId} 及其组合结果？此变更可撤销。`)) return;
+      const analyses = project.analysisCases.filter((c) => c.loadSourceId === editingId).length;
+      if ((result || analyses) && !window.confirm(`删除 ${editingId} 及 ${analyses} 个分析工况？历史结果和冻结输入保留并标记过期。此变更可撤销。`)) return;
       onChange(deleteLoadCombination(project, editingId)); edit("");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "组合删除失败"); }
   };

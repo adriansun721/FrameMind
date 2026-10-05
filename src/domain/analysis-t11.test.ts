@@ -69,7 +69,7 @@ describe("T11 independent load cases", () => {
     let p = cantilever(); p = selectLoadCase(p, "LC2"); p = attachAnalysisResult(p, solveFrame(p));
     expect(() => deleteLoadCase(p, "LC2")).toThrow(/2 条荷载、1 份结果/);
     p = deleteLoadCase(p, "LC2", true);
-    expect(p.activeLoadCaseId).toBe("LC1"); expect(p.uniformLoads).toEqual([]); expect(p.selfWeight.enabled).toBe(false); expect(p.analysisResults).toEqual([]); expect(p.latestAnalysis).toBeUndefined();
+    expect(p.activeLoadCaseId).toBe("LC1"); expect(p.uniformLoads).toEqual([]); expect(p.selfWeight.enabled).toBe(false); expect(p.analysisResults).toHaveLength(1); expect(isAnalysisResultCurrent(p, p.latestAnalysis!)).toBe(false);
     expect(() => deleteLoadCase(p, "LC1", true)).toThrow(/至少/);
     p = addLoadCase(p, "后续工况"); expect(p.loadCases[1].id).toBe("LC3");
     expect(decodeProject(encodeProject(p)).loadCases[1].id).toBe("LC3");

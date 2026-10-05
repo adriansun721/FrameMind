@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "nativeSolver": "framemind-native/2",
+  "sources": [
+    "AC1",
+    "AC2"
+  ],
+  "historyIds": [
+    "analysis_1f11204f-ef84-4f02-84e0-783b0eb4cd0a",
+    "analysis_d51e06a6-15c2-42f5-b4bf-96d96a25b564"
+  ],
+  "frozenForceKN": 8,
+  "tests": [
+    "old-source-migration",
+    "load-reuse",
+    "unused-definition",
+    "shared-dependency",
+    "delete-and-reopen-history"
+  ]
+}

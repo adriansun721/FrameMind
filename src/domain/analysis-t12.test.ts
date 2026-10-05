@@ -74,16 +74,16 @@ it("accepts zero coefficients and all-zero response, rejects invalid definitions
   p = attachAnalysisResult(p, result);
   expect(() => deleteLoadCase(p, "LC2")).toThrow(/1 个组合/);
   const deleted = deleteLoadCase(p, "LC2", true);
-  expect(deleted.loadCombinations).toEqual([]); expect(deleted.analysisResults).toEqual([]); expect(deleted.activeLoadCombinationId).toBeUndefined();
+  expect(deleted.loadCombinations).toEqual([]); expect(deleted.analysisResults).toHaveLength(1); expect(isAnalysisResultCurrent(deleted, result)).toBe(false); expect(deleted.activeLoadCombinationId).toBeUndefined();
   expect(decodeProject(encodeProject(deleted)).loadCombinations).toEqual([]);
   const revised = updateLoadCombination(p, "CB1", "Only LC1", [{ loadCaseId: "LC1", factor: 1 }]);
   const removedHistoricSource = deleteLoadCase(revised, "LC2", true);
   expect(removedHistoricSource.loadCombinations).toHaveLength(1);
-  expect(removedHistoricSource.analysisResults).toEqual([]);
-  expect(removedHistoricSource.latestAnalysis).toBeUndefined();
+  expect(removedHistoricSource.analysisResults).toHaveLength(1);
+  expect(isAnalysisResultCurrent(removedHistoricSource, result)).toBe(false);
   expect(decodeProject(encodeProject(removedHistoricSource)).loadCombinations).toHaveLength(1);
   const without = deleteLoadCombination(p, "CB1");
-  expect(without.analysisResults).toEqual([]); expect(addLoadCombination(without, "Next", [{ loadCaseId: "LC1", factor: -1 }]).loadCombinations[0].id).toBe("CB2");
+  expect(without.analysisResults).toHaveLength(1); expect(addLoadCombination(without, "Next", [{ loadCaseId: "LC1", factor: -1 }]).loadCombinations[0].id).toBe("CB2");
 });
 
 it("rejects corrupted combination sources, weighted loads, nonfinite products and mixed structural bases", () => {

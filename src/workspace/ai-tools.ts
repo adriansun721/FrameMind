@@ -1,3 +1,4 @@
+import { ANALYSIS_CAPABILITIES } from "../domain/analysis-capabilities";
 import type { FrameProject } from "../domain/project";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { buildFramePreview, proposeFrame, type FrameProposal } from "./frame-proposal";
@@ -53,7 +54,7 @@ type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? 
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
   | "nodalLoads" | "uniformLoads" | "selfWeight" | "loadCases" | "loadCombinations"
-  | "activeLoadCaseId" | "activeLoadCombinationId">;
+  | "activeLoadCaseId" | "activeLoadCombinationId" | "analysisCases" | "activeAnalysisCaseId">;
 export interface AiSnapshot { readonly context: AiContext; readonly snapshotKey: string; readonly model: ReadonlyTree<AiModel>; readonly editProject: FrameProject; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
 
 function freeze<T>(value: T): T {
@@ -71,7 +72,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
     sections: project.sections, supports: project.supports, nodalLoads: project.nodalLoads,
     uniformLoads: project.uniformLoads, selfWeight: project.selfWeight, loadCases: project.loadCases,
     loadCombinations: project.loadCombinations, activeLoadCaseId: project.activeLoadCaseId,
-    activeLoadCombinationId: project.activeLoadCombinationId,
+    activeLoadCombinationId: project.activeLoadCombinationId, analysisCases: project.analysisCases, activeAnalysisCaseId: project.activeAnalysisCaseId,
   };
   const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
@@ -81,7 +82,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
   const analysisContext: AiAnalysisContext = analysis ? {
     id: analysis.id, inputRevision: analysis.input.projectRevision, createdAt: analysis.createdAt, status: analysisComplete ? "complete" : "incomplete",
     current: analysisCurrent,
-    source: analysis.input.combination ? { id: analysis.input.combination.definition.id, name: analysis.input.combination.definition.name, kind: "combination" } :
+    source: analysis.input.analysisCase ? { id: analysis.input.analysisCase.id, name: analysis.input.analysisCase.name, kind: "case" } : analysis.input.combination ? { id: analysis.input.combination.definition.id, name: analysis.input.combination.definition.name, kind: "combination" } :
       { id: analysis.input.loadCase?.id ?? "LC1", name: analysis.input.loadCase?.name ?? "旧版工况", kind: "case" },
   } : { status: "absent", current: false };
   return freeze({
@@ -125,7 +126,7 @@ function exactFields(input: Record<string, unknown>, allowed: readonly string[])
   if (unknown) throw new Error(`工具参数含未定义字段 ${unknown}`);
 }
 
-const collections = ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases"];
+const collections = ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases", "analysis-cases"];
 const queryFields: Record<string, readonly string[]> = {
   nodes: ["id", "label", "position.x", "position.y", "position.z"],
   members: ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"],
@@ -134,6 +135,7 @@ const queryFields: Record<string, readonly string[]> = {
   supports: ["id", "label", "nodeId"],
   loads: ["id", "label", "kind", "nodeId", "memberId", "loadCaseId"],
   "load-cases": ["id", "name", "description"],
+  "analysis-cases": ["id", "name", "method", "loadSourceId", "settings.solver"],
 };
 interface CollectionQuery { field: string; equals?: string | number | boolean; min?: number; max?: number; }
 const mutationTools = new Set(["create_node", "create_nodes", "update_node", "update_nodes", "delete_node", "delete_nodes",
@@ -143,7 +145,8 @@ const mutationTools = new Set(["create_node", "create_nodes", "update_node", "up
 function diagnosticCopyIsCurrent(snapshot: AiSnapshot, copy: DiagnosticCopy): boolean {
   return copy.source.projectId === snapshot.context.projectId && copy.source.projectRevision === snapshot.context.modelRevision
     && copy.source.activeLoadCaseId === snapshot.model.activeLoadCaseId
-    && copy.source.activeLoadCombinationId === snapshot.model.activeLoadCombinationId;
+    && copy.source.activeLoadCombinationId === snapshot.model.activeLoadCombinationId
+    && copy.source.activeAnalysisCaseId === snapshot.model.activeAnalysisCaseId;
 }
 
 function diagnosticCallInput(name: string, input: Record<string, unknown>): void {
@@ -166,7 +169,7 @@ function diagnosticCallInput(name: string, input: Record<string, unknown>): void
     exactFields(input, ["label", "operations", "sourceId"]);
     if (typeof input.label !== "string" || !input.label.trim() || input.label.length > 200) throw new Error("试算标签无效");
     if (!Array.isArray(input.operations) || input.operations.length > 20) throw new Error("operations 必须是最多 20 项的候选改动");
-    if (input.sourceId !== undefined && (typeof input.sourceId !== "string" || !/^LC[1-9]\d*$|^CB[1-9]\d*$/.test(input.sourceId))) throw new Error("sourceId 必须是工况或组合身份");
+    if (input.sourceId !== undefined && (typeof input.sourceId !== "string" || !/^LC[1-9]\d*$|^CB[1-9]\d*$|^AC[1-9]\d*$/.test(input.sourceId))) throw new Error("sourceId 必须是工况或组合身份");
     return;
   }
 }
@@ -410,7 +413,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
   const modelCollections: Record<string, readonly unknown[]> = {
     nodes: model.nodes, members: model.members, materials: model.materials, sections: model.sections,
     supports: model.supports, loads: [...model.nodalLoads.map((load) => ({ kind: "nodal", ...load })), ...model.uniformLoads],
-    "load-cases": model.loadCases,
+    "load-cases": model.loadCases, "analysis-cases": model.analysisCases,
   };
   if (input.collection === "summary") {
     return { status: "completed", message: "已读取已应用模型摘要", context: snapshot.context,
@@ -419,7 +422,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
         sections: model.sections.length, supports: model.supports.length, loads: model.nodalLoads.length + model.uniformLoads.length,
         loadCases: model.loadCases.length, loadCombinations: model.loadCombinations.length },
         units: model.units, activeLoadCaseId: model.activeLoadCaseId, activeLoadCombinationId: model.activeLoadCombinationId,
-        selfWeight: model.selfWeight } };
+        selfWeight: model.selfWeight, analysisCases: model.analysisCases, activeAnalysisCaseId: model.activeAnalysisCaseId, capabilities: ANALYSIS_CAPABILITIES } };
   }
   const items = modelCollections[input.collection as string];
   const offset = input.offset as number | undefined ?? 0;
@@ -427,6 +430,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
   const filtered = filterCollection(items, input.fields, input.query);
   const pageItems = filtered.slice(offset, offset + limit);
   const extra = input.collection === "loads" ? { selfWeight: model.selfWeight }
+    : input.collection === "analysis-cases" ? { activeAnalysisCaseId: model.activeAnalysisCaseId, capabilities: ANALYSIS_CAPABILITIES }
     : input.collection === "load-cases" ? { combinations: model.loadCombinations,
       activeLoadCaseId: model.activeLoadCaseId, activeLoadCombinationId: model.activeLoadCombinationId } : {};
   return { status: "completed", message: "已读取已应用模型", context: snapshot.context,

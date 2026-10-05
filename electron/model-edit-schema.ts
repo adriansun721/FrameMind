@@ -4,6 +4,11 @@ const position = { type: "object", additionalProperties: false, minProperties: 1
 const member = { type: "object", additionalProperties: false, minProperties: 1,
   properties: { startNodeId: identity, endNodeId: identity, materialId: identity, sectionId: identity, rotationDegrees: { type: "number" } } };
 
+const analysisCase = { type: "object", additionalProperties: false, required: ["name", "method", "loadSourceId", "settings"], properties: {
+  name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static"] }, loadSourceId: identity,
+  settings: { type: "object", additionalProperties: false, required: ["solver"], properties: { solver: { const: "native-static" } } },
+} };
+
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
@@ -11,7 +16,9 @@ export const MODEL_EDIT_SCHEMA = {
       { type: "object", additionalProperties: false, required: ["type", "id", "position"], properties: { type: { const: "update_node" }, id: identity, position } },
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_member" }, properties: { ...member, required: Object.keys(member.properties) } } },
       { type: "object", additionalProperties: false, required: ["type", "id", "changes"], properties: { type: { const: "update_member" }, id: identity, changes: member } },
-      ...["duplicate_node", "delete_node", "duplicate_member", "delete_member"].map((type) => ({ type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: type }, id: identity } })),
+      { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_analysis_case" }, properties: analysisCase } },
+      { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_analysis_case" }, id: identity, properties: analysisCase } },
+      ...["delete_analysis_case", "duplicate_node", "delete_node", "duplicate_member", "delete_member"].map((type) => ({ type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: type }, id: identity } })),
     ] } },
   },
 };

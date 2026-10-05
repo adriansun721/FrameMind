@@ -151,7 +151,7 @@ function changes(snapshot: AiSnapshot, frame: FrameProposal | undefined, conditi
     for (const item of conditions.loadCases ?? []) result.push({ category: "load", label: item.id ? `工况 ${item.id}` : `新增工况 ${item.ref}`, before: item.id ? project.loadCases.find((v) => v.id === item.id) : undefined, after: item, source: item.source, impact: "改变荷载归属及可选分析来源" });
     for (const item of conditions.loadCombinations ?? []) result.push({ category: "load", label: item.id ? `组合 ${item.id}` : `新增组合 ${item.ref}`, before: item.id ? project.loadCombinations.find((v) => v.id === item.id) : undefined, after: item, source: item.source, impact: "按用户系数组合原始工况" });
   }
-  if (analysis?.requested) result.push({ category: "analysis", label: "确认后分析", after: analysis.sourceId ?? conditions?.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId, source: analysis.source ?? "user", impact: "确认并核对模型后继续本地分析" });
+  if (analysis?.requested) result.push({ category: "analysis", label: "确认后分析", after: analysis.sourceId ?? conditions?.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId, source: analysis.source ?? "user", impact: "确认并核对模型后继续本地分析" });
   return result;
 }
 
@@ -221,7 +221,7 @@ export function proposeTask(snapshot: AiSnapshot, input: unknown, previous?: Tas
   const analysis = mergeAnalysis(previous?.analysis, analysisValue);
   if (analysis?.requested && !analysis.sourceId) analysis.sourceId = conditions?.analysisSourceId
     ?? (conditions?.loadCases?.length === 1 && !conditions.loadCombinations?.length ? conditions.loadCases[0].ref : undefined)
-    ?? snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
+    ?? snapshot.model.activeAnalysisCaseId ?? snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
   const goal = request.goal === undefined ? previous?.goal : text(request.goal, "任务目标");
   const next: TaskDraft = { id, version: (previous?.version ?? 0) + 1, projectId: snapshot.context.projectId, baseRevision: snapshot.context.modelRevision, ...(goal ? { goal } : {}), ...(frame ? { frame } : {}), ...(conditions ? { conditions } : {}), ...(analysis ? { analysis } : {}) };
   // Validate the merged draft now so a tool reply can distinguish missing input

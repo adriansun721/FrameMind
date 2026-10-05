@@ -26,7 +26,7 @@ export function LoadCaseManager({ project, onChange, onSelfWeight, onClose }: { 
     try {
       const refs = getLoadCaseReferences(project, editingId);
       const dependents = project.loadCombinations.filter((item) => item.terms.some((term) => term.loadCaseId === editingId));
-      if (project.loadCases.length > 1 && (refs.loads || refs.results || refs.combinations) && !window.confirm(`删除 ${editingId} 及其 ${refs.loads} 条荷载、${refs.results} 份结果、${refs.combinations} 个组合${dependents.length ? `（${dependents.map((item) => `${item.id} · ${item.name}`).join("、")}）及其结果` : ""}？此变更可撤销。`)) return;
+      if (project.loadCases.length > 1 && (refs.loads || refs.results || refs.combinations || refs.analyses) && !window.confirm(`删除 ${editingId} 及其 ${refs.loads} 条荷载、${refs.combinations} 个组合${dependents.length ? `（${dependents.map((item) => `${item.id} · ${item.name}`).join("、")}）` : ""}、${refs.analyses} 个分析工况？${refs.results} 份历史结果及冻结输入保留并标记过期。此变更可撤销。`)) return;
       const next = deleteLoadCase(project, editingId, true);
       onChange(next);
       const item = next.loadCases.find((item) => item.id === next.activeLoadCaseId)!;

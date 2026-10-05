@@ -4,6 +4,8 @@ import {
   deleteMember,
   updateMember,
   updateNode,
+  addAnalysisCase, updateAnalysisCase, deleteAnalysisCase,
+  type FrameAnalysisCase,
   type FrameProject,
   type MemberId,
   type MemberProperties,
@@ -100,13 +102,16 @@ export type ProjectEditOperation =
   | { type: "duplicate_node" | "delete_node"; id: NodeId }
   | { type: "create_member"; properties: MemberProperties }
   | { type: "update_member"; id: MemberId; changes: Partial<MemberProperties> }
-  | { type: "duplicate_member" | "delete_member"; id: MemberId };
+  | { type: "duplicate_member" | "delete_member"; id: MemberId }
+  | { type: "create_analysis_case"; properties: Omit<FrameAnalysisCase, "id" | "legacySourceId"> }
+  | { type: "update_analysis_case"; id: string; properties: Omit<FrameAnalysisCase, "id" | "legacySourceId"> }
+  | { type: "delete_analysis_case"; id: string };
 
 export interface ProjectEditChange {
-  kind: "node" | "member" | "support" | "nodal-load" | "uniform-load";
+  kind: "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case";
   id: string;
-  before?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad;
-  after?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad;
+  before?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
+  after?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
 }
 export interface ProjectEditReceipt {
   projectId: string;
@@ -135,6 +140,9 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
       case "update_member": changed = updateMember(current, operation.id, operation.changes); break;
       case "duplicate_member": changed = duplicateMember(current, operation.id); break;
       case "delete_member": changed = deleteMember(current, operation.id); break;
+      case "create_analysis_case": changed = addAnalysisCase(current, operation.properties); break;
+      case "update_analysis_case": changed = updateAnalysisCase(current, operation.id, operation.properties); break;
+      case "delete_analysis_case": changed = deleteAnalysisCase(current, operation.id); break;
     }
     if (operation.type === "create_node" || operation.type === "duplicate_node" || operation.type === "create_member" || operation.type === "duplicate_member") {
       const kind = operation.type.endsWith("node") ? "node" as const : "member" as const;
@@ -144,7 +152,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     return changed;
   }));
   const changes: ProjectEditChange[] = [];
-  const collections = [["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"]] as const;
+  const collections = [["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"]] as const;
   for (const [kind, collection] of collections) {
     const before = new Map(project[collection].map((object) => [object.id as string, object]));
     const after = new Map(next[collection].map((object) => [object.id as string, object]));

@@ -241,9 +241,9 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
     if ("projectId" in draft) {
       parameters = `任务目标：${draft.goal ?? "未填写"}\n草案版本：V${draft.version} · 基础 R${draft.baseRevision}`;
     } else if (!("parameters" in draft) && !("memberIds" in draft)) {
-      const sourceId = draft.analysisSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId;
+      const sourceId = draft.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId;
       const sourceName = [...(draft.loadCases ?? []), ...(draft.loadCombinations ?? [])].find((item) => item.ref === sourceId || item.id === sourceId)?.name
-        ?? [...project.loadCases, ...project.loadCombinations].find((item) => item.id === sourceId)?.name ?? sourceId;
+        ?? [...project.loadCases, ...project.loadCombinations, ...project.analysisCases].find((item) => item.id === sourceId)?.name ?? sourceId;
       parameters = conditionSummaries(project, draft).flatMap((summary) => summary.groups.map((group) => `${summary.label} · ${group.objects.join("、")}：${group.setting}`)).join("\n");
       parameters += `\n计算来源：${sourceName}`;
     }
@@ -379,7 +379,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
     const retryTurn = retryOf ? turns.find((turn) => turn.result?.requestId === retryOf) : undefined;
     const intent = continuing ? undefined : calculationIntent(text);
     if (intent === "cancel") { setCalculationRequested(false); continuationRef.current = null; }
-    else if (intent === "request") { setCalculationRequested(true); requestPromptRef.current = text; analysisSourceRef.current = retryTurn ? retryTurn.sourceProject.activeLoadCombinationId ?? retryTurn.sourceProject.activeLoadCaseId : project.activeLoadCombinationId ?? project.activeLoadCaseId; }
+    else if (intent === "request") { setCalculationRequested(true); requestPromptRef.current = text; analysisSourceRef.current = retryTurn ? retryTurn.sourceProject.activeAnalysisCaseId ?? retryTurn.sourceProject.activeLoadCombinationId ?? retryTurn.sourceProject.activeLoadCaseId : project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId; }
     const id = crypto.randomUUID();
     const generation = generationRef.current;
     const submittedSnapshot = captureAiSnapshot(project, restoredTargets ?? retryTurn?.context.selection ?? (sectionChange ? sectionSelection : continuing || taskDraftRevision || proposal || conditions ? taskTargets : selection),

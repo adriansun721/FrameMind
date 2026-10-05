@@ -187,6 +187,20 @@ static Vector solve(Matrix a, Vector b, const std::vector<int>& free, const Json
     return result;
 }
 
+static Json analysisCaseSource(const Json& input, const Json& loadSource) {
+    if (!input.contains("analysisCase")) return loadSource;
+    const auto& definition=input.at("analysisCase");
+    require(definition.is_object() && definition.at("method")=="static"
+        && definition.at("loadSourceId")==loadSource
+        && definition.at("settings")==Json{{"solver","native-static"}}, "Unsupported analysis case or settings");
+    const std::string caseId=id(definition.at("id"));
+    require(caseId.size()>2 && caseId.size()<=18 && caseId.rfind("AC",0)==0
+        && caseId[2]>='1' && caseId[2]<='9', "Invalid analysis case identity");
+    for (size_t i=2;i<caseId.size();++i) require(caseId[i]>='0' && caseId[i]<='9', "Invalid analysis case identity");
+    require(std::stod(caseId.substr(2))<=9007199254740991.0, "Invalid analysis case identity");
+    return caseId;
+}
+
 static Json calculate(const Json& request, Json& stages, std::string& stage) {
     auto phase = [&](const std::string& name) {
         stage=name;
@@ -279,6 +293,7 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
         dependencies.push_back({{"loadCaseId",source},{"factor",1}});
         addLoads(input.at("nodalLoads"),input.value("uniformLoads",Json::array()),input.at("selfWeight"),source,1);
     }
+    source=analysisCaseSource(input,source);
     require(request.at("sourceId")==source && request.at("dependencies")==dependencies, "Source dependency mismatch");
     const auto& origin=request.at("origin");
     require(origin.at("kind")=="formal-model", "T2-13 trial requires formal-model origin");

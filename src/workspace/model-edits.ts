@@ -55,6 +55,13 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
       case "update_member": object(input, ["type", "id", "changes"]); return { type: input.type, id: identity(input.id) as MemberId, changes: memberProperties(input.changes, true) };
       case "duplicate_node": case "delete_node": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) as NodeId };
       case "duplicate_member": case "delete_member": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) as MemberId };
+      case "create_analysis_case": case "update_analysis_case": {
+        object(input, input.type === "create_analysis_case" ? ["type", "properties"] : ["type", "id", "properties"]);
+        const properties = object(input.properties, ["name", "method", "loadSourceId", "settings"]);
+        object(properties.settings, ["solver"]);
+        return { type: input.type, ...(input.type === "update_analysis_case" ? { id: identity(input.id) } : {}), properties } as Extract<ProjectEditOperation, { type: "create_analysis_case" | "update_analysis_case" }>;
+      }
+      case "delete_analysis_case": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) };
       default: throw new Error(`未定义基础编辑 ${String(input.type)}`);
     }
   });
@@ -125,6 +132,7 @@ export class ModelEditConfirmation {
         support: outcome.project.supports,
         "nodal-load": outcome.project.nodalLoads,
         "uniform-load": outcome.project.uniformLoads,
+        "analysis-case": outcome.project.analysisCases,
       } as const;
       const readback: ModelEditReadback = {
         projectId: snapshot.context.projectId,

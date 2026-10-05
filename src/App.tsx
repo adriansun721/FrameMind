@@ -6,6 +6,7 @@ import { BottomProperties } from "./components/BottomProperties";
 import { ResizableWorkspace } from "./components/ResizableWorkspace";
 import type { NodeDraft, MemberDraft } from "./components/model-editing";
 import { MemberSectionQuery } from "./components/MemberSectionQuery";
+import { AnalysisCaseManager } from "./components/AnalysisCaseManager";
 import { LoadCaseManager } from "./components/LoadCaseManager";
 import { LoadMenu } from "./components/LoadMenu";
 import { LoadCombinationManager } from "./components/LoadCombinationManager";
@@ -30,7 +31,7 @@ import { ModelEditConfirmation } from "./workspace/model-edits";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateSection, updateSupport, updateNodalLoad,
-  addUniformLoad, updateUniformLoad, deleteUniformLoad, updateSelfWeight, DEFAULT_LOAD_CASE, selectLoadCase, selectLoadCombination,
+  addUniformLoad, updateUniformLoad, deleteUniformLoad, updateSelfWeight, DEFAULT_LOAD_CASE, selectLoadCase, selectLoadCombination, selectAnalysisSource, selectAnalysisCase, getAnalysisSourceId,
   type DofRestraints, type FrameProject, type MaterialId, type MemberId, type NodeId, type SectionId,
 } from "./domain/project";
 import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECTION_CATALOG } from "./domain/resource-library";
@@ -145,6 +146,8 @@ export function App() {
   const [uniformDialogOpen, setUniformDialogOpen] = useState(false);
   const [selfWeightDraft, setSelfWeightDraft] = useState<SelfWeightDraft>(defaultSelfWeight);
   const [selfWeightDialogOpen, setSelfWeightDialogOpen] = useState(false);
+  const [analysisCaseManagerOpen, setAnalysisCaseManagerOpen] = useState(false);
+  const [historyAnalysisId, setHistoryAnalysisId] = useState<string>();
   const [loadCaseManagerOpen, setLoadCaseManagerOpen] = useState(false);
   const [loadCombinationManagerOpen, setLoadCombinationManagerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -161,7 +164,8 @@ export function App() {
   const memberCreationAvailable = project.nodes.length >= 2 && project.materials.length > 0 && project.sections.length > 0;
   const activeCase = project.loadCases.find((item) => item.id === project.activeLoadCaseId)!;
   const activeCombination = project.loadCombinations.find((item) => item.id === project.activeLoadCombinationId);
-  const activeSource = activeCombination ?? activeCase;
+  const activeAnalysisCase = project.analysisCases.find((c) => c.id === project.activeAnalysisCaseId);
+  const activeSource = activeAnalysisCase ?? activeCombination ?? activeCase;
   const combinationInput = useMemo(() => {
     if (!project.activeLoadCombinationId) return null;
     try { return captureAnalysisInput(project); } catch { return null; }
@@ -170,10 +174,11 @@ export function App() {
   const caseUniformLoads = useMemo(() => project.uniformLoads.filter((load) => load.loadCaseId === activeCase.id), [project.uniformLoads, activeCase.id]);
   const caseSelfWeightEnabled = project.selfWeight.enabled && project.selfWeight.loadCaseId === activeCase.id;
   const referenceAnalysis = resultReference ? project.analysisResults.find((result) => result.id === resultReference.analysisId) : undefined;
-  const caseResult = referenceAnalysis ?? getActiveAnalysisResult(project);
+  const caseResult = project.analysisResults.find((r) => r.id === historyAnalysisId) ?? referenceAnalysis ?? getActiveAnalysisResult(project);
   const resultCurrency = useMemo(() => new Map(project.analysisResults.map((result) => [result.id, isAnalysisResultCurrent(project, result)])), [project]);
   const resultIsCurrent = (result: AnalysisResult) => resultCurrency.get(result.id) ?? false;
   const resultSources = [
+    ...project.analysisCases.map((source) => ({ id: source.id })),
     ...project.loadCases.map((source) => ({ id: source.id, combination: false })),
     ...project.loadCombinations.map((source) => ({ id: source.id, combination: true })),
   ];
@@ -221,7 +226,8 @@ export function App() {
     }
     if (historyMode === "record") projectHistoryRef.current.record(previous, next);
     setHistoryVersion((value) => value + 1);
-    if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId) {
+    if (newSession || previous.activeLoadCaseId !== next.activeLoadCaseId || previous.activeLoadCombinationId !== next.activeLoadCombinationId || previous.activeAnalysisCaseId !== next.activeAnalysisCaseId) {
+      setHistoryAnalysisId(undefined);
       setResultReference(null); setResultFocus(null);
       if (newSession) activeSessionRef.current += 1;
       if (newSession) analysisSchedulerRef.current.cancelProject(previous.id);
@@ -379,10 +385,9 @@ export function App() {
 
   const runAnalysis = async (showResults = false, requestedSourceId?: string, frozenInput?: AnalysisInputSnapshot): Promise<AiToolResult> => {
     const current = activeProjectRef.current;
-    requestedSourceId ??= current.activeLoadCombinationId ?? current.activeLoadCaseId;
-    if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
-    const source = requestedSourceId && current.loadCombinations.some((item) => item.id === requestedSourceId)
-      ? selectLoadCombination(current, requestedSourceId) : requestedSourceId ? selectLoadCase(current, requestedSourceId) : current;
+    requestedSourceId ??= current.activeAnalysisCaseId ?? current.activeLoadCombinationId ?? current.activeLoadCaseId;
+    if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations, ...current.analysisCases].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
+    const source = selectAnalysisSource(current, requestedSourceId);
     const context = captureAiSnapshot(source, []).context;
     if (frozenInput && !sameInputValue(captureAnalysisInput(source), frozenInput)) return { status: "failed", message: "当前模型与保存的计算输入不一致，请核对后重新请求计算", context };
     if (source !== current) activateProject(source, false, "restore");
@@ -391,9 +396,10 @@ export function App() {
       const latest = activeProjectRef.current;
       if (latest.id !== projectId) throw new Error("项目已切换，旧分析任务已取消");
       if (!requestedSourceId) return latest;
-      if (![...latest.loadCases, ...latest.loadCombinations].some((item) => item.id === requestedSourceId)) throw new Error(`任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`);
-      return latest.loadCombinations.some((item) => item.id === requestedSourceId) ? selectLoadCombination(latest, requestedSourceId) : selectLoadCase(latest, requestedSourceId);
+      if (![...latest.loadCases, ...latest.loadCombinations, ...latest.analysisCases].some((item) => item.id === requestedSourceId)) throw new Error(`任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`);
+      return selectAnalysisSource(latest, requestedSourceId);
     };
+    setHistoryAnalysisId(undefined);
     setAnalysisBusy(true); setAnalysisPhase(null); setAnalysisFailure(null); setStatus({ tone: "neutral", text: "分析任务已提交，等待计算资源" });
     try {
       const handle = analysisSchedulerRef.current.submit({
@@ -438,7 +444,7 @@ export function App() {
         if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
         return { status: "completed", message: `本地分析完成 · ${analysisResult.nodes.length} 个节点、${analysisResult.members.length} 根杆件，已展示结果`, context,
           data: { analysisId: analysisResult.id, modelRevision: execution.checkpoint.revision, units: execution.source.units,
-            analysisSourceId: analysisResult.input.combination?.definition.id ?? analysisResult.input.loadCase?.id,
+            analysisSourceId: getAnalysisSourceId(analysisResult.input), analysisCase: analysisResult.input.analysisCase,
             loadCase: analysisResult.input.combination ? undefined : analysisResult.input.loadCase, combination: analysisResult.input.combination,
             nodes: analysisResult.nodes, members: analysisResult.members, service: analysisResult.service } };
       }).catch((error): AiToolResult => {
@@ -626,6 +632,7 @@ export function App() {
       </nav>
       <aside id="resource-panel" className="project-panel" aria-label="项目资源" hidden={!resourcePanelOpen || sidebarModule !== "project"}>
         <section className="sidebar-pane project-tree-pane" aria-label="项目树"><div className="panel-heading"><span>项目</span><button className="icon-button" title="添加节点" onClick={openNodeDialog}><Plus size={16} /></button></div>
+          <div className="load-case-selector"><label><span>分析工况</span><select aria-label="当前分析工况" value={project.activeAnalysisCaseId ?? ""} onChange={(e) => { activateProject(e.target.value ? selectAnalysisCase(project, e.target.value) : selectAnalysisSource(project, project.activeLoadCombinationId ?? project.activeLoadCaseId), false); setHistoryAnalysisId(undefined); setSelection(null); }}><option value="">直接计算荷载定义</option>{project.analysisCases.map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label><button className="icon-button" aria-label="管理分析工况" title="分析工况管理" onClick={() => setAnalysisCaseManagerOpen(true)}><Settings2 size={15} /></button></div>
           <div className="load-case-selector"><label><span>当前工况</span><select aria-label="当前工况" value={activeCombination ? "" : activeCase.id} onChange={(event) => { activateProject(selectLoadCase(project, event.target.value), false); setSelection(null); setFormError(null); setStatus({ tone: "neutral", text: `当前工况 · ${event.target.value}` }); }}>{activeCombination && <option value="" disabled>组合模式</option>}{project.loadCases.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理工况" title="管理荷载工况" onClick={() => setLoadCaseManagerOpen(true)}><Settings2 size={15} /></button></div>
           <div className="load-case-selector"><label><span>当前组合</span><select aria-label="当前组合" value={project.activeLoadCombinationId ?? ""} onChange={(event) => { activateProject(event.target.value ? selectLoadCombination(project, event.target.value) : selectLoadCase(project, activeCase.id), false); setSelection(null); setFormError(null); }}><option value="">独立工况</option>{project.loadCombinations.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}</select></label><button className="icon-button" aria-label="管理组合" title="管理自定义荷载组合" onClick={() => setLoadCombinationManagerOpen(true)}><Layers3 size={15} /></button></div>
           <div className="project-tree"><div className="tree-root"><ChevronDown size={14} /><Box size={15} /><span>{project.name}</span></div>
@@ -664,11 +671,11 @@ export function App() {
             {project.loadCombinations.map((item) => <button key={item.id} className={`tree-item resource ${activeCombination?.id === item.id ? "active-source" : ""}`} aria-label={`切换组合 ${item.id}`} onClick={() => { activateProject(selectLoadCombination(project, item.id), false); selectObject(null); }}><Layers3 size={14} /><span>{item.id} · {item.name} · 用户定义</span></button>)}
           </TreeGroup>
           <TreeGroup label="计算结果" count={project.analysisResults.length} icon={<Calculator size={14} />}>
-            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { setResultReference(null); setResultFocus(null); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {activeSource.id}</span><small>{caseResult ? resultIsCurrent(caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
+            <button className={`tree-item case-result ${caseResult && !selection ? "selected" : ""}`} aria-label="查看分析结果" disabled={!caseResult} onClick={() => { setResultReference(null); setResultFocus(null); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>分析结果 · {caseResult ? getAnalysisSourceId(caseResult.input) : activeSource.id}</span><small>{caseResult ? resultIsCurrent(caseResult) ? "当前" : "已过期" : "未计算"}</small></button>
             <button className="tree-item resource" disabled={project.analysisResults.length < 2} onClick={() => setComparisonOpen(true)}><Files size={14} /><span>历史分析与前后对比</span></button>
             {resultSources.map((source) => {
               const result = getAnalysisResultForSource(project, source.id);
-              return result && <button key={source.id} className="tree-item resource" aria-label={`查看 ${source.id} 结果`} onClick={() => { activateProject(source.combination ? selectLoadCombination(project, source.id) : selectLoadCase(project, source.id), false); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>{source.id} · {resultIsCurrent(result) ? "当前" : "已过期"} · R{result.projectRevision}</span></button>;
+              return result && <button key={source.id} className="tree-item resource" aria-label={`查看 ${source.id} 结果`} onClick={() => { activateProject(selectAnalysisSource(project, source.id), false); setHistoryAnalysisId(undefined); selectObject(null); setPropertyPanelOpen(true); }}><Calculator size={14} /><span>{source.id} · {resultIsCurrent(result) ? "当前" : "已过期"} · R{result.projectRevision}</span></button>;
             })}
             {project.analysisResults.length === 0 && <p className="tree-empty">尚无已完成分析</p>}
           </TreeGroup>
@@ -749,7 +756,7 @@ export function App() {
           const next = { ...current, taskState: nextState };
           activeProjectRef.current = next; setProject(next);
         }}
-        onResumeAnalysis={(input) => runAnalysis(true, input.combination?.definition.id ?? input.loadCase?.id, input)}
+        onResumeAnalysis={(input) => runAnalysis(true, getAnalysisSourceId(input), input)}
         onPersistenceError={(message) => setStatus({ tone: "error", text: message })}
         onEditsConfirm={(confirmation) => {
           const current = activeProjectRef.current;
@@ -792,8 +799,9 @@ export function App() {
         analysis={caseResult} onLocateResult={(ref) => {
           const result = project.analysisResults.find((item) => item.id === ref.analysisId);
           if (!result || result.projectId !== project.id) { setStatus({ tone: "error", text: "引用分析已不可用，请重新读取当前结果" }); return; }
-          if (ref.source.id !== (project.activeLoadCombinationId ?? project.activeLoadCaseId)) {
-            const next = ref.source.kind === "combination" ? selectLoadCombination(project, ref.source.id) : selectLoadCase(project, ref.source.id);
+          setHistoryAnalysisId(undefined);
+          if (ref.source.id !== (project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId) && [...project.analysisCases, ...project.loadCases, ...project.loadCombinations].some((source) => source.id === ref.source.id)) {
+            const next = selectAnalysisSource(project, ref.source.id);
             activateProject(next, false, "restore");
           }
           setResultReference(ref); setPropertyPanelOpen(true);
@@ -838,6 +846,7 @@ export function App() {
     {uniformDialogOpen && <Dialog title="创建杆件均布荷载" copy={`整根杆件 · ${uniformDraft.loadCaseId} · kN/m`} onClose={() => { setUniformDialogOpen(false); selectObject(selection); }}><form onSubmit={(event) => submitUniform(event, false)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><DialogActions close={() => { setUniformDialogOpen(false); selectObject(selection); }} submit="添加均布荷载" /></form></Dialog>}
     {selfWeightDialogOpen && <Dialog title="设置结构自重" copy={`材料密度 ρ (kg/m³) · 截面面积 A (m²) · 重力加速度 g (m/s²) · ${selfWeightDraft.loadCaseId}`} onClose={() => { setSelfWeightDialogOpen(false); setFormError(null); }}><form onSubmit={submitSelfWeight}><label className="check-field self-weight-toggle"><input type="checkbox" checked={selfWeightDraft.enabled} onChange={(event) => setSelfWeightDraft({ ...selfWeightDraft, enabled: event.target.checked })} /><span>启用结构自重</span></label><LoadCaseField project={project} value={selfWeightDraft.loadCaseId} onChange={(loadCaseId) => setSelfWeightDraft({ ...selfWeightDraft, loadCaseId, enabled: project.selfWeight.enabled && project.selfWeight.loadCaseId === loadCaseId })} /><div className="coordinate-inputs"><NumberField label="重力 X" value={selfWeightDraft.gx} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gx: value })} /><NumberField label="重力 Y" value={selfWeightDraft.gy} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gy: value })} /><NumberField label="重力 Z" value={selfWeightDraft.gz} unit="m/s²" onChange={(value) => setSelfWeightDraft({ ...selfWeightDraft, gz: value })} /></div><SelfWeightReferences project={project} /><FormFeedback error={formError} /><DialogActions close={() => { setSelfWeightDialogOpen(false); setFormError(null); }} submit="保存自重设置" /></form></Dialog>}
     {settingsDialogOpen && <Dialog id="settings-dialog" title="设置" copy="FrameMind" onClose={() => setSettingsDialogOpen(false)}><section className="settings-general" aria-label="常规设置"><h3>外观</h3><div className="theme-options" role="group" aria-label="主题">{(["dark", "light"] as const).map((value) => <button key={value} className="button ghost" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === "dark" ? <Moon size={15} /> : <Sun size={15} />}{value === "dark" ? "深色" : "浅色"}</button>)}</div></section><DeepSeekSettingsPanel /></Dialog>}
+    {analysisCaseManagerOpen && <AnalysisCaseManager project={project} onChange={(next) => { activateProject(next, false); setHistoryAnalysisId(undefined); setSelection(null); }} onAnalyze={(id) => { setAnalysisCaseManagerOpen(false); void runAnalysis(true, id); }} onViewHistory={(id) => { setHistoryAnalysisId(id); setResultReference(null); setPropertyPanelOpen(true); setAnalysisCaseManagerOpen(false); }} onLoads={() => { setAnalysisCaseManagerOpen(false); setLoadCaseManagerOpen(true); }} onCombinations={() => { setAnalysisCaseManagerOpen(false); setLoadCombinationManagerOpen(true); }} onClose={() => setAnalysisCaseManagerOpen(false)} />}
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onSelfWeight={(loadCaseId) => { setLoadCaseManagerOpen(false); openSelfWeightDialog(loadCaseId); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
     {comparisonOpen && <AnalysisComparisonDialog key={`${comparisonPair?.beforeId ?? ""}:${comparisonPair?.afterId ?? ""}`} project={project} pair={comparisonPair} onPairChange={setComparisonPair} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
@@ -878,6 +887,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
   return <div className="analysis-result-panel">
     <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>所选分析</small><strong>3D 线弹性静力</strong></div></div>
     <section className="property-section"><div className="result-section-heading"><h3>计算输入</h3><button type="button" className="button ghost compact-button" onClick={onOpenComparison} disabled={project.analysisResults.length < 2} title={project.analysisResults.length < 2 ? "至少需要两份已完成分析" : "选择两份已完成分析"}><Files size={14} />前后结果对比</button></div><dl>
+      {result.input.analysisCase && <div><dt>分析工况 / 方法</dt><dd>{result.input.analysisCase.id} · {result.input.analysisCase.name} · 线性静力</dd></div>}
       <div><dt>{combination ? "用户定义组合" : "来源工况"}</dt><dd>{combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入"}</dd></div>
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
       <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length + (result.input.uniformLoads?.length ?? 0)}</dd></div>
@@ -910,6 +920,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
 }
 
 function analysisSourceLabel(result: AnalysisResult): string {
+  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name}（线性静力 · ${result.input.analysisCase.loadSourceId}）`;
   if (result.input.combination) return `${result.input.combination.definition.id} · ${result.input.combination.definition.name}（组合）`;
   return result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入";
 }

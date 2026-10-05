@@ -4,6 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ProjectFileStore, type FileOperations } from "./project-files";
+import { addAnalysisCase, attachAnalysisResult, selectAnalysisCase } from "../src/domain/project";
+import { decodeProject, encodeProject } from "../src/domain/project-file";
+import { captureAnalysisInput, isAnalysisResultCurrent, solveFrame } from "../src/domain/analysis";
+import samples from "../docs/evidence/plan2/T2-14/wire-samples.json";
 
 const temporaryDirectories: string[] = [];
 
@@ -16,6 +20,27 @@ afterEach(async () => {
 });
 
 describe("project file storage", () => {
+  it("preserves reusable analysis cases and frozen history when project replacement fails", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "framemind-t216-save-"));
+    temporaryDirectories.push(directory);
+    const target = join(directory, "history.framemind");
+    let p = decodeProject(JSON.stringify(samples[0].project));
+    p = addAnalysisCase(p, { name: "Shared source", method: "static", loadSourceId: "LC1", settings: { solver: "native-static" } });
+    p = selectAnalysisCase(p, p.analysisCases.at(-1)!.id);
+    p = attachAnalysisResult(p, solveFrame(captureAnalysisInput(p)));
+    const original = encodeProject(p);
+    await new ProjectFileStore().save(target, original);
+    const failing = new ProjectFileStore({ rename: async (from, to) => {
+      if (from.endsWith(".tmp")) throw new Error("replacement blocked");
+      await rename(from, to);
+    } });
+    await expect(failing.save(target, encodeProject({ ...p, analysisResults: [], latestAnalysis: undefined }))).rejects.toThrow("replacement blocked");
+    expect(await readFile(target, "utf8")).toBe(original);
+    const reopened = decodeProject(await readFile(target, "utf8"));
+    expect(reopened.analysisCases).toEqual(p.analysisCases);
+    expect(reopened.analysisResults[0].input).toEqual(p.analysisResults[0].input);
+    expect(isAnalysisResultCurrent(reopened, reopened.analysisResults[0])).toBe(true);
+  });
   it("preserves the previous PDF bytes and removes temporary output when replacement fails", async () => {
     const directory = await mkdtemp(join(tmpdir(), "framemind-pdf-rollback-"));
     temporaryDirectories.push(directory);
