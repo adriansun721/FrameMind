@@ -3,8 +3,12 @@ import { captureAnalysisInput, type AnalysisResult } from "../domain/analysis";
 import { createProject } from "../domain/project";
 import { executeAnalysisRequest, type AnalysisServiceRequest } from "../domain/analysis-service";
 import { reportFixture } from "../domain/engineering-report.fixture";
-import { AnalysisCancelledError, startAnalysisTask } from "./analysis-task";
+import { AnalysisCancelledError, startAnalysisTask as startTask, type AnalysisTaskOptions } from "./analysis-task";
 import nativeReport from "../../docs/evidence/plan2/T2-14/numerical-results.json";
+
+// Explicit legacy adapter for T2-12 reference and Worker protocol regressions.
+const startAnalysisTask = (input: Parameters<typeof startTask>[0], options: AnalysisTaskOptions = {}) =>
+  startTask(input, { backend: "typescript-reference", ...options });
 
 class ControlledWorker {
   static instances: ControlledWorker[] = [];

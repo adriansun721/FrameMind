@@ -4,6 +4,13 @@ import { DesktopChannel, type FrameMindDesktopApi } from "./contracts";
 const desktopApi: FrameMindDesktopApi = {
   runNativeAnalysis: (request) => ipcRenderer.invoke(DesktopChannel.RunNativeAnalysis, request),
   cancelNativeAnalysis: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelNativeAnalysis, requestId),
+  onNativeAnalysisPhase: (requestId, listener) => {
+    const receive = (_event: Electron.IpcRendererEvent, message: { requestId?: string }) => {
+      if (message?.requestId === requestId) listener(message);
+    };
+    ipcRenderer.on(DesktopChannel.NativeAnalysisPhase, receive);
+    return () => ipcRenderer.removeListener(DesktopChannel.NativeAnalysisPhase, receive);
+  },
   saveRecovery: (request) => ipcRenderer.invoke(DesktopChannel.SaveRecovery, request),
   listRecovery: () => ipcRenderer.invoke(DesktopChannel.ListRecovery),
   readRecovery: (id) => ipcRenderer.invoke(DesktopChannel.ReadRecovery, id),

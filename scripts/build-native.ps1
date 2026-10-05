@@ -1,3 +1,4 @@
+param([switch]$WithTestFixtures)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 $deps = Join-Path $taskRoot 'native/.deps'
@@ -20,6 +21,10 @@ $build = Join-Path $taskRoot 'native/build'
 if ($LASTEXITCODE -ne 0) { throw 'Native configure failed' }
 & $cmake --build $build --config Release
 if ($LASTEXITCODE -ne 0) { throw 'Native build failed' }
+if ($WithTestFixtures) {
+  & $cmake --build $build --config Release --target framemind-fault-core
+  if ($LASTEXITCODE -ne 0) { throw 'Native fixture build failed' }
+}
 $output = Join-Path $taskRoot 'native/bin'
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 Copy-Item -LiteralPath (Join-Path $build 'Release/framemind-core.exe') -Destination $output

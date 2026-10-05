@@ -714,6 +714,7 @@ export function supplementMemberAnalysisRecord(result: AnalysisResult, memberId:
   return { ...record, sourceAnalysisId: result.id, origin: "supplemental-reconstruction" };
 }
 
+/** Synchronous TypeScript reference for tests/independent regression. Desktop solves use startAnalysisTask's native default. */
 export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage?: (stage: AnalysisStage) => void): AnalysisResult {
   onStage?.("model-check");
   if ("projectId" in source && source.solver) {

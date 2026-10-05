@@ -42,7 +42,9 @@ ipcMain.handle(DesktopChannel.GetDeepSeekSettings, (event) => {
 });
 ipcMain.handle(DesktopChannel.RunNativeAnalysis, (event, request: unknown) => {
   requireTrustedSender(event);
-  return nativeAnalysis.run(event.sender.id, request);
+  return nativeAnalysis.run(event.sender.id, request, (message) => {
+    if (!event.sender.isDestroyed()) event.sender.send(DesktopChannel.NativeAnalysisPhase, message);
+  });
 });
 ipcMain.handle(DesktopChannel.CancelNativeAnalysis, (event, requestId: string) => {
   requireTrustedSender(event);
@@ -111,6 +113,10 @@ function createWindow(): void {
   });
 
   window.once("ready-to-show", () => window.show());
+  const owner = window.webContents.id;
+  window.webContents.on("destroyed", () => nativeAnalysis.cancelOwner(owner));
+  window.webContents.on("render-process-gone", () => nativeAnalysis.cancelOwner(owner));
+  window.webContents.on("did-start-loading", () => nativeAnalysis.cancelOwner(owner));
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event, url) => {
     if (url !== trustedUrl && url !== `${trustedUrl}/`) event.preventDefault();

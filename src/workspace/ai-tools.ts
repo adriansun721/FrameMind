@@ -258,11 +258,14 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
     input = record(JSON.parse(call.function.arguments));
     if (["inspect_diagnostics", "create_diagnostic_copy", "run_diagnostic_trial", "read_diagnostic", "compare_diagnostic_trials", "discard_diagnostic_copy"].includes(call.function.name)) {
       diagnosticCallInput(call.function.name, input);
+      // Numerical diagnostic tools in the desktop must use the cancellable native
+      // task; the synchronous path below remains only a test/reference contract.
+      if (["inspect_diagnostics", "run_diagnostic_trial"].includes(call.function.name) && typeof window !== "undefined" && window.frameMind) {
+        throw new Error("诊断计算必须通过异步原生任务执行");
+      }
       if (call.function.name === "inspect_diagnostics") {
         const outcome = runDiagnosticTrial(createDiagnosticCopy(snapshot.editProject, snapshot.analysis?.id ? { analysisId: snapshot.analysis.id } : undefined), { label: "正式模型诊断检查", operations: [] });
-        const check = outcome.trial.evidence;
-        return { status: "completed", message: outcome.trial.status === "complete" ? "正式模型诊断试算完成；数值成功不等于工程条件已验证" : "已完成正式模型诊断，发现结构化输入、拓扑、约束或求解阶段问题", context: snapshot.context,
-          data: { source: { projectId: snapshot.context.projectId, projectRevision: snapshot.context.modelRevision }, check, trial: outcome.trial } };
+        return finishDiagnosticTool(snapshot, call, outcome);
       }
       if (call.function.name === "create_diagnostic_copy") {
         const copy = createDiagnosticCopy(snapshot.editProject, snapshot.analysis?.id ? { analysisId: snapshot.analysis.id } : undefined);
@@ -276,8 +279,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       if (call.function.name === "run_diagnostic_trial") {
         try {
           const outcome = runDiagnosticTrial(previousDiagnosticCopy, { label: input.label as string, operations: input.operations as DiagnosticOperation[], sourceId: input.sourceId as string | undefined });
-          return { status: "completed", message: outcome.trial.status === "complete" ? "隔离试算完成；数值成功不等于工程条件已验证" : "隔离试算完成并保留失败证据", context: snapshot.context,
-            diagnosticCopy: outcome.copy, diagnosticState: "copy", diagnosticTrial: outcome.trial, data: { trial: outcome.trial, copyId: outcome.copy.id } };
+          return finishDiagnosticTool(snapshot, call, outcome);
         } catch (error) { return { status: "failed", message: error instanceof Error ? error.message : "诊断试算参数无效", context: snapshot.context }; }
       }
       if (call.function.name === "read_diagnostic") {
@@ -435,4 +437,29 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
 export function executeAiTool(snapshot: AiSnapshot, value: unknown, previousProposal?: FrameProposal, previousConditions?: ConditionsProposal, previousSectionChange?: SectionChangeProposal, previousModelEdits?: ModelEditProposal, previousTaskDraft?: TaskDraft, previousDiagnosticCopy?: DiagnosticCopy | null): AiToolResult {
   const result = executeAiToolInternal(snapshot, value, previousProposal, previousConditions, previousSectionChange, previousModelEdits, previousTaskDraft, previousDiagnosticCopy);
   return { ...result, receipt: buildReceipt(snapshot, value, result) };
+}
+
+/** Validate and bind a diagnostic tool before asynchronous dispatch. */
+export function prepareDiagnosticTool(snapshot: AiSnapshot, value: unknown, copy?: DiagnosticCopy):
+  { copy: DiagnosticCopy; request: { label: string; operations: DiagnosticOperation[]; sourceId?: string } } | { result: AiToolResult } {
+  const output = (result: AiToolResult) => ({ result: { ...result, receipt: buildReceipt(snapshot, value, result) } });
+  try {
+    const call = validateCall(value), input = record(JSON.parse(call.function.arguments));
+    if (!["inspect_diagnostics", "run_diagnostic_trial"].includes(call.function.name)) throw new Error("工具不是诊断计算入口");
+    diagnosticCallInput(call.function.name, input);
+    if (call.function.name === "inspect_diagnostics") return { copy: createDiagnosticCopy(snapshot.editProject, snapshot.analysis?.id ? { analysisId: snapshot.analysis.id } : undefined), request: { label: "正式模型诊断检查", operations: [] } };
+    if (!copy) return output({ status: "missing-input", message: "请先创建诊断副本，再进行试算、读取或比较", context: snapshot.context, data: { requiredTool: "create_diagnostic_copy" } });
+    if (!diagnosticCopyIsCurrent(snapshot, copy)) return output({ status: "missing-input", message: "正式模型已变化，旧诊断副本来源过期；请重新读取并创建副本", context: snapshot.context });
+    return { copy, request: { label: input.label as string, operations: input.operations as DiagnosticOperation[], sourceId: input.sourceId as string | undefined } };
+  } catch (error) { return output({ status: "failed", message: error instanceof Error ? error.message : "诊断参数无效", context: snapshot.context }); }
+}
+
+export function finishDiagnosticTool(snapshot: AiSnapshot, call: ToolCall, outcome: ReturnType<typeof runDiagnosticTrial>): AiToolResult {
+  const inspect = call.function.name === "inspect_diagnostics";
+  const result: AiToolResult = inspect
+    ? { status: "completed", message: outcome.trial.status === "complete" ? "正式模型诊断试算完成；数值成功不等于工程条件已验证" : "已完成正式模型诊断，发现结构化输入、拓扑、约束或求解阶段问题", context: snapshot.context,
+      data: { source: { projectId: snapshot.context.projectId, projectRevision: snapshot.context.modelRevision }, check: outcome.trial.evidence, trial: outcome.trial } }
+    : { status: "completed", message: outcome.trial.status === "complete" ? "隔离试算完成；数值成功不等于工程条件已验证" : "隔离试算完成并保留失败证据", context: snapshot.context,
+      diagnosticCopy: outcome.copy, diagnosticState: "copy", diagnosticTrial: outcome.trial, data: { trial: outcome.trial, copyId: outcome.copy.id } };
+  return { ...result, receipt: buildReceipt(snapshot, call, result) };
 }

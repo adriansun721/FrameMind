@@ -229,7 +229,7 @@ export function validateDiagnosticOperations(value: unknown): DiagnosticOperatio
   });
 }
 
-function inputForSource(copy: DiagnosticCopy, sourceId?: string) {
+export function captureDiagnosticInput(copy: DiagnosticCopy, sourceId?: string) {
   if (!sourceId) return captureAnalysisInput(copy.model);
   if (/^CB[1-9]\d*$/.test(sourceId)) return captureAnalysisInput({ ...copy.model, activeLoadCombinationId: sourceId });
   if (/^LC[1-9]\d*$/.test(sourceId)) return captureAnalysisInput({ ...copy.model, activeLoadCombinationId: undefined, activeLoadCaseId: sourceId }, sourceId);
@@ -237,7 +237,7 @@ function inputForSource(copy: DiagnosticCopy, sourceId?: string) {
 }
 
 export function checkDiagnosticCopy(copy: DiagnosticCopy, sourceId?: string): DiagnosticCheck {
-  const input = inputForSource(copy, sourceId);
+  const input = captureDiagnosticInput(copy, sourceId);
   const diagnostics = checkAnalysisInput(input);
   return { status: diagnostics.length ? "invalid" : "valid", copyId: copy.id, projectId: copy.model.id, projectRevision: copy.model.revision, sourceId, diagnostics: clone(diagnostics), targets: diagnosticTargets(diagnostics) };
 }
@@ -258,7 +258,7 @@ function summaryFor(label: string, source: DiagnosticCopySource, check: Diagnost
 
 export interface DiagnosticTrialRequest { label: string; operations: readonly DiagnosticOperation[]; sourceId?: string; }
 
-export function runDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTrialRequest): { copy: DiagnosticCopy; trial: DiagnosticTrial } {
+export function prepareDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTrialRequest) {
   if (!request.label.trim()) throw new Error("诊断试算标签不能为空");
   let candidate = copy;
   let normalized: DiagnosticOperation[] = [];
@@ -277,31 +277,23 @@ export function runDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTria
   } catch (error) {
     check = { status: "invalid", copyId: copy.id, projectId: copy.model.id, projectRevision: copy.model.revision, sourceId: request.sourceId, diagnostics: [{ code: "invalid-diagnostic-operation", message: error instanceof Error ? error.message : String(error) }], targets: [] };
   }
-  let result: AnalysisResult | undefined;
-  let status: DiagnosticTrial["status"] = "failed";
+  return { candidate, normalized, check, request };
+}
+
+export function finishDiagnosticTrial(prepared: ReturnType<typeof prepareDiagnosticTrial>, result?: AnalysisResult, error?: unknown, stages: AnalysisStage[] = []): { copy: DiagnosticCopy; trial: DiagnosticTrial } {
+  const { candidate, normalized, check, request } = prepared;
+  const status: DiagnosticTrial["status"] = result ? "complete" : "failed";
   let stage: AnalysisStage | undefined;
   let solverMessage: string | undefined;
-  const stages: AnalysisStage[] = [];
   let failedRun: AnalysisRunRecord | undefined;
-  if (check.status === "valid") {
-    try {
-      const input = inputForSource(candidate, check.sourceId);
-      result = clone(executeAnalysisRequest(createAnalysisRequest(input, {
-        kind: "diagnostic-copy", copyId: candidate.id, sourceProjectId: candidate.source.projectId,
-        sourceProjectRevision: candidate.source.projectRevision, sourceAnalysisId: candidate.source.analysisId,
-      }), (record) => stages.push(record.stage)));
-      status = "complete";
-    } catch (error) {
-      if (error instanceof AnalysisFailure) {
-        if (error instanceof AnalysisServiceFailure) failedRun = clone(error.run);
-        stage = error.stage; solverMessage = error.message;
-        check.diagnostics = [...check.diagnostics, ...clone(error.diagnostics)];
-        check.targets = diagnosticTargets(check.diagnostics);
-      } else {
-        stage = "solve"; solverMessage = error instanceof Error ? error.message : String(error);
-        check.diagnostics = [...check.diagnostics, { code: "solver-error", message: solverMessage }];
-      }
-    }
+  if (error instanceof AnalysisFailure) {
+    if (error instanceof AnalysisServiceFailure) failedRun = clone(error.run);
+    stage = error.stage; solverMessage = error.message;
+    check.diagnostics = [...check.diagnostics, ...clone(error.diagnostics)];
+    check.targets = diagnosticTargets(check.diagnostics);
+  } else if (error) {
+    stage = stages.at(-1) ?? "model-check"; solverMessage = error instanceof Error ? error.message : String(error);
+    check.diagnostics = [...check.diagnostics, { code: "solver-error", message: solverMessage }];
   }
   const trial: DiagnosticTrial = {
     id: `${candidate.id}_trial_${candidate.trials.length + 1}_${globalThis.crypto.randomUUID().slice(0, 8)}`,
@@ -319,6 +311,23 @@ export function runDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTria
   const next = { ...candidate, model: clone(candidate.model), trials: [...candidate.trials, clone(trial)] };
   return { copy: next, trial: clone(trial) };
 }
+
+/** Synchronous TypeScript reference for tests only; desktop dispatch uses the native task. */
+export function runDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTrialRequest): { copy: DiagnosticCopy; trial: DiagnosticTrial } {
+  const prepared = prepareDiagnosticTrial(copy, request);
+  const stages: AnalysisStage[] = [];
+  if (prepared.check.status !== "valid") return finishDiagnosticTrial(prepared);
+  try {
+    const result = executeAnalysisRequest(createAnalysisRequest(captureDiagnosticInput(prepared.candidate, prepared.check.sourceId), diagnosticAnalysisOrigin(prepared.candidate)), (record) => stages.push(record.stage));
+    return finishDiagnosticTrial(prepared, result, undefined, stages);
+  } catch (error) { return finishDiagnosticTrial(prepared, undefined, error, stages); }
+}
+
+export function diagnosticAnalysisOrigin(copy: DiagnosticCopy) {
+  return { kind: "diagnostic-copy" as const, copyId: copy.id, sourceProjectId: copy.source.projectId,
+    sourceProjectRevision: copy.source.projectRevision, sourceAnalysisId: copy.source.analysisId };
+}
+
 
 export function readDiagnosticCopy(copy: DiagnosticCopy, options: { collection: DiagnosticCopyCollection; offset?: number; limit?: number } = { collection: "summary" }): DiagnosticReadResult {
   const offset = options.offset ?? 0; const limit = options.limit ?? 50;

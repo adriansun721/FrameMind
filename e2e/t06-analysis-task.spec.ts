@@ -4,16 +4,12 @@ import { launchFrameMind } from "./electron-app";
 test("T06 keeps the workbench interactive while an analysis task is pending", async () => {
   const { app, page } = await launchFrameMind();
   try {
-    await page.addInitScript(() => {
-      class PendingWorker {
-        onmessage: ((event: MessageEvent) => void) | null = null;
-        onerror: ((event: ErrorEvent) => void) | null = null;
-        postMessage(): void {}
-        terminate(): void {}
-      }
-      Object.defineProperty(window, "Worker", { configurable: true, writable: true, value: PendingWorker });
+    // Hold the external native IPC response to exercise the public UI boundary.
+    await app.evaluate(() => {
+      const require = process.getBuiltinModule("module").createRequire(process.cwd() + "/package.json");
+      const { NativeAnalysisHost } = require(process.cwd() + "/dist-electron/native-analysis.js");
+      NativeAnalysisHost.prototype.run = () => new Promise(() => {});
     });
-    await page.reload();
 
     await page.getByRole("button", { name: "运行分析" }).click();
     await expect(page.getByRole("button", { name: "取消计算" })).toBeVisible();

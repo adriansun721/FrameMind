@@ -1,0 +1,1297 @@
+{
+  "passed": true,
+  "records": [
+    {
+      "fault": "crash",
+      "retainedModel": true,
+      "retainedResults": true
+    },
+    {
+      "fault": "truncated",
+      "retainedModel": true,
+      "retainedResults": true
+    },
+    {
+      "fault": "protocol",
+      "retainedModel": true,
+      "retainedResults": true
+    },
+    {
+      "fault": "nonfinite",
+      "retainedModel": true,
+      "retainedResults": true
+    },
+    {
+      "cancellationMs": 3.5999999940395355,
+      "processTerminationMs": 687.8267000000005,
+      "cameraChanged": true
+    }
+  ],
+  "compilerFreePath": true,
+  "editAndProjectSwitchIsolated": true,
+  "maxCallbackGapMs": 37.80000001192093,
+  "memory": [
+    {
+      "type": "Browser",
+      "workingSetBytes": 125247488
+    },
+    {
+      "type": "GPU",
+      "workingSetBytes": 363057152
+    },
+    {
+      "type": "Utility",
+      "workingSetBytes": 54329344
+    },
+    {
+      "type": "Tab",
+      "workingSetBytes": 152510464
+    }
+  ],
+  "result": {
+    "id": "analysis_2cc93934-bb02-48d5-b7bb-3aadc904c7d5",
+    "projectId": "project_t215_another",
+    "projectRevision": 8,
+    "createdAt": "2026-10-05T09:37:35Z",
+    "status": "complete",
+    "input": {
+      "assumptions": {
+        "localAxis": "member-geometry",
+        "rigidJoints": true,
+        "shearDeformation": "neglected",
+        "theory": "3d-euler-bernoulli-frame",
+        "units": "m-kN-kN·m"
+      },
+      "dofOrder": [
+        "ux",
+        "uy",
+        "uz",
+        "rx",
+        "ry",
+        "rz"
+      ],
+      "loadCase": {
+        "id": "LC1",
+        "name": "默认工况",
+        "description": ""
+      },
+      "materials": [
+        {
+          "id": "material_0001",
+          "label": "M1",
+          "name": "参考钢材",
+          "elasticModulusGPa": 200,
+          "poissonRatio": 0.3,
+          "densityKgM3": 7850,
+          "provenance": {
+            "kind": "custom"
+          }
+        }
+      ],
+      "members": [
+        {
+          "id": "member_0001",
+          "label": "M1",
+          "startNodeId": "node_0001",
+          "endNodeId": "node_0002",
+          "materialId": "material_0001",
+          "sectionId": "section_0001",
+          "rotationDegrees": 0
+        }
+      ],
+      "nodalLoads": [
+        {
+          "id": "load_0001",
+          "label": "L1",
+          "nodeId": "node_0002",
+          "loadCaseId": "LC1",
+          "force": {
+            "x": 10,
+            "y": 0,
+            "z": 0
+          },
+          "moment": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "id": "node_0001",
+          "label": "N1",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "id": "node_0002",
+          "label": "N2",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "z": 0
+          }
+        }
+      ],
+      "projectId": "project_t215_another",
+      "projectRevision": 8,
+      "sections": [
+        {
+          "id": "section_0001",
+          "label": "S1",
+          "name": "参考截面",
+          "areaM2": 0.01,
+          "secondMomentYM4": 0.0002,
+          "secondMomentZM4": 0.0001,
+          "torsionalConstantM4": 0.00015,
+          "provenance": {
+            "kind": "custom"
+          }
+        }
+      ],
+      "selfWeight": {
+        "enabled": false,
+        "loadCaseId": "LC1",
+        "gravity": {
+          "x": 0,
+          "y": 0,
+          "z": -9.81
+        }
+      },
+      "solver": {
+        "algorithm": "sparse-ldlt",
+        "constraints": "free-dof-elimination",
+        "implementation": "framemind-native/2",
+        "relativePivotTolerance": 1e-12
+      },
+      "supports": [
+        {
+          "id": "support_0001",
+          "label": "B1",
+          "nodeId": "node_0001",
+          "restraints": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "uniformLoads": []
+    },
+    "nodes": [
+      {
+        "nodeId": "node_0001",
+        "displacement": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reaction": {
+          "x": -10,
+          "y": 0,
+          "z": 0
+        },
+        "reactionMoment": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "nodeId": "node_0002",
+        "displacement": {
+          "x": 0.000019999999999999998,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reaction": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reactionMoment": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      }
+    ],
+    "members": [
+      {
+        "memberId": "member_0001",
+        "length": 4,
+        "localAxes": {
+          "x": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "y": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "z": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          }
+        },
+        "localEndForces": {
+          "start": [
+            -10,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "end": [
+            10,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "nativeResponses": [
+          {
+            "position": 0,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 0.25,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.0000012499999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.0000012499999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 0.5,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.0000024999999999999998,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.0000024999999999999998,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 0.75,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.0000037499999999999997,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.0000037499999999999997,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 1,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.0000049999999999999996,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.0000049999999999999996,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 1.25,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.0000062499999999999995,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.0000062499999999999995,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 1.5,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000007499999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000007499999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 1.75,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.00000875,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.00000875,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 2,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000009999999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000009999999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 2.25,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000011249999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000011249999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 2.5,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000012499999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000012499999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 2.75,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000013749999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000013749999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 3,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000014999999999999999,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000014999999999999999,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 3.25,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.00001625,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.00001625,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 3.5,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.0000175,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.0000175,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 3.75,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.00001875,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.00001875,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "position": 4,
+            "forces": [
+              10,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "localDisplacement": {
+              "x": 0.000019999999999999998,
+              "y": 0,
+              "z": 0
+            },
+            "globalDisplacement": {
+              "x": 0.000019999999999999998,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ]
+      }
+    ],
+    "process": {
+      "solver": {
+        "implementation": "framemind-native/2",
+        "algorithm": "sparse-ldlt",
+        "constraints": "free-dof-elimination",
+        "relativePivotTolerance": 1e-12
+      },
+      "dofOrder": [
+        "ux",
+        "uy",
+        "uz",
+        "rx",
+        "ry",
+        "rz"
+      ],
+      "dofs": [
+        {
+          "nodeId": "node_0001",
+          "dof": "ux",
+          "globalIndex": 0,
+          "restrained": true
+        },
+        {
+          "nodeId": "node_0001",
+          "dof": "uy",
+          "globalIndex": 1,
+          "restrained": true
+        },
+        {
+          "nodeId": "node_0001",
+          "dof": "uz",
+          "globalIndex": 2,
+          "restrained": true
+        },
+        {
+          "nodeId": "node_0001",
+          "dof": "rx",
+          "globalIndex": 3,
+          "restrained": true
+        },
+        {
+          "nodeId": "node_0001",
+          "dof": "ry",
+          "globalIndex": 4,
+          "restrained": true
+        },
+        {
+          "nodeId": "node_0001",
+          "dof": "rz",
+          "globalIndex": 5,
+          "restrained": true
+        },
+        {
+          "nodeId": "node_0002",
+          "dof": "ux",
+          "globalIndex": 6,
+          "restrained": false
+        },
+        {
+          "nodeId": "node_0002",
+          "dof": "uy",
+          "globalIndex": 7,
+          "restrained": false
+        },
+        {
+          "nodeId": "node_0002",
+          "dof": "uz",
+          "globalIndex": 8,
+          "restrained": false
+        },
+        {
+          "nodeId": "node_0002",
+          "dof": "rx",
+          "globalIndex": 9,
+          "restrained": false
+        },
+        {
+          "nodeId": "node_0002",
+          "dof": "ry",
+          "globalIndex": 10,
+          "restrained": false
+        },
+        {
+          "nodeId": "node_0002",
+          "dof": "rz",
+          "globalIndex": 11,
+          "restrained": false
+        }
+      ],
+      "members": [
+        {
+          "memberId": "member_0001",
+          "dofs": [
+            {
+              "nodeId": "node_0001",
+              "dof": "ux",
+              "globalIndex": 0,
+              "restrained": true
+            },
+            {
+              "nodeId": "node_0001",
+              "dof": "uy",
+              "globalIndex": 1,
+              "restrained": true
+            },
+            {
+              "nodeId": "node_0001",
+              "dof": "uz",
+              "globalIndex": 2,
+              "restrained": true
+            },
+            {
+              "nodeId": "node_0001",
+              "dof": "rx",
+              "globalIndex": 3,
+              "restrained": true
+            },
+            {
+              "nodeId": "node_0001",
+              "dof": "ry",
+              "globalIndex": 4,
+              "restrained": true
+            },
+            {
+              "nodeId": "node_0001",
+              "dof": "rz",
+              "globalIndex": 5,
+              "restrained": true
+            },
+            {
+              "nodeId": "node_0002",
+              "dof": "ux",
+              "globalIndex": 6,
+              "restrained": false
+            },
+            {
+              "nodeId": "node_0002",
+              "dof": "uy",
+              "globalIndex": 7,
+              "restrained": false
+            },
+            {
+              "nodeId": "node_0002",
+              "dof": "uz",
+              "globalIndex": 8,
+              "restrained": false
+            },
+            {
+              "nodeId": "node_0002",
+              "dof": "rx",
+              "globalIndex": 9,
+              "restrained": false
+            },
+            {
+              "nodeId": "node_0002",
+              "dof": "ry",
+              "globalIndex": 10,
+              "restrained": false
+            },
+            {
+              "nodeId": "node_0002",
+              "dof": "rz",
+              "globalIndex": 11,
+              "restrained": false
+            }
+          ],
+          "globalDofIndices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "globalStiffness": [
+            [
+              500000,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -500000,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              3750,
+              0,
+              0,
+              0,
+              7500,
+              0,
+              -3750,
+              0,
+              0,
+              0,
+              7500
+            ],
+            [
+              0,
+              0,
+              7500,
+              0,
+              -15000,
+              0,
+              0,
+              0,
+              -7500,
+              0,
+              -15000,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              2884.6153846153843,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -2884.6153846153843,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              -15000,
+              0,
+              40000,
+              0,
+              0,
+              0,
+              15000,
+              0,
+              20000,
+              0
+            ],
+            [
+              0,
+              7500,
+              0,
+              0,
+              0,
+              20000,
+              0,
+              -7500,
+              0,
+              0,
+              0,
+              10000
+            ],
+            [
+              -500000,
+              0,
+              0,
+              0,
+              0,
+              0,
+              500000,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -3750,
+              0,
+              0,
+              0,
+              -7500,
+              0,
+              3750,
+              0,
+              0,
+              0,
+              -7500
+            ],
+            [
+              0,
+              0,
+              -7500,
+              0,
+              15000,
+              0,
+              0,
+              0,
+              7500,
+              0,
+              15000,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              -2884.6153846153843,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2884.6153846153843,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              -15000,
+              0,
+              20000,
+              0,
+              0,
+              0,
+              15000,
+              0,
+              40000,
+              0
+            ],
+            [
+              0,
+              7500,
+              0,
+              0,
+              0,
+              10000,
+              0,
+              -7500,
+              0,
+              0,
+              0,
+              20000
+            ]
+          ],
+          "equivalentGlobalForces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "loadVector": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        10,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "constrainedDofs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "freeDofs": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "assembledStiffness": [
+        [
+          500000,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -500000,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3750,
+          0,
+          0,
+          0,
+          7500,
+          0,
+          -3750,
+          0,
+          0,
+          0,
+          7500
+        ],
+        [
+          0,
+          0,
+          7500,
+          0,
+          -15000,
+          0,
+          0,
+          0,
+          -7500,
+          0,
+          -15000,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2884.6153846153843,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -2884.6153846153843,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -15000,
+          0,
+          40000,
+          0,
+          0,
+          0,
+          15000,
+          0,
+          20000,
+          0
+        ],
+        [
+          0,
+          7500,
+          0,
+          0,
+          0,
+          20000,
+          0,
+          -7500,
+          0,
+          0,
+          0,
+          10000
+        ],
+        [
+          -500000,
+          0,
+          0,
+          0,
+          0,
+          0,
+          500000,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          -3750,
+          0,
+          0,
+          0,
+          -7500,
+          0,
+          3750,
+          0,
+          0,
+          0,
+          -7500
+        ],
+        [
+          0,
+          0,
+          -7500,
+          0,
+          15000,
+          0,
+          0,
+          0,
+          7500,
+          0,
+          15000,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          -2884.6153846153843,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2884.6153846153843,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -15000,
+          0,
+          20000,
+          0,
+          0,
+          0,
+          15000,
+          0,
+          40000,
+          0
+        ],
+        [
+          0,
+          7500,
+          0,
+          0,
+          0,
+          10000,
+          0,
+          -7500,
+          0,
+          0,
+          0,
+          20000
+        ]
+      ],
+      "reducedStiffness": [
+        [
+          500000,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3750,
+          0,
+          0,
+          0,
+          -7500
+        ],
+        [
+          0,
+          0,
+          7500,
+          0,
+          15000,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2884.6153846153843,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15000,
+          0,
+          40000,
+          0
+        ],
+        [
+          0,
+          -7500,
+          0,
+          0,
+          0,
+          20000
+        ]
+      ],
+      "matrixLimit": 72
+    },
+    "service": {
+      "analysisId": "analysis_2cc93934-bb02-48d5-b7bb-3aadc904c7d5",
+      "dependencies": [
+        {
+          "factor": 1,
+          "loadCaseId": "LC1"
+        }
+      ],
+      "origin": {
+        "kind": "formal-model"
+      },
+      "projectId": "project_t215_another",
+      "projectRevision": 8,
+      "requestId": "request_b2759ef0-5ac1-4e14-b9b8-5483a90aebab",
+      "solver": {
+        "algorithm": "sparse-ldlt",
+        "constraints": "free-dof-elimination",
+        "implementation": "framemind-native/2",
+        "relativePivotTolerance": 1e-12
+      },
+      "sourceId": "LC1",
+      "stages": [
+        {
+          "stage": "model-check",
+          "startedAt": "2026-10-05T09:37:35Z"
+        },
+        {
+          "stage": "assembly",
+          "startedAt": "2026-10-05T09:37:35Z"
+        },
+        {
+          "stage": "solve",
+          "startedAt": "2026-10-05T09:37:35Z"
+        },
+        {
+          "stage": "recovery",
+          "startedAt": "2026-10-05T09:37:35Z"
+        }
+      ],
+      "status": "complete",
+      "version": "framemind-analysis/1"
+    }
+  }
+}

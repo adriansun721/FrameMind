@@ -26,13 +26,13 @@ test("T2-13 desktop calls C++, browses and saves all independent single-member l
       await writeFile(projectPath, encodeProject(sample.project));
       await page.keyboard.press("Control+o");
       await expect(page.locator('footer[role="status"]')).toContainText("已打开");
-      await page.getByRole("button", { name: "C++ 单杆试算", exact: true }).click();
+      await page.getByRole("button", { name: "运行分析", exact: true }).click();
       await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
       await page.keyboard.press("Control+s");
       await expect(page.locator('footer[role="status"]')).toContainText("已保存");
       const saved = decodeProject(await readFile(projectPath, "utf8"));
       const result = saved.latestAnalysis!;
-      expect(result.input.solver!.implementation).toBe("framemind-native/1");
+      expect(result.input.solver!.implementation).toBe("framemind-native/2");
       expect(result.service!.stages.map((record) => record.stage)).toEqual(["model-check", "assembly", "solve", "recovery"]);
       expect(result.process!.assembledStiffness).toHaveLength(12);
       expect(result.members[0].nativeResponses).toHaveLength(17);
@@ -41,7 +41,7 @@ test("T2-13 desktop calls C++, browses and saves all independent single-member l
       expect(result.members).toEqual(sample.result.members);
       await page.keyboard.press("Control+o");
       await expect(page.locator('footer[role="status"]')).toContainText("已打开");
-      await expect(page.getByTestId("analysis-process")).toContainText("framemind-native/1");
+      await expect(page.getByTestId("analysis-process")).toContainText("framemind-native/2");
       records.push({ id: sample.id, passed: true, result });
     }
     await mkdir(evidence, { recursive: true });
@@ -51,7 +51,7 @@ test("T2-13 desktop calls C++, browses and saves all independent single-member l
     await writeFile(projectPath, encodeProject(mechanism));
     await page.keyboard.press("Control+o");
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
-    await page.getByRole("button", { name: "C++ 单杆试算", exact: true }).click();
+    await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("方程求解失败");
     await page.keyboard.press("Control+s");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
@@ -63,8 +63,8 @@ test("T2-13 desktop calls C++, browses and saves all independent single-member l
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
     await page.keyboard.press("Control+s");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
-    expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis!.input.solver!.implementation).toBe("framemind-frame/3");
+    expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis!.input.solver!.implementation).toBe("framemind-native/2");
     await writeFile(join(evidence, installed ? "installed-desktop.json" : "desktop-results.json"), JSON.stringify({ passed: true, installed: installed ?? false,
-      compilerPath: "Windows System32 only", directory, records, nativeFailureDidNotSaveResult: true, legacyFormalEntry: "passed" }, null, 2) + "\n");
+      compilerPath: "Windows System32 only", directory, records, nativeFailureDidNotSaveResult: true, formalEntry: "native-static" }, null, 2) + "\n");
   } finally { await app.close(); }
 });

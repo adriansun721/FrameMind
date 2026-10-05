@@ -36,7 +36,15 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     require(input.at("assumptions")==Json({{"theory","3d-euler-bernoulli-frame"},{"shearDeformation","neglected"},
         {"rigidJoints",true},{"units","m-kN-kN·m"},{"localAxis","member-geometry"}}),"Unsupported units or theory");
     const auto& origin=request.at("origin");
-    require(origin.at("kind")=="formal-model","Static trial requires formal-model origin");
+    const auto kind=origin.at("kind");
+    const bool diagnostic=kind=="diagnostic-copy" && origin.at("copyId")==input.at("projectId")
+        && id(origin.at("sourceProjectId"))!=input.at("projectId").get<std::string>()
+        && number(origin.at("sourceProjectRevision"))>=0
+        && std::floor(number(origin.at("sourceProjectRevision")))==number(origin.at("sourceProjectRevision"))
+        && number(origin.at("sourceProjectRevision"))<=9007199254740991.0
+        && (!origin.contains("sourceAnalysisId") || !id(origin.at("sourceAnalysisId")).empty());
+    const bool supplemental=kind=="supplemental" && !id(origin.at("sourceAnalysisId")).empty();
+    require(kind=="formal-model" || diagnostic || supplemental,"Unsupported static origin");
     const auto& nodes=input.at("nodes"); const auto& members=input.at("members");
     require(nodes.is_array() && !nodes.empty() && members.is_array() && !members.empty(),"Missing nodes or members");
     std::map<std::string,int> nodeIndex, memberIndex;

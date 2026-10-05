@@ -10,8 +10,8 @@ import { enterWorkbenchWithoutRecovery } from "./electron-app";
 
 test("T2-14 desktop calls C++, browses and saves all independent spatial static loads with compiler-free PATH", async () => {
   test.setTimeout(180000);
-  const evidence = "docs/evidence/plan2/T2-14";
-  const samples: Array<{ id: string; project: FrameProject; result: AnalysisResult }> = JSON.parse(await readFile(join(evidence, "wire-samples.json"), "utf8"));
+  const evidence = process.env.FRAMEMIND_T214_EVIDENCE ?? "docs/evidence/plan2/T2-14";
+  const samples: Array<{ id: string; project: FrameProject; result: AnalysisResult }> = JSON.parse(await readFile(join("docs/evidence/plan2/T2-14", "wire-samples.json"), "utf8"));
   expect(samples).toHaveLength(22);
   const directory = await mkdtemp(join(tmpdir(), "framemind-t214-"));
   const projectPath = join(directory, "原生完整静力.framemind");
@@ -34,7 +34,7 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
       await writeFile(projectPath, encodeProject(sample.project));
       await fileAction("打开项目");
       await expect(page.locator('footer[role="status"]')).toContainText("已打开");
-      await page.getByRole("button", { name: "C++ 静力试算", exact: true }).click();
+      await page.getByRole("button", { name: "运行分析", exact: true }).click();
       await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
       await fileAction("保存项目");
       await expect(page.locator('footer[role="status"]')).toContainText("已保存");
@@ -78,7 +78,7 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
     await writeFile(projectPath, encodeProject(mechanism));
     await fileAction("打开项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
-    await page.getByRole("button", { name: "C++ 静力试算", exact: true }).click();
+    await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("方程求解失败");
     await fileAction("保存项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
@@ -90,8 +90,8 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
     await fileAction("保存项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
-    expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis!.input.solver!.implementation).toBe("framemind-frame/3");
+    expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis!.input.solver!.implementation).toBe("framemind-native/2");
     await writeFile(join(evidence, installed ? "installed-desktop.json" : "desktop-results.json"), JSON.stringify({ passed: true, installed: installed ?? false,
-      compilerPath: "Windows System32 only", directory, records, nativeFailureDidNotSaveResult: true, legacyFormalEntry: "passed" }, null, 2) + "\n");
+      compilerPath: "Windows System32 only", directory, records, nativeFailureDidNotSaveResult: true, formalEntry: "native-static" }, null, 2) + "\n");
   } finally { await app.close(); }
 });

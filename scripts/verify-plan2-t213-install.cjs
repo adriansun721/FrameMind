@@ -12,7 +12,9 @@ async function run(command, args, options = {}) {
 }
 async function verify() {
   assert.equal(process.platform, "win32");
-  const installer = resolve(`release/t213/FrameMind-${require("../package.json").version}-Windows-x64-Setup.exe`);
+  const production = process.argv.includes("--t215");
+  const evidence = production ? "docs/evidence/plan2/T2-15" : "docs/evidence/plan2/T2-13";
+  const installer = resolve(`release/${production ? "t215" : "t213"}/FrameMind-${require("../package.json").version}-Windows-x64-Setup.exe`);
   // NSIS can redirect or remove an existing install during upgrade. Never use
   // that path for this local candidate acceptance.
   execFileSync("powershell.exe", ["-NoProfile", "-Command", "$ErrorActionPreference='Stop'; $roots=@('HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall'); foreach($root in $roots) { foreach($key in (Get-ChildItem $root -ErrorAction SilentlyContinue)) { if((Get-ItemProperty $key.PSPath).DisplayName -like 'FrameMind*') { throw 'Existing FrameMind installation: use an isolated Windows account' } } }"], { windowsHide: true });
@@ -30,8 +32,8 @@ async function verify() {
     record.coreSha256 = createHash("sha256").update(bytes).digest("hex");
     assert.equal(record.coreSha256, createHash("sha256").update(await readFile("native/bin/framemind-core.exe")).digest("hex"));
     for (const file of ["COPYING.MPL2", "eigen.zip", "json.hpp", "THIRD_PARTY_NOTICES.md"]) assert.ok((await readFile(join(target, "resources/native", file))).length);
-    await run(process.execPath, [require.resolve("@playwright/test/cli"), "test", "e2e/plan2-t2-13-native.spec.ts"], {
-      env: { ...process.env, FRAMEMIND_INSTALLED_EXE: join(target, "FrameMind.exe") },
+    await run(process.execPath, [require.resolve("@playwright/test/cli"), "test", production ? "e2e/plan2-t2-14-native.spec.ts" : "e2e/plan2-t2-13-native.spec.ts"], {
+      env: { ...process.env, FRAMEMIND_INSTALLED_EXE: join(target, "FrameMind.exe"), ...(production ? { FRAMEMIND_T214_EVIDENCE: evidence } : {}) },
     });
     record.passed = true;
   } finally {
@@ -42,7 +44,7 @@ async function verify() {
       await assert.rejects(readFile(join(target, "FrameMind.exe")), { code: "ENOENT" });
       record.uninstalled = true;
     }
-    await writeFile("docs/evidence/plan2/T2-13/installation.json", JSON.stringify(record, null, 2) + "\n");
+    await writeFile(`${evidence}/installation.json`, JSON.stringify(record, null, 2) + "\n");
   }
 }
 verify().catch((error) => { console.error(error); process.exitCode = 1; });

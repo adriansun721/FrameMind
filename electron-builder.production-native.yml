@@ -1,0 +1,9 @@
+extends: ./electron-builder.yml
+electronDist: ./node_modules/electron/dist
+directories:
+  output: release/t215
+extraResources:
+  - from: native/bin
+    to: native
+  - from: docs/decisions/0048-native-production-isolation.md
+    to: native/T2-15-acceptance-scope.md

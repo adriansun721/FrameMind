@@ -20,7 +20,8 @@ export type AnalysisTaskMessage = { requestId: string } & (
 );
 
 export interface AnalysisTaskOptions {
-  backend?: "typescript" | "native-single-member" | "native-static";
+  /** TypeScript is an explicit test/reference adapter, never a production fallback. */
+  backend?: "typescript-reference" | "native-single-member" | "native-static";
   origin?: AnalysisOrigin;
   onPhase?(phase: AnalysisTaskPhase): void;
 }
@@ -44,12 +45,13 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
 
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
-  const native = options.backend === "native-single-member" || options.backend === "native-static";
-  const nativeSolver = options.backend === "native-static" ? NATIVE_STATIC_SOLVER : NATIVE_ANALYSIS_SOLVER;
+  const native = options.backend !== "typescript-reference";
+  const nativeSolver = options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_STATIC_SOLVER;
   const request = createAnalysisRequest(native ? { ...input, solver: { ...nativeSolver } } : input, options.origin);
   const stages: AnalysisStageRecord[] = [];
   let settled = false;
   let worker: Worker | undefined;
+  let unsubscribe: (() => void) | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let resolvePromise!: (result: AnalysisResult) => void;
   let rejectPromise!: (error: Error) => void;
@@ -58,10 +60,14 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
     if (settled) return;
     settled = true;
     worker?.terminate();
+    unsubscribe?.();
     if (timer !== undefined) clearTimeout(timer);
     callback();
   };
-  const fail = (error: unknown, code?: string) => finish(() => rejectPromise(analysisServiceFailure(request, stages, error, code)));
+  const cancelNative = () => {
+    if (native && typeof window !== "undefined") void window.frameMind?.cancelNativeAnalysis?.(request.requestId).catch(() => {});
+  };
+  const fail = (error: unknown, code?: string) => finish(() => { cancelNative(); rejectPromise(analysisServiceFailure(request, stages, error, code)); });
   const phase = (record: AnalysisStageRecord) => {
     if (settled) return;
     if (!record || record.stage !== ANALYSIS_STAGE_ORDER[stages.length] || !Number.isFinite(Date.parse(record.startedAt))) {
@@ -112,12 +118,29 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
   if (native) {
     const desktop = typeof window === "undefined" ? undefined : window.frameMind;
     if (!desktop?.runNativeAnalysis) fail(new Error("当前运行环境无法启动 C++ 核心"), "native-start-error");
-    else void desktop.runNativeAnalysis(request).then((messages) => {
-      if (settled) return;
-      if (!Array.isArray(messages)) { fail(new Error("原生输出不是消息列表"), "invalid-service-output"); return; }
-      for (const message of messages) receive(message as AnalysisTaskMessage);
-      if (!settled) fail(new Error("原生核心未返回完整结果"), "invalid-service-output");
-    }).catch((error) => fail(error, stages.length ? "native-runtime-error" : "native-start-error"));
+    else {
+      try {
+        // Subscribe before dispatch; request-scoped IPC excludes foreign and late runs.
+        unsubscribe = desktop.onNativeAnalysisPhase?.(request.requestId, (message) => receive(message as AnalysisTaskMessage));
+        void desktop.runNativeAnalysis(request).then((messages) => {
+          if (settled) return;
+          if (!Array.isArray(messages)) { fail(new Error("原生输出不是消息列表"), "invalid-service-output"); return; }
+          let index = 0;
+          for (const message of messages as AnalysisTaskMessage[]) {
+            if (!message || typeof message !== "object") { fail(new Error("原生消息无效"), "invalid-service-output"); break; }
+            if (message.kind === "phase" && index < stages.length) {
+              if (message.requestId !== request.requestId || !sameInputValue(message.record, stages[index])) {
+                fail(new Error("原生实时阶段与最终记录不一致"), "invalid-service-output"); break;
+              }
+              index++; continue;
+            }
+            receive(message);
+            if (message.kind === "phase") index++;
+          }
+          if (!settled) fail(new Error("原生核心未返回完整结果"), "invalid-service-output");
+        }).catch((error) => fail(error, stages.length ? "native-runtime-error" : "native-start-error"));
+      } catch (error) { fail(error, "native-start-error"); }
+    }
   } else if (typeof Worker !== "undefined") {
     try { worker = new Worker(new URL("./analysis-worker.ts", import.meta.url), { type: "module" }); }
     catch { /* Preserve the existing restricted-runtime fallback. */ }
@@ -136,7 +159,7 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
     }, 0);
   }
   return { promise, cancel: () => finish(() => {
-    if (native && typeof window !== "undefined") void window.frameMind?.cancelNativeAnalysis(request.requestId).catch(() => {});
+    cancelNative();
     rejectPromise(new AnalysisCancelledError(analysisRunRecord(request, "cancelled", stages)));
   }) };
 }

@@ -11,6 +11,11 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <cstdlib>
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 using Json = nlohmann::json;
 using Matrix = Eigen::MatrixXd;
@@ -25,6 +30,49 @@ struct Failure : std::runtime_error {
     Failure(std::string code, std::string message, Json target = nullptr, std::string field = "input")
         : std::runtime_error(message), diagnostic({{"code", code}, {"message", message}, {"field", field}}) {
         if (!target.is_null()) diagnostic["target"] = target;
+    }
+};
+
+// Bound committed memory independently of topology size. A lower operator budget
+// is useful for constrained machines and reproducible resource-failure tests.
+class RuntimeMemoryBudget {
+#ifdef _WIN32
+    HANDLE job=nullptr;
+#endif
+public:
+    RuntimeMemoryBudget() {
+#ifdef _WIN32
+        SIZE_T mib=512;
+        char configured[16]{};
+        const auto length=GetEnvironmentVariableA("FRAMEMIND_NATIVE_MEMORY_MIB",configured,sizeof(configured));
+        if (length>=sizeof(configured)) throw Failure("native-resource-limit","Invalid native memory budget",nullptr,"native-core");
+        if (length) {
+            char* end=nullptr; const auto value=std::strtoul(configured,&end,10);
+            if (!end || *end || value<16 || value>512) throw Failure("native-resource-limit","Memory budget must be between 16 and 512 MiB",nullptr, "native-core");
+            mib=value;
+        }
+        job=CreateJobObjectW(nullptr,nullptr);
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+        limits.BasicLimitInformation.LimitFlags=JOB_OBJECT_LIMIT_PROCESS_MEMORY;
+        limits.ProcessMemoryLimit=mib*1024*1024;
+        if (!job || !SetInformationJobObject(job,JobObjectExtendedLimitInformation,&limits,sizeof(limits))
+            || !AssignProcessToJobObject(job,GetCurrentProcess())) {
+            if (job) CloseHandle(job); job=nullptr;
+            throw Failure("native-resource-limit","Cannot establish the native memory budget",nullptr,"native-core");
+        }
+#endif
+    }
+    ~RuntimeMemoryBudget() {
+#ifdef _WIN32
+        if (job) CloseHandle(job);
+#endif
+    }
+    std::size_t peakCommittedBytes() const {
+#ifdef _WIN32
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+        if (job && QueryInformationJobObject(job,JobObjectExtendedLimitInformation,&limits,sizeof(limits),nullptr)) return limits.PeakProcessMemoryUsed;
+#endif
+        return 0;
     }
 };
 
@@ -291,17 +339,25 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
 
 int main() {
     Json request, stages=Json::array(); std::string stage="model-check";
+    const auto started=std::chrono::steady_clock::now();
     try {
+        RuntimeMemoryBudget budget;
         std::string bytes; char c;
-        while (std::cin.get(c)) { if (bytes.size()>=4*1024*1024) throw Failure("native-input-error", "Input exceeds 4 MiB"); bytes.push_back(c); }
+        while (std::cin.get(c)) { if (bytes.size()>=16*1024*1024) throw Failure("native-resource-limit", "Input exceeds 16 MiB"); bytes.push_back(c); }
         request=Json::parse(bytes);
         Json result=request.at("input").at("solver").at("implementation")=="framemind-native/2"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         emit({{"kind","result"},{"requestId",request.at("requestId")},{"result",result}});
+        std::cerr << "{\"kind\":\"native-resources\",\"peakCommittedBytes\":" << budget.peakCommittedBytes()
+            << ",\"elapsedMs\":" << std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count() << "}\n";
         return 0;
     } catch (const Failure& error) {
         emit({{"kind","error"},{"requestId",request.is_object() ? request.value("requestId",Json(nullptr)) : Json(nullptr)},
             {"error",{{"name","AnalysisFailure"},{"message",error.what()},{"stage",stage},{"diagnostics",Json::array({error.diagnostic})}}}});
+    } catch (const std::bad_alloc&) {
+        emit({{"kind","error"},{"requestId",request.is_object() ? request.value("requestId",Json(nullptr)) : Json(nullptr)},
+            {"error",{{"name","AnalysisFailure"},{"message","Native memory budget exhausted"},{"stage",stage},
+            {"diagnostics",Json::array({{{"code","native-resource-limit"},{"message","Native memory budget exhausted"},{"field","native-core"}}})}}}});
     } catch (const std::exception& error) {
         emit({{"kind","error"},{"requestId",request.is_object() ? request.value("requestId",Json(nullptr)) : Json(nullptr)},
             {"error",{{"name","AnalysisFailure"},{"message",error.what()},{"stage",stage},
