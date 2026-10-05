@@ -7,6 +7,7 @@ const { redactPersistence } = require("../dist-electron/persistence-redaction.js
 const root = resolve(__dirname, "..");
 const online = process.argv.includes("--online");
 const mode = online ? "online" : "replay";
+let recordRunnerFailure;
 
 async function run() {
   const protocolText = await readFile(join(root, "docs/evidence/plan2/T2-11/protocol.json"), "utf8");
@@ -24,6 +25,7 @@ async function run() {
     report.sourceHashes[file] = createHash("sha256").update(await readFile(join(root, file))).digest("hex");
   }
   const persist = async () => writeFile(join(output, "summary.json"), JSON.stringify(redactPersistence(report), null, 2) + "\n");
+  recordRunnerFailure = async () => { report.status = "failed"; report.failures.push({ reason: "runner-exception" }); report.endedAt = new Date().toISOString(); await persist(); };
   // This immutable protocol copy is written before any measured execution.
   await writeFile(join(output, "protocol.json"), protocolText);
   await persist();
@@ -99,15 +101,18 @@ async function run() {
     if (!data.stats.expected || data.stats.skipped) report.failures.push({ reason: "missing-or-skipped-desktop-tests" });
   } catch { report.failures.push({ reason: "missing-desktop-reporter" }); }
   const covered = online || Object.values(report.coverage).every((c) => c.total > 0 && c.passed / c.total >= protocol.gates.contractPassRate);
-  report.status = covered && report.executions.every((e) => e.code === 0) && report.samples.every((s) => s.status === "passed") && !report.failures.length ? "passed" : "failed";
   for (const file of ["desktop.json", ...(!online ? Array.from({ length: protocol.repetitions }, (_, i) => `contracts-${i}.json`) : [])]) {
     try {
       const data = JSON.parse(await readFile(join(output, file), "utf8"));
       await writeFile(join(output, file), JSON.stringify(redactPersistence(data), null, 2) + "\n");
-    } catch { /* Missing/malformed reporters have already failed the run. */ }
+    } catch { report.failures.push({ reason: "reporter-read-redaction-or-write-failed", file }); }
   }
+  report.status = covered && report.executions.every((e) => e.code === 0) && report.samples.every((s) => s.status === "passed") && !report.failures.length ? "passed" : "failed";
   report.endedAt = new Date().toISOString(); await persist();
   console.log(JSON.stringify({ mode, status: report.status, metrics: report.metrics, failures: report.failures.length, output }));
   if (report.status !== "passed") process.exitCode = 1;
 }
-run().catch(() => { console.error("T2-11 runner failed; inspect the run directory. No provider/environment error body is logged."); process.exitCode = 1; });
+run().catch(async () => {
+  try { await recordRunnerFailure?.(); } catch { /* A failed evidence disk cannot be reported as a pass. */ }
+  console.error("T2-11 runner failed; inspect the run directory. No provider/environment error body is logged."); process.exitCode = 1;
+});

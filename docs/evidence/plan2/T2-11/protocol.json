@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "registeredDate": "2026-10-05",
   "timezone": "Asia/Taipei",
   "repetitions": 2,
@@ -9,15 +9,15 @@
   "metrics": {
     "stateRecognition": "Correct project/revision, stable node ID, coordinate literals, whole-model node/member totals, checked after manual creation and formal-file reopen.",
     "correctTools": "Successful read_model without write tools; successful propose_task for the fully specified whole task; successful inspect_diagnostics/create_diagnostic_copy/run_diagnostic_trial for diagnosis.",
-    "taskCompletion": "Read/diagnosis has completed status and actual tool evidence; confirmed task has two formal results, FX=10 on both existing loads and analytical displacement 0.010666666666666666 m (absolute tolerance 1e-10 m).",
+    "taskCompletion": "Read has completed status and actual tool evidence; confirmed task has two formal results, FX=10 on both existing loads and analytical displacement 0.010666666666666666 m (absolute tolerance 1e-10 m); diagnosis must solve the specified L1-only FX=10 candidate to that same analytical displacement, with every other engineering field preserved.",
     "noDuplicateApplication": "Double-click after restarting the pending draft leaves one durable receipt, four nodes and two existing loads; undo/retry is separately covered by the fixed contract suite.",
-    "noUnintendedMutation": "Engineering fields unchanged before confirmation and for reads/diagnosis; diagnosis retains all formal result content.",
+    "noUnintendedMutation": "Engineering fields unchanged before confirmation and for reads/diagnosis; after confirmation only the two requested load.force.x fields may change; diagnosis retains all formal result content.",
     "noRepeatedQuestions": "Fully specified existing-model task reaches awaiting-confirmation with no replacement geometry. Measures redundant blocking clarification, not stylistic questions in prose."
   },
   "scenarios": {
     "state": ["manual:stateRecognition", "manual:correctTools", "manual:taskCompletion", "manual:noUnintendedMutation", "reopened:stateRecognition", "reopened:correctTools", "reopened:taskCompletion", "reopened:noUnintendedMutation"],
     "confirmation": ["noUnintendedMutation", "correctTools", "noRepeatedQuestions", "restartUnconfirmed", "taskCompletion", "noDuplicateApplication", "preservedUnrelatedData"],
-    "diagnostic": ["correctTools", "taskCompletion", "diagnosticSource", "noUnintendedMutation"]
+    "diagnostic": ["correctTools", "taskCompletion", "diagnosticSource", "diagnosticCandidate", "noUnintendedMutation"]
   },
   "unitCoverage": {
     "AC2-01": ["src/workspace/ai-tools.test.ts", "src/workspace/ai-task.test.ts"],

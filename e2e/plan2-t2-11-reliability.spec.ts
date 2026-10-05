@@ -60,7 +60,7 @@ async function fixture(id: string, run: (context: {
     settings = await page.evaluate(() => window.frameMind.getDeepSeekSettings());
     await run({ page, app: () => app!, path, project,
       restart: async () => { await app!.close(); app = undefined; return launch(); },
-      check: (name, value) => { checks[name] = value; },
+      check: (name, value) => { checks[name] = (checks[name] ?? true) && value; },
       ask: async (page, prompt, rounds, response) => {
         const previous = JSON.parse(await page.evaluate((id) => window.frameMind.loadChatHistory(id), project.id) ?? "[]") as ConversationHistory[];
         const previousIds = new Set(previous.flatMap((history) => history.turns.map((turn) => turn.id)));
@@ -92,18 +92,21 @@ async function fixture(id: string, run: (context: {
     failed = true;
     throw error;
   } finally {
-    const output = resolve(process.env.FRAMEMIND_T211_OUTPUT ?? `docs/evidence/plan2/T2-11/${mode}`);
-    await mkdir(output, { recursive: true });
-    let saved: unknown;
-    try { saved = JSON.parse(await readFile(path, "utf8")); } catch { /* Preserve even launch failures. */ }
-    await writeFile(join(output, `${id}-${test.info().repeatEachIndex}.json`), JSON.stringify(redactPersistence({
-      id, mode, repeat: test.info().repeatEachIndex, startedAt, endedAt: new Date().toISOString(),
-      status: failed ? "failed" : "passed", settings, checks, turns, input: project, saved,
-      transport: online ? "actual DeepSeek HTTPS; no transport replacement" : "fixed tool responses; actual Electron application",
-    }), null, 2) + "\n");
-    try { await app?.close(); } finally {
-      if (!resolve(directory).startsWith(resolve(tmpdir()) + sep) || !basename(directory).startsWith("framemind-t211-")) throw new Error("Invalid test cleanup path");
-      await rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+    try {
+      const output = resolve(process.env.FRAMEMIND_T211_OUTPUT ?? `docs/evidence/plan2/T2-11/${mode}`);
+      await mkdir(output, { recursive: true });
+      let saved: unknown;
+      try { saved = JSON.parse(await readFile(path, "utf8")); } catch { /* Preserve even launch failures. */ }
+      await writeFile(join(output, `${id}-${test.info().repeatEachIndex}.json`), JSON.stringify(redactPersistence({
+        id, mode, repeat: test.info().repeatEachIndex, startedAt, endedAt: new Date().toISOString(),
+        status: failed ? "failed" : "passed", settings, checks, turns, input: project, saved,
+        transport: online ? "actual DeepSeek HTTPS; no transport replacement" : "fixed tool responses; actual Electron application",
+      }), null, 2) + "\n");
+    } finally {
+      try { await app?.close(); } finally {
+        if (!resolve(directory).startsWith(resolve(tmpdir()) + sep) || !basename(directory).startsWith("framemind-t211-")) throw new Error("Invalid test cleanup path");
+        await rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+      }
     }
   }
 }
@@ -151,7 +154,11 @@ test("T2-11 whole-task confirmation, restart and requested local solve", async (
     const after = await save(page, path);
     check("taskCompletion", after.analysisResults.length === 2 && after.nodalLoads.every((load: any) => load.force.x === 10) && Math.abs(after.analysisResults[1].nodes[1].displacement.x - 0.010666666666666666) < 1e-10);
     check("noDuplicateApplication", after.confirmedOperations.length === 1 && after.nodes.length === 4 && after.nodalLoads.length === 2);
-    check("preservedUnrelatedData", JSON.stringify(after.members) === JSON.stringify(project.members) && JSON.stringify(after.supports) === JSON.stringify(project.supports) && JSON.stringify(after.analysisResults[0]) === JSON.stringify(project.analysisResults[0]));
+    const expected = structuredClone(project);
+    expected.nodalLoads.forEach((load) => { load.force.x = 10; });
+    const unchanged = JSON.stringify(engineeringContent(after)) === JSON.stringify(engineeringContent(expected));
+    check("noUnintendedMutation", unchanged);
+    check("preservedUnrelatedData", unchanged && JSON.stringify(after.analysisResults[0]) === JSON.stringify(project.analysisResults[0]));
   });
 });
 
@@ -166,8 +173,14 @@ test("T2-11 evidence-based diagnostic trial stays separate from formal results",
     ], "诊断副本试算数值求解成功，不代表工程有效性已验证。正式模型与结果未修改。");
     const after = await save(page, path);
     check("correctTools", ["inspect_diagnostics", "create_diagnostic_copy", "run_diagnostic_trial"].every((name) => result.records.some((r) => r.call.function.name === name && r.result.status === "completed")));
-    check("taskCompletion", result.status === "completed" && result.diagnosticTrial?.status === "complete");
-    check("diagnosticSource", result.diagnosticCopy?.id !== project.id && result.diagnosticCopy?.source.projectId === project.id && result.diagnosticTrial?.engineeringValidity === "numerically-solved-not-engineering-validated");
+    const expectedCandidate = structuredClone(project);
+    expectedCandidate.nodalLoads[0].force.x = 10;
+    check("diagnosticCandidate", Boolean(result.diagnosticCopy) && JSON.stringify(engineeringContent({ ...result.diagnosticCopy!.model, id: project.id })) === JSON.stringify(engineeringContent(expectedCandidate)));
+    check("taskCompletion", result.status === "completed" && result.diagnosticTrial?.status === "complete"
+      && Math.abs((result.diagnosticTrial.result?.nodes[1].displacement.x ?? NaN) - 0.010666666666666666) < 1e-10);
+    check("diagnosticSource", result.diagnosticCopy?.id !== project.id && result.diagnosticCopy?.source.projectId === project.id
+      && result.diagnosticTrial?.result?.projectId === result.diagnosticCopy?.id && result.diagnosticTrial?.result?.input.projectId === result.diagnosticCopy?.id
+      && result.diagnosticTrial?.engineeringValidity === "numerically-solved-not-engineering-validated");
     check("noUnintendedMutation", JSON.stringify(engineeringContent(after)) === JSON.stringify(engineeringContent(project)) && JSON.stringify(after.analysisResults) === JSON.stringify(project.analysisResults));
   });
 });
