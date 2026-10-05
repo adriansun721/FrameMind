@@ -1,3 +1,4 @@
+import { decodeAnalysisRun } from "./analysis-service-contract";
 import {
   PROJECT_FORMAT,
   PROJECT_FORMAT_VERSION,
@@ -311,7 +312,7 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process: decodeAnalysisProcess(value.process, input) };
+  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process: decodeAnalysisProcess(value.process, input), service: decodeAnalysisRun(value.service, input, id) };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {

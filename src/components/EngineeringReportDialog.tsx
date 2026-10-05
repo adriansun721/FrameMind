@@ -41,7 +41,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
     setError(""); setNotice("");
     try {
       const report = captureEngineeringReport(project, analysisId, selection);
-      const task = startAnalysisTask(createSupplementalAnalysisInput(report.result));
+      const task = startAnalysisTask(createSupplementalAnalysisInput(report.result), { origin: { kind: "supplemental", sourceAnalysisId: report.result.id } });
       taskRef.current = task; setSupplementing(true);
       try {
         const result = await task.promise;

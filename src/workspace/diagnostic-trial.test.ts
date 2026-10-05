@@ -47,6 +47,8 @@ describe("diagnostic copy and trial seam", () => {
     expect(first.trial.engineeringValidity).toBe("numerically-solved-not-engineering-validated");
     expect(first.trial.evidence.stages).toEqual(["model-check", "assembly", "solve", "recovery"]);
     expect(first.trial.result?.projectId).toBe(first.copy.id);
+    expect(first.trial.result?.service?.origin).toEqual({ kind: "diagnostic-copy", copyId: first.copy.id,
+      sourceProjectId: project.id, sourceProjectRevision: project.revision, sourceAnalysisId: undefined });
     expect(first.copy.model.nodalLoads[0].force.x).toBe(10);
     expect(second.copy.model.nodalLoads[0].force.x).toBe(20);
     expect(project.nodalLoads[0].force.x).toBe(10);

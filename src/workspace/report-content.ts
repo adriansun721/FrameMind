@@ -1,4 +1,5 @@
 import { getSelfWeightSummary } from "../domain/analysis";
+import { ANALYSIS_STAGE_LABELS } from "../domain/analysis-diagnostics";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import type { ResourceProvenance, Vector3 } from "../domain/project";
 import { createReportFigures } from "./report-figures";
@@ -25,6 +26,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     paragraph(`项目 ${report.projectName}；项目 ID ${result.projectId}`),
     paragraph(`分析 ID ${result.id}；输入修订 R${result.projectRevision}；状态 已完成`),
     paragraph(`分析时间 ${result.createdAt}；报告生成时间 ${report.generatedAt}（ISO 8601）`),
+    paragraph(result.service ? `运行来源 ${result.service.origin.kind}；请求 ${result.service.requestId}；实际阶段 ${result.service.stages.map((item) => `${ANALYSIS_STAGE_LABELS[item.stage]} (${item.startedAt})`).join(" → ")}。` : "历史结果未保存服务运行阶段；不重建或推测原始阶段时间。"),
     paragraph(`选定来源 ${source}；${input.nodes.length} 个节点，${input.members.length} 根杆件，${input.supports.length} 个支座。正文、表格及图片均使用本次分析的冻结输入与输出。`),
     paragraph("单位约定：坐标与长度 m；力 kN；力矩 kN·m；位移 m；转角 rad；均布荷载 kN/m。材料 E 以 GPa 输入；密度 kg/m³；面积 m²；Iy、Iz、J 为 m⁴。"),
     image(figures.model, `冻结输入模型 ${source}`),

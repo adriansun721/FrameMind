@@ -1,9 +1,10 @@
 import {
   captureAnalysisInput,
-  solveFrame,
   type AnalysisResult,
 } from "../domain/analysis";
 import { compareAnalysisResults } from "../domain/analysis-comparison";
+import { AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
+import type { AnalysisRunRecord } from "../domain/analysis-service-contract";
 import type { AnalysisDiagnostic, AnalysisStage, AnalysisTarget } from "../domain/analysis-diagnostics";
 import { AnalysisFailure, checkAnalysisInput } from "../domain/analysis-diagnostics";
 import type {
@@ -87,7 +88,7 @@ export interface DiagnosticTrial {
   operations: DiagnosticOperation[];
   status: "complete" | "failed";
   engineeringValidity: "numerically-solved-not-engineering-validated" | "not-solved";
-  evidence: DiagnosticCheck & { stages: AnalysisStage[]; stage?: AnalysisStage; solverMessage?: string };
+  evidence: DiagnosticCheck & { stages: AnalysisStage[]; stage?: AnalysisStage; solverMessage?: string; service?: AnalysisRunRecord };
   result?: AnalysisResult;
   summary: DiagnosticSummary;
 }
@@ -280,12 +281,19 @@ export function runDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTria
   let status: DiagnosticTrial["status"] = "failed";
   let stage: AnalysisStage | undefined;
   let solverMessage: string | undefined;
+  const stages: AnalysisStage[] = [];
+  let failedRun: AnalysisRunRecord | undefined;
   if (check.status === "valid") {
     try {
-      result = clone(solveFrame(candidate.model));
+      const input = inputForSource(candidate, check.sourceId);
+      result = clone(executeAnalysisRequest(createAnalysisRequest(input, {
+        kind: "diagnostic-copy", copyId: candidate.id, sourceProjectId: candidate.source.projectId,
+        sourceProjectRevision: candidate.source.projectRevision, sourceAnalysisId: candidate.source.analysisId,
+      }), (record) => stages.push(record.stage)));
       status = "complete";
     } catch (error) {
       if (error instanceof AnalysisFailure) {
+        if (error instanceof AnalysisServiceFailure) failedRun = clone(error.run);
         stage = error.stage; solverMessage = error.message;
         check.diagnostics = [...check.diagnostics, ...clone(error.diagnostics)];
         check.targets = diagnosticTargets(check.diagnostics);
@@ -304,7 +312,7 @@ export function runDiagnosticTrial(copy: DiagnosticCopy, request: DiagnosticTria
     operations: clone(normalized.length ? normalized : [...request.operations]),
     status,
     engineeringValidity: status === "complete" ? "numerically-solved-not-engineering-validated" : "not-solved",
-    evidence: { ...check, stages: ["model-check", ...(status === "complete" ? ["assembly", "solve", "recovery"] : stage ? [stage] : [])] as AnalysisStage[], ...(stage ? { stage } : {}), ...(solverMessage ? { solverMessage } : {}) },
+    evidence: { ...check, stages: stages.length ? stages : ["model-check"], service: result?.service ?? failedRun, ...(stage ? { stage } : {}), ...(solverMessage ? { solverMessage } : {}) },
     ...(result ? { result } : {}),
     summary: summaryFor(request.label.trim(), candidate.source, check, normalized.length ? normalized : request.operations, status, stage),
   };

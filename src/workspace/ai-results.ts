@@ -59,7 +59,7 @@ export function analysisProvenance(result: AnalysisResult, current: boolean) {
   return { analysisId: result.id, inputRevision: result.input.projectRevision, createdAt: result.createdAt, current,
     source: combination ? { id: combination.id, name: combination.name, kind: "combination" as const, terms: combination.terms }
       : { id: result.input.loadCase?.id ?? "LC1", name: result.input.loadCase?.name ?? "旧版工况", kind: "case" as const },
-    assumptions: result.input.assumptions, solver: result.input.solver, status: current ? "当前模型结果" : "历史输入结果，当前模型需重新计算" };
+    assumptions: result.input.assumptions, solver: result.input.solver, service: result.service, status: current ? "当前模型结果" : "历史输入结果，当前模型需重新计算" };
 }
 
 function fields(input: Record<string, unknown>, allowed: string[]) {

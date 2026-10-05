@@ -94,7 +94,7 @@ export function MemberAnalysisProcess({ result, memberId, memberLabel, resultIsC
   const supplement = () => {
     if (supplementTaskRef.current) return;
     setSupplementing(true);
-    const task = startAnalysisTask(createSupplementalAnalysisInput(result));
+    const task = startAnalysisTask(createSupplementalAnalysisInput(result), { origin: { kind: "supplemental", sourceAnalysisId: result.id } });
     supplementTaskRef.current = task;
     void task.promise.then((supplemental) => {
       const next = getMemberAnalysisRecord(supplemental, memberId);

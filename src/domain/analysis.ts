@@ -2,6 +2,7 @@ import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry"
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
 import { getAnalysisLoadCaseId, getAnalysisSourceId, requireLoadCase, requireLoadCombination, validateLoadCombination } from "./project";
+import type { AnalysisRunRecord } from "./analysis-service-contract";
 import type {
   DofRestraints,
   FrameMaterial,
@@ -91,6 +92,8 @@ export interface AnalysisResult {
   members: MemberAnalysisResult[];
   /** Compact process data captured by the run; older files may omit it. */
   process?: AnalysisProcessSnapshot;
+  /** Absent on legacy direct-solver results. Never reconstructed or invented. */
+  service?: AnalysisRunRecord;
 }
 
 type Matrix = number[][];
@@ -184,6 +187,7 @@ export interface AnalysisProcessSnapshot {
 }
 
 export interface OverallAnalysisProcessRecord extends AnalysisProcessSnapshot {
+  service?: AnalysisRunRecord;
   analysisId: string;
   sourceAnalysisId: string;
   projectRevision: number;
@@ -669,7 +673,7 @@ function reconstructProcessSnapshot(input: AnalysisInputSnapshot): AnalysisProce
 export function getOverallAnalysisProcessRecord(result: AnalysisResult): OverallAnalysisProcessRecord {
   requireLoadRecoveryVersion(result.input);
   const snapshot = result.process ?? reconstructProcessSnapshot(result.input);
-  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: result.process ? "captured-from-run" : "reconstructed-from-frozen-input", ...structuredClone(snapshot), basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
+  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: result.process ? "captured-from-run" : "reconstructed-from-frozen-input", service: result.service ? structuredClone(result.service) : undefined, ...structuredClone(snapshot), basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
 }
 
 /** Rebuilds the overall process for a legacy result without relabelling the original analysis. */

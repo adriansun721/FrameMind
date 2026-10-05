@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createSupplementalAnalysisInput, getOverallAnalysisProcessRecord, type AnalysisProcessDof, type AnalysisResult, type OverallAnalysisProcessRecord } from "../domain/analysis";
 import { ProcessDisclosure, PagedItems } from "./ProcessDisclosure";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask } from "../workspace/analysis-task";
+import { ANALYSIS_STAGE_LABELS } from "../domain/analysis-diagnostics";
 
 interface AnalysisProcessProps {
   result: AnalysisResult;
@@ -33,6 +34,7 @@ function ProcessDetails({ record, result }: { record: OverallAnalysisProcessReco
       <div><dt>项目版本</dt><dd>R{record.projectRevision}</dd></div>
       <div><dt>自由度 / 约束 / 自由</dt><dd>{record.dofs.length} / {record.constrainedDofs.length} / {record.freeDofs.length}</dd></div>
       <div><dt>求解器</dt><dd>{record.solver.implementation} · {record.solver.algorithm} · {record.solver.constraints}</dd></div>
+      <div><dt>运行阶段</dt><dd>{record.service ? record.service.stages.map((item) => ANALYSIS_STAGE_LABELS[item.stage]).join(" → ") : "历史结果未保存运行阶段"}</dd></div>
       <div><dt>矩阵策略</dt><dd>{record.assembledStiffness ? `整体 ${record.assembledStiffness.length} × ${record.assembledStiffness.length} 可按需查看` : `整体矩阵超过 ${record.matrixLimit} 阶，仅显示索引与成员贡献`}</dd></div>
     </dl></section>
     <section className="property-section"><h3>编号与系统状态</h3><p className="analysis-process-equation"><code>K · u = F</code><code>自由自由度子系统：Kff · uf = Ff</code><code>约束自由度：u = 0</code></p><p className="analysis-process-note">共 {result.input.nodes.length} 个节点，标签见模型与项目树；索引从 0 起。支座只约束标记的节点自由度，约束后的方程使用自由自由度子系统。</p><DofTable record={record} /></section>
@@ -64,7 +66,7 @@ export function AnalysisProcess({ result, resultIsCurrent }: AnalysisProcessProp
   const supplement = () => {
     if (taskRef.current) return;
     setSupplementing(true);
-    const task = startAnalysisTask(createSupplementalAnalysisInput(result));
+    const task = startAnalysisTask(createSupplementalAnalysisInput(result), { origin: { kind: "supplemental", sourceAnalysisId: result.id } });
     taskRef.current = task;
     void task.promise.then((supplemental) => {
       const next = getOverallAnalysisProcessRecord(supplemental);

@@ -43,6 +43,7 @@ import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type Ana
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
+import { AnalysisServiceFailure } from "./domain/analysis-service";
 import { TaskScheduler, type ScheduledTaskHandle, type TaskSchedulerSnapshot } from "./workspace/task-scheduler";
 import { RecoveryAutosave } from "./workspace/recovery-autosave";
 import type { AppTheme, RecoveryEntry, RecoverySaveRequest } from "../electron/contracts";
@@ -439,7 +440,7 @@ export function App() {
           data: { analysisId: analysisResult.id, modelRevision: execution.checkpoint.revision, units: execution.source.units,
             analysisSourceId: analysisResult.input.combination?.definition.id ?? analysisResult.input.loadCase?.id,
             loadCase: analysisResult.input.combination ? undefined : analysisResult.input.loadCase, combination: analysisResult.input.combination,
-            nodes: analysisResult.nodes, members: analysisResult.members } };
+            nodes: analysisResult.nodes, members: analysisResult.members, service: analysisResult.service } };
       }).catch((error): AiToolResult => {
         const execution = analysisExecutionRef.current.get(handle.ownerTaskId);
         const scheduled = analysisSchedulerRef.current.get(handle.ownerTaskId);
@@ -447,7 +448,7 @@ export function App() {
         if (error instanceof AnalysisFailure) { setAnalysisFailure({ failure: error, revision: execution.checkpoint.revision }); setStatus({ tone: "error", text: `${ANALYSIS_STAGE_LABELS[error.stage]}失败 · ${error.diagnostics.length} 项诊断` }); }
         else setStatus({ tone: "error", text: error instanceof Error ? error.message : "分析失败" });
         return { status: "failed", message: `${error instanceof Error ? error.message : "分析失败"}。已确认模型保留；请检查诊断并准备新的条件阶段或继续计算`, context,
-          data: error instanceof AnalysisFailure ? { stage: error.stage, diagnostics: error.diagnostics } : undefined };
+          data: error instanceof AnalysisFailure ? { stage: error.stage, diagnostics: error.diagnostics, service: error instanceof AnalysisServiceFailure ? error.run : undefined } : undefined };
       }).finally(() => {
         pendingAnalysisInputsRef.current.delete(handle.taskId);
         analysisHandlesRef.current.delete(handle.taskId);

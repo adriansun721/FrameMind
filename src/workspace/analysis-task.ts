@@ -1,40 +1,26 @@
-import { solveFrame, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
+import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
+import { decodeAnalysisResult } from "../domain/project-file";
 
 export type AnalysisTaskPhase = AnalysisStage;
 
 export class AnalysisCancelledError extends Error {
-  constructor() {
+  constructor(public readonly run?: AnalysisRunRecord) {
     super("分析任务已取消");
     this.name = "AnalysisCancelledError";
   }
 }
 
-interface SerializedAnalysisFailure {
-  name: "AnalysisFailure";
-  message: string;
-  stage: AnalysisStage;
-  diagnostics: AnalysisDiagnostic[];
-}
-
-interface AnalysisTaskPhaseMessage {
-  kind: "phase";
-  phase: AnalysisTaskPhase;
-}
-
-interface AnalysisTaskResultMessage {
-  kind: "result";
-  result: AnalysisResult;
-}
-
-interface AnalysisTaskErrorMessage {
-  kind: "error";
-  error: SerializedAnalysisFailure | { name: string; message: string };
-}
-
-type AnalysisTaskMessage = AnalysisTaskPhaseMessage | AnalysisTaskResultMessage | AnalysisTaskErrorMessage;
+export type AnalysisTaskMessage = { requestId: string } & (
+  | { kind: "phase"; record: AnalysisStageRecord }
+  | { kind: "result"; result: AnalysisResult }
+  | { kind: "error"; error: { name: string; message: string; stage?: AnalysisStage; diagnostics?: AnalysisDiagnostic[]; run?: AnalysisRunRecord } }
+);
 
 export interface AnalysisTaskOptions {
+  origin?: AnalysisOrigin;
   onPhase?(phase: AnalysisTaskPhase): void;
 }
 
@@ -43,89 +29,79 @@ export interface AnalysisTask {
   cancel(): void;
 }
 
-function restoreError(error: SerializedAnalysisFailure | { name: string; message: string }): Error {
-  if (error.name === "AnalysisFailure" && "stage" in error && "diagnostics" in error) {
-    return new AnalysisFailure(error.stage, error.diagnostics);
-  }
-  const restored = new Error(error.message);
-  restored.name = error.name;
-  return restored;
-}
-
-function startFallback(input: AnalysisInputSnapshot, options: AnalysisTaskOptions): AnalysisTask {
-  let cancelled = false;
-  let settled = false;
-  let timer: ReturnType<typeof globalThis.setTimeout> | undefined;
-  let rejectPromise!: (error: Error) => void;
-  const promise = new Promise<AnalysisResult>((resolve, reject) => {
-    rejectPromise = reject;
-    timer = globalThis.setTimeout(() => {
-      if (cancelled) return;
-      try {
-        const result = solveFrame(input, options.onPhase);
-        if (cancelled || settled) return;
-        settled = true;
-        resolve(result);
-      } catch (error) {
-        if (cancelled || settled) return;
-        settled = true;
-        reject(error instanceof Error ? error : new Error(String(error)));
-      }
-    }, 0);
-  });
-  return {
-    promise,
-    cancel: () => {
-      if (settled || cancelled) return;
-      cancelled = true;
-      if (timer !== undefined) globalThis.clearTimeout(timer);
-      settled = true;
-      rejectPromise(new AnalysisCancelledError());
-    },
-  };
-}
-
+/** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
-  if (typeof Worker === "undefined") return startFallback(input, options);
-
-  let worker: Worker;
-  try {
-    worker = new Worker(new URL("./analysis-worker.ts", import.meta.url), { type: "module" });
-  } catch {
-    return startFallback(input, options);
-  }
-
+  const request = createAnalysisRequest(input, options.origin);
+  const stages: AnalysisStageRecord[] = [];
   let settled = false;
+  let worker: Worker | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   let resolvePromise!: (result: AnalysisResult) => void;
   let rejectPromise!: (error: Error) => void;
-  const promise = new Promise<AnalysisResult>((resolve, reject) => {
-    resolvePromise = resolve;
-    rejectPromise = reject;
-  });
+  const promise = new Promise<AnalysisResult>((resolve, reject) => { resolvePromise = resolve; rejectPromise = reject; });
   const finish = (callback: () => void) => {
     if (settled) return;
     settled = true;
-    worker.terminate();
+    worker?.terminate();
+    if (timer !== undefined) clearTimeout(timer);
     callback();
   };
-  worker.onmessage = (event: MessageEvent<AnalysisTaskMessage>) => {
+  const fail = (error: unknown, code?: string) => finish(() => rejectPromise(analysisServiceFailure(request, stages, error, code)));
+  const phase = (record: AnalysisStageRecord) => {
     if (settled) return;
-    const message = event.data;
-    if (message.kind === "phase") {
-      options.onPhase?.(message.phase);
-    } else if (message.kind === "result") {
-      finish(() => resolvePromise(message.result));
-    } else {
-      finish(() => rejectPromise(restoreError(message.error)));
+    if (!record || record.stage !== ANALYSIS_STAGE_ORDER[stages.length] || !Number.isFinite(Date.parse(record.startedAt))) {
+      fail(new Error("分析运行阶段记录无效"), "invalid-service-output");
+      return;
     }
+    stages.push(record);
+    options.onPhase?.(record.stage);
   };
-  worker.onerror = (event) => {
-    finish(() => rejectPromise(new Error(event.message || "分析 Worker 执行失败")));
+  const complete = (result: AnalysisResult) => {
+    try {
+      decodeAnalysisResult(result);
+      if (result.id !== request.analysisId || result.projectId !== request.input.projectId
+        || result.projectRevision !== request.input.projectRevision || !result.service
+        || result.service.requestId !== request.requestId || !sameInputValue(result.input, request.input)
+        || !sameInputValue(result.service.origin, request.origin)) throw new Error("分析输出与请求来源不一致");
+      decodeAnalysisRun(result.service, result.input, result.id);
+      freezeAnalysisInput(result.input);
+      finish(() => resolvePromise(result));
+    } catch (error) { fail(error, "invalid-service-output"); }
   };
-  worker.postMessage(input);
 
-  return {
-    promise,
-    cancel: () => finish(() => rejectPromise(new AnalysisCancelledError())),
-  };
+  if (typeof Worker !== "undefined") {
+    try { worker = new Worker(new URL("./analysis-worker.ts", import.meta.url), { type: "module" }); }
+    catch { /* Preserve the existing restricted-runtime fallback. */ }
+  }
+  if (worker) {
+    worker.onmessage = (event: MessageEvent<AnalysisTaskMessage>) => {
+      if (settled) return;
+      try {
+        const message = event.data;
+        if (!message || typeof message !== "object") throw new Error("分析 Worker 返回无效消息");
+        if (message.requestId !== request.requestId) return;
+        if (message.kind === "phase") phase(message.record);
+        else if (message.kind === "result") complete(message.result);
+        else if (message.kind === "error") {
+          const error = message.error;
+          if (error.stage && error.diagnostics) {
+            const failure = new AnalysisFailure(error.stage, error.diagnostics);
+            if (error.run && !sameInputValue(error.run, analysisRunRecord(request, "failed", stages))) throw new Error("分析失败来源与请求不一致");
+            fail(error.run ? new AnalysisServiceFailure(error.stage, error.diagnostics, error.run) : failure);
+          } else fail(new Error(error.message), "worker-error");
+        } else fail(new Error("分析 Worker 返回未知消息"), "invalid-service-output");
+      } catch (error) { fail(error, "invalid-service-output"); }
+    };
+    worker.onerror = (event) => fail(new Error(event.message || "分析 Worker 执行失败"), "worker-error");
+    worker.onmessageerror = () => fail(new Error("分析 Worker 消息无法读取"), "worker-message-error");
+    try { worker.postMessage(request); }
+    catch (error) { fail(error, "worker-dispatch-error"); }
+  } else {
+    timer = setTimeout(() => {
+      if (settled) return;
+      try { complete(executeAnalysisRequest(request, phase)); }
+      catch (error) { fail(error); }
+    }, 0);
+  }
+  return { promise, cancel: () => finish(() => rejectPromise(new AnalysisCancelledError(analysisRunRecord(request, "cancelled", stages)))) };
 }

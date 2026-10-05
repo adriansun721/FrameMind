@@ -55,9 +55,9 @@ function check(quantity: string, unit: Unit, actual: number, reference: number, 
 }
 
 /** Validation-only adapter around the three agreed public analysis boundaries. */
-export function runNumericalBenchmark(benchmark: NumericalBenchmark) {
+export function runNumericalBenchmark(benchmark: NumericalBenchmark, solve: (project: FrameProject) => AnalysisResult = solveFrame) {
   const project = makeProject(benchmark);
-  const result = solveFrame(project);
+  const result = solve(project);
   if (result.nodes.length !== benchmark.reference.nodes.length || result.members.length !== benchmark.reference.members.length) throw new Error("Incomplete result object set");
   const checks: NumericalCheck[] = [];
   for (const [i, inputNode] of result.input.nodes.entries()) {
@@ -92,7 +92,7 @@ export function runNumericalBenchmark(benchmark: NumericalBenchmark) {
   return { id:benchmark.id, source:benchmark.source, passed:checks.every((item) => item.passed), input:result.input, actual:{nodes:result.nodes,members:result.members}, checks };
 }
 
-export function runInvalidBenchmarks() {
+export function runInvalidBenchmarks(solve: (project: FrameProject) => AnalysisResult = solveFrame) {
   const cases: Array<{ id:string; stage:"model-check" | "solve"; code:string; field?:string; change:(p:FrameProject) => FrameProject }> = [
     { id:"missing-parameter", stage:"model-check", code:"invalid-parameter", field:"elasticModulusGPa", change:p => { Reflect.deleteProperty(p.materials[0], "elasticModulusGPa"); return p; } },
     { id:"zero-length", stage:"model-check", code:"invalid-geometry", field:"endNodeId", change:p => { p.nodes[1].position = {...p.nodes[0].position}; return p; } },
@@ -110,7 +110,7 @@ export function runInvalidBenchmarks() {
     const project=change(makeProject(references.cases[0]));
     const before=JSON.stringify(project);
     try {
-      const result=solveFrame(project);
+      const result=solve(project);
       return {id,passed:false,input:project,expected:{stage,code,field},actual:{status:result.status},preserved:before===JSON.stringify(project)};
     } catch(error) {
       const diagnostic=error instanceof AnalysisFailure ? error.diagnostics.find(d => d.code===code && (!field || d.field===field)) : undefined;
