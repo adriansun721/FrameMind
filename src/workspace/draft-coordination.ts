@@ -59,7 +59,8 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
     ...conditionTargets(base, drafts.taskDraft?.conditions),
     ...conditionTargets(base, drafts.conditions ?? undefined),
     ...(drafts.sectionChange?.memberIds ?? []).map((id) => ({ kind: "member" as const, id })),
-    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => "memberIds" in item
+    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => item.type === "merge_nodes"
+      ? item.nodeIds.map((id) => ({ kind: "node" as const, id })) : "memberIds" in item
       ? [...item.memberIds.map((id) => ({ kind: "member" as const, id })), ...(item.nodeId ? [{ kind: "node" as const, id: item.nodeId }] : [])]
       : "id" in item && !item.type.endsWith("analysis_case")
       ? [{ kind: item.type.endsWith("node") ? "node" as const : "member" as const, id: item.id }] : []),
@@ -98,6 +99,17 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   if (sameEngineeringState(base, current)) return { draft, conflicts: [] };
   const conflicts: string[] = [];
   const operations = draft.operations.map((operation) => {
+    if (operation.type === "merge_nodes") {
+      // New incident members/conditions can expand a merge's impact even without moving a node.
+      const nodes = new Set(operation.nodeIds);
+      const ids = new Set(draft.preview.nodeMerges?.flatMap((merge) => merge.members.map((m) => m.before.id)) ?? []);
+      const impact = (project: FrameProject) => [project.nodes.filter((node) => nodes.has(node.id)),
+        project.members.filter((m) => ids.has(m.id) || nodes.has(m.startNodeId) || nodes.has(m.endNodeId)),
+        project.supports.filter((s) => nodes.has(s.nodeId)), project.nodalLoads.filter((l) => nodes.has(l.nodeId)),
+        project.uniformLoads.filter((l) => ids.has(l.memberId)), project.materials, project.sections];
+      if (!same(impact(base), impact(current))) conflicts.push("合并目标、关联杆件或边界荷载已变化，请重读并重新确认合并影响");
+      return operation;
+    }
     if ("memberIds" in operation) {
       const ids = new Set(operation.memberIds);
       const nodes = new Set(base.members.filter((member) => ids.has(member.id)).flatMap((member) => [member.startNodeId, member.endNodeId]));

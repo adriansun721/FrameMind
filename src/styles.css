@@ -592,6 +592,8 @@ button { color: inherit; }
 .topology-form .field select.topology-member-select { height: 96px; }
 .topology-form p, .topology-form small, .topology-impact { font-size: var(--text-caption); line-height: 1.6; overflow-wrap: anywhere; }
 .topology-preview { margin: var(--space-3) 0; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); background: var(--surface-panel-muted); }
+.node-merge-dialog .field input[type="checkbox"] { width: 16px; height: 16px; padding: 0; }
+.node-merge-dialog .dialog-actions { position: sticky; bottom: 0; padding: var(--space-3) 0; border-top: 1px solid var(--border-subtle); background: var(--surface-panel); }
 .coordinate-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
 .field { display: block; margin-bottom: var(--space-3); }
 .field > span { display: block; margin: 0 0 var(--space-1); color: var(--text-secondary); font-size: var(--text-caption); }

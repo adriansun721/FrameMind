@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { LOAD_STAGE_SCHEMA } from "./load-stage-schema";
-import { MODEL_EDIT_SCHEMA, MODEL_EDIT_TOOL_DEFINITIONS } from "./model-edit-schema";
+import { MODEL_EDIT_SCHEMA, MODEL_EDIT_TOOL_DEFINITIONS, NODE_MERGE_SELECTION_SCHEMA } from "./model-edit-schema";
 import { DEEPSEEK_MODELS, type DeepSeekModel, type DeepSeekSettings, type DeepSeekStatus, type DeepSeekResult,
   type DeepSeekChatRequest, type DeepSeekChatResult, type DeepSeekAssistantMessage, type DeepSeekChatMessage,
   type DeepSeekToolCall } from "./contracts";
@@ -16,6 +16,8 @@ interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
 const modelTools = [
+  { type: "function", function: { name: "inspect_near_nodes", description: "Read duplicate/near node pairs using a fixed Euclidean length tolerance (default 1e-6 m; 0 exact duplicates). Camera zoom and coordinate magnitude do not change it. Never merges. Pairwise chains do not authorize a whole-group merge.", parameters: { type: "object", additionalProperties: false, properties: { tolerance: { type: "number", minimum: 0 } } } } },
+  { type: "function", function: { name: "inspect_node_merge", description: "Read merge impact before choosing a conflict resolution: target identity/position, distances, affected members/axes, supports/restraints, loads/cases, duplicate members, zero-length members and task references. Does not change the model. Provide explicit retained/deleted conditions in merge_nodes for user confirmation.", parameters: { type: "object", additionalProperties: false, required: Object.keys(NODE_MERGE_SELECTION_SCHEMA), properties: NODE_MERGE_SELECTION_SCHEMA } } },
   { type: "function", function: { name: "read_geometry_contract", description: "Read independent picking, snapping, exact coordinate duplicate and solver tolerances in canonical metres. Finite XYZ may be negative, fractional or outside the visual grid. Connections use explicit node IDs; crossing or coincident geometry never automatically connects or splits members.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
   { type: "function", function: { name: "read_unit_contract", description: "Read canonical units, display presets and external-data unit rules. Never infer missing units from magnitude.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
   { type: "function", function: { name: "convert_quantity", description: "Convert a quantity with explicitly declared dimension and source/target units. Missing or incompatible units are rejected.", parameters: { type: "object", additionalProperties: false, required: ["value", "dimension", "fromUnit", "toUnit"], properties: { value: { type: "number" }, dimension: { type: "string" }, fromUnit: { type: "string" }, toUnit: { type: "string" } } } } },
@@ -132,7 +134,7 @@ const modelEditTools = [
   ...MODEL_EDIT_TOOL_DEFINITIONS,
 ];
 function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
-  const editRequested = messages.some((message) => message.role === "user" && /绘杆|画杆|工作平面|自由坐标|自由数值|斜杆|基础编辑|批量|移到|转角|旋转|(?:(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:draw|edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:draw|edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
+  const editRequested = messages.some((message) => message.role === "user" && /(?:\u5408\u5e76.*\u8282\u70b9|\u8282\u70b9.*\u5408\u5e76|merge.*node|node.*merge)/i.test(message.content)) || messages.some((message) => message.role === "user" && /绘杆|画杆|工作平面|自由坐标|自由数值|斜杆|基础编辑|批量|移到|转角|旋转|(?:(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:draw|edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:draw|edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
   const taskDraftActive = messages.some((message) => message.role === "system" && /当前完整任务草案：\{/.test(message.content));
   const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
   const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;

@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "unresolvedBlocked": true,
+  "cancelIsolated": true,
+  "undoRestoresConditions": true,
+  "units": "mm-N",
+  "nativeAnalysis": "analysis_d317dd17-6c1f-4c70-bcf1-2c4743a24198",
+  "restartPreserved": true
+}

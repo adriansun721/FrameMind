@@ -1,5 +1,7 @@
 import { CANONICAL_UNITS, convertQuantity, UNIT_CONTRACT, type QuantityDimension } from "../domain/units";
 import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
+import { inspectNearNodes, inspectNodeMerge } from "../domain/node-merge";
+import type { NodeId } from "../domain/project";
 import { normalizeToolUnits, presentToolData } from "./unit-tools";
 import { ANALYSIS_CAPABILITIES } from "../domain/analysis-capabilities";
 import type { FrameProject } from "../domain/project";
@@ -270,6 +272,17 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       return { status: "completed", message: "已按显式单位转换", context: snapshot.context, data: { value: convertQuantity(input.value, input.dimension as QuantityDimension, input.fromUnit, input.toUnit), unit: input.toUnit, dimension: input.dimension } };
     }
     input = normalizeToolUnits(input, call.function.name).input;
+    if (call.function.name === "inspect_near_nodes") {
+      exactFields(input, ["tolerance"]);
+      if (input.tolerance !== undefined && typeof input.tolerance !== "number") throw new Error("容差必须是长度数值");
+      return { status: "completed", message: "已检查重复／近重合节点，尚未合并", context: snapshot.context, data: inspectNearNodes(snapshot.editProject, input.tolerance as number | undefined) };
+    }
+    if (call.function.name === "inspect_node_merge") {
+      exactFields(input, ["nodeIds", "targetNodeId", "tolerance"]);
+      if (!Array.isArray(input.nodeIds) || input.nodeIds.some((id) => typeof id !== "string") || typeof input.targetNodeId !== "string" || typeof input.tolerance !== "number") throw new Error("需明确节点身份、目标和长度容差");
+      return { status: "completed", message: "已读取合并影响，需明确保留／移除条件后准备草案", context: snapshot.context,
+        data: inspectNodeMerge(snapshot.editProject, { nodeIds: input.nodeIds as NodeId[], targetNodeId: input.targetNodeId as NodeId, tolerance: input.tolerance }) };
+    }
     if (["inspect_diagnostics", "create_diagnostic_copy", "run_diagnostic_trial", "read_diagnostic", "compare_diagnostic_trials", "discard_diagnostic_copy"].includes(call.function.name)) {
       diagnosticCallInput(call.function.name, input);
       // Numerical diagnostic tools in the desktop must use the cancellable native
@@ -327,7 +340,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
         return { status: "awaiting-confirmation", message: "基础编辑草案已准备，尚未修改正式模型", context: snapshot.context, modelEdits,
           data: { units: snapshot.model.units, ...modelEdits.preview } };
       } catch (error) {
-        if (call.function.name === "split_member" || call.function.name === "connect_members") throw error;
+        if (["merge_nodes", "split_member", "connect_members"].includes(call.function.name)) throw error;
         if (call.function.name !== "propose_model_edits") return { status: "awaiting-confirmation", message: "模型修改尚未确认，本阶段只读；请使用手动编辑或完整基础编辑草案", context: snapshot.context };
         throw error;
       }

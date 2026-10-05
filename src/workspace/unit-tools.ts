@@ -1,7 +1,7 @@
 import { CANONICAL_UNITS, convertQuantity, requireUnitPreset, UNIT_CONTRACT, unitDimension, unitPresentation, type QuantityDimension, type UnitPresetId } from "../domain/units";
 
 const FIELD_DIMENSIONS: Record<string, QuantityDimension> = {
-  position: "length", endPosition: "length", origin: "length", xSpans: "length", ySpans: "length", storeyHeights: "length", length: "length",
+  position: "length", endPosition: "length", origin: "length", xSpans: "length", ySpans: "length", storeyHeights: "length", length: "length", tolerance: "length", distance: "length", targetPosition: "length",
   displacement: "length", displacementDelta: "length", rotation: "rotation", rotationDelta: "rotation", rotationDegrees: "orientation",
   force: "force", reaction: "force", reactionDelta: "force", totalForce: "force", totalWeightKN: "force", weightKN: "force", globalForce: "force", massKg: "mass", area: "area",
   moment: "moment", reactionMoment: "moment", reactionMomentDelta: "moment",

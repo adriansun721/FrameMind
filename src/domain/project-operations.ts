@@ -18,6 +18,7 @@ import {
   type Vector3,
 } from "./project";
 import { changeTopology, type TopologyInput, type TopologyReceipt } from "./topology";
+import { mergeNodes, type NodeMergeInput, type NodeMergeReceipt } from "./node-merge";
 
 export type ProjectMutation = (project: FrameProject) => FrameProject;
 
@@ -98,6 +99,7 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
+  | ({ type: "merge_nodes" } & NodeMergeInput)
   | ({ type: "split_member" | "connect_members" } & TopologyInput)
   | { type: "create_node"; position: Vector3 }
   | { type: "update_node"; id: NodeId; position: Partial<Vector3> }
@@ -123,12 +125,14 @@ export interface ProjectEditReceipt {
   created: { operationIndex: number; kind: "node" | "member"; id: string; sourceId?: string }[];
   affectedMemberIds: MemberId[];
   topology?: TopologyReceipt[];
+  nodeMerges?: NodeMergeReceipt[];
 }
 
 /** Manual edits and reviewed tool drafts execute the same commands and return the same object diff. */
 export function applyProjectEdits(project: FrameProject, operations: readonly ProjectEditOperation[]): { project: FrameProject; receipt: ProjectEditReceipt } {
   const created: ProjectEditReceipt["created"] = [];
   const topology: TopologyReceipt[] = [];
+  const nodeMerges: NodeMergeReceipt[] = [];
   // Consecutive node updates describe one geometry draft, not intermediate physical models.
   const updateGroups = new Map<number, Extract<ProjectEditOperation, { type: "update_node" }>[]>();
   const groupedIndices = new Set<number>();
@@ -145,6 +149,9 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
+      case "merge_nodes": {
+        const outcome = mergeNodes(current, operation); changed = outcome.project; nodeMerges.push(outcome.receipt); break;
+      }
       case "split_member": case "connect_members": {
         const outcome = changeTopology(current, operation, operation.type === "split_member" ? "split" : "connect");
         changed = outcome.project; topology.push(outcome.receipt);
@@ -183,5 +190,5 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
   const nodeIds = new Set(changes.filter((change) => change.kind === "node").map((change) => change.id));
   const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
     || changes.some((change) => change.kind === "member" && change.id === member.id)).map((member) => member.id))];
-  return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds, ...(topology.length ? { topology } : {}) } };
+  return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds, ...(topology.length ? { topology } : {}), ...(nodeMerges.length ? { nodeMerges } : {}) } };
 }

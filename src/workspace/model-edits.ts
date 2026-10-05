@@ -48,8 +48,16 @@ function memberProperties(value: unknown, partial: boolean) {
 export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 100) throw new Error("operations 必须包含 1 至 100 项基础编辑");
   return value.map((value) => {
-    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "nodeId"]);
+    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution"]);
     switch (input.type) {
+      case "merge_nodes": {
+        object(input, ["type", "nodeIds", "targetNodeId", "tolerance", "resolution"]);
+        const ids = (value: unknown) => { if (!Array.isArray(value)) throw new Error("冲突处理必须明确提供身份数组"); return value.map(identity); };
+        const resolution = object(input.resolution, ["keepSupportIds", "keepNodalLoadIds", "keepMemberIds", "removeUniformLoadIds", "acceptGeometryChange"]);
+        if (typeof input.tolerance !== "number" || typeof resolution.acceptGeometryChange !== "boolean") throw new Error("必须明确容差和几何变化确认");
+        return { type: "merge_nodes", nodeIds: ids(input.nodeIds) as NodeId[], targetNodeId: identity(input.targetNodeId) as NodeId, tolerance: input.tolerance,
+          resolution: { keepSupportIds: ids(resolution.keepSupportIds), keepNodalLoadIds: ids(resolution.keepNodalLoadIds), keepMemberIds: ids(resolution.keepMemberIds) as MemberId[], removeUniformLoadIds: ids(resolution.removeUniformLoadIds), acceptGeometryChange: resolution.acceptGeometryChange } };
+      }
       case "split_member": case "connect_members": {
         object(input, ["type", "memberIds", "position", "nodeId"]);
         if (!Array.isArray(input.memberIds)) throw new Error("memberIds 必须是正式杆件身份数组");
@@ -82,11 +90,15 @@ export function proposeModelEdits(project: FrameProject, input: unknown, previou
     projectId: project.id, baseRevision: project.revision, operations, preview: receipt };
 }
 
-export const MODEL_EDIT_TOOLS = new Set(["split_member", "connect_members", "draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
+export const MODEL_EDIT_TOOLS = new Set(["merge_nodes", "split_member", "connect_members", "draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
   "create_member", "create_members", "update_member", "update_members", "duplicate_member", "duplicate_members", "delete_member", "delete_members"]);
 
 /** Legacy singular/plural calls become the same reviewed draft as the canonical batch tool. */
 export function modelEditToolInput(name: string, input: Record<string, unknown>, project?: FrameProject): unknown {
+  if (name === "merge_nodes") {
+    object(input, ["nodeIds", "targetNodeId", "tolerance", "resolution"]);
+    return { operations: [{ type: name, ...input }] };
+  }
   if (name === "split_member" || name === "connect_members") {
     object(input, ["memberIds", "position", "nodeId"]);
     return { operations: [{ type: name, ...input }] };
@@ -133,6 +145,12 @@ export function prepareModelEditConfirmation(project: FrameProject, proposal: Mo
 }
 export type PreparedModelEditConfirmation = ReturnType<typeof prepareModelEditConfirmation>;
 
+function reviewedEngineeringReceipt(receipt: ProjectEditReceipt) {
+  // Task references are live metadata, not conflict choices or engineering input.
+  // Confirming/saving the draft itself can add a task reference without changing its intent.
+  return { ...receipt, ...(receipt.nodeMerges ? { nodeMerges: receipt.nodeMerges.map(({ taskReferences: _references, ...impact }) => impact) } : {}) };
+}
+
 export class ModelEditConfirmation {
   private applied = new Map<string, AiToolResult>();
 
@@ -147,7 +165,7 @@ export class ModelEditConfirmation {
     if (!sameProjectInput(project, confirmation.baseProject) || project.revision !== draft.baseRevision) return failed("正式模型已变化，请重新生成编辑草案并确认");
     try {
       const outcome = applyProjectEdits(project, parseProjectEditOperations(draft.operations));
-      if (JSON.stringify(outcome.receipt) !== JSON.stringify(draft.preview)) return failed("草案内容与预览不一致，请重新核对");
+      if (JSON.stringify(reviewedEngineeringReceipt(outcome.receipt)) !== JSON.stringify(reviewedEngineeringReceipt(draft.preview))) return failed("草案内容与预览不一致，请重新核对");
       const snapshot = captureAiSnapshot(outcome.project, []);
       const collections = {
         node: outcome.project.nodes,

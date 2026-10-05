@@ -7,6 +7,14 @@ const topologyProperties = (type: string) => ({
   memberIds: { type: "array", minItems: type === "split_member" ? 1 : 2, maxItems: type === "split_member" ? 1 : 100, uniqueItems: true, items: identity },
   position: { ...position, required: ["x", "y", "z"] }, nodeId: identity,
 });
+const identityList = { type: "array", uniqueItems: true, items: identity };
+export const NODE_MERGE_SELECTION_SCHEMA = {
+  nodeIds: { ...identityList, minItems: 2, maxItems: 100 }, targetNodeId: identity, tolerance: { type: "number", minimum: 0 },
+};
+const mergeProperties = { ...NODE_MERGE_SELECTION_SCHEMA, resolution: { type: "object", additionalProperties: false,
+  required: ["keepSupportIds", "keepNodalLoadIds", "keepMemberIds", "removeUniformLoadIds", "acceptGeometryChange"], properties: {
+    keepSupportIds: { ...identityList, maxItems: 1 }, keepNodalLoadIds: identityList, keepMemberIds: identityList, removeUniformLoadIds: identityList, acceptGeometryChange: { const: true },
+  } } };
 
 const analysisCase = { type: "object", additionalProperties: false, required: ["name", "method", "loadSourceId", "settings"], properties: {
   name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static"] }, loadSourceId: identity,
@@ -16,6 +24,7 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
+      { type: "object", additionalProperties: false, required: ["type", ...Object.keys(mergeProperties)], properties: { type: { const: "merge_nodes" }, ...mergeProperties } },
       { type: "object", additionalProperties: false, required: ["type", "position"], properties: { type: { const: "create_node" }, position: { ...position, required: ["x", "y", "z"] } } },
       { type: "object", additionalProperties: false, required: ["type", "id", "position"], properties: { type: { const: "update_node" }, id: identity, position } },
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_member" }, properties: { ...member, required: Object.keys(member.properties) } } },
@@ -40,6 +49,8 @@ const memberProperties = { properties: { ...member, required: ["startNodeId", "e
 const memberUpdate = { id: identity, changes: member };
 const ids = (type: string) => operation(type, { id: identity }, ["id"]);
 export const MODEL_EDIT_TOOL_DEFINITIONS = [
+  { type: "function", function: { name: "merge_nodes", description: "Prepare a reviewed atomic node merge. Inspect near nodes and merge impact first. All nodes must be within tolerance of the explicit target; retain its position and identity. Explicitly list retained support (at most one), nodal loads and members, and every removed member's uniform loads. Keeping multiple loads means deliberate superposition; keeping duplicate members means parallel elements. Accept changes to lengths/local load axes. No implicit condition accumulation or deletion. Read replacement identities after confirmation.",
+    parameters: { type: "object", additionalProperties: false, required: Object.keys(mergeProperties), properties: mergeProperties } } },
   ...["split_member", "connect_members"].map((name) => ({ type: "function", function: { name,
     description: "Prepare explicit engineering topology for user confirmation, NOT internal solver subdivision. split_member takes one member; connect_members takes 2-100 members at a common point. Existing exact-position node requires explicit nodeId. Preserve material, section, local orientation and uniform intensity over disjoint child ranges; refuse endpoint identity conflicts. Read the replacement identity mapping after confirmation before further edits.",
     parameters: { type: "object", additionalProperties: false, required: ["memberIds", "position"], properties: topologyProperties(name) } } })),
