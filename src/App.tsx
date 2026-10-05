@@ -377,7 +377,7 @@ export function App() {
     }
   };
 
-  const runAnalysis = async (showResults = false, requestedSourceId?: string, frozenInput?: AnalysisInputSnapshot, backend: "typescript" | "native-single-member" = "typescript"): Promise<AiToolResult> => {
+  const runAnalysis = async (showResults = false, requestedSourceId?: string, frozenInput?: AnalysisInputSnapshot, backend: "typescript" | "native-single-member" | "native-static" = "typescript"): Promise<AiToolResult> => {
     const current = activeProjectRef.current;
     requestedSourceId ??= current.activeLoadCombinationId ?? current.activeLoadCaseId;
     if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
@@ -610,7 +610,7 @@ export function App() {
           onNodalLoad={openLoadDialog}
           onUniformLoad={() => { setUniformDraft({ ...defaultUniform, loadCaseId: activeCase.id, memberId: selectedMember?.id ?? project.members[0]?.id ?? "" }); setFormError(null); setUniformDialogOpen(true); }}
           onLoadCases={() => setLoadCaseManagerOpen(true)} />
-        {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <><button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={() => void runAnalysis()}><Calculator size={15} />计算</button><button className="tool-button" aria-label="C++ 单杆试算" title="C++ 试验通路：仅支持单杆与节点端荷载" onClick={() => void runAnalysis(true, undefined, undefined, "native-single-member")}>C++ 单杆试算</button></>}
+        {analysisBusy ? <button className="tool-button" aria-label="取消计算" title="取消正在运行的分析任务" onClick={cancelAnalysis}><X size={15} />取消计算</button> : <><button className="tool-button" aria-label="运行分析" title="检查模型并运行空间刚架静力分析" onClick={() => void runAnalysis()}><Calculator size={15} />计算</button><button className="tool-button" aria-label="C++ 单杆试算" title="C++ 试验通路：仅支持单杆与节点端荷载" onClick={() => void runAnalysis(true, undefined, undefined, "native-single-member")}>C++ 单杆试算</button><button className="tool-button" aria-label="C++ 静力试算" title="C++ 完整静力试验通路：空间刚架、均布荷载、自重及组合" onClick={() => void runAnalysis(true, undefined, undefined, "native-static")}>C++ 静力试算</button></>}
         {taskQueue.queued.length > 0 && <span className="task-queue-summary" role="status" aria-label={`等待中的任务 ${taskQueue.queued.length}`}>队列 {taskQueue.queued.length} · 启动时读取最新模型</span>}
         <span className="toolbar-divider" />
         <button className="tool-button icon-only" disabled={!projectHistoryRef.current.canUndo} aria-label={projectHistoryRef.current.canUndo ? "撤销" : "撤销（尚未实现）"} title="撤销（Ctrl+Z）" onClick={() => restoreHistory("undo")}><Undo2 size={15} /></button>

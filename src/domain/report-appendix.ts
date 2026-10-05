@@ -1,4 +1,4 @@
-import { ANALYSIS_DOF_ORDER, ANALYSIS_PROCESS_BASIS, getMemberAnalysisRecord, getOverallAnalysisProcessRecord, type AnalysisProcessBasis, type AnalysisResult, type MemberAnalysisRecord, type OverallAnalysisProcessRecord } from "./analysis";
+import { ANALYSIS_DOF_ORDER, ANALYSIS_PROCESS_BASIS, sameInputValue, getMemberAnalysisRecord, getOverallAnalysisProcessRecord, type AnalysisProcessBasis, type AnalysisResult, type MemberAnalysisRecord, type OverallAnalysisProcessRecord } from "./analysis";
 
 export const REPORT_APPENDIX_STEPS = {
   "member-process": "杆件过程（局部轴、位移荷载与单元矩阵）",
@@ -50,7 +50,7 @@ function requireProcessCorrespondence(result: AnalysisResult): void {
     }
     return numbersMatch(matrix.flat(), assembled.flat());
   };
-  if (!dofsMatch || !membersMatch || constrained.join(",") !== process.constrainedDofs.join(",") || free.join(",") !== process.freeDofs.join(",") || JSON.stringify(process.solver) !== JSON.stringify(input.solver) || !numbersMatch(process.loadVector, expected.loadVector) || !matrixMatches(process.assembledStiffness, expected.dofs.map((dof) => dof.globalIndex)) || !matrixMatches(process.reducedStiffness, expected.freeDofs)) throw new Error("过程快照的对象、编号、约束、求解配置或矩阵荷载数值与冻结输入不可对应");
+  if (!dofsMatch || !membersMatch || constrained.join(",") !== process.constrainedDofs.join(",") || free.join(",") !== process.freeDofs.join(",") || !sameInputValue(process.solver, input.solver) || !numbersMatch(process.loadVector, expected.loadVector) || !matrixMatches(process.assembledStiffness, expected.dofs.map((dof) => dof.globalIndex)) || !matrixMatches(process.reducedStiffness, expected.freeDofs)) throw new Error("过程快照的对象、编号、约束、求解配置或矩阵荷载数值与冻结输入不可对应");
 }
 
 /** Reads only the report's validated source; never silently solves a missing record. */

@@ -24,7 +24,7 @@ export type AnalysisDof = typeof ANALYSIS_DOF_ORDER[number];
 
 export interface AnalysisSolverConfig {
   implementation: string;
-  algorithm: "partial-pivot-gaussian";
+  algorithm: "partial-pivot-gaussian" | "sparse-ldlt";
   constraints: "free-dof-elimination";
   relativePivotTolerance: number;
 }
@@ -33,6 +33,11 @@ export const ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({
   implementation: "framemind-frame/3", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12,
 });
 export const NATIVE_ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...ANALYSIS_SOLVER, implementation: "framemind-native/1" });
+export const NATIVE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...ANALYSIS_SOLVER, implementation: "framemind-native/2", algorithm: "sparse-ldlt" });
+
+export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
+  return sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER);
+}
 
 export interface AnalysisAssumptions {
   theory: "3d-euler-bernoulli-frame";
@@ -226,7 +231,7 @@ export const ANALYSIS_PROCESS_BASIS: AnalysisProcessBasis = Object.freeze({
     },
     {
       topic: "约束处理",
-      implementation: "按支座自由度从整体方程中消除约束列和行，仅对自由自由度子系统进行部分主元高斯消元。",
+      implementation: "按支座自由度消除约束列和行，仅求解自由自由度子系统；frame/3 与 native/1 使用部分主元高斯消元，native/2 使用稀疏 LDLᵀ。实际版本与算法见求解器记录。",
       textbook: "教材给出自由度对号、总刚度阵集合和约束处理的流程线索。",
       reason: "首版支座是零位移约束；自由度消元保留真实刚度尺度，避免引入人为单位对角线。",
       validation: "T04 约束尺度回归和整体平衡测试通过，受限自由度位移保持为零。",
@@ -419,7 +424,7 @@ export function sameInputValue(left: unknown, right: unknown): boolean {
 
 export function isAnalysisResultCurrent(project: FrameProject, result: AnalysisResult): boolean {
   const currentInput = (input: AnalysisInputSnapshot) => ({ ...input, projectRevision: 0,
-    solver: sameInputValue(result.input.solver, NATIVE_ANALYSIS_SOLVER) ? { ...NATIVE_ANALYSIS_SOLVER } : input.solver });
+    solver: isNativeSolver(result.input.solver) ? { ...result.input.solver! } : input.solver });
   if (result.input.combination) {
     if (result.projectId !== project.id || !project.loadCombinations.some((item) => item.id === result.input.combination!.definition.id)) return false;
     try {
@@ -502,12 +507,13 @@ export function getSelfWeightSummary(source: FrameProject | AnalysisInputSnapsho
 }
 
 function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
+  if (sameInputValue(solver, NATIVE_STATIC_SOLVER)) return;
   if (!solver || ![ANALYSIS_SOLVER.implementation, NATIVE_ANALYSIS_SOLVER.implementation, "framemind-frame/2"].includes(solver.implementation) || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
 }
 
 function requireLoadRecoveryVersion(input: AnalysisInputSnapshot): void {
   requireCurrentSolver(input.solver);
-  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation) throw new Error("该分析的求解器版本不支持分布荷载恢复");
+  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation && !sameInputValue(input.solver, NATIVE_STATIC_SOLVER)) throw new Error("该分析的求解器版本不支持分布荷载恢复");
 }
 
 export interface MemberSectionForces {
@@ -584,7 +590,7 @@ export function getMemberSectionForces(result: AnalysisResult, memberId: string,
   const selfWeight = getMemberSelfWeightIntensity(result.input, member, geometry);
   const q = { x: uniform.x + selfWeight.x, y: uniform.y + selfWeight.y, z: uniform.z + selfWeight.z };
   if (!Number.isFinite(position) || position < 0 || position > geometry.length) throw new Error("沿杆位置必须在起点 0 与杆长之间（m）");
-  if (stored.nativeResponses) {
+  if (stored.nativeResponses && result.input.solver?.implementation === NATIVE_ANALYSIS_SOLVER.implementation) {
     const samples = stored.nativeResponses;
     const i = Math.min(samples.length - 2, Math.floor(position / stored.length * (samples.length - 1)));
     const a = samples[i], b = samples[i + 1], t = (position - a.position) / (b.position - a.position);

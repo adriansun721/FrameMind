@@ -9,6 +9,7 @@
     "build:main": "tsc -p tsconfig.electron.json",
     "build:native": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-native.ps1",
     "evidence:plan2:t213": "npm run build:native && npm run build && node scripts/verify-plan2-t213.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-13-native.spec.ts",
+    "evidence:plan2:t214": "npm run build:native && npm run build && node scripts/verify-plan2-t214.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-14-native.spec.ts",
     "build": "npm run typecheck && npm run build:main && vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
     "test": "vitest run",

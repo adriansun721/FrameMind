@@ -37,7 +37,7 @@ import {
   type ResourceProvenance,
   type CatalogSource,
 } from "./project";
-import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, sameInputValue, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_STATIC_SOLVER, isNativeSolver, sameInputValue, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
 import { decodeTaskState, decodeConfirmedOperations } from "../workspace/task-persistence";
 import { redactPersistence } from "../../electron/persistence-redaction";
 
@@ -209,7 +209,7 @@ function decodeSelfWeight(value: unknown, fallback = DEFAULT_SELF_WEIGHT): Frame
 }
 
 function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number): AnalysisInputSnapshot {
-  if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || input.solver.algorithm !== "partial-pivot-gaussian" || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
+  if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || !["partial-pivot-gaussian", "sparse-ldlt"].includes(String(input.solver.algorithm)) || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
   if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
   const inputNodes = input.nodes.map(decodeNode); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map(decodeMember); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
   assertUnique(inputNodes, "分析输入节点"); assertUnique(inputMaterials, "分析输入材料"); assertUnique(inputSections, "分析输入截面"); assertUnique(inputMembers, "分析输入杆件"); assertUnique(inputSupports, "分析输入支座"); assertUnique(inputLoads, "分析输入节点荷载");
@@ -246,7 +246,7 @@ function decodeLoadCombination(value: unknown, loadCases: FrameLoadCase[]): Fram
 
 function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): AnalysisProcessSnapshot | undefined {
   if (value === undefined) return undefined;
-  if (!isRecord(value) || !isRecord(value.solver) || value.solver.algorithm !== "partial-pivot-gaussian" || value.solver.constraints !== "free-dof-elimination") throw new Error("分析整体过程配置无效");
+  if (!isRecord(value) || !isRecord(value.solver) || !["partial-pivot-gaussian", "sparse-ldlt"].includes(String(value.solver.algorithm)) || value.solver.constraints !== "free-dof-elimination") throw new Error("分析整体过程配置无效");
   const solver = value.solver;
   if (typeof solver.implementation !== "string" || solver.implementation.length === 0 || typeof solver.relativePivotTolerance !== "number" || !Number.isFinite(solver.relativePivotTolerance) || solver.relativePivotTolerance <= 0 || solver.relativePivotTolerance >= 1) throw new Error("分析整体过程求解器配置无效");
   if (!Array.isArray(value.dofOrder) || value.dofOrder.join(",") !== ANALYSIS_DOF_ORDER.join(",") || !Array.isArray(value.dofs) || value.dofs.length !== input.nodes.length * 6) throw new Error("分析整体过程自由度记录无效");
@@ -282,7 +282,7 @@ function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): An
   });
   const indices = (items: unknown[], label: string) => { if (!items.every((index) => Number.isSafeInteger(index) && (index as number) >= 0 && (index as number) < input.nodes.length * 6)) throw new Error(`${label}索引无效`); return [...items] as number[]; };
   const constrainedDofs = indices(value.constrainedDofs, "分析整体过程约束自由度"); const freeDofs = indices(value.freeDofs, "分析整体过程自由自由度");
-  return { solver: { implementation: solver.implementation, algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: solver.relativePivotTolerance }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs, members, loadVector: [...loadVector], constrainedDofs, freeDofs, assembledStiffness: matrix(value.assembledStiffness, "分析整体过程整体刚度", input.nodes.length * 6), reducedStiffness: matrix(value.reducedStiffness, "分析整体过程约束后刚度", freeDofs.length), matrixLimit };
+  return { solver: { implementation: solver.implementation, algorithm: solver.algorithm as "partial-pivot-gaussian" | "sparse-ldlt", constraints: "free-dof-elimination", relativePivotTolerance: solver.relativePivotTolerance }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs, members, loadVector: [...loadVector], constrainedDofs, freeDofs, assembledStiffness: matrix(value.assembledStiffness, "分析整体过程整体刚度", input.nodes.length * 6), reducedStiffness: matrix(value.reducedStiffness, "分析整体过程约束后刚度", freeDofs.length), matrixLimit };
 }
 
 export function decodeAnalysisResult(value: unknown): AnalysisResult {
@@ -309,7 +309,7 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
     const length = requireFinite(member.length, "分析结果杆件长度无效"); if (length <= 0) throw new Error("分析结果杆件长度无效");
     let nativeResponses;
     if (member.nativeResponses !== undefined) {
-      if (input.solver?.implementation !== NATIVE_ANALYSIS_SOLVER.implementation || !Array.isArray(member.nativeResponses) || member.nativeResponses.length !== 17) throw new Error("原生沿杆结果无效");
+      if (!isNativeSolver(input.solver) || !Array.isArray(member.nativeResponses) || member.nativeResponses.length !== 17) throw new Error("原生沿杆结果无效");
       nativeResponses = member.nativeResponses.map((sample, index) => {
         if (!isRecord(sample) || typeof sample.position !== "number" || !Number.isFinite(sample.position) || Math.abs(sample.position - length * index / 16) > 1e-12 * length) throw new Error("原生沿杆位置无效");
         return { position: sample.position, forces: forceVector(sample.forces, "沿杆内力"), localDisplacement: finiteVector(sample.localDisplacement, "沿杆局部位移"), globalDisplacement: finiteVector(sample.globalDisplacement, "沿杆总体位移") };
@@ -321,23 +321,27 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
   const process = decodeAnalysisProcess(value.process, input), service = decodeAnalysisRun(value.service, input, id);
-  if (input.solver?.implementation === NATIVE_ANALYSIS_SOLVER.implementation) {
-    if (!sameInputValue(input.solver, NATIVE_ANALYSIS_SOLVER) || inputNodes.length !== 2 || inputMembers.length !== 1
+  if (input.solver?.implementation === NATIVE_ANALYSIS_SOLVER.implementation || input.solver?.implementation === NATIVE_STATIC_SOLVER.implementation) {
+    const legacy = input.solver.implementation === NATIVE_ANALYSIS_SOLVER.implementation;
+    if (!isNativeSolver(input.solver) || legacy && (inputNodes.length !== 2 || inputMembers.length !== 1 || input.uniformLoads?.length || input.selfWeight?.enabled)
       || !service || !process || !sameInputValue(process.solver, input.solver)
-      || !process.assembledStiffness || !process.reducedStiffness || process.members.length !== 1
-      || members.some((member) => !member.nativeResponses) || input.uniformLoads?.length || input.selfWeight?.enabled) throw new Error("原生分析缺少完整实际过程或恢复记录");
+      || process.matrixLimit !== 72 || inputNodes.length * 6 <= 72 && !process.assembledStiffness
+      || process.freeDofs.length <= 72 && !process.reducedStiffness || process.members.length !== inputMembers.length
+      || members.some((member) => !member.nativeResponses)) throw new Error("原生分析缺少完整实际过程或恢复记录");
     const expectedDofs = inputNodes.flatMap((node, nodeIndex) => ANALYSIS_DOF_ORDER.map((dof, index) => ({
       nodeId: node.id, dof, globalIndex: nodeIndex * 6 + index,
       restrained: input.supports.some((support) => support.nodeId === node.id && support.restraints[index]),
     })));
     const expectedFree = expectedDofs.filter((dof) => !dof.restrained).map((dof) => dof.globalIndex);
     const expectedConstrained = expectedDofs.filter((dof) => dof.restrained).map((dof) => dof.globalIndex);
-    const member = inputMembers[0], contribution = process.members[0];
-    const expectedIndices = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((_, index) => inputNodes.findIndex((node) => node.id === nodeId) * 6 + index));
-    if (!expectedFree.length || !sameInputValue(process.dofs, expectedDofs) || !sameInputValue(process.freeDofs, expectedFree)
-      || !sameInputValue(process.constrainedDofs, expectedConstrained) || contribution.memberId !== member.id
-      || !sameInputValue(contribution.globalDofIndices, expectedIndices)
-      || !sameInputValue(contribution.dofs, expectedIndices.map((index) => expectedDofs[index]))) throw new Error("原生分析自由度分区或对象映射不完整");
+    if (legacy && !expectedFree.length || !sameInputValue(process.dofs, expectedDofs) || !sameInputValue(process.freeDofs, expectedFree)
+      || !sameInputValue(process.constrainedDofs, expectedConstrained)) throw new Error("原生分析自由度分区或对象映射不完整");
+    for (const [index, member] of inputMembers.entries()) {
+      const contribution = process.members[index];
+      const expectedIndices = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((_, dof) => inputNodes.findIndex((node) => node.id === nodeId) * 6 + dof));
+      if (contribution.memberId !== member.id || !sameInputValue(contribution.globalDofIndices, expectedIndices)
+        || !sameInputValue(contribution.dofs, expectedIndices.map((dof) => expectedDofs[dof]))) throw new Error("原生分析自由度分区或对象映射不完整");
+    }
   }
   return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process, service };
 }

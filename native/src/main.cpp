@@ -1,4 +1,5 @@
 #include <Eigen/Dense>
+#include <Eigen/SparseCholesky>
 #include <json.hpp>
 #include <chrono>
 #include <cmath>
@@ -8,6 +9,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <map>
+#include <set>
 
 using Json = nlohmann::json;
 using Matrix = Eigen::MatrixXd;
@@ -284,13 +287,16 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
         {"localEndForces",{{"start",jsonVector(endForces.head(6))},{"end",jsonVector(endForces.tail(6))}}},{"nativeResponses",responses}}})},{"process",process},{"service",service}};
 }
 
+#include "static-analysis.hpp"
+
 int main() {
     Json request, stages=Json::array(); std::string stage="model-check";
     try {
         std::string bytes; char c;
         while (std::cin.get(c)) { if (bytes.size()>=4*1024*1024) throw Failure("native-input-error", "Input exceeds 4 MiB"); bytes.push_back(c); }
         request=Json::parse(bytes);
-        Json result=calculate(request,stages,stage);
+        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/2"
+            ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         emit({{"kind","result"},{"requestId",request.at("requestId")},{"result",result}});
         return 0;
     } catch (const Failure& error) {

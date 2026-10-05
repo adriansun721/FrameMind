@@ -1,4 +1,4 @@
-import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_STATIC_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
 import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
@@ -20,7 +20,7 @@ export type AnalysisTaskMessage = { requestId: string } & (
 );
 
 export interface AnalysisTaskOptions {
-  backend?: "typescript" | "native-single-member";
+  backend?: "typescript" | "native-single-member" | "native-static";
   origin?: AnalysisOrigin;
   onPhase?(phase: AnalysisTaskPhase): void;
 }
@@ -44,8 +44,9 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
 
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
-  const native = options.backend === "native-single-member";
-  const request = createAnalysisRequest(native ? { ...input, solver: { ...NATIVE_ANALYSIS_SOLVER } } : input, options.origin);
+  const native = options.backend === "native-single-member" || options.backend === "native-static";
+  const nativeSolver = options.backend === "native-static" ? NATIVE_STATIC_SOLVER : NATIVE_ANALYSIS_SOLVER;
+  const request = createAnalysisRequest(native ? { ...input, solver: { ...nativeSolver } } : input, options.origin);
   const stages: AnalysisStageRecord[] = [];
   let settled = false;
   let worker: Worker | undefined;
@@ -110,7 +111,7 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
   };
   if (native) {
     const desktop = typeof window === "undefined" ? undefined : window.frameMind;
-    if (!desktop?.runNativeAnalysis) fail(new Error("当前运行环境无法启动 C++ 单杆核心"), "native-start-error");
+    if (!desktop?.runNativeAnalysis) fail(new Error("当前运行环境无法启动 C++ 核心"), "native-start-error");
     else void desktop.runNativeAnalysis(request).then((messages) => {
       if (settled) return;
       if (!Array.isArray(messages)) { fail(new Error("原生输出不是消息列表"), "invalid-service-output"); return; }
