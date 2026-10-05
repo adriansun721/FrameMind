@@ -126,6 +126,28 @@ describe("T2-16 reusable definitions and analysis cases", () => {
     const read = executeAiTool(captureAiSnapshot(applied.project, []), { id: "read", type: "function", function: { name: "read_model", arguments: '{"collection":"analysis-cases"}' } });
     expect(read.status).toBe("completed");
     expect((read.data as { items: unknown[] }).items).toHaveLength(1);
+    const expanded = captureAiSnapshot(addAnalysisCase(applied.project, properties("Second")), []);
+    const summary = executeAiTool(expanded, { id: "summary", type: "function", function: { name: "read_model", arguments: '{"collection":"summary"}' } });
+    expect(summary.data).toMatchObject({ counts: { analysisCases: 2 } });
+    expect(summary.data).not.toHaveProperty("analysisCases");
+    const page = executeAiTool(expanded, { id: "page", type: "function", function: { name: "read_model", arguments: '{"collection":"analysis-cases","limit":1,"fields":["id"]}' } });
+    expect(page.data).toMatchObject({ total: 2, items: [{ id: "AC1" }], page: { hasMore: true, nextOffset: 1 } });
+  });
+
+  it.each(["LC2", "CB1"])("synchronizes an active analysis source after an agent update to %s and reopens it", (loadSourceId) => {
+    let p = addLoadCombination(addLoadCase(cantilever(), "Alternate"), "Combined", [{ loadCaseId: "LC1", factor: 2 }]);
+    p = selectAnalysisCase(addAnalysisCase(p, properties("Active")), "AC1");
+    const call = { id: "update-case", type: "function", function: { name: "propose_model_edits", arguments: JSON.stringify({ operations: [{ type: "update_analysis_case", id: "AC1", properties: properties("Updated", loadSourceId) }] }) } };
+    const draft = executeAiTool(captureAiSnapshot(p, []), call).modelEdits!;
+    const applied = new ModelEditConfirmation().confirm(p, prepareModelEditConfirmation(p, draft));
+    expect(applied.result.status).toBe("applied");
+    expect(applied.project.activeAnalysisCaseId).toBe("AC1");
+    expect(applied.project.activeLoadCaseId).toBe(loadSourceId === "LC2" ? "LC2" : "LC1");
+    expect(applied.project.activeLoadCombinationId).toBe(loadSourceId === "CB1" ? "CB1" : undefined);
+    const reopened = decodeProject(encodeProject(applied.project));
+    const input = captureAnalysisInput(reopened);
+    expect(input.analysisCase?.loadSourceId).toBe(loadSourceId);
+    expect(input.combination?.definition.id ?? input.loadCase?.id).toBe(loadSourceId);
   });
 
   it("confirms a complete agent task bound to an analysis case and keeps that source after reopening", () => {

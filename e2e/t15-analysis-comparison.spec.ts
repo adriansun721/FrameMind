@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createNode } from "./modeling-actions";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
 
 test("T15 keeps the previous run and compares two frozen results", async () => {
   test.setTimeout(90000);
@@ -16,6 +17,7 @@ test("T15 keeps the previous run and compares two frozen results", async () => {
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
   };
   try {
+  await enterWorkbenchWithoutRecovery(page);
   await createNode(page, ["0", "0", "0"]);
   await createNode(page, ["4", "0", "0"]);
   await page.getByRole("button", { name: "创建材料与截面" }).click();
@@ -50,6 +52,7 @@ test("T15 keeps the previous run and compares two frozen results", async () => {
   await app.close();
   app = await electron.launch({ args: ["."], env: environment });
   page = await app.firstWindow();
+  await enterWorkbenchWithoutRecovery(page);
   await fileAction("打开项目");
   await expect(page.getByRole("status")).toContainText("已打开");
   await page.getByRole("button", { name: "查看分析结果" }).click();

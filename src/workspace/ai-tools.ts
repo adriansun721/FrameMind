@@ -420,9 +420,9 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       data: { project: { id: snapshot.context.projectId, name: snapshot.context.projectName, revision: snapshot.context.modelRevision }, goal: snapshot.context.goal,
         analysis: snapshot.context.analysis ?? { status: "absent", current: false }, counts: { nodes: model.nodes.length, members: model.members.length, materials: model.materials.length,
         sections: model.sections.length, supports: model.supports.length, loads: model.nodalLoads.length + model.uniformLoads.length,
-        loadCases: model.loadCases.length, loadCombinations: model.loadCombinations.length },
+        loadCases: model.loadCases.length, loadCombinations: model.loadCombinations.length, analysisCases: model.analysisCases.length },
         units: model.units, activeLoadCaseId: model.activeLoadCaseId, activeLoadCombinationId: model.activeLoadCombinationId,
-        selfWeight: model.selfWeight, analysisCases: model.analysisCases, activeAnalysisCaseId: model.activeAnalysisCaseId, capabilities: ANALYSIS_CAPABILITIES } };
+        selfWeight: model.selfWeight, activeAnalysisCaseId: model.activeAnalysisCaseId, capabilities: ANALYSIS_CAPABILITIES } };
   }
   const items = modelCollections[input.collection as string];
   const offset = input.offset as number | undefined ?? 0;

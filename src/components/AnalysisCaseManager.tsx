@@ -48,7 +48,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="load-case-actions"><button className="button primary" type="submit">{editingId ? "保存分析工况" : "创建分析工况"}</button><button className="button ghost" type="button" disabled={!editingId} onClick={remove}>删除分析工况</button><button className="button ghost" type="button" disabled={!editingId} onClick={() => onAnalyze(editingId)}>计算此分析工况</button></div>
       </form>
-      <details><summary>分析支持矩阵</summary><div className="load-case-table-scroll"><table><thead><tr><th>方法</th><th>荷载输入组合</th><th>响应叠加</th><th>结果比较</th></tr></thead><tbody>{Object.keys(ANALYSIS_CAPABILITIES).map((method) => {
+      <details className="load-case-comparison"><summary>分析支持矩阵</summary><div className="load-case-table-scroll"><table><thead><tr><th>方法</th><th>荷载输入组合</th><th>响应叠加</th><th>结果比较</th></tr></thead><tbody>{Object.keys(ANALYSIS_CAPABILITIES).map((method) => {
         const c = ANALYSIS_CAPABILITIES[method as AnalysisMethod];
         const supported = (allowed: boolean) => c.available ? allowed ? "支持" : "不支持" : "尚未开放";
         return <tr key={method}><th>{c.name}</th><td>{supported(c.loadCombination)}</td><td>{supported(c.responseSuperposition)}</td><td>{supported(c.resultComparison)}</td></tr>;

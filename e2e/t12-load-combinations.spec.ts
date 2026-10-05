@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createNode } from "./modeling-actions";
-import { launchFrameMind } from "./electron-app";
+import { launchFrameMind, enterWorkbenchWithoutRecovery } from "./electron-app";
 
 test("T12 edits, solves, switches and reopens user combinations with traceable sources", async () => {
   test.setTimeout(90000);
@@ -13,6 +13,7 @@ test("T12 edits, solves, switches and reopens user combinations with traceable s
   let app = await electron.launch({ args: ["."], env });
   try {
     let page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     await createNode(page, ["0", "0", "0"]); await createNode(page, ["4", "0", "0"]);
     await page.getByRole("button", { name: "创建材料与截面" }).click(); await page.getByRole("button", { name: "保存材料与截面" }).click();
     await page.getByRole("button", { name: "创建杆件" }).click(); await page.getByRole("button", { name: "添加杆件" }).click();
@@ -63,6 +64,7 @@ test("T12 edits, solves, switches and reopens user combinations with traceable s
     expect(saved.loadCombinations).toHaveLength(2); expect(saved.analysisResults).toHaveLength(3);
     expect(saved.analysisResults[1].input.combination.cases[1].uniformLoads[0].intensity.y).toBe(-3);
     await app.close(); app = await electron.launch({ args: ["."], env }); page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
     await expect(page.getByLabel("当前组合")).toHaveValue("CB1"); await page.getByRole("button", { name: "查看分析结果" }).click();
     await expect(page.locator(".analysis-result-panel")).toContainText("当前");

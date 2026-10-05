@@ -508,7 +508,8 @@ export function addAnalysisCase(project: FrameProject, properties: Omit<FrameAna
 export function updateAnalysisCase(project: FrameProject, id: string, properties: Omit<FrameAnalysisCase, "id" | "legacySourceId">): FrameProject {
   const previous = requireAnalysisCase(project, id);
   const item = validateAnalysisCase(project, { ...properties, id, ...(previous.loadSourceId === properties.loadSourceId && previous.legacySourceId ? { legacySourceId: previous.legacySourceId } : {}) });
-  return { ...project, analysisCases: project.analysisCases.map((c) => c.id === id ? item : c), ...nextRevision(project) };
+  const next = { ...project, analysisCases: project.analysisCases.map((c) => c.id === id ? item : c), ...nextRevision(project) };
+  return project.activeAnalysisCaseId === id ? selectAnalysisCase(next, id) : next;
 }
 
 export function requireAnalysisCase(project: Pick<FrameProject, "analysisCases">, id: string): FrameAnalysisCase {
