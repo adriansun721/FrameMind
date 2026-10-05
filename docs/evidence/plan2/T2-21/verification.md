@@ -16,11 +16,14 @@
 - 聚焦单元测试：`src/workspace/node-merge.test.ts`、`src/components/NodeMergeEditor.test.tsx`，2 文件、7 项通过；工具意图与既有拓扑回归也通过。
 - `node scripts/verify-plan2-t221.mjs`：8 项原生独立参考通过，判据及参考见 [实现记录](implementation.md)。使用仓库现有正式原生核心，本任务没有变更原生算法。
 - `node scripts/run-e2e-isolated.cjs e2e/plan2-t2-20-topology.spec.ts e2e/plan2-t2-21-node-merge.spec.ts`：4 项通过，28.5 s，覆盖既有连接／分割及本任务手动／Agent 入口。
-- `npm test`：67 文件、503 项通过，14.79 s。
+- `npm test`：初轮 67 文件、503 项通过，14.79 s；审查修复后最终同样 67 文件、503 项通过，11.18 s。
+- 审查修复后类型检查、生产构建及 4 文件／40 项聚焦回归通过。两项 P2 均已修复并复审通过，见 [审查记录](review.md)。
 - `git diff --check`：通过。
 
 机器证据：[原生检查](native-verification.json)、[桌面流程](desktop.json)。截图：`merge-{dark,light}-{1440,1080}.png`，检查真实深浅主题 1080 窗口的影响明细与确认操作；截图不代替数值验证。
 
 首次测试失败记录：删除全部冲突杆件是明确允许的决策，修正错误的禁止预期；篡改测试原字段本就为空，改为实际移除非空合并回执。组件重渲染测试最初移除了根 Context Provider，导致测试组件被重建，修正为相同 Provider。进一步检查发现保存草案会增加任务引用，确认现在只忽略动态任务引用，仍比较完整工程影响和冲突决策，并增加待确认重开与任务身份测试。所有失败均未记为通过。
+
+审查修复：将受影响杆件未参与合并的另一端坐标纳入冲突检查；材料／截面比较限定为受影响杆件引用资源，未使用资源变化允许协调。追加断言验证两种行为，原始发现和复审分别归档。
 
 未执行完整 Electron 总套件、真实 AI 联测、整轮规模验收或干净 Windows 安装；这些不属于本次确定性验证结论。
