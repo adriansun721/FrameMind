@@ -42,10 +42,11 @@ describe("AI progressive output", () => {
       role: "assistant", content: null, tool_calls: [{ id: name, type: "function", function: { name, arguments: JSON.stringify(input) } }],
     } });
     const candidate = { label: "独立基准", operations: [] };
+    const progressEvents: AiProgress[] = [];
     const script = replay([tool("run_diagnostic_trial", candidate), tool("create_diagnostic_copy", {}), tool("run_diagnostic_trial", candidate),
       { status: "success", message: "回复", assistant: { role: "assistant", content: "数值成功不等于工程有效性验证" } }]);
     const result = await startAiTask(snapshot, "检查并隔离试算", {
-      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, exploration: { mode: "normal" },
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, exploration: { mode: "normal" }, onProgress: (event) => progressEvents.push(event),
     }).promise;
     expect(result.status).toBe("completed");
     expect(result.records.map((record) => record.call.function.name)).toEqual(["read_model", "run_diagnostic_trial", "create_diagnostic_copy", "run_diagnostic_trial"]);
@@ -53,6 +54,7 @@ describe("AI progressive output", () => {
     expect(result.diagnosticTrial).toMatchObject({ status: "complete", engineeringValidity: "numerically-solved-not-engineering-validated" });
     expect(project.analysisResults).toHaveLength(1);
     expect(result.diagnosticCopy?.id).not.toBe(project.id);
+    expect(progressEvents.flatMap((event) => event.analysisPhase ? [event.analysisPhase] : [])).toEqual(["model-check", "assembly", "solve", "recovery"]);
   });
 
   it("stops an agent that repeatedly ignores the diagnostic-copy prerequisite", async () => {

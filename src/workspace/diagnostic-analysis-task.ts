@@ -13,4 +13,3 @@ export function startDiagnosticTrialTask(copy: DiagnosticCopy, request: Diagnost
     return finishDiagnosticTrial(prepared, undefined, error, stages);
   }), cancel: () => task.cancel() };
 }
-

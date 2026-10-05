@@ -7,10 +7,47 @@ import { isAnalysisResultCurrent, type AnalysisResult } from "../src/domain/anal
 import type { FrameProject } from "../src/domain/project";
 import { enterWorkbenchWithoutRecovery } from "./electron-app";
 
+// ADR-0032 tolerances also apply when comparing the former /1 and production /2 cores.
+const expectVector = (actual: readonly number[] | { x: number; y: number; z: number }, reference: readonly number[] | { x: number; y: number; z: number }, absoluteTolerance: number) => {
+  expect(Object.keys(actual)).toEqual(Object.keys(reference));
+  const expectedValues: number[] = Object.values(reference);
+  Object.values(actual).forEach((value: number, index) => {
+    expect(Number.isFinite(value)).toBe(true);
+    expect(Math.abs(value - expectedValues[index])).toBeLessThanOrEqual(Math.max(absoluteTolerance, 1e-8 * Math.abs(expectedValues[index])));
+  });
+};
+
+const expectEquivalentResults = (actual: AnalysisResult, reference: AnalysisResult) => {
+  expect(actual.nodes.map((node) => node.nodeId)).toEqual(reference.nodes.map((node) => node.nodeId));
+  actual.nodes.forEach((node, index) => {
+    const expected = reference.nodes[index];
+    expectVector(node.displacement, expected.displacement, 1e-11);
+    expectVector(node.rotation, expected.rotation, 1e-11);
+    expectVector(node.reaction, expected.reaction, 1e-9);
+    expectVector(node.reactionMoment, expected.reactionMoment, 1e-9);
+  });
+  expect(actual.members.map((member) => member.memberId)).toEqual(reference.members.map((member) => member.memberId));
+  actual.members.forEach((member, index) => {
+    const expected = reference.members[index];
+    expect(member.length).toBe(expected.length);
+    expect(member.localAxes).toEqual(expected.localAxes);
+    expectVector(member.localEndForces.start, expected.localEndForces.start, 1e-9);
+    expectVector(member.localEndForces.end, expected.localEndForces.end, 1e-9);
+    expect(member.nativeResponses).toHaveLength(expected.nativeResponses!.length);
+    member.nativeResponses!.forEach((response, station) => {
+      const expectedResponse = expected.nativeResponses![station];
+      expect(response.position).toBe(expectedResponse.position);
+      expectVector(response.forces, expectedResponse.forces, 1e-9);
+      expectVector(response.localDisplacement, expectedResponse.localDisplacement, 1e-11);
+      expectVector(response.globalDisplacement, expectedResponse.globalDisplacement, 1e-11);
+    });
+  });
+};
+
 test("T2-13 desktop calls C++, browses and saves all independent single-member loads with compiler-free PATH", async () => {
   test.setTimeout(120000);
-  const evidence = "docs/evidence/plan2/T2-13";
-  const samples: Array<{ id: string; project: FrameProject; result: AnalysisResult }> = JSON.parse(await readFile(join(evidence, "wire-samples.json"), "utf8"));
+  const evidence = process.env.FRAMEMIND_T213_EVIDENCE ?? "docs/evidence/plan2/T2-13";
+  const samples: Array<{ id: string; project: FrameProject; result: AnalysisResult }> = JSON.parse(await readFile(join("docs/evidence/plan2/T2-13", "wire-samples.json"), "utf8"));
   expect(samples).toHaveLength(9);
   const directory = await mkdtemp(join(tmpdir(), "framemind-t213-"));
   const projectPath = join(directory, "原生单杆.framemind");
@@ -37,8 +74,7 @@ test("T2-13 desktop calls C++, browses and saves all independent single-member l
       expect(result.process!.assembledStiffness).toHaveLength(12);
       expect(result.members[0].nativeResponses).toHaveLength(17);
       expect(isAnalysisResultCurrent(saved, result)).toBe(true);
-      expect(result.nodes).toEqual(sample.result.nodes);
-      expect(result.members).toEqual(sample.result.members);
+      expectEquivalentResults(result, sample.result);
       await page.keyboard.press("Control+o");
       await expect(page.locator('footer[role="status"]')).toContainText("已打开");
       await expect(page.getByTestId("analysis-process")).toContainText("framemind-native/2");

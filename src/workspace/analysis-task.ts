@@ -59,13 +59,16 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
   const finish = (callback: () => void) => {
     if (settled) return;
     settled = true;
-    worker?.terminate();
-    unsubscribe?.();
+    // A released IPC/Worker context must not prevent the caller's Promise settling.
+    try { worker?.terminate(); } catch { /* Context is already gone. */ }
+    try { unsubscribe?.(); } catch { /* Context is already gone. */ }
     if (timer !== undefined) clearTimeout(timer);
     callback();
   };
   const cancelNative = () => {
-    if (native && typeof window !== "undefined") void window.frameMind?.cancelNativeAnalysis?.(request.requestId).catch(() => {});
+    try {
+      if (native && typeof window !== "undefined") void window.frameMind?.cancelNativeAnalysis?.(request.requestId).catch(() => {});
+    } catch { /* A closing window may have released its bridge; host also cancels by owner. */ }
   };
   const fail = (error: unknown, code?: string) => finish(() => { cancelNative(); rejectPromise(analysisServiceFailure(request, stages, error, code)); });
   const phase = (record: AnalysisStageRecord) => {

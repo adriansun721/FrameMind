@@ -98,6 +98,25 @@ test("T2-15 keeps native faults isolated, streams real stages and cancels while 
     expect(result.latestAnalysis!.input.solver!.implementation).toBe("framemind-native/2");
     expect(result.latestAnalysis!.nodes[1].displacement.x).toBeCloseTo(0.00002, 12);
     expect(result.analysisResults).toHaveLength(1);
+    // A long agent diagnostic solve exposes its actual streamed phase as well.
+    await page.getByRole("button", { name: "设置", exact: true }).click();
+    const settings = page.getByRole("dialog", { name: "设置", exact: true });
+    await settings.getByLabel("DeepSeek API Key").fill("sk-t215-fixture-only");
+    await settings.getByRole("button", { name: "保存连接" }).click();
+    await expect(settings.getByTestId("deepseek-feedback")).toHaveText("连接设置已保存");
+    await settings.getByRole("button", { name: "关闭", exact: true }).click();
+    await app.evaluate(() => {
+      globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: null,
+        tool_calls: [{ id: "native-diagnostic", type: "function", function: { name: "inspect_diagnostics", arguments: "{}" } }] } }] }));
+    });
+    await mode("wait");
+    await page.getByLabel("AI 消息草稿").fill("检查当前工程并诊断");
+    await page.getByRole("button", { name: "发送消息", exact: true }).click();
+    await expect(page.getByRole("region", { name: "处理过程" })).toContainText("正在执行：方程求解");
+    await page.getByRole("button", { name: "取消对话" }).click();
+    await expect(page.getByTestId("ai-turn-status").last()).toContainText("已取消");
+    expect((await saved()).analysisResults).toEqual(result.analysisResults);
+    records.push({ diagnosticStageVisibleBeforeCompletion: true, cancelledDiagnosticPreservedFormalResult: true });
     const probe = await page.evaluate(() => (window as any).__t215);
     const memory = await app.evaluate(({ app }) => app.getAppMetrics().map(item => ({ type: item.type, workingSetBytes: item.memory.workingSetSize*1024 })));
     await mkdir("docs/evidence/plan2/T2-15", { recursive: true });

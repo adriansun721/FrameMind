@@ -22,37 +22,41 @@
       "retainedResults": true
     },
     {
-      "cancellationMs": 3.5999999940395355,
-      "processTerminationMs": 687.8267000000005,
+      "cancellationMs": 3.5,
+      "processTerminationMs": 562.1601,
       "cameraChanged": true
+    },
+    {
+      "diagnosticStageVisibleBeforeCompletion": true,
+      "cancelledDiagnosticPreservedFormalResult": true
     }
   ],
   "compilerFreePath": true,
   "editAndProjectSwitchIsolated": true,
-  "maxCallbackGapMs": 37.80000001192093,
+  "maxCallbackGapMs": 28.5,
   "memory": [
     {
       "type": "Browser",
-      "workingSetBytes": 125247488
+      "workingSetBytes": 135733248
     },
     {
       "type": "GPU",
-      "workingSetBytes": 363057152
+      "workingSetBytes": 390864896
     },
     {
       "type": "Utility",
-      "workingSetBytes": 54329344
+      "workingSetBytes": 54648832
     },
     {
       "type": "Tab",
-      "workingSetBytes": 152510464
+      "workingSetBytes": 163872768
     }
   ],
   "result": {
-    "id": "analysis_2cc93934-bb02-48d5-b7bb-3aadc904c7d5",
+    "id": "analysis_f97fc6c7-6246-4ad5-98d0-d579963a8547",
     "projectId": "project_t215_another",
     "projectRevision": 8,
-    "createdAt": "2026-10-05T09:37:35Z",
+    "createdAt": "2026-10-05T09:46:23Z",
     "status": "complete",
     "input": {
       "assumptions": {
@@ -1252,7 +1256,7 @@
       "matrixLimit": 72
     },
     "service": {
-      "analysisId": "analysis_2cc93934-bb02-48d5-b7bb-3aadc904c7d5",
+      "analysisId": "analysis_f97fc6c7-6246-4ad5-98d0-d579963a8547",
       "dependencies": [
         {
           "factor": 1,
@@ -1264,7 +1268,7 @@
       },
       "projectId": "project_t215_another",
       "projectRevision": 8,
-      "requestId": "request_b2759ef0-5ac1-4e14-b9b8-5483a90aebab",
+      "requestId": "request_651610d0-594d-40cd-9274-e39e726e389a",
       "solver": {
         "algorithm": "sparse-ldlt",
         "constraints": "free-dof-elimination",
@@ -1275,19 +1279,19 @@
       "stages": [
         {
           "stage": "model-check",
-          "startedAt": "2026-10-05T09:37:35Z"
+          "startedAt": "2026-10-05T09:46:23Z"
         },
         {
           "stage": "assembly",
-          "startedAt": "2026-10-05T09:37:35Z"
+          "startedAt": "2026-10-05T09:46:23Z"
         },
         {
           "stage": "solve",
-          "startedAt": "2026-10-05T09:37:35Z"
+          "startedAt": "2026-10-05T09:46:23Z"
         },
         {
           "stage": "recovery",
-          "startedAt": "2026-10-05T09:37:35Z"
+          "startedAt": "2026-10-05T09:46:23Z"
         }
       ],
       "status": "complete",

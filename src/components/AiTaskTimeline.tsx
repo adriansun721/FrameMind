@@ -5,6 +5,7 @@ import { FRAME_FIELDS, type FrameProposal } from "../workspace/frame-proposal";
 import type { ConditionsProposal } from "../workspace/analysis-conditions";
 import type { SectionChangeProposal } from "../workspace/section-stage";
 import type { TaskDraft } from "../workspace/task-draft";
+import { ANALYSIS_STAGE_LABELS, type AnalysisStage } from "../domain/analysis-diagnostics";
 
 export interface StageResolution {
   status: "confirmed" | "cancelled" | "updated";
@@ -82,8 +83,8 @@ function timelineSteps(turns: readonly TimelineTurn[], paused: boolean): Step[] 
   for (const turn of turns) {
     const records = turn.result?.records ?? turn.output?.records ?? [];
     const events = turn.progressEvents ?? [];
-    const calls = new Map<string, { call: AiToolRecord["call"]; result?: AiToolRecord["result"] }>();
-    for (const event of events) if (event.toolCall) calls.set(`${event.round}:${event.toolCall.id}`, { call: event.toolCall, result: event.toolResult });
+    const calls = new Map<string, { call: AiToolRecord["call"]; result?: AiToolRecord["result"]; analysisPhase?: AnalysisStage }>();
+    for (const event of events) if (event.toolCall) calls.set(`${event.round}:${event.toolCall.id}`, { call: event.toolCall, result: event.toolResult, analysisPhase: event.analysisPhase });
     for (const record of records) calls.set(`${record.round}:${record.call.id}`, record);
     // Requests and tool results are the only sources of process steps; no predicted steps.
     if (turn.origin === "chat" && (!calls.size || events.length)) {
@@ -99,7 +100,7 @@ function timelineSteps(turns: readonly TimelineTurn[], paused: boolean): Step[] 
       && !record.result?.proposal && !record.result?.conditions && !record.result?.sectionChange && !record.result?.taskDraft;
       steps.push({ id: `${turn.id}:${id}`, label: awaitingWithoutStage ? "等待确认" : toolLabel(record),
         state: awaitingWithoutStage ? "waiting" : status === "completed" || status === "applied" || status === "missing-input" || status === "awaiting-confirmation" ? "done" : status === "failed" ? "issue" : status === "cancelled" ? "cancelled" : turn.result ? "cancelled" : "active",
-        detail: status === "failed" || awaitingWithoutStage ? record.result?.message : undefined });
+        detail: status === "failed" || awaitingWithoutStage ? record.result?.message : !turn.result && !record.result && record.analysisPhase ? `正在执行：${ANALYSIS_STAGE_LABELS[record.analysisPhase]}` : undefined });
       if (status === "missing-input") steps.push({ id: `${turn.id}:${id}:missing`, label: "发现待补充参数", state: "issue", detail: record.result?.message });
     }
     const result = turn.result;

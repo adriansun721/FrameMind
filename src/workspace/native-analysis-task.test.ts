@@ -23,6 +23,17 @@ it("contains synchronous bridge startup failures as a structured native failure"
   await expect(startAnalysisTask(captureAnalysisInput(project())).promise).rejects.toMatchObject({ diagnostics: [{ code: "native-start-error" }], run: { status: "failed", stages: [] } });
 });
 
+it("settles cancellation even if a closing window has released its IPC cleanup hooks", async () => {
+  vi.stubGlobal("window", { frameMind: {
+    runNativeAnalysis: () => new Promise(() => {}),
+    onNativeAnalysisPhase: () => () => { throw new Error("IPC context lost"); },
+    cancelNativeAnalysis: () => { throw new Error("IPC context lost"); },
+  } });
+  const task = startAnalysisTask(captureAnalysisInput(project()));
+  expect(() => task.cancel()).not.toThrow();
+  await expect(task.promise).rejects.toBeInstanceOf(AnalysisCancelledError);
+});
+
 it("uses C++ for the default formal task and streams phases before the result is available", async () => {
   let listener!: (message: unknown) => void;
   let deliver!: (messages: unknown[]) => void;

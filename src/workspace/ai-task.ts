@@ -10,6 +10,7 @@ import type { FrameProject } from "../domain/project";
 import { coordinateFrame, coordinateModelEdits, coordinateSection, coordinateTaskDraft, engineeringDraftTargets, targetConflicts, validateConditions } from "./draft-coordination";
 import { createExplorationBudget, type ExplorationBudgetOptions, type ExplorationBudgetSnapshot } from "./exploration-budget";
 import { startDiagnosticToolTask, type DiagnosticToolTask } from "./diagnostic-tool-task";
+import type { AnalysisStage } from "../domain/analysis-diagnostics";
 
 export type AiTransport = Pick<FrameMindDesktopApi, "chatDeepSeek" | "cancelDeepSeekChat">;
 export type AiWorkKind = "conversation" | "agent";
@@ -19,6 +20,7 @@ export interface AiProgress {
   round: number;
   toolCall?: DeepSeekToolCall;
   toolResult?: AiToolResult;
+  analysisPhase?: AnalysisStage;
   exploration?: ExplorationBudgetSnapshot;
 }
 export interface AiTaskResult {
@@ -345,7 +347,9 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
           let timedOut = false;
           let timeout: ReturnType<typeof setTimeout> | undefined;
           if (isDiagnosticCall) {
-            activeDiagnosticTask = startDiagnosticToolTask(taskSnapshot, call, diagnosticCopy ?? undefined);
+            activeDiagnosticTask = startDiagnosticToolTask(taskSnapshot, call, diagnosticCopy ?? undefined, {
+              onPhase: (analysisPhase) => progress({ phase: "tool", round, toolCall: call, analysisPhase }),
+            });
             const interruption = new Promise<undefined>((resolve) => { interruptRequest = () => resolve(undefined); });
             const budgetSnapshot = exploration?.snapshot();
             const remainingMs = budgetSnapshot ? Math.max(1, budgetSnapshot.budgetMs - budgetSnapshot.elapsedMs) : undefined;

@@ -8,6 +8,7 @@ export const ANALYSIS_STAGE_LABELS: Record<AnalysisStage, string> = {
   "model-check": "模型检查", assembly: "刚度组装", solve: "方程求解", recovery: "结果恢复",
 };
 export const ANALYSIS_FIELD_LABELS: Record<string, string> = {
+  "native-core": "原生计算资源与协议",
   id: "对象身份", "position.x": "X 坐标", "position.y": "Y 坐标", "position.z": "Z 坐标",
   elasticModulusGPa: "弹性模量 E", densityKgM3: "密度", poissonRatio: "泊松比",
   areaM2: "面积 A", secondMomentYM4: "惯性矩 Iy", secondMomentZM4: "惯性矩 Iz", torsionalConstantM4: "扭转常数 J",

@@ -18,3 +18,10 @@ test("an unapplied model request shows its waiting state and actionable read-onl
   expect(screen.getByText(/本阶段只读/)).toBeVisible();
   expect(screen.getByText(/请使用手动编辑/)).toBeVisible();
 });
+
+test("a running diagnostic tool shows the last actual native stage", () => {
+  render(<AiTaskTimeline paused={false} turns={[{ id: "native-turn", origin: "chat", progressEvents: [
+    { phase: "tool", round: 1, toolCall: { id: "native-diagnostic", type: "function", function: { name: "inspect_diagnostics", arguments: "{}" } }, analysisPhase: "solve" },
+  ] }]} />);
+  expect(screen.getByText("正在执行：方程求解")).toBeVisible();
+});

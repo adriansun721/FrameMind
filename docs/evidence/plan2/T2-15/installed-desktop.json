@@ -1,17 +1,17 @@
 {
   "passed": true,
-  "installed": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-install-7dKoQy\\中文安装目录\\FrameMind.exe",
+  "installed": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-install-Z2K2dM\\中文安装目录\\FrameMind.exe",
   "compilerPath": "Windows System32 only",
-  "directory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t214-FZCb3n",
+  "directory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t214-pnB8TT",
   "records": [
     {
       "id": "axial",
       "passed": true,
       "result": {
-        "id": "analysis_7dd3b5a4-7596-475e-94f3-e74bd112f70b",
+        "id": "analysis_64d5382d-0314-4c91-a13a-4e8548202d8f",
         "projectId": "project_86dac543-bf52-4bef-aeb8-8f8f2284b733",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:04Z",
+        "createdAt": "2026-10-05T09:50:57Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -1211,7 +1211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_7dd3b5a4-7596-475e-94f3-e74bd112f70b",
+          "analysisId": "analysis_64d5382d-0314-4c91-a13a-4e8548202d8f",
           "dependencies": [
             {
               "factor": 1,
@@ -1223,7 +1223,7 @@
           },
           "projectId": "project_86dac543-bf52-4bef-aeb8-8f8f2284b733",
           "projectRevision": 7,
-          "requestId": "request_aa8fe7e6-f7a2-4a74-8ed4-faef394d5617",
+          "requestId": "request_9e29fa18-0ffe-4113-af8b-07b8b0acf9c9",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -1234,19 +1234,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:04Z"
+              "startedAt": "2026-10-05T09:50:57Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:04Z"
+              "startedAt": "2026-10-05T09:50:57Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:04Z"
+              "startedAt": "2026-10-05T09:50:57Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:04Z"
+              "startedAt": "2026-10-05T09:50:57Z"
             }
           ],
           "status": "complete",
@@ -1258,10 +1258,10 @@
       "id": "bend-y",
       "passed": true,
       "result": {
-        "id": "analysis_0ef6da03-29ce-46a4-9889-d723a20855dd",
+        "id": "analysis_24d889e4-345f-4d74-b6f0-01a7bb0d8de2",
         "projectId": "project_28e36071-0fee-46dd-a1c7-670c3e6693fd",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:05Z",
+        "createdAt": "2026-10-05T09:50:58Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -2461,7 +2461,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_0ef6da03-29ce-46a4-9889-d723a20855dd",
+          "analysisId": "analysis_24d889e4-345f-4d74-b6f0-01a7bb0d8de2",
           "dependencies": [
             {
               "factor": 1,
@@ -2473,7 +2473,7 @@
           },
           "projectId": "project_28e36071-0fee-46dd-a1c7-670c3e6693fd",
           "projectRevision": 7,
-          "requestId": "request_2db57eb6-d831-4579-99b5-a1b3497d5ee6",
+          "requestId": "request_696261af-c803-4a9a-b640-d6cd47f6016c",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -2484,19 +2484,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             }
           ],
           "status": "complete",
@@ -2508,10 +2508,10 @@
       "id": "bend-z",
       "passed": true,
       "result": {
-        "id": "analysis_67e65465-6ade-440e-b212-b73542f6b0e1",
+        "id": "analysis_d42e6302-0373-4010-9f8c-8433c00eff89",
         "projectId": "project_3f4dfb0b-1438-46d6-9007-1961788a6203",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:05Z",
+        "createdAt": "2026-10-05T09:50:58Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -3711,7 +3711,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_67e65465-6ade-440e-b212-b73542f6b0e1",
+          "analysisId": "analysis_d42e6302-0373-4010-9f8c-8433c00eff89",
           "dependencies": [
             {
               "factor": 1,
@@ -3723,7 +3723,7 @@
           },
           "projectId": "project_3f4dfb0b-1438-46d6-9007-1961788a6203",
           "projectRevision": 7,
-          "requestId": "request_15237d08-0e20-41ed-80bf-ee9f7e4dd283",
+          "requestId": "request_e03cea89-7ee6-4bac-be02-cbecbd05160e",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -3734,19 +3734,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:05Z"
+              "startedAt": "2026-10-05T09:50:58Z"
             }
           ],
           "status": "complete",
@@ -3758,10 +3758,10 @@
       "id": "torsion",
       "passed": true,
       "result": {
-        "id": "analysis_61ed91e4-0cbc-4d11-a604-bc4477eccfa9",
+        "id": "analysis_34b7eb20-ccc3-4166-bf88-d169f0eb643c",
         "projectId": "project_d366fdd4-9c02-4c1b-8d96-77e9d2218e24",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:06Z",
+        "createdAt": "2026-10-05T09:50:59Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -4961,7 +4961,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_61ed91e4-0cbc-4d11-a604-bc4477eccfa9",
+          "analysisId": "analysis_34b7eb20-ccc3-4166-bf88-d169f0eb643c",
           "dependencies": [
             {
               "factor": 1,
@@ -4973,7 +4973,7 @@
           },
           "projectId": "project_d366fdd4-9c02-4c1b-8d96-77e9d2218e24",
           "projectRevision": 7,
-          "requestId": "request_a51dcb31-a23f-4bbc-84b0-fcce784e6874",
+          "requestId": "request_227c1ffd-f629-41aa-9feb-89f74b6068ca",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -4984,19 +4984,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:06Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:06Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:06Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:06Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             }
           ],
           "status": "complete",
@@ -5008,10 +5008,10 @@
       "id": "moment-y",
       "passed": true,
       "result": {
-        "id": "analysis_4c31f19d-989e-4433-b0e3-28cd28bb3561",
+        "id": "analysis_3fa6f184-9731-4b93-86e9-0da36e2f6f89",
         "projectId": "project_af167423-8c51-43cf-a82e-2235fe9505cd",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:07Z",
+        "createdAt": "2026-10-05T09:50:59Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -6211,7 +6211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_4c31f19d-989e-4433-b0e3-28cd28bb3561",
+          "analysisId": "analysis_3fa6f184-9731-4b93-86e9-0da36e2f6f89",
           "dependencies": [
             {
               "factor": 1,
@@ -6223,7 +6223,7 @@
           },
           "projectId": "project_af167423-8c51-43cf-a82e-2235fe9505cd",
           "projectRevision": 7,
-          "requestId": "request_132c6b31-1ab4-46d3-9ea7-4d28782756f8",
+          "requestId": "request_4735981d-0cef-4a93-a5ae-04d7a4dcd6a6",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -6234,19 +6234,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             }
           ],
           "status": "complete",
@@ -6258,10 +6258,10 @@
       "id": "moment-z",
       "passed": true,
       "result": {
-        "id": "analysis_2f435c9b-3f40-4804-8cf4-d3a279088e38",
+        "id": "analysis_a9ba1cbb-a0e7-450a-a0ac-3a44abb0d7bd",
         "projectId": "project_c910071b-85bf-44e5-91d6-f057c599c679",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:07Z",
+        "createdAt": "2026-10-05T09:50:59Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -7461,7 +7461,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_2f435c9b-3f40-4804-8cf4-d3a279088e38",
+          "analysisId": "analysis_a9ba1cbb-a0e7-450a-a0ac-3a44abb0d7bd",
           "dependencies": [
             {
               "factor": 1,
@@ -7473,7 +7473,7 @@
           },
           "projectId": "project_c910071b-85bf-44e5-91d6-f057c599c679",
           "projectRevision": 7,
-          "requestId": "request_f03d8953-16b6-4d4a-84d7-27edc8e1ee88",
+          "requestId": "request_5f1b686e-8fb9-42fc-98db-5efbeab3e352",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -7484,19 +7484,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:50:59Z"
             }
           ],
           "status": "complete",
@@ -7508,10 +7508,10 @@
       "id": "six-components",
       "passed": true,
       "result": {
-        "id": "analysis_c05ae637-14cd-4b61-8b7c-20d94b665594",
+        "id": "analysis_4979a63e-4ae9-4ac5-bc72-b06b8c0a31bd",
         "projectId": "project_50c3184f-be27-4689-829b-ef4f843d74e5",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:07Z",
+        "createdAt": "2026-10-05T09:51:00Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -8711,7 +8711,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_c05ae637-14cd-4b61-8b7c-20d94b665594",
+          "analysisId": "analysis_4979a63e-4ae9-4ac5-bc72-b06b8c0a31bd",
           "dependencies": [
             {
               "factor": 1,
@@ -8723,7 +8723,7 @@
           },
           "projectId": "project_50c3184f-be27-4689-829b-ef4f843d74e5",
           "projectRevision": 7,
-          "requestId": "request_347ffd2e-a139-4d1e-ac3f-935721d17e3f",
+          "requestId": "request_50281112-7929-496e-972e-5fb2691b9467",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -8734,19 +8734,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:07Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             }
           ],
           "status": "complete",
@@ -8758,10 +8758,10 @@
       "id": "vertical",
       "passed": true,
       "result": {
-        "id": "analysis_88cff4f1-944a-401b-9198-4c1afeec1511",
+        "id": "analysis_41ca5ee0-e720-4952-8401-b29cd4630b02",
         "projectId": "project_7d9f1e17-1e00-4e9e-820f-14f5a12fb25f",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:08Z",
+        "createdAt": "2026-10-05T09:51:00Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -9961,7 +9961,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_88cff4f1-944a-401b-9198-4c1afeec1511",
+          "analysisId": "analysis_41ca5ee0-e720-4952-8401-b29cd4630b02",
           "dependencies": [
             {
               "factor": 1,
@@ -9973,7 +9973,7 @@
           },
           "projectId": "project_7d9f1e17-1e00-4e9e-820f-14f5a12fb25f",
           "projectRevision": 7,
-          "requestId": "request_b6f70580-2dee-48eb-bba2-be817bd488a2",
+          "requestId": "request_05867749-d2aa-4f66-9c97-92ca7dd0a97e",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -9984,19 +9984,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:00Z"
             }
           ],
           "status": "complete",
@@ -10008,10 +10008,10 @@
       "id": "skew-rotated-section",
       "passed": true,
       "result": {
-        "id": "analysis_9a4c5f86-8652-449e-85b7-d1340f18739c",
+        "id": "analysis_610af944-0744-4d01-b107-697686e8eebe",
         "projectId": "project_c9662497-ec5e-467e-ae1c-8e2b189150c1",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:08Z",
+        "createdAt": "2026-10-05T09:51:01Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -11211,7 +11211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_9a4c5f86-8652-449e-85b7-d1340f18739c",
+          "analysisId": "analysis_610af944-0744-4d01-b107-697686e8eebe",
           "dependencies": [
             {
               "factor": 1,
@@ -11223,7 +11223,7 @@
           },
           "projectId": "project_c9662497-ec5e-467e-ae1c-8e2b189150c1",
           "projectRevision": 7,
-          "requestId": "request_4eb6e071-89cf-4a3d-9b70-7e107aa3ca1e",
+          "requestId": "request_3e99d9a9-4645-4acb-91e9-8f1c327970ac",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -11234,19 +11234,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:08Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             }
           ],
           "status": "complete",
@@ -11258,10 +11258,10 @@
       "id": "uniform-local",
       "passed": true,
       "result": {
-        "id": "analysis_d779ba56-a84f-4b1c-821b-355d9841df7b",
+        "id": "analysis_375f70d2-3e44-4199-94fb-62ecbc5351d3",
         "projectId": "project_7ab59529-d37d-47cd-8750-423f76786fd6",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:09Z",
+        "createdAt": "2026-10-05T09:51:01Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -12458,7 +12458,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_d779ba56-a84f-4b1c-821b-355d9841df7b",
+          "analysisId": "analysis_375f70d2-3e44-4199-94fb-62ecbc5351d3",
           "dependencies": [
             {
               "factor": 1,
@@ -12470,7 +12470,7 @@
           },
           "projectId": "project_7ab59529-d37d-47cd-8750-423f76786fd6",
           "projectRevision": 7,
-          "requestId": "request_6ce530d5-b49f-4857-9ca0-1cd352029119",
+          "requestId": "request_17f254dd-29d1-41cb-8696-153bb61ddf23",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -12481,19 +12481,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:01Z"
             }
           ],
           "status": "complete",
@@ -12505,10 +12505,10 @@
       "id": "uniform-global-skew",
       "passed": true,
       "result": {
-        "id": "analysis_7e07e276-2673-44a1-b246-d133d206e4e4",
+        "id": "analysis_41342849-6ce7-4260-ad33-58a4510a461c",
         "projectId": "project_7e88c2fd-1cdb-4f56-8dd5-38f39ce25e1b",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:09Z",
+        "createdAt": "2026-10-05T09:51:02Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -13705,7 +13705,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_7e07e276-2673-44a1-b246-d133d206e4e4",
+          "analysisId": "analysis_41342849-6ce7-4260-ad33-58a4510a461c",
           "dependencies": [
             {
               "factor": 1,
@@ -13717,7 +13717,7 @@
           },
           "projectId": "project_7e88c2fd-1cdb-4f56-8dd5-38f39ce25e1b",
           "projectRevision": 7,
-          "requestId": "request_8b06254b-a38c-4976-ba1a-467966faf401",
+          "requestId": "request_31ec0289-ef58-4700-b62a-81ecafbd264f",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -13728,19 +13728,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:09Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             }
           ],
           "status": "complete",
@@ -13752,10 +13752,10 @@
       "id": "self-weight",
       "passed": true,
       "result": {
-        "id": "analysis_db652c63-6a8e-4dca-a9fb-c37f5755a41d",
+        "id": "analysis_bd447107-db98-44de-a74b-a0d608f20593",
         "projectId": "project_78981d5a-b2e8-45f8-a4f0-0beefdf2f7cc",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T09:38:10Z",
+        "createdAt": "2026-10-05T09:51:02Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -14938,7 +14938,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_db652c63-6a8e-4dca-a9fb-c37f5755a41d",
+          "analysisId": "analysis_bd447107-db98-44de-a74b-a0d608f20593",
           "dependencies": [
             {
               "factor": 1,
@@ -14950,7 +14950,7 @@
           },
           "projectId": "project_78981d5a-b2e8-45f8-a4f0-0beefdf2f7cc",
           "projectRevision": 7,
-          "requestId": "request_6f5cff1f-0a0e-4418-9a57-2aa5255d44df",
+          "requestId": "request_040b6a1c-26ef-4003-abb3-999912bb775e",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -14961,19 +14961,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:02Z"
             }
           ],
           "status": "complete",
@@ -14985,10 +14985,10 @@
       "id": "case-LC1",
       "passed": true,
       "result": {
-        "id": "analysis_524be3b1-b342-4016-8f09-2805cb41b78e",
+        "id": "analysis_0c42085c-d2b1-473d-9c4c-e5a100c8e2b8",
         "projectId": "project_29dd42ca-6891-4261-ae15-908ec54e8fe9",
         "projectRevision": 11,
-        "createdAt": "2026-10-05T09:38:10Z",
+        "createdAt": "2026-10-05T09:51:03Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -16188,7 +16188,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_524be3b1-b342-4016-8f09-2805cb41b78e",
+          "analysisId": "analysis_0c42085c-d2b1-473d-9c4c-e5a100c8e2b8",
           "dependencies": [
             {
               "factor": 1,
@@ -16200,7 +16200,7 @@
           },
           "projectId": "project_29dd42ca-6891-4261-ae15-908ec54e8fe9",
           "projectRevision": 11,
-          "requestId": "request_8f67ac69-adec-4797-9eff-5aaab8fa3b02",
+          "requestId": "request_0dc4c451-bf9d-4fe9-8abf-e81de4dc9c89",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -16211,19 +16211,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:10Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             }
           ],
           "status": "complete",
@@ -16235,10 +16235,10 @@
       "id": "case-LC2",
       "passed": true,
       "result": {
-        "id": "analysis_72e21bf2-6136-44dc-95ec-17ce13d37813",
+        "id": "analysis_8d340d5e-483b-4990-9a7e-97acdda3615a",
         "projectId": "project_de7e4def-2e5e-4678-8a2d-3f11101c051d",
         "projectRevision": 11,
-        "createdAt": "2026-10-05T09:38:11Z",
+        "createdAt": "2026-10-05T09:51:03Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -17452,7 +17452,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_72e21bf2-6136-44dc-95ec-17ce13d37813",
+          "analysisId": "analysis_8d340d5e-483b-4990-9a7e-97acdda3615a",
           "dependencies": [
             {
               "factor": 1,
@@ -17464,7 +17464,7 @@
           },
           "projectId": "project_de7e4def-2e5e-4678-8a2d-3f11101c051d",
           "projectRevision": 11,
-          "requestId": "request_5cfc9047-6ccb-45d0-ba11-abb3f90d43b9",
+          "requestId": "request_7bc59e07-2f90-431f-a8ae-ac2b463ba791",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -17475,19 +17475,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             }
           ],
           "status": "complete",
@@ -17499,10 +17499,10 @@
       "id": "combination-negative",
       "passed": true,
       "result": {
-        "id": "analysis_d8f74b63-7e6e-4ab4-b06b-be22a2385cae",
+        "id": "analysis_57aac882-359e-4bcf-873d-ef2a408452c5",
         "projectId": "project_9a88c3f9-cbbe-4e61-a7aa-f0a75dcd7392",
         "projectRevision": 12,
-        "createdAt": "2026-10-05T09:38:11Z",
+        "createdAt": "2026-10-05T09:51:03Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -18834,7 +18834,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_d8f74b63-7e6e-4ab4-b06b-be22a2385cae",
+          "analysisId": "analysis_57aac882-359e-4bcf-873d-ef2a408452c5",
           "dependencies": [
             {
               "factor": 1.5,
@@ -18850,7 +18850,7 @@
           },
           "projectId": "project_9a88c3f9-cbbe-4e61-a7aa-f0a75dcd7392",
           "projectRevision": 12,
-          "requestId": "request_657520d4-ae23-45b0-9589-5f5cbbde1a19",
+          "requestId": "request_9d7c2e1b-9c51-42bc-a1a0-7b42e0abfbcd",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -18861,19 +18861,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:11Z"
+              "startedAt": "2026-10-05T09:51:03Z"
             }
           ],
           "status": "complete",
@@ -18885,10 +18885,10 @@
       "id": "combination-zero",
       "passed": true,
       "result": {
-        "id": "analysis_461eee1f-4e39-4684-82b7-43a7f8cfbf6e",
+        "id": "analysis_1372c89e-34db-4b32-bbd3-e647fb2d791e",
         "projectId": "project_a8071f8f-7c18-4491-aa5a-d2ae010341e9",
         "projectRevision": 12,
-        "createdAt": "2026-10-05T09:38:16Z",
+        "createdAt": "2026-10-05T09:51:10Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -20220,7 +20220,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_461eee1f-4e39-4684-82b7-43a7f8cfbf6e",
+          "analysisId": "analysis_1372c89e-34db-4b32-bbd3-e647fb2d791e",
           "dependencies": [
             {
               "factor": 0,
@@ -20236,7 +20236,7 @@
           },
           "projectId": "project_a8071f8f-7c18-4491-aa5a-d2ae010341e9",
           "projectRevision": 12,
-          "requestId": "request_551061fc-f23b-4c74-b68f-112fc4827184",
+          "requestId": "request_08488e89-574b-4f0a-ab5a-80c0d817373b",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -20247,19 +20247,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:16Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:16Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:16Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:16Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             }
           ],
           "status": "complete",
@@ -20271,10 +20271,10 @@
       "id": "fixed-fixed-uniform",
       "passed": true,
       "result": {
-        "id": "analysis_be087130-009e-4dd2-bd9d-4f940fbe7e6c",
+        "id": "analysis_0100d6d4-6bbf-4825-8f98-01598dce994e",
         "projectId": "project_ce963ba0-199a-4c7e-8e85-9120f825feff",
         "projectRevision": 11,
-        "createdAt": "2026-10-05T09:38:17Z",
+        "createdAt": "2026-10-05T09:51:10Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -22451,7 +22451,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_be087130-009e-4dd2-bd9d-4f940fbe7e6c",
+          "analysisId": "analysis_0100d6d4-6bbf-4825-8f98-01598dce994e",
           "dependencies": [
             {
               "factor": 1,
@@ -22463,7 +22463,7 @@
           },
           "projectId": "project_ce963ba0-199a-4c7e-8e85-9120f825feff",
           "projectRevision": 11,
-          "requestId": "request_683631d5-79cf-40f4-ab6a-84cf6a877562",
+          "requestId": "request_9dd5326a-6d83-467d-a1b1-61e5f282147f",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -22474,19 +22474,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:10Z"
             }
           ],
           "status": "complete",
@@ -22498,10 +22498,10 @@
       "id": "spatial-chain",
       "passed": true,
       "result": {
-        "id": "analysis_fc2eceee-7d7d-4e2c-8ba9-0f254db92b96",
+        "id": "analysis_1e6df86d-81a3-4e74-952a-45caed76380b",
         "projectId": "project_25dc6993-0306-4c98-b18d-d51379b12f92",
         "projectRevision": 11,
-        "createdAt": "2026-10-05T09:38:17Z",
+        "createdAt": "2026-10-05T09:51:11Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -25993,7 +25993,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_fc2eceee-7d7d-4e2c-8ba9-0f254db92b96",
+          "analysisId": "analysis_1e6df86d-81a3-4e74-952a-45caed76380b",
           "dependencies": [
             {
               "factor": 1,
@@ -26005,7 +26005,7 @@
           },
           "projectId": "project_25dc6993-0306-4c98-b18d-d51379b12f92",
           "projectRevision": 11,
-          "requestId": "request_22c0c091-cc19-4142-8e91-95f2834aa104",
+          "requestId": "request_81fc0353-cb69-43e4-bd42-537a59e64839",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -26016,19 +26016,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:17Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             }
           ],
           "status": "complete",
@@ -26040,10 +26040,10 @@
       "id": "closed-spatial",
       "passed": true,
       "result": {
-        "id": "analysis_503fb8d9-ee7d-4d45-9c3d-0c795f747c16",
+        "id": "analysis_fd3aa26c-7f1f-4a42-abd6-efa85939fd46",
         "projectId": "project_2fb3f63b-3891-4d6a-9803-77e460270c39",
         "projectRevision": 16,
-        "createdAt": "2026-10-05T09:38:18Z",
+        "createdAt": "2026-10-05T09:51:11Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -33085,7 +33085,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_503fb8d9-ee7d-4d45-9c3d-0c795f747c16",
+          "analysisId": "analysis_fd3aa26c-7f1f-4a42-abd6-efa85939fd46",
           "dependencies": [
             {
               "factor": 1,
@@ -33097,7 +33097,7 @@
           },
           "projectId": "project_2fb3f63b-3891-4d6a-9803-77e460270c39",
           "projectRevision": 16,
-          "requestId": "request_af31af21-1299-4012-a2b9-658f0b2d58f6",
+          "requestId": "request_a1bdfed2-b429-44b9-840b-7dded1a9150a",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -33108,19 +33108,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:11Z"
             }
           ],
           "status": "complete",
@@ -33132,10 +33132,10 @@
       "id": "textbook-2-1",
       "passed": true,
       "result": {
-        "id": "analysis_8a034235-4d0d-42fb-a821-c5c72e78c6c5",
+        "id": "analysis_21d67044-2fb4-452c-a793-89e93227e9ae",
         "projectId": "project_75afaf4d-b6c4-4515-8eed-67d648daf5c4",
         "projectRevision": 16,
-        "createdAt": "2026-10-05T09:38:18Z",
+        "createdAt": "2026-10-05T09:51:12Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -37770,7 +37770,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_8a034235-4d0d-42fb-a821-c5c72e78c6c5",
+          "analysisId": "analysis_21d67044-2fb4-452c-a793-89e93227e9ae",
           "dependencies": [
             {
               "factor": 1,
@@ -37782,7 +37782,7 @@
           },
           "projectId": "project_75afaf4d-b6c4-4515-8eed-67d648daf5c4",
           "projectRevision": 16,
-          "requestId": "request_9b0d04b4-1a26-4367-a1ce-348c6070097d",
+          "requestId": "request_aafb8102-9f82-4029-af9d-2f3b091f49c8",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -37793,19 +37793,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:18Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             }
           ],
           "status": "complete",
@@ -37817,10 +37817,10 @@
       "id": "textbook-2-1-condensed",
       "passed": true,
       "result": {
-        "id": "analysis_c113f8b7-8c2e-4075-90bb-b40f7f806c7f",
+        "id": "analysis_5023fd52-3a9d-44b0-aa3f-bfaa30b5cab5",
         "projectId": "project_11a9b74f-cb1c-406b-8b0e-3e7185e1098a",
         "projectRevision": 10,
-        "createdAt": "2026-10-05T09:38:19Z",
+        "createdAt": "2026-10-05T09:51:12Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -39987,7 +39987,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_c113f8b7-8c2e-4075-90bb-b40f7f806c7f",
+          "analysisId": "analysis_5023fd52-3a9d-44b0-aa3f-bfaa30b5cab5",
           "dependencies": [
             {
               "factor": 1,
@@ -39999,7 +39999,7 @@
           },
           "projectId": "project_11a9b74f-cb1c-406b-8b0e-3e7185e1098a",
           "projectRevision": 10,
-          "requestId": "request_36621897-63c1-4519-9b56-26540e4e71e1",
+          "requestId": "request_e91968c1-6692-43ec-bca6-02165956cce2",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -40010,19 +40010,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             }
           ],
           "status": "complete",
@@ -40034,10 +40034,10 @@
       "id": "textbook-2-1-consistent",
       "passed": true,
       "result": {
-        "id": "analysis_85ac7ff5-3373-4720-9e5b-4d6f418e0399",
+        "id": "analysis_2aa51a45-6cad-48de-a521-562c4f635583",
         "projectId": "project_0d54a6e1-69f6-49f7-a060-10f97d0dc7cb",
         "projectRevision": 10,
-        "createdAt": "2026-10-05T09:38:19Z",
+        "createdAt": "2026-10-05T09:51:12Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -42204,7 +42204,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_85ac7ff5-3373-4720-9e5b-4d6f418e0399",
+          "analysisId": "analysis_2aa51a45-6cad-48de-a521-562c4f635583",
           "dependencies": [
             {
               "factor": 1,
@@ -42216,7 +42216,7 @@
           },
           "projectId": "project_0d54a6e1-69f6-49f7-a060-10f97d0dc7cb",
           "projectRevision": 10,
-          "requestId": "request_ce3f37b3-1201-48f2-ab28-cd36b20e6adc",
+          "requestId": "request_35d964ae-6499-4b32-ad6c-ca8c1aa89ec4",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -42227,19 +42227,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T09:38:19Z"
+              "startedAt": "2026-10-05T09:51:12Z"
             }
           ],
           "status": "complete",

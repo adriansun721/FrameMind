@@ -430,7 +430,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
             && generationRef.current === generation && proposalRef.current === proposal && conditionsRef.current === conditions && sectionRef.current === sectionChange && modelEditsRef.current === modelEdits && taskDraftRef.current === taskDraft,
           getCurrentSnapshot: () => captureAiSnapshot(currentRef.current.project, context.selection, analysis, comparison),
           onProgress: (progress) => {
-            taskContext.reportPhase(progress.phase);
+            taskContext.reportPhase(progress.analysisPhase ?? progress.phase);
             if (generationRef.current === generation) setTurns((previous) => previous.map((turn) => turn.id === id
               ? { ...turn, progress, exploration: progress.exploration, progressEvents: [...(turn.progressEvents ?? []), progress] } : turn));
           },
