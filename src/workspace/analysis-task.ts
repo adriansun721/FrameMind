@@ -1,4 +1,4 @@
-import { ANALYSIS_DOF_ORDER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+﻿import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
 import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
@@ -20,6 +20,7 @@ export type AnalysisTaskMessage = { requestId: string } & (
 );
 
 export interface AnalysisTaskOptions {
+  backend?: "typescript" | "native-single-member";
   origin?: AnalysisOrigin;
   onPhase?(phase: AnalysisTaskPhase): void;
 }
@@ -43,7 +44,8 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
 
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
-  const request = createAnalysisRequest(input, options.origin);
+  const native = options.backend === "native-single-member";
+  const request = createAnalysisRequest(native ? { ...input, solver: { ...NATIVE_ANALYSIS_SOLVER } } : input, options.origin);
   const stages: AnalysisStageRecord[] = [];
   let settled = false;
   let worker: Worker | undefined;
@@ -77,22 +79,22 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
         || !sameInputValue(result.service.origin, request.origin)) throw new Error("分析输出与请求来源不一致");
       decodeAnalysisRun(result.service, result.input, result.id);
       if (!sameInputValue(result.service.stages, stages)) throw new Error("分析结果阶段与实际运行消息不一致");
+      if (native && (!result.process || !sameInputValue(result.process.solver, request.input.solver)
+        || result.process.members.length !== 1 || !result.process.assembledStiffness || !result.process.reducedStiffness
+        || result.members.some((member) => !member.nativeResponses))) throw new Error("原生结果缺少实际矩阵或沿杆恢复记录");
       freezeAnalysisInput(result.input);
       finish(() => resolvePromise(result));
     } catch (error) { fail(error, "invalid-service-output"); }
   };
 
-  if (typeof Worker !== "undefined") {
-    try { worker = new Worker(new URL("./analysis-worker.ts", import.meta.url), { type: "module" }); }
-    catch { /* Preserve the existing restricted-runtime fallback. */ }
-  }
-  if (worker) {
-    worker.onmessage = (event: MessageEvent<AnalysisTaskMessage>) => {
+  const receive = (message: AnalysisTaskMessage) => {
       if (settled) return;
       try {
-        const message = event.data;
         if (!message || typeof message !== "object") throw new Error("分析 Worker 返回无效消息");
-        if (message.requestId !== request.requestId) return;
+        if (message.requestId !== request.requestId) {
+          if (native) throw new Error("原生输出请求身份不一致");
+          return;
+        }
         if (message.kind === "phase") phase(message.record);
         else if (message.kind === "result") complete(message.result);
         else if (message.kind === "error") {
@@ -108,17 +110,36 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
           } else fail(new Error(error.message), "worker-error");
         } else fail(new Error("分析 Worker 返回未知消息"), "invalid-service-output");
       } catch (error) { fail(error, "invalid-service-output"); }
-    };
+  };
+  if (native) {
+    const desktop = typeof window === "undefined" ? undefined : window.frameMind;
+    if (!desktop?.runNativeAnalysis) fail(new Error("当前运行环境无法启动 C++ 单杆核心"), "native-start-error");
+    else void desktop.runNativeAnalysis(request).then((messages) => {
+      if (settled) return;
+      if (!Array.isArray(messages)) { fail(new Error("原生输出不是消息列表"), "invalid-service-output"); return; }
+      for (const message of messages) receive(message as AnalysisTaskMessage);
+      if (!settled) fail(new Error("原生核心未返回完整结果"), "invalid-service-output");
+    }).catch((error) => fail(error, stages.length ? "native-runtime-error" : "native-start-error"));
+  } else if (typeof Worker !== "undefined") {
+    try { worker = new Worker(new URL("./analysis-worker.ts", import.meta.url), { type: "module" }); }
+    catch { /* Preserve the existing restricted-runtime fallback. */ }
+  }
+  if (worker) {
+    worker.onmessage = (event: MessageEvent<AnalysisTaskMessage>) => receive(event.data);
     worker.onerror = (event) => fail(new Error(event.message || "分析 Worker 执行失败"), "worker-error");
     worker.onmessageerror = () => fail(new Error("分析 Worker 消息无法读取"), "worker-message-error");
     try { worker.postMessage(request); }
     catch (error) { fail(error, "worker-dispatch-error"); }
-  } else {
+  } else if (!native) {
     timer = setTimeout(() => {
       if (settled) return;
       try { complete(executeAnalysisRequest(request, phase)); }
       catch (error) { fail(error); }
     }, 0);
   }
-  return { promise, cancel: () => finish(() => rejectPromise(new AnalysisCancelledError(analysisRunRecord(request, "cancelled", stages)))) };
+  return { promise, cancel: () => finish(() => {
+    if (native && typeof window !== "undefined") void window.frameMind?.cancelNativeAnalysis(request.requestId).catch(() => {});
+    rejectPromise(new AnalysisCancelledError(analysisRunRecord(request, "cancelled", stages)));
+  }) };
 }
+

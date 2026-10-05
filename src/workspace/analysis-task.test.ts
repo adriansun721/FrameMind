@@ -33,6 +33,33 @@ afterEach(() => {
 });
 
 describe("analysis task boundary", () => {
+  it("fails native startup without silently using the TypeScript solver", async () => {
+    vi.stubGlobal("window", {});
+    const task = startAnalysisTask(captureAnalysisInput(reportFixture()), { backend: "native-single-member" });
+    await expect(task.promise).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: "native-start-error" })], run: { solver: { implementation: "framemind-native/1" }, status: "failed", stages: [] } });
+  });
+
+  it("rejects native transcripts that end at a phase or belong to another request", async () => {
+    for (const wrongId of [false, true]) {
+      vi.stubGlobal("window", { frameMind: { runNativeAnalysis: async (request: AnalysisServiceRequest) => [
+        { kind: "phase", requestId: wrongId ? "request_other" : request.requestId, record: { stage: "model-check", startedAt: new Date().toISOString() } },
+      ] } });
+      const task = startAnalysisTask(captureAnalysisInput(reportFixture()), { backend: "native-single-member" });
+      await expect(task.promise).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: "invalid-service-output" })], run: { status: "failed" } });
+    }
+  });
+
+  it("forwards native cancellation and ignores late results", async () => {
+    let deliver!: (messages: unknown[]) => void;
+    const cancelNativeAnalysis = vi.fn(async () => {});
+    vi.stubGlobal("window", { frameMind: { runNativeAnalysis: () => new Promise<unknown[]>((resolve) => { deliver = resolve; }), cancelNativeAnalysis } });
+    const task = startAnalysisTask(captureAnalysisInput(reportFixture()), { backend: "native-single-member" });
+    const rejection = expect(task.promise).rejects.toBeInstanceOf(AnalysisCancelledError);
+    task.cancel(); deliver([{ kind: "result", result: {} }]);
+    await rejection;
+    expect(cancelNativeAnalysis).toHaveBeenCalledOnce();
+  });
+
   it("cancels before a queued fallback task can produce a result", async () => {
     const task = startAnalysisTask(captureAnalysisInput(createProject()));
     task.cancel();

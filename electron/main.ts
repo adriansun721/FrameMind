@@ -15,6 +15,12 @@ import { ChatHistoryStore } from "./chat-history";
 import { RecoveryStore } from "./recovery-store";
 import { DeepSeekConnection } from "./deepseek";
 import { renderReportPdf } from "./report-pdf";
+import { NativeAnalysisHost } from "./native-analysis";
+
+const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
+  ? join(process.resourcesPath, "native", "framemind-core.exe")
+  : join(__dirname, "../native/bin/framemind-core.exe"));
+app.on("before-quit", () => nativeAnalysis.dispose());
 
 const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
@@ -33,6 +39,15 @@ function requireTrustedSender(event: IpcMainInvokeEvent): void {
 }
 ipcMain.handle(DesktopChannel.GetDeepSeekSettings, (event) => {
   requireTrustedSender(event); return deepSeek.getSettings();
+});
+ipcMain.handle(DesktopChannel.RunNativeAnalysis, (event, request: unknown) => {
+  requireTrustedSender(event);
+  return nativeAnalysis.run(event.sender.id, request);
+});
+ipcMain.handle(DesktopChannel.CancelNativeAnalysis, (event, requestId: string) => {
+  requireTrustedSender(event);
+  if (typeof requestId !== "string") throw new Error("原生请求身份无效");
+  nativeAnalysis.cancel(event.sender.id, requestId);
 });
 ipcMain.handle(DesktopChannel.SaveDeepSeekSettings, (event, request: unknown) => {
   requireTrustedSender(event); return deepSeek.save(request);

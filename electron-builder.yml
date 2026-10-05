@@ -11,6 +11,8 @@ files:
   - '!dist-electron/*.test.js'
   - package.json
 extraResources:
+  - from: native/bin
+    to: native
   - from: release-assets
     to: 交付资料
 win:

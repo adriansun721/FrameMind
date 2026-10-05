@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from "electron";
 import { DesktopChannel, type FrameMindDesktopApi } from "./contracts";
 
 const desktopApi: FrameMindDesktopApi = {
+  runNativeAnalysis: (request) => ipcRenderer.invoke(DesktopChannel.RunNativeAnalysis, request),
+  cancelNativeAnalysis: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelNativeAnalysis, requestId),
   saveRecovery: (request) => ipcRenderer.invoke(DesktopChannel.SaveRecovery, request),
   listRecovery: () => ipcRenderer.invoke(DesktopChannel.ListRecovery),
   readRecovery: (id) => ipcRenderer.invoke(DesktopChannel.ReadRecovery, id),

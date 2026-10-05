@@ -10,3 +10,6 @@ playwright-report/
 .scratch/
 __pycache__/
 *.pyc
+/native/.deps/
+/native/build/
+/native/bin/

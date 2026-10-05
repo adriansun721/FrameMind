@@ -1,4 +1,6 @@
 export const enum DesktopChannel {
+  RunNativeAnalysis = "analysis:native-run",
+  CancelNativeAnalysis = "analysis:native-cancel",
   SaveProject = "project:save",
   OpenProject = "project:open",
   SaveChatHistory = "chat-history:save",
@@ -96,6 +98,8 @@ export type OpenProjectResult =
   | { status: "cancelled" };
 
 export interface FrameMindDesktopApi {
+  runNativeAnalysis(request: unknown): Promise<unknown[]>;
+  cancelNativeAnalysis(requestId: string): Promise<void>;
   saveRecovery(request: RecoverySaveRequest): Promise<void>;
   listRecovery(): Promise<RecoveryListing>;
   readRecovery(id: string): Promise<string>;

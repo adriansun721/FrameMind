@@ -1,0 +1,8 @@
+extends: ./electron-builder.yml
+directories:
+  output: release/t213
+extraResources:
+  - from: native/bin
+    to: native
+  - from: docs/evidence/plan2/T2-13/criteria.md
+    to: native/T2-13-acceptance-scope.md

@@ -307,7 +307,15 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
     const endForces = member.localEndForces;
     const forceVector = (input: unknown, label: string) => { if (!Array.isArray(input) || input.length !== 6 || !input.every((item) => typeof item === "number" && Number.isFinite(item))) throw new Error(`分析结果${label}无效`); return [...input] as [number, number, number, number, number, number]; };
     const length = requireFinite(member.length, "分析结果杆件长度无效"); if (length <= 0) throw new Error("分析结果杆件长度无效");
-    return { memberId: requireString(member.memberId, "分析结果杆件缺少标识"), length, localAxes: { x: finiteVector(localAxes.x, "局部轴"), y: finiteVector(localAxes.y, "局部轴"), z: finiteVector(localAxes.z, "局部轴") }, localEndForces: { start: forceVector(endForces.start, "杆端内力"), end: forceVector(endForces.end, "杆端内力") } };
+    let nativeResponses;
+    if (member.nativeResponses !== undefined) {
+      if (input.solver?.implementation !== "framemind-native/1" || !Array.isArray(member.nativeResponses) || member.nativeResponses.length !== 17) throw new Error("原生沿杆结果无效");
+      nativeResponses = member.nativeResponses.map((sample, index) => {
+        if (!isRecord(sample) || typeof sample.position !== "number" || !Number.isFinite(sample.position) || Math.abs(sample.position - length * index / 16) > 1e-12 * length) throw new Error("原生沿杆位置无效");
+        return { position: sample.position, forces: forceVector(sample.forces, "沿杆内力"), localDisplacement: finiteVector(sample.localDisplacement, "沿杆局部位移"), globalDisplacement: finiteVector(sample.globalDisplacement, "沿杆总体位移") };
+      });
+    }
+    return { memberId: requireString(member.memberId, "分析结果杆件缺少标识"), length, localAxes: { x: finiteVector(localAxes.x, "局部轴"), y: finiteVector(localAxes.y, "局部轴"), z: finiteVector(localAxes.z, "局部轴") }, localEndForces: { start: forceVector(endForces.start, "杆端内力"), end: forceVector(endForces.end, "杆端内力") }, ...(nativeResponses ? { nativeResponses } : {}) };
   });
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));

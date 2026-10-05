@@ -32,6 +32,7 @@ export interface AnalysisSolverConfig {
 export const ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({
   implementation: "framemind-frame/3", algorithm: "partial-pivot-gaussian", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12,
 });
+export const NATIVE_ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...ANALYSIS_SOLVER, implementation: "framemind-native/1" });
 
 export interface AnalysisAssumptions {
   theory: "3d-euler-bernoulli-frame";
@@ -79,6 +80,8 @@ export interface MemberAnalysisResult {
   length: number;
   localAxes: { x: Vector3; y: Vector3; z: Vector3 };
   localEndForces: { start: [number, number, number, number, number, number]; end: [number, number, number, number, number, number] };
+  /** Actual native recovery at 17 stations, retained with the result. */
+  nativeResponses?: Array<Omit<MemberResponseSample, "analysisId" | "memberId">>;
 }
 
 export interface AnalysisResult {
@@ -415,17 +418,19 @@ export function sameInputValue(left: unknown, right: unknown): boolean {
 }
 
 export function isAnalysisResultCurrent(project: FrameProject, result: AnalysisResult): boolean {
+  const currentInput = (input: AnalysisInputSnapshot) => ({ ...input, projectRevision: 0,
+    solver: sameInputValue(result.input.solver, NATIVE_ANALYSIS_SOLVER) ? { ...NATIVE_ANALYSIS_SOLVER } : input.solver });
   if (result.input.combination) {
     if (result.projectId !== project.id || !project.loadCombinations.some((item) => item.id === result.input.combination!.definition.id)) return false;
     try {
       const current = captureAnalysisInput({ ...project, activeLoadCombinationId: result.input.combination.definition.id });
-      return sameInputValue({ ...current, projectRevision: 0 }, { ...result.input, projectRevision: 0 });
+      return sameInputValue(currentInput(current), { ...result.input, projectRevision: 0 });
     } catch { return false; }
   }
   const id = getAnalysisLoadCaseId(result.input);
   if (result.projectId !== project.id || !project.loadCases.some((item) => item.id === id)) return false;
   if (!result.input.loadCase) return result.projectRevision === project.revision - 1;
-  return sameInputValue({ ...captureAnalysisInput(project, id), projectRevision: 0 }, { ...result.input, projectRevision: 0 });
+  return sameInputValue(currentInput(captureAnalysisInput(project, id)), { ...result.input, projectRevision: 0 });
 }
 
 function requireAnalysisInput(project: FrameProject | AnalysisInputSnapshot): void {
@@ -497,7 +502,7 @@ export function getSelfWeightSummary(source: FrameProject | AnalysisInputSnapsho
 }
 
 function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
-  if (!solver || ![ANALYSIS_SOLVER.implementation, "framemind-frame/2"].includes(solver.implementation) || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
+  if (!solver || ![ANALYSIS_SOLVER.implementation, NATIVE_ANALYSIS_SOLVER.implementation, "framemind-frame/2"].includes(solver.implementation) || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
 }
 
 function requireLoadRecoveryVersion(input: AnalysisInputSnapshot): void {
@@ -537,6 +542,8 @@ const hermite = (coordinate: number, length: number) => {
  */
 export function getMemberResponseSamples(result: AnalysisResult, memberId: string, stationCount = 17): MemberResponseSample[] {
   if (!Number.isInteger(stationCount) || stationCount < 2 || stationCount > 101) throw new Error("沿杆采样数量必须在 2 到 101 之间");
+  const captured = result.members.find((member) => member.memberId === memberId)?.nativeResponses;
+  if (captured && stationCount === captured.length) return structuredClone(captured).map((sample) => ({ ...sample, analysisId: result.id, memberId }));
   const record = getMemberAnalysisRecord(result, memberId);
   const start = record.localDisplacement.slice(0, 6);
   const end = record.localDisplacement.slice(6, 12);
@@ -577,6 +584,12 @@ export function getMemberSectionForces(result: AnalysisResult, memberId: string,
   const selfWeight = getMemberSelfWeightIntensity(result.input, member, geometry);
   const q = { x: uniform.x + selfWeight.x, y: uniform.y + selfWeight.y, z: uniform.z + selfWeight.z };
   if (!Number.isFinite(position) || position < 0 || position > geometry.length) throw new Error("沿杆位置必须在起点 0 与杆长之间（m）");
+  if (stored.nativeResponses) {
+    const samples = stored.nativeResponses;
+    const i = Math.min(samples.length - 2, Math.floor(position / stored.length * (samples.length - 1)));
+    const a = samples[i], b = samples[i + 1], t = (position - a.position) / (b.position - a.position);
+    return { analysisId: result.id, memberId, position, forces: a.forces.map((force, index) => force + t * (b.forces[index] - force)) as MemberSectionForces["forces"] };
+  }
   return { analysisId: result.id, memberId, position, forces: sectionForces(stored.localEndForces.start, q, position) };
 }
 
