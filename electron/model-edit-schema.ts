@@ -33,6 +33,12 @@ const memberProperties = { properties: { ...member, required: ["startNodeId", "e
 const memberUpdate = { id: identity, changes: member };
 const ids = (type: string) => operation(type, { id: identity }, ["id"]);
 export const MODEL_EDIT_TOOL_DEFINITIONS = [
+  { type: "function", function: { name: "draw_member", description: "Prepare one atomic member segment and any new endpoints for user confirmation. Explicit nodeId reuses that existing identity and must match its position exactly. Omitting nodeId creates a new node; no grid snap, automatic merge, crossing connection or split. Coordinates use canonical metres unless inputUnits declares length.",
+    parameters: { type: "object", additionalProperties: false, required: ["start", "end", "materialId", "sectionId"], properties: {
+      start: { type: "object", additionalProperties: false, required: ["position"], properties: { position: { ...position, required: ["x", "y", "z"] }, nodeId: identity } },
+      end: { type: "object", additionalProperties: false, required: ["position"], properties: { position: { ...position, required: ["x", "y", "z"] }, nodeId: identity } },
+      materialId: identity, sectionId: identity, rotationDegrees: { type: "number", default: 0 },
+    } } } },
   operation("create_node", nodePosition, ["position"]), operation("create_nodes", { nodes: { type: "array", minItems: 1, maxItems: 100, items: { type: "object", additionalProperties: false, required: ["position"], properties: nodePosition } } }, ["nodes"]),
   operation("update_node", nodeUpdate, ["id", "position"]), operation("update_nodes", { updates: { type: "array", minItems: 1, maxItems: 100, items: { type: "object", additionalProperties: false, required: ["id", "position"], properties: nodeUpdate } } }, ["updates"]),
   ids("duplicate_node"), operation("duplicate_nodes", { ids: { type: "array", minItems: 1, maxItems: 100, items: identity } }, ["ids"]), ids("delete_node"), operation("delete_nodes", { ids: { type: "array", minItems: 1, maxItems: 100, items: identity } }, ["ids"]),

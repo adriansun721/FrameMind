@@ -1,5 +1,6 @@
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
 import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
+import { prepareDrawnMemberEdits, type DrawingPoint } from "../domain/work-plane";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
 import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
@@ -75,11 +76,23 @@ export function proposeModelEdits(project: FrameProject, input: unknown, previou
     projectId: project.id, baseRevision: project.revision, operations, preview: receipt };
 }
 
-export const MODEL_EDIT_TOOLS = new Set(["create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
+export const MODEL_EDIT_TOOLS = new Set(["draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
   "create_member", "create_members", "update_member", "update_members", "duplicate_member", "duplicate_members", "delete_member", "delete_members"]);
 
 /** Legacy singular/plural calls become the same reviewed draft as the canonical batch tool. */
-export function modelEditToolInput(name: string, input: Record<string, unknown>): unknown {
+export function modelEditToolInput(name: string, input: Record<string, unknown>, project?: FrameProject): unknown {
+  if (name === "draw_member") {
+    if (!project) throw new Error("绘杆草案需要当前工程");
+    object(input, ["start", "end", "materialId", "sectionId", "rotationDegrees"]);
+    const point = (value: unknown): DrawingPoint => {
+      const input = object(value, ["position", "nodeId"]);
+      return { position: vector(input.position, false) as Vector3, ...(input.nodeId !== undefined ? { nodeId: identity(input.nodeId) as NodeId } : {}) };
+    };
+    const rotationDegrees = input.rotationDegrees ?? 0;
+    if (typeof rotationDegrees !== "number" || !Number.isFinite(rotationDegrees)) throw new Error("截面转角必须是有限数值（度）");
+    return { operations: prepareDrawnMemberEdits(project, { start: point(input.start), end: point(input.end),
+      materialId: identity(input.materialId) as MaterialId, sectionId: identity(input.sectionId) as SectionId, rotationDegrees }) };
+  }
   if (name.endsWith("s")) {
     const singular = name.slice(0, -1);
     const field = name.startsWith("create_") ? name.endsWith("nodes") ? "nodes" : "members" : name.startsWith("update_") ? "updates" : "ids";

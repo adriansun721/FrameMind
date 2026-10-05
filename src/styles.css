@@ -514,6 +514,20 @@ button { color: inherit; }
 
 .viewport { position: relative; min-height: 0; overflow: hidden; background: var(--surface-canvas); }
 .viewport canvas { display: block; width: 100%; height: 100%; }
+.work-plane-panel { position: absolute; z-index: 3; top: 42px; left: 12px; width: 248px; max-width: calc(100% - 24px); max-height: calc(100% - 60px); overflow: auto; padding: 10px; background: var(--surface-panel); border: 1px solid var(--border-subtle); color: var(--text-primary); display: grid; gap: 8px; font-size: var(--text-caption); }
+.work-plane-panel label { display: grid; gap: 3px; min-width: 0; }
+.work-plane-panel input, .work-plane-panel select { width: 100%; min-width: 0; padding: 4px; color: var(--text-primary); background: var(--surface-control); border: 1px solid var(--border-subtle); font-size: var(--text-caption); }
+.work-plane-panel button { padding: 4px 6px; background: var(--surface-control); color: var(--text-primary); border: 1px solid var(--border-subtle); font-size: var(--text-caption); }
+.work-plane-panel button:disabled { opacity: .5; }
+.drawing-heading, .drawing-actions { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.drawing-plane-row { display: grid; grid-template-columns: 50px 1fr auto; align-items: end; gap: 5px; }
+.drawing-resources { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.drawing-coordinates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.work-plane-panel .drawing-snap { display: flex; align-items: center; gap: 5px; }
+.drawing-snap input { width: auto; }
+.work-plane-panel output { font: var(--text-micro) var(--font-mono); overflow-wrap: anywhere; line-height: 1.6; }
+.work-plane-panel small { color: var(--text-muted); line-height: 1.5; }
+.work-plane-panel [role="alert"] { color: var(--status-error); margin: 0; }
 .viewport-topline { position: absolute; z-index: 2; top: var(--space-3); left: var(--space-4); right: var(--space-4); display: flex; justify-content: space-between; pointer-events: none; }
 .viewport-tools { display: flex; align-items: center; gap: var(--space-3); }
 .viewport-tools button { pointer-events: auto; }

@@ -5,7 +5,7 @@ export const GEOMETRY_CONTRACT = {
   connectivity: "explicit-node-id-only",
   intersections: "do-not-connect-or-split",
   duplicates: { comparison: "exact-xyz", automaticMerge: false },
-  snapping: { enabled: false, implementationTask: "T2-19" },
+  snapping: { defaultEnabled: true, userControllable: true, nodeRadiusPixels: 12, planeMembership: "exact-normal-coordinate", numericInput: "exact-xyz-only", parallelRayTolerance: 1e-10, automaticGridSnap: false },
   memberLength: { minimumExclusive: 1e-12, scaleWithCoordinates: false },
   picking: { nodeRadius: 0.22, memberRadiusMin: 0.08, memberRadiusMax: 0.16, memberLengthFactor: 0.02, lineThreshold: 0.04, clickMovementPixels: 4 },
   solver: { relativePivotTolerance: 1e-12, relativeResidualTolerance: 1e-10, absoluteResidualTolerance: 1e-9 },

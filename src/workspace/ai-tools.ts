@@ -322,7 +322,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
     }
     if (call.function.name === "propose_model_edits" || MODEL_EDIT_TOOLS.has(call.function.name) || call.function.name === "apply_model_changes") {
       try {
-        const args = MODEL_EDIT_TOOLS.has(call.function.name) ? modelEditToolInput(call.function.name, input) : input;
+        const args = MODEL_EDIT_TOOLS.has(call.function.name) ? modelEditToolInput(call.function.name, input, snapshot.editProject) : input;
         const modelEdits = proposeModelEdits(snapshot.editProject, args, previousModelEdits);
         return { status: "awaiting-confirmation", message: "基础编辑草案已准备，尚未修改正式模型", context: snapshot.context, modelEdits,
           data: { units: snapshot.model.units, ...modelEdits.preview } };

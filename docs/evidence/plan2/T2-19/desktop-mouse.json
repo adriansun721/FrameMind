@@ -1,0 +1,169 @@
+{
+  "passed": true,
+  "planes": [
+    "XY",
+    "XZ",
+    "YZ"
+  ],
+  "freeRayCoordinatesChecked": true,
+  "snapReusedIdentity": true,
+  "snapOffCreatesSeparateIdentity": true,
+  "normalViewAndZoomPreserveIdentity": true,
+  "nodes": [
+    {
+      "id": "node_0001",
+      "label": "N1",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0002",
+      "label": "N2",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0003",
+      "label": "N3",
+      "position": {
+        "x": 0,
+        "y": 4,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0004",
+      "label": "N4",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "node_0005",
+      "label": "N5",
+      "position": {
+        "x": 1.9999996393499853,
+        "y": 2.000000500902857,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0006",
+      "label": "N6",
+      "position": {
+        "x": 2.0000016107391962,
+        "y": 0,
+        "z": 1.9999996061970027
+      }
+    },
+    {
+      "id": "node_0007",
+      "label": "N7",
+      "position": {
+        "x": 0,
+        "y": 2.000000966312612,
+        "z": 1.9999990763333795
+      }
+    },
+    {
+      "id": "node_0008",
+      "label": "N8",
+      "position": {
+        "x": 0.0000014750111443362357,
+        "y": 5.049482023622431e-7,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0009",
+      "label": "N9",
+      "position": {
+        "x": 3.9999997311961843,
+        "y": -5.650083423347496e-7,
+        "z": 0
+      }
+    }
+  ],
+  "members": [
+    {
+      "id": "member_0001",
+      "label": "M1",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0003",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0002",
+      "label": "M2",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0004",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0003",
+      "label": "M3",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0004",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0004",
+      "label": "M4",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0005",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0005",
+      "label": "M5",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0006",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0006",
+      "label": "M6",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0007",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0007",
+      "label": "M7",
+      "startNodeId": "node_0008",
+      "endNodeId": "node_0009",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0008",
+      "label": "M8",
+      "startNodeId": "node_0003",
+      "endNodeId": "node_0002",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    }
+  ]
+}

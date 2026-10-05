@@ -40,6 +40,7 @@ import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECT
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { applyProjectEdits } from "./domain/project-operations";
+import { prepareDrawnMemberEdits } from "./domain/work-plane";
 import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "./domain/analysis";
 import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisComparison, type AnalysisForceVector } from "./domain/analysis-comparison";
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
@@ -154,6 +155,9 @@ export function App() {
   const [loadCombinationManagerOpen, setLoadCombinationManagerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
+  const [drawingEnabled, setDrawingEnabled] = useState(false);
+  const [drawingReset, setDrawingReset] = useState(0);
+  useEffect(() => { if (resultView !== "model") setDrawingEnabled(false); }, [resultView]);
   const [status, setStatus] = useState<StatusMessage>({ tone: "neutral", text: "就绪" });
   const analysisRunRef = useRef(0);
   const analysisTaskRef = useRef<{ id: number; checkpoint: ReturnType<typeof captureProjectCheckpoint>; task: AnalysisTask } | null>(null);
@@ -218,6 +222,7 @@ export function App() {
     const previous = activeProjectRef.current;
     if (!newSession && next.displayUnitPreset !== previous.displayUnitPreset) next = { ...next, displayUnitPreset: previous.displayUnitPreset };
     if (newSession && startupReady) captureRecoveryRef.current();
+    if (newSession) { setDrawingEnabled(false); setDrawingReset((value) => value + 1); }
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
@@ -247,6 +252,7 @@ export function App() {
     activeProjectRef.current = next; setProject(next);
   };
   const restoreHistory = (direction: "undo" | "redo") => {
+    setDrawingReset((value) => value + 1);
     const current = activeProjectRef.current;
     const restored = direction === "undo" ? projectHistoryRef.current.undo(current) : projectHistoryRef.current.redo(current);
     if (!restored) return;
@@ -610,7 +616,8 @@ export function App() {
     <section className="task-toolbar" aria-label="当前任务工具" aria-busy={analysisBusy} data-analysis-phase={analysisPhase ?? undefined} data-history-version={historyVersion}>
       <span className="task-context">建模</span><span className="toolbar-divider" />
       <div className="model-toolbar" role="toolbar" aria-label="建模工具">
-        <button className="tool-button active" aria-label="选择" aria-pressed="true" title="选择对象" onClick={() => selectObject(null)}><MousePointer2 size={15} />选择</button>
+        <button className={`tool-button${drawingEnabled ? "" : " active"}`} aria-label="选择" aria-pressed={!drawingEnabled} title="选择对象" onClick={() => { setDrawingEnabled(false); selectObject(null); }}><MousePointer2 size={15} />选择</button>
+        <button className={`tool-button${drawingEnabled ? " active" : ""}`} aria-label="工作平面绘杆" aria-pressed={drawingEnabled} onClick={() => { setResultView("model"); setDrawingEnabled((value) => !value); selectObject(null); }}><Crosshair size={15} />绘杆</button>
         <button className="tool-button" onClick={openNodeDialog} aria-label="创建节点" title="创建节点"><CircleDot size={15} />节点</button>
         <button className="tool-button" aria-disabled={!memberCreationAvailable} onClick={memberCreationAvailable ? openMemberDialog : undefined} aria-label="创建杆件" title={memberCreationAvailable ? "创建杆件" : "需要至少两个节点、一个材料和一个截面"}><Link2 size={15} />杆件</button>
         <button className="tool-button" onClick={() => { setMaterialDraft(defaultMaterial); setSectionDraft(defaultSection); setMaterialCatalogId(""); setSectionCatalogId(""); setFormError(null); setResourceDialogOpen(true); }} aria-label="创建材料与截面" title="创建材料与截面"><Layers3 size={15} />材料与截面</button>
@@ -713,6 +720,13 @@ export function App() {
         </section>}
         <SceneViewport theme={theme} supports={project.supports} nodalLoads={activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
           selfWeight={activeCombination ? combinationInput?.selfWeight : caseSelfWeightEnabled ? project.selfWeight : undefined} selfWeightLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 组合加权" : ""}`}
+          drawingEnabled={drawingEnabled} drawingReset={drawingReset} onExitDrawing={() => setDrawingEnabled(false)} onDrawSegment={(input) => {
+            const updated = applyProjectEdits(project, prepareDrawnMemberEdits(project, input)).project;
+            activateProject(updated, false);
+            const member = updated.members.at(-1)!;
+            setStatus({ tone: "success", text: `已绘制 ${member.label} · 可整体撤销` });
+            return updated.nodes.find((node) => node.id === member.endNodeId)!;
+          }}
           preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={caseResult} resultView={resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${caseResult ? analysisSourceLabel(caseResult) : `${activeSource.id} · ${activeSource.name}`} · ${caseResult ? resultIsCurrent(caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
         <BottomProperties open={propertyPanelOpen} label={currentSelectionLabel} onClose={() => setPropertyPanelOpen(false)}>
           {(selectedNodeIds.size > 0 || selectedMemberIds.size > 0) && <div className="property-selection-actions">{(["node", "member"] as const).map((kind) => {

@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "nodes": [
+    {
+      "id": "node_0001",
+      "label": "N1",
+      "position": {
+        "x": -20.125,
+        "y": 2.5,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0002",
+      "label": "N2",
+      "position": {
+        "x": -18.25,
+        "y": 3.75,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0003",
+      "label": "N3",
+      "position": {
+        "x": -17,
+        "y": 3.75,
+        "z": 0
+      }
+    },
+    {
+      "id": "node_0004",
+      "label": "N4",
+      "position": {
+        "x": 21.5,
+        "y": -35.125,
+        "z": -2.125
+      }
+    },
+    {
+      "id": "node_0005",
+      "label": "N5",
+      "position": {
+        "x": 22.75,
+        "y": -35.125,
+        "z": 0.125
+      }
+    },
+    {
+      "id": "node_0006",
+      "label": "N6",
+      "position": {
+        "x": 200.125,
+        "y": -2.5,
+        "z": -1.125
+      }
+    },
+    {
+      "id": "node_0007",
+      "label": "N7",
+      "position": {
+        "x": 200.125,
+        "y": 0.25,
+        "z": 3.75
+      }
+    }
+  ],
+  "members": [
+    {
+      "id": "member_0001",
+      "label": "M1",
+      "startNodeId": "node_0001",
+      "endNodeId": "node_0002",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0002",
+      "label": "M2",
+      "startNodeId": "node_0002",
+      "endNodeId": "node_0003",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0003",
+      "label": "M3",
+      "startNodeId": "node_0004",
+      "endNodeId": "node_0005",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    },
+    {
+      "id": "member_0004",
+      "label": "M4",
+      "startNodeId": "node_0006",
+      "endNodeId": "node_0007",
+      "materialId": "material_0001",
+      "sectionId": "section_0001",
+      "rotationDegrees": 0
+    }
+  ],
+  "previewExcluded": true,
+  "restartPreserved": true,
+  "agentReadStatus": "completed"
+}

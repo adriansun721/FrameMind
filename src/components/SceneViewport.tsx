@@ -7,6 +7,8 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import type { FrameMaterial, FrameMember, FrameNode, FrameNodalLoad, FrameSection, FrameSupport, FrameUniformLoad, FrameSelfWeight, LoadId, MemberId, NodeId, ProjectId, SupportId, Vector3 } from "../domain/project";
 import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
 import { localSceneNodes } from "./scene-coordinates";
+import { intersectWorkPlane, snapDrawingNode, PLANE_NORMAL_AXIS, type DrawnMemberInput } from "../domain/work-plane";
+import { useWorkPlaneDrawing, WorkPlaneDrawingPanel } from "./WorkPlaneDrawing";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { uniformLoadVector } from "../domain/uniform-loads";
 import { getMemberResponseSamples, type AnalysisResult } from "../domain/analysis";
@@ -47,6 +49,10 @@ interface SceneViewportProps {
   selection: SceneSelection;
   fitRequest?: number;
   onSelect(selection: SceneSelection): void;
+  drawingEnabled?: boolean;
+  drawingReset?: number;
+  onExitDrawing?(): void;
+  onDrawSegment?(input: DrawnMemberInput): FrameNode | null;
 }
 
 interface ScenePalette extends EngineeringScenePalette {
@@ -79,6 +85,7 @@ interface SceneRuntime {
   results: THREE.Group;
   conditions: THREE.Group;
   preview: THREE.Group;
+  drawing: THREE.Group;
 }
 
 function readScenePalette(): ScenePalette {
@@ -276,8 +283,14 @@ export function SceneViewport(props: SceneViewportProps) {
   return <SceneViewportScene {...props} nodes={nodes} preview={preview} analysis={analysis} worldNodes={props.nodes} origin={origin} />;
 }
 
-function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
+function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin, drawingEnabled = false, drawingReset = 0, onExitDrawing, onDrawSegment }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
   const u = useUnits();
+  const drawing = useWorkPlaneDrawing(worldNodes, (input) => onDrawSegment?.(input) ?? null);
+  const drawingRef = useRef({ enabled: drawingEnabled, state: drawing, origin, nodes: worldNodes, materialId: "", sectionId: "" });
+  drawingRef.current = { enabled: drawingEnabled, state: drawing, origin, nodes: worldNodes,
+    materialId: materials.some((item) => item.id === drawing.materialId) ? drawing.materialId : materials[0]?.id ?? "",
+    sectionId: sections.some((item) => item.id === drawing.sectionId) ? drawing.sectionId : sections[0]?.id ?? "" };
+  useEffect(() => { drawing.reset(); }, [projectId, drawingEnabled, drawingReset, drawing.reset]);
   const responseCache = useRef(new WeakMap<AnalysisResult, Map<string, ReturnType<typeof getMemberResponseSamples>>>());
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -318,7 +331,8 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     const results = new THREE.Group(); results.name = "analysis-results"; scene.add(results);
     const conditions = new THREE.Group(); scene.add(conditions);
     const previewGroup = new THREE.Group(); previewGroup.name = "unapplied-frame-preview"; scene.add(previewGroup);
-    runtimeRef.current = { scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, preview: previewGroup, projectId: null, hasFramedModel: false };
+    const drawingGroup = new THREE.Group(); drawingGroup.name = "uncommitted-drawing"; scene.add(drawingGroup);
+    runtimeRef.current = { drawing: drawingGroup, scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, preview: previewGroup, projectId: null, hasFramedModel: false };
 
     const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = GEOMETRY_CONTRACT.picking.lineThreshold;
     const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
@@ -329,10 +343,28 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       return [...raycaster.intersectObjects(model.getHitTargets(), false), ...raycaster.intersectObjects(loads.children, true), ...raycaster.intersectObjects(conditions.children, true)].sort((a, b) => a.distance - b.distance)[0];
     };
     const beginPointer = (event: PointerEvent) => { if (event.button === 0) pointerStart = new THREE.Vector2(event.clientX, event.clientY); };
+    const drawingPointAt = (event: PointerEvent) => {
+      const current = drawingRef.current;
+      const bounds = renderer.domElement.getBoundingClientRect();
+      const x = event.clientX - bounds.left; const y = event.clientY - bounds.top;
+      pointer.set(x / bounds.width * 2 - 1, -y / bounds.height * 2 + 1);
+      raycaster.setFromCamera(pointer, camera);
+      if (current.state.snap) {
+        const projected = current.nodes.map((node) => {
+          const position = new THREE.Vector3(node.position.x - current.origin.x, node.position.y - current.origin.y, node.position.z - current.origin.z).project(camera);
+          return { node, x: (position.x + 1) * bounds.width / 2, y: (1 - position.y) * bounds.height / 2, depth: position.z };
+        });
+        const node = snapDrawingNode(projected, { x, y }, current.state.plane, current.state.offset);
+        if (node) return { position: node.position, nodeId: node.id };
+      }
+      const position = intersectWorkPlane(raycaster.ray.origin, raycaster.ray.direction, current.state.plane, current.state.offset, current.origin);
+      return position ? { position } : null;
+    };
     const finishPointer = (event: PointerEvent) => {
       if (event.button !== 0 || !pointerStart) return;
       const moved = pointerStart.distanceTo(new THREE.Vector2(event.clientX, event.clientY)); pointerStart = null;
       if (moved > GEOMETRY_CONTRACT.picking.clickMovementPixels) return;
+      if (drawingRef.current.enabled) { drawingRef.current.state.accept(drawingPointAt(event), drawingRef.current); return; }
       const hit = hitAtPointer(event);
       if (hit?.object.userData.kind === "uniform-load") onSelectLoadRef.current?.(hit.object.userData.id as LoadId);
       else if (hit?.object.userData.kind === "support" || hit?.object.userData.kind === "load") onSelectConditionRef.current?.(hit.object.userData as SceneConditionSelection);
@@ -340,6 +372,11 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     };
     const hoverPointer = (event: PointerEvent) => {
       if (event.buttons !== 0) { model.setHover(null); return; }
+      if (drawingRef.current.enabled) {
+        const point = drawingPointAt(event); drawingRef.current.state.preview(point);
+        model.setHover(point?.nodeId ? { kind: "node", id: point.nodeId } : null);
+        renderer.domElement.style.cursor = point ? "crosshair" : "not-allowed"; return;
+      }
       const hit = hitAtPointer(event); model.setHover(hit && ["node", "member"].includes(hit.object.userData.kind) ? selectionFromHit(hit) : null);
       renderer.domElement.style.cursor = hit ? "pointer" : "default";
     };
@@ -372,6 +409,31 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
 
   useEffect(() => {
     const runtime = runtimeRef.current; if (!runtime) return;
+    runtime.controls.mouseButtons.LEFT = drawingEnabled ? null : THREE.MOUSE.ROTATE;
+    runtime.controls.enableRotate = !drawingEnabled;
+  }, [drawingEnabled]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current; if (!runtime) return;
+    for (const child of [...runtime.drawing.children]) disposeObjectTree(child);
+    runtime.grid.rotation.set(Math.PI / 2, 0, 0);
+    runtime.grid.position.set(-origin.x, -origin.y, -origin.z);
+    if (!drawingEnabled) return;
+    const axis = PLANE_NORMAL_AXIS[drawing.plane];
+    runtime.grid.rotation.set(drawing.plane === "XY" ? Math.PI / 2 : 0, 0, drawing.plane === "YZ" ? Math.PI / 2 : 0);
+    runtime.grid.position[axis] = Number.isFinite(drawing.offset) ? drawing.offset - origin[axis] : -origin[axis];
+    const point = drawing.candidate; if (!point) return;
+    const color = readScenePalette().selected;
+    const local = (position: Vector3) => new THREE.Vector3(position.x - origin.x, position.y - origin.y, position.z - origin.z);
+    runtime.drawing.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints([local(point.position)]), new THREE.PointsMaterial({ color, size: 9, sizeAttenuation: false, depthTest: false })));
+    if (drawing.start) {
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([local(drawing.start.position), local(point.position)]), new THREE.LineDashedMaterial({ color, dashSize: .18, gapSize: .1, depthTest: false }));
+      line.computeLineDistances(); line.renderOrder = 6; runtime.drawing.add(line);
+    }
+  }, [drawingEnabled, drawing.plane, drawing.offset, drawing.start, drawing.candidate, origin, theme]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current; if (!runtime) return;
     const palette = readScenePalette();
     runtime.scene.background = new THREE.Color(palette.canvas);
     const themedGrid = new THREE.GridHelper(30, 30, palette.gridMajor, palette.gridMinor);
@@ -387,7 +449,6 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     const runtime = runtimeRef.current; if (!runtime) return;
     const shift = new THREE.Vector3(previousOrigin.current.x - origin.x, previousOrigin.current.y - origin.y, previousOrigin.current.z - origin.z);
     runtime.camera.position.add(shift); runtime.controls.target.add(shift);
-    runtime.grid.position.set(-origin.x, -origin.y, -origin.z);
     runtime.axes.position.set(-origin.x - 0.01, -origin.y - 0.01, -origin.z + 0.02);
     previousOrigin.current = origin;
     runtime.controls.update();
@@ -542,7 +603,15 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
 
   return (
     <div className="viewport" ref={hostRef} aria-label="三维模型视图">
-      <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">单击选择 · 拖动旋转 · 滚轮缩放</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
+      <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">{drawingEnabled ? "左键绘杆 · 右键平移 · 滚轮缩放" : "单击选择 · 拖动旋转 · 滚轮缩放"}</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
+      {drawingEnabled && <WorkPlaneDrawingPanel drawing={drawing} nodes={worldNodes} materials={materials} sections={sections} onExit={() => onExitDrawing?.()} onAlign={() => {
+        const runtime = runtimeRef.current; if (!runtime || !Number.isFinite(drawing.offset)) return;
+        const target = runtime.controls.target.clone(); const axis = PLANE_NORMAL_AXIS[drawing.plane];
+        target[axis] = drawing.offset - origin[axis];
+        const distance = Math.max(7, runtime.camera.position.distanceTo(runtime.controls.target));
+        runtime.controls.target.copy(target); runtime.camera.position.copy(target); runtime.camera.position[axis] += distance;
+        runtime.camera.up.set(0, drawing.plane === "XY" ? 1 : 0, drawing.plane === "XY" ? 0 : 1); runtime.controls.update();
+      }} />}
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
       {preview && (!!preview.nodes.length || !!preview.supports?.length || !!preview.nodalLoads?.length || !!preview.loadStageSummary) && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.sectionChange ? `${preview.members.length} 根选中柱 · 截面修改 · 虚线` : preview.conditionNodes ? `${preview.supports?.length ?? 0} 支座 / ${preview.nodalLoads?.length ?? 0} 节点荷载${preview.loadStageSummary ? ` / ${preview.loadStageSummary}` : ""} · 半透明` : `${preview.nodes.length} 节点 / ${preview.members.length} 杆件 · 虚线`}</div>}
       {sourceLabel && <div className="viewport-case-source" aria-label="视图工况来源">{sourceLabel}</div>}
@@ -553,9 +622,9 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       </div>}
       {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${u.unit(["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m")}`}</div>}
       {((supports?.length ?? 0) + (nodalLoads?.length ?? 0) > 100 || (uniformLoads?.length ?? 0) > 100) && <div className="viewport-label-policy">密集条件仅标注选中对象；完整编号见项目树</div>}
-      {selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ {u.vector(selectedNode.position, "m")}</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F {u.vector(selectedNodalLoad.force, "kN")}</span><span>M {u.vector(selectedNodalLoad.moment, "kN·m")}</span></>}</div>}
-      {selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q {u.vector(selectedLoad.intensity, "kN/m")}</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {u.quantity(selectedMaterial.elasticModulusGPa, "GPa")}</span><span>{selectedSection.name} · A {u.quantity(selectedSection.areaM2, "m²")}</span><small>分析线模型 · 截面转角 {u.quantity(selectedMember.rotationDegrees, "°")}</small></div>}
-      {nodes.length === 0 && !preview?.nodes.length && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
+      {!drawingEnabled && selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ {u.vector(selectedNode.position, "m")}</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F {u.vector(selectedNodalLoad.force, "kN")}</span><span>M {u.vector(selectedNodalLoad.moment, "kN·m")}</span></>}</div>}
+      {!drawingEnabled && (selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q {u.vector(selectedLoad.intensity, "kN/m")}</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {u.quantity(selectedMaterial.elasticModulusGPa, "GPa")}</span><span>{selectedSection.name} · A {u.quantity(selectedSection.areaM2, "m²")}</span><small>分析线模型 · 截面转角 {u.quantity(selectedMember.rotationDegrees, "°")}</small></div>)}
+      {!drawingEnabled && nodes.length === 0 && !preview?.nodes.length && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
     </div>
   );
 }

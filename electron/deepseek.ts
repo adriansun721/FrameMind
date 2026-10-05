@@ -132,7 +132,7 @@ const modelEditTools = [
   ...MODEL_EDIT_TOOL_DEFINITIONS,
 ];
 function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
-  const editRequested = messages.some((message) => message.role === "user" && /自由坐标|自由数值|斜杆|基础编辑|批量|移到|转角|旋转|(?:(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
+  const editRequested = messages.some((message) => message.role === "user" && /绘杆|画杆|工作平面|自由坐标|自由数值|斜杆|基础编辑|批量|移到|转角|旋转|(?:(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:draw|edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:draw|edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
   const taskDraftActive = messages.some((message) => message.role === "system" && /当前完整任务草案：\{/.test(message.content));
   const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
   const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;

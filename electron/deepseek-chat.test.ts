@@ -47,7 +47,7 @@ test("a selected-object conversation receives read-only tool calls and sends the
   expect(JSON.stringify([first, second])).not.toContain("sk-private-t20");
 });
 
-test.each(["把 N1 移到 X=-1，并把 M1 转角改成30度", "建立负坐标节点并连接斜杆", "使用自由坐标建模"]) ("Chinese edit wording exposes reviewed free geometry tools: %s", async (prompt) => {
+test.each(["把 N1 移到 X=-1，并把 M1 转角改成30度", "建立负坐标节点并连接斜杆", "使用自由坐标建模", "在工作平面连续绘杆"]) ("Chinese edit wording exposes reviewed free geometry tools: %s", async (prompt) => {
   const requests: RequestInit[] = [];
   const connection = await setup(async (_url, init) => {
     requests.push(init ?? {});
@@ -60,6 +60,7 @@ test.each(["把 N1 移到 X=-1，并把 M1 转角改成30度", "建立负坐标�
   expect(names).toContain("update_node");
   expect(names).toContain("update_member");
   expect(names).toContain("create_nodes"); expect(names).toContain("create_members"); expect(names).toContain("read_geometry_contract");
+  expect(names).toContain("draw_member");
 });
 
 test("whole-task wording exposes a single reviewed task-draft tool", async () => {
