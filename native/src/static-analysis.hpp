@@ -144,19 +144,26 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     StaticLoads loads=loadSet(input,caseId); Json source=caseId, dependencies=Json::array({{{"loadCaseId",caseId},{"factor",1}}});
     if (input.contains("combination")) {
         const auto& combination=input.at("combination"); source=combination.at("definition").at("id"); id(source);
+        const Json target={{"kind","load-combination"},{"id",source}};
         const auto& terms=combination.at("definition").at("terms"); const auto& cases=combination.at("cases");
-        require(terms.is_array() && !terms.empty() && cases.is_array() && terms.size()==cases.size(),"Invalid combination cases");
+        require(terms.is_array() && !terms.empty() && cases.is_array() && terms.size()==cases.size(),"Invalid combination cases",target,"combination.cases");
         dependencies=Json::array(); StaticLoads weighted={Vector::Zero(size),std::vector<Vec3>(elements.size(),Vec3::Zero())}; std::set<std::string> seen;
         for (size_t i=0;i<terms.size();++i) {
             const auto& term=terms[i]; const auto& c=cases[i];
-            require(c.size()==4 && c.contains("loadCase") && c.contains("nodalLoads") && c.contains("uniformLoads") && c.contains("selfWeight"),"Combination must share structural input");
-            require(term.at("loadCaseId")==c.at("loadCase").at("id") && seen.insert(id(term.at("loadCaseId"))).second,"Invalid combination case order or duplicate");
-            const double factor=number(term.at("factor")); dependencies.push_back(term); const auto part=loadSet(c,term.at("loadCaseId"));
+            const std::string casePath="combination.cases["+std::to_string(i)+"]", termPath="combination.definition.terms["+std::to_string(i)+"]";
+            require(c.size()==4 && c.contains("loadCase") && c.contains("nodalLoads") && c.contains("uniformLoads") && c.contains("selfWeight"),"Combination must share structural input",target,casePath);
+            require(term.contains("loadCaseId") && c.at("loadCase").contains("id") && term.at("loadCaseId")==c.at("loadCase").at("id") && seen.insert(id(term.at("loadCaseId"))).second,"Invalid combination case order or duplicate",target,casePath+".loadCase.id");
+            require(term.contains("factor") && term.at("factor").is_number() && std::isfinite(term.at("factor").get<double>()),"Invalid combination coefficient",target,termPath+".factor");
+            const double factor=term.at("factor").get<double>(); dependencies.push_back(term); const auto part=loadSet(c,term.at("loadCaseId"));
             weighted.nodal+=factor*part.nodal; for (size_t j=0;j<elements.size();++j) weighted.intensity[j]+=factor*part.intensity[j];
         }
         // Validate, then solve only the effective loads. Do not weight them again.
-        require(weighted.nodal.allFinite() && loads.nodal.allFinite() && (weighted.nodal-loads.nodal).cwiseAbs().maxCoeff()<=1e-9,"Combination effective nodal loads mismatch");
-        for (size_t i=0;i<elements.size();++i) require(weighted.intensity[i].allFinite() && loads.intensity[i].allFinite() && (weighted.intensity[i]-loads.intensity[i]).cwiseAbs().maxCoeff()<=1e-9,"Combination effective distributed loads mismatch");
+        for (int index=0;index<size;++index) if (!std::isfinite(weighted.nodal[index]) || !std::isfinite(loads.nodal[index]) || std::abs(weighted.nodal[index]-loads.nodal[index])>1e-9) {
+            Failure failure("native-input-error","Combination effective nodal loads mismatch",{{"kind","node"},{"id",nodes[index/6]["id"]}},std::string(index%6<3 ? "force." : "moment.")+"xyz"[index%3]);
+            failure.diagnostic["dof"]=dofOrder[index%6]; throw failure;
+        }
+        for (size_t i=0;i<elements.size();++i) for (int axis=0;axis<3;++axis) require(std::isfinite(weighted.intensity[i][axis]) && std::isfinite(loads.intensity[i][axis]) && std::abs(weighted.intensity[i][axis]-loads.intensity[i][axis])<=1e-9,
+            "Combination effective distributed loads mismatch",{{"kind","member"},{"id",elements[i].member["id"]}},std::string("intensity.")+"xyz"[axis]);
     }
     require(request.at("sourceId")==source && request.at("dependencies")==dependencies,"Source dependency mismatch");
     phase("assembly");

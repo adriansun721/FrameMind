@@ -74,17 +74,23 @@ try {
     ["nonfinite-load", r => r.input.nodalLoads[0].force.x = null, "native-input-error", "load", "force.x"],
     ["invalid-uniform-reference", r => r.input.uniformLoads[0].memberId = "member_9999", "invalid-reference", "uniform-load", "memberId", "uniform-local"],
     ["invalid-uniform-axis", r => r.input.uniformLoads[0].coordinateSystem = "invalid", "native-input-error", "uniform-load", "coordinateSystem", "uniform-local"],
-    ["effective-combination-mismatch", r => r.input.uniformLoads[0].intensity.x += 1, "native-input-error", undefined, undefined, "combination-negative"],
-    ["effective-combination-case-mismatch", r => r.input.combination.cases[0].loadCase.id = "LC99", "native-input-error", undefined, undefined, "combination-negative"],
+    ["effective-combination-mismatch", r => r.input.uniformLoads[0].intensity.x += 1, "native-input-error", "member", "intensity.x", "combination-negative"],
+    ["effective-combination-node-mismatch", r => r.input.nodalLoads[0].force.x += 1, "native-input-error", "node", "force.x", "combination-negative"],
+    ["effective-combination-case-mismatch", r => r.input.combination.cases[0].loadCase.id = "LC99", "native-input-error", "load-combination", "combination.cases[0].loadCase.id", "combination-negative"],
+    ["invalid-combination-factor", r => r.input.combination.definition.terms[0].factor = null, "native-input-error", "load-combination", "combination.definition.terms[0].factor", "combination-negative"],
     ["overflow", r => r.input.sections[0].areaM2 = 1e308, "native-computation-error", "member", "stiffness"],
   ]) {
     // Choose raw wire input so the C++ validator, rather than renderer validation, sees it.
-    const request = structuredClone(samples.find(s => s.id === fixture)?.request);
-    if (!request) { protocolFailures.push({ id, passed: false, error: "Missing successful fixture" }); continue; }
+    const seed = samples.find(s => s.id === fixture)?.request;
+    if (!seed) { protocolFailures.push({ id, passed: false, error: "Missing successful fixture" }); continue; }
+    const request = JSON.parse(JSON.stringify(seed));
     edit(request);
+    const collection = { member: "members", load: "nodalLoads", support: "supports", material: "materials", section: "sections", "uniform-load": "uniformLoads" }[kind];
+    const targetId = kind === "node" ? request.input.nodalLoads[0].nodeId : kind === "load-combination" ? request.input.combination.definition.id : request.input[collection][0].id;
     try { invoke(request); protocolFailures.push({ id, passed: false }); }
     catch (error) { protocolFailures.push({ id, passed: error instanceof AnalysisFailure && error.diagnostics[0].code === code
-      && (!kind || error.diagnostics[0].target?.kind === kind && error.diagnostics[0].field === field), stage: error.stage, diagnostics: error.diagnostics }); }
+      && error.diagnostics[0].target?.kind === kind && error.diagnostics[0].target.id === targetId && error.diagnostics[0].field === field
+      && (kind !== "node" || error.diagnostics[0].dof === "ux"), stage: error.stage, diagnostics: error.diagnostics }); }
   }
   const boundaryCases = [];
   if (samples.length) {

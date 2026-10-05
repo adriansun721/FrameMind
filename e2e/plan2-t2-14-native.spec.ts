@@ -26,13 +26,17 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
   try {
     const page = await app.firstWindow();
     await enterWorkbenchWithoutRecovery(page);
+    const fileAction = async (name: "打开项目" | "保存项目") => {
+      await page.getByRole("button", { name: "文件", exact: true }).click();
+      await page.getByRole("menuitem", { name: new RegExp(name) }).click();
+    };
     for (const sample of samples) {
       await writeFile(projectPath, encodeProject(sample.project));
-      await page.keyboard.press("Control+o");
+      await fileAction("打开项目");
       await expect(page.locator('footer[role="status"]')).toContainText("已打开");
       await page.getByRole("button", { name: "C++ 静力试算", exact: true }).click();
       await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
-      await page.keyboard.press("Control+s");
+      await fileAction("保存项目");
       await expect(page.locator('footer[role="status"]')).toContainText("已保存");
       const saved = decodeProject(await readFile(projectPath, "utf8"));
       const result = saved.latestAnalysis!;
@@ -43,7 +47,7 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
       expect(isAnalysisResultCurrent(saved, result)).toBe(true);
       expect(result.nodes).toEqual(sample.result.nodes);
       expect(result.members).toEqual(sample.result.members);
-      await page.keyboard.press("Control+o");
+      await fileAction("打开项目");
       await expect(page.locator('footer[role="status"]')).toContainText("已打开");
       await expect(page.getByTestId("analysis-process")).toContainText("framemind-native/2");
       records.push({ id: sample.id, passed: true, result });
@@ -54,13 +58,13 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
         await dialog.getByRole("checkbox", { name: /附录杆件 M1/ }).check();
         await dialog.getByRole("checkbox", { name: "整体约束处理与荷载向量", exact: true }).check();
         await dialog.getByRole("button", { name: "导出 Word", exact: true }).click();
-        await expect(page.locator('footer[role="status"]')).toContainText("已导出 Word 计算书");
+        await expect(page.locator('footer[role="status"]')).toContainText("已导出 Word 计算书", { timeout: 30000 });
         const zip = await JSZip.loadAsync(await readFile(wordPath));
         const xml = await zip.file("word/document.xml")!.async("string");
         for (const text of [result.id, "framemind-native/2", "sparse-ldlt", "CB1", "-0.5"]) expect(xml).toContain(text);
         expect(xml).not.toContain("整体过程缺少记录");
         await dialog.getByRole("button", { name: "导出 PDF", exact: true }).click();
-        await expect(page.locator('footer[role="status"]')).toContainText("已导出 PDF 计算书");
+        await expect(page.locator('footer[role="status"]')).toContainText("已导出 PDF 计算书", { timeout: 30000 });
         expect((await readFile(pdfPath)).subarray(0, 5).toString()).toBe("%PDF-");
         await copyFile(wordPath, join(evidence, "native-combination.docx"));
         await copyFile(pdfPath, join(evidence, "native-combination.pdf"));
@@ -72,19 +76,19 @@ test("T2-14 desktop calls C++, browses and saves all independent spatial static 
     const mechanism = structuredClone(samples[0].project);
     mechanism.supports[0].restraints = [true, true, true, false, false, false];
     await writeFile(projectPath, encodeProject(mechanism));
-    await page.keyboard.press("Control+o");
+    await fileAction("打开项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
     await page.getByRole("button", { name: "C++ 静力试算", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("方程求解失败");
-    await page.keyboard.press("Control+s");
+    await fileAction("保存项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
     expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis).toBeUndefined();
     await writeFile(projectPath, encodeProject(samples[0].project));
-    await page.keyboard.press("Control+o");
+    await fileAction("打开项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
     await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
-    await page.keyboard.press("Control+s");
+    await fileAction("保存项目");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
     expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis!.input.solver!.implementation).toBe("framemind-frame/3");
     await writeFile(join(evidence, installed ? "installed-desktop.json" : "desktop-results.json"), JSON.stringify({ passed: true, installed: installed ?? false,

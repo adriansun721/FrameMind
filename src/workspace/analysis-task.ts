@@ -36,7 +36,7 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
     || value.field !== undefined && typeof value.field !== "string"
     || value.dof !== undefined && !ANALYSIS_DOF_ORDER.includes(value.dof)) return false;
   if (value.target && (!value.target.id || typeof value.target.id !== "string"
-    || !["node", "member", "material", "section", "support", "load", "uniform-load", "self-weight"].includes(value.target.kind))) return false;
+    || !["node", "member", "material", "section", "support", "load", "uniform-load", "self-weight", "load-combination"].includes(value.target.kind))) return false;
   if (value.evidence && (![value.evidence.pivotMagnitude, value.evidence.threshold, value.evidence.matrixScale].every(Number.isFinite)
     || !Number.isSafeInteger(value.evidence.globalDofIndex) || value.evidence.globalDofIndex < 0)) return false;
   return true;

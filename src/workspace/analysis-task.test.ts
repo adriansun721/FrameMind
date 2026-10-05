@@ -4,6 +4,7 @@ import { createProject } from "../domain/project";
 import { executeAnalysisRequest, type AnalysisServiceRequest } from "../domain/analysis-service";
 import { reportFixture } from "../domain/engineering-report.fixture";
 import { AnalysisCancelledError, startAnalysisTask } from "./analysis-task";
+import nativeReport from "../../docs/evidence/plan2/T2-14/numerical-results.json";
 
 class ControlledWorker {
   static instances: ControlledWorker[] = [];
@@ -33,6 +34,16 @@ afterEach(() => {
 });
 
 describe("analysis task boundary", () => {
+  it("preserves a native combination identity and coefficient path through IPC validation", async () => {
+    const failure = nativeReport.protocolFailures.find((item) => item.id === "invalid-combination-factor")!;
+    vi.stubGlobal("window", { frameMind: { runNativeAnalysis: async (request: AnalysisServiceRequest) => [
+      { kind: "phase", requestId: request.requestId, record: { stage: "model-check", startedAt: new Date().toISOString() } },
+      { kind: "error", requestId: request.requestId, error: { name: "AnalysisFailure", stage: failure.stage, diagnostics: failure.diagnostics } },
+    ] } });
+    const task = startAnalysisTask(captureAnalysisInput(reportFixture(true)), { backend: "native-static" });
+    await expect(task.promise).rejects.toMatchObject({ diagnostics: failure.diagnostics, run: { status: "failed", solver: { implementation: "framemind-native/2" } } });
+  });
+
   it("fails native startup without silently using the TypeScript solver", async () => {
     vi.stubGlobal("window", {});
     const task = startAnalysisTask(captureAnalysisInput(reportFixture()), { backend: "native-single-member" });

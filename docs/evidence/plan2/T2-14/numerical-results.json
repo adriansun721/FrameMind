@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-05T08:40:39.671Z",
-  "executableSha256": "5b7a15c6f2bdc12f08159b3e6c910f10b5af9ec4667a6a806e40ce4b09c96fa6",
+  "generatedAt": "2026-10-05T09:02:40.685Z",
+  "executableSha256": "f05b0841bfe156978d2eea2d3be86c6b5898ccd0a636bc733b419c798c14f993",
   "referenceSha256": "64c378ed7d7fc521f8a39fc38da2383715b4e6b77a25a771232b1a469cdac31b",
   "passed": true,
   "summary": {
@@ -97,7 +97,7 @@
             }
           }
         ],
-        "projectId": "project_a17269b5-6b64-4fa8-af81-935e918595e7",
+        "projectId": "project_86dac543-bf52-4bef-aeb8-8f8f2284b733",
         "projectRevision": 7,
         "sections": [
           {
@@ -1465,7 +1465,7 @@
             }
           }
         ],
-        "projectId": "project_5ee5533f-270a-419c-be60-29f97b8d916d",
+        "projectId": "project_28e36071-0fee-46dd-a1c7-670c3e6693fd",
         "projectRevision": 7,
         "sections": [
           {
@@ -2833,7 +2833,7 @@
             }
           }
         ],
-        "projectId": "project_19554b55-3470-4e8a-80bf-5767acbd177b",
+        "projectId": "project_3f4dfb0b-1438-46d6-9007-1961788a6203",
         "projectRevision": 7,
         "sections": [
           {
@@ -4201,7 +4201,7 @@
             }
           }
         ],
-        "projectId": "project_6b7be25b-e188-4abd-a91a-b5d57f4bab6c",
+        "projectId": "project_d366fdd4-9c02-4c1b-8d96-77e9d2218e24",
         "projectRevision": 7,
         "sections": [
           {
@@ -5569,7 +5569,7 @@
             }
           }
         ],
-        "projectId": "project_9cfa0a8c-05e6-4854-87a2-63910f7a60f6",
+        "projectId": "project_af167423-8c51-43cf-a82e-2235fe9505cd",
         "projectRevision": 7,
         "sections": [
           {
@@ -6937,7 +6937,7 @@
             }
           }
         ],
-        "projectId": "project_be33cba8-06fe-4831-abcb-efa3c0891ec7",
+        "projectId": "project_c910071b-85bf-44e5-91d6-f057c599c679",
         "projectRevision": 7,
         "sections": [
           {
@@ -8305,7 +8305,7 @@
             }
           }
         ],
-        "projectId": "project_68871e51-64b4-4327-b293-a67c34ff1ec9",
+        "projectId": "project_50c3184f-be27-4689-829b-ef4f843d74e5",
         "projectRevision": 7,
         "sections": [
           {
@@ -9673,7 +9673,7 @@
             }
           }
         ],
-        "projectId": "project_cbecc200-1f1d-4515-97f7-0182d5904edb",
+        "projectId": "project_7d9f1e17-1e00-4e9e-820f-14f5a12fb25f",
         "projectRevision": 7,
         "sections": [
           {
@@ -11041,7 +11041,7 @@
             }
           }
         ],
-        "projectId": "project_47f043af-a1ea-457c-9584-fef87c04bfd4",
+        "projectId": "project_c9662497-ec5e-467e-ae1c-8e2b189150c1",
         "projectRevision": 7,
         "sections": [
           {
@@ -12392,7 +12392,7 @@
             }
           }
         ],
-        "projectId": "project_f3733fa1-ecdf-4c11-801d-09f04ece1687",
+        "projectId": "project_7ab59529-d37d-47cd-8750-423f76786fd6",
         "projectRevision": 7,
         "sections": [
           {
@@ -13757,7 +13757,7 @@
             }
           }
         ],
-        "projectId": "project_13d22163-9201-4028-8069-5ae048ff0d69",
+        "projectId": "project_7e88c2fd-1cdb-4f56-8dd5-38f39ce25e1b",
         "projectRevision": 7,
         "sections": [
           {
@@ -15122,7 +15122,7 @@
             }
           }
         ],
-        "projectId": "project_8ee7fb5c-31b4-4de7-8d14-f08072306fd1",
+        "projectId": "project_78981d5a-b2e8-45f8-a4f0-0beefdf2f7cc",
         "projectRevision": 7,
         "sections": [
           {
@@ -16490,7 +16490,7 @@
             }
           }
         ],
-        "projectId": "project_b73b9aa8-96b1-4ab4-9397-ac42b0df633f",
+        "projectId": "project_29dd42ca-6891-4261-ae15-908ec54e8fe9",
         "projectRevision": 11,
         "sections": [
           {
@@ -17858,7 +17858,7 @@
             }
           }
         ],
-        "projectId": "project_c1188dcf-b068-4fec-828c-d4bdb21d9199",
+        "projectId": "project_de7e4def-2e5e-4678-8a2d-3f11101c051d",
         "projectRevision": 11,
         "sections": [
           {
@@ -19358,7 +19358,7 @@
             }
           }
         ],
-        "projectId": "project_25236a05-cd5d-4c42-959c-028292d31d99",
+        "projectId": "project_9a88c3f9-cbbe-4e61-a7aa-f0a75dcd7392",
         "projectRevision": 12,
         "sections": [
           {
@@ -20858,7 +20858,7 @@
             }
           }
         ],
-        "projectId": "project_b554c95a-11d5-4d26-9fac-50043a2f9948",
+        "projectId": "project_a8071f8f-7c18-4491-aa5a-d2ae010341e9",
         "projectRevision": 12,
         "sections": [
           {
@@ -22241,7 +22241,7 @@
             }
           }
         ],
-        "projectId": "project_7425bad9-4a83-47a3-bb48-57e30985598e",
+        "projectId": "project_ce963ba0-199a-4c7e-8e85-9120f825feff",
         "projectRevision": 11,
         "sections": [
           {
@@ -24586,7 +24586,7 @@
             }
           }
         ],
-        "projectId": "project_fdddd412-5205-4421-a388-59706ed53d68",
+        "projectId": "project_25dc6993-0306-4c98-b18d-d51379b12f92",
         "projectRevision": 11,
         "sections": [
           {
@@ -27837,7 +27837,7 @@
             }
           }
         ],
-        "projectId": "project_d77ffa9b-c149-40ab-9907-88f46d1ce585",
+        "projectId": "project_2fb3f63b-3891-4d6a-9803-77e460270c39",
         "projectRevision": 16,
         "sections": [
           {
@@ -33593,7 +33593,7 @@
             }
           }
         ],
-        "projectId": "project_e30393ad-2b1f-453c-b4d7-ab0aa56e3428",
+        "projectId": "project_75afaf4d-b6c4-4515-8eed-67d648daf5c4",
         "projectRevision": 16,
         "sections": [
           {
@@ -37695,7 +37695,7 @@
             }
           }
         ],
-        "projectId": "project_db2a4707-8202-4586-b8b1-c01f0db392af",
+        "projectId": "project_11a9b74f-cb1c-406b-8b0e-3e7185e1098a",
         "projectRevision": 10,
         "sections": [
           {
@@ -39995,7 +39995,7 @@
             }
           }
         ],
-        "projectId": "project_65bcbd45-5f22-44b0-ad07-e8ab1e0f2ee8",
+        "projectId": "project_0d54a6e1-69f6-49f7-a060-10f97d0dc7cb",
         "projectRevision": 10,
         "sections": [
           {
@@ -42198,10 +42198,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_f959375a-3323-4653-93b4-4942d94260d1",
+        "id": "project_2ceef626-56d5-4ac6-aa55-4aafd844115a",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.643Z",
-        "updatedAt": "2026-10-05T08:40:38.643Z",
+        "createdAt": "2026-10-05T09:02:39.790Z",
+        "updatedAt": "2026-10-05T09:02:39.790Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -42355,10 +42355,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_fdcd2118-fbb9-4fbf-a2e0-16bb2f14dd56",
+        "id": "project_01639b7f-e2b6-4d93-bc4c-e0cf56badb4b",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.686Z",
-        "updatedAt": "2026-10-05T08:40:38.687Z",
+        "createdAt": "2026-10-05T09:02:39.827Z",
+        "updatedAt": "2026-10-05T09:02:39.828Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -42513,10 +42513,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_c7192843-2420-4947-ae92-791b7d6d5b55",
+        "id": "project_aaf20191-93bc-4e29-9398-f7038521ee2e",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.738Z",
-        "updatedAt": "2026-10-05T08:40:38.738Z",
+        "createdAt": "2026-10-05T09:02:39.865Z",
+        "updatedAt": "2026-10-05T09:02:39.865Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -42659,10 +42659,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_3719a739-aa86-416c-abd6-0eeb4721c5a3",
+        "id": "project_0e27903c-2395-4b3e-96a1-a3be8b3661fb",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.788Z",
-        "updatedAt": "2026-10-05T08:40:38.788Z",
+        "createdAt": "2026-10-05T09:02:39.902Z",
+        "updatedAt": "2026-10-05T09:02:39.902Z",
         "revision": 8,
         "units": {
           "length": "m",
@@ -42826,10 +42826,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_f5b37a4b-b788-4bc8-93e7-f071f687e80f",
+        "id": "project_f5aa3571-5a3d-4d40-9f26-687628e98f0f",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.832Z",
-        "updatedAt": "2026-10-05T08:40:38.832Z",
+        "createdAt": "2026-10-05T09:02:39.942Z",
+        "updatedAt": "2026-10-05T09:02:39.942Z",
         "revision": 10,
         "units": {
           "length": "m",
@@ -43010,10 +43010,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_009adf68-1d3a-44e9-9f02-4ea06dced450",
+        "id": "project_f6c2e72f-570f-4933-97f8-6c6e0d62d589",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.871Z",
-        "updatedAt": "2026-10-05T08:40:38.871Z",
+        "createdAt": "2026-10-05T09:02:39.979Z",
+        "updatedAt": "2026-10-05T09:02:39.979Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -43153,10 +43153,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_7bf75812-0fc9-4a1c-8a36-a3ad7177ce7f",
+        "id": "project_f378d6b1-a31d-4e45-a8f1-8ba60f7e25c6",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T08:40:38.922Z",
-        "updatedAt": "2026-10-05T08:40:38.922Z",
+        "createdAt": "2026-10-05T09:02:40.020Z",
+        "updatedAt": "2026-10-05T09:02:40.021Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -43560,8 +43560,29 @@
       "diagnostics": [
         {
           "code": "native-input-error",
-          "field": "input",
-          "message": "Combination effective distributed loads mismatch"
+          "field": "intensity.x",
+          "message": "Combination effective distributed loads mismatch",
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ]
+    },
+    {
+      "id": "effective-combination-node-mismatch",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "dof": "ux",
+          "field": "force.x",
+          "message": "Combination effective nodal loads mismatch",
+          "target": {
+            "id": "node_0002",
+            "kind": "node"
+          }
         }
       ]
     },
@@ -43572,11 +43593,27 @@
       "diagnostics": [
         {
           "code": "native-input-error",
-          "field": "loadCaseId",
-          "message": "Invalid load case reference",
+          "field": "combination.cases[0].loadCase.id",
+          "message": "Invalid combination case order or duplicate",
           "target": {
-            "id": "load_0001",
-            "kind": "load"
+            "id": "CB1",
+            "kind": "load-combination"
+          }
+        }
+      ]
+    },
+    {
+      "id": "invalid-combination-factor",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "combination.definition.terms[0].factor",
+          "message": "Invalid combination coefficient",
+          "target": {
+            "id": "CB1",
+            "kind": "load-combination"
           }
         }
       ]

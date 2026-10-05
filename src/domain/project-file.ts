@@ -208,8 +208,12 @@ function decodeSelfWeight(value: unknown, fallback = DEFAULT_SELF_WEIGHT): Frame
   return validateSelfWeight({ enabled: value.enabled, loadCaseId: requireString(value.loadCaseId, "自重缺少所属工况"), gravity: { x: requireFinite(gravity.x, "重力加速度 X 无效"), y: requireFinite(gravity.y, "重力加速度 Y 无效"), z: requireFinite(gravity.z, "重力加速度 Z 无效") } });
 }
 
+function isSolverAlgorithm(value: unknown): value is "partial-pivot-gaussian" | "sparse-ldlt" {
+  return value === "partial-pivot-gaussian" || value === "sparse-ldlt";
+}
+
 function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number): AnalysisInputSnapshot {
-  if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || !["partial-pivot-gaussian", "sparse-ldlt"].includes(String(input.solver.algorithm)) || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
+  if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || !isSolverAlgorithm(input.solver.algorithm) || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
   if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
   const inputNodes = input.nodes.map(decodeNode); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map(decodeMember); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
   assertUnique(inputNodes, "分析输入节点"); assertUnique(inputMaterials, "分析输入材料"); assertUnique(inputSections, "分析输入截面"); assertUnique(inputMembers, "分析输入杆件"); assertUnique(inputSupports, "分析输入支座"); assertUnique(inputLoads, "分析输入节点荷载");
@@ -246,7 +250,7 @@ function decodeLoadCombination(value: unknown, loadCases: FrameLoadCase[]): Fram
 
 function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): AnalysisProcessSnapshot | undefined {
   if (value === undefined) return undefined;
-  if (!isRecord(value) || !isRecord(value.solver) || !["partial-pivot-gaussian", "sparse-ldlt"].includes(String(value.solver.algorithm)) || value.solver.constraints !== "free-dof-elimination") throw new Error("分析整体过程配置无效");
+  if (!isRecord(value) || !isRecord(value.solver) || !isSolverAlgorithm(value.solver.algorithm) || value.solver.constraints !== "free-dof-elimination") throw new Error("分析整体过程配置无效");
   const solver = value.solver;
   if (typeof solver.implementation !== "string" || solver.implementation.length === 0 || typeof solver.relativePivotTolerance !== "number" || !Number.isFinite(solver.relativePivotTolerance) || solver.relativePivotTolerance <= 0 || solver.relativePivotTolerance >= 1) throw new Error("分析整体过程求解器配置无效");
   if (!Array.isArray(value.dofOrder) || value.dofOrder.join(",") !== ANALYSIS_DOF_ORDER.join(",") || !Array.isArray(value.dofs) || value.dofs.length !== input.nodes.length * 6) throw new Error("分析整体过程自由度记录无效");

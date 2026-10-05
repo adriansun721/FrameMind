@@ -24,6 +24,7 @@ export type AnalysisTarget =
   | { kind: "support"; id: SupportId }
   | { kind: "load"; id: LoadId }
   | { kind: "uniform-load"; id: LoadId }
+  | { kind: "load-combination"; id: string }
   | { kind: "self-weight"; id: ProjectId | string };
 
 export interface AnalysisDiagnostic {

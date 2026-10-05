@@ -696,6 +696,7 @@ export function App() {
             const object = target?.kind !== "self-weight" && target ? objects.find((item) => item.id === target.id) : undefined;
             const fieldLabel = diagnostic.field ? ANALYSIS_FIELD_LABELS[diagnostic.field] ?? diagnostic.field : diagnostic.dof?.toUpperCase() ?? "对象";
             return <li key={index}><div><p>{diagnostic.message}</p>{diagnostic.evidence && <small>主元 {diagnostic.evidence.pivotMagnitude.toExponential(3)} · 阈值 {diagnostic.evidence.threshold.toExponential(3)} · 矩阵尺度 {diagnostic.evidence.matrixScale.toExponential(3)} · 全局索引 {diagnostic.evidence.globalDofIndex}（从 0 起）</small>}</div>
+              {target?.kind === "load-combination" && <button className="diagnostic-location" aria-label={`定位组合 ${target.id}`} title="打开荷载工况与组合设置" onClick={() => setLoadCaseManagerOpen(true)}><Crosshair size={14} /><span>{target.id} · {fieldLabel}</span></button>}
               {target?.kind === "self-weight" ? <button className="diagnostic-location" aria-label="定位自重设置" title="打开自重设置" onClick={() => openSelfWeightDialog()}><Crosshair size={14} /><span>自重设置 · {fieldLabel}</span></button> : target && object && <button className="diagnostic-location" aria-label={`定位 ${object.label} · ${fieldLabel}`} title={`定位 ${object.label} · ${fieldLabel}`} onClick={() => { selectObject(target); setDiagnosticFitRequest((value) => value + 1); }}><Crosshair size={14} /><span>{object.label} · {fieldLabel}</span></button>}
             </li>;
           })}</ul>
