@@ -5,6 +5,9 @@
 - `npm run evidence:plan2:t211`：构建应用，执行固定契约集两次及八个 Electron 文件各两次。任何失败／缺测返回非零。
 - `npm run evidence:plan2:t211:online`：构建应用，使用本机加密配置运行三条真实 DeepSeek 流程各两次。没有凭据记录 blocked，不以跳过代表通过。
 - 协议：[protocol.json](protocol.json)。实现决定：[ADR-0044](../../../decisions/0044-agent-reliability-integration.md)。每次运行的协议、指标、环境、失败与实际输入／工具回执位于 `runs/<UTC timestamp>-<mode>/`；显示日期采用 Asia/Taipei。
+- `node scripts/archive-plan2-t211.cjs`：对已结束的运行进行无损gzip归档，保留本机原JSON。协议与摘要可直接阅读；完整样本和reporter以 `.json.gz` 进入版本控制，`archives.json` 保存解压后的字节数和SHA-256，避免重复冻结输入产生数百万行差异。Playwright 临时trace／截图留在对应 `artifacts/` 本机目录，不提交。
+- 重复归档会核验并保留已有清单，即使干净检出中没有原JSON；源JSON内容变化或已有gzip完整性不符时返回非零，拒绝覆盖已冻结证据。
+- 读取压缩证据：在仓库中运行 `node -e "process.stdout.write(require('node:zlib').gunzipSync(require('node:fs').readFileSync(process.argv[1])))" <文件.json.gz>`。解压内容与原JSON逐字节相同。
 - 模型由应用的连接配置决定，不在脚本中强制换模型。当前请求配置由 `electron/deepseek.ts` 定义：HTTPS `chat/completions`、工具自动选择、thinking disabled、非流式、max_tokens=2048，temperature/top_p 未显式设置。每个实际样本保存 `settings.model`。
 
 新增桌面场景通过公开 UI、正式项目文件与 `loadChatHistory` 读取证据。完整本机回执用于读取类工具核查，便携工程只保存压缩后的工程任务证据。确定性模式只替换模型回复，工具执行、确认事务、Worker 求解、文件保存与 Electron 重启仍走正式实现。

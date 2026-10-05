@@ -1,0 +1,55 @@
+{
+  "format": "gzip",
+  "uncompressedHash": "SHA-256",
+  "files": [
+    {
+      "file": "confirmation-0.json",
+      "archive": "confirmation-0.json.gz",
+      "bytes": 1282542,
+      "compressedBytes": 66175,
+      "sha256": "e45ee006143ee3c04df7f0d50ff766b5116a902801fa80f8df08737ad8fd2101"
+    },
+    {
+      "file": "confirmation-1.json",
+      "archive": "confirmation-1.json.gz",
+      "bytes": 1282602,
+      "compressedBytes": 66191,
+      "sha256": "4247d4cb14a751c0574377f5f46b0916384e1f2b61e689bf81564d930a3f1b6b"
+    },
+    {
+      "file": "desktop.json",
+      "archive": "desktop.json.gz",
+      "bytes": 8359,
+      "compressedBytes": 1363,
+      "sha256": "787453cff4626c175a0dc036772158089ee4f9697bab1cff915469df9162be03"
+    },
+    {
+      "file": "diagnostic-0.json",
+      "archive": "diagnostic-0.json.gz",
+      "bytes": 1211251,
+      "compressedBytes": 66115,
+      "sha256": "a2361f42df3b75f032bf1adf65054af2185c02b2b3d8decdf1370a78b549b264"
+    },
+    {
+      "file": "diagnostic-1.json",
+      "archive": "diagnostic-1.json.gz",
+      "bytes": 1223699,
+      "compressedBytes": 67151,
+      "sha256": "8577e358272bfe6831d6c77470a8ef1d8d882f82b043fb4beef6fb71d9192ef9"
+    },
+    {
+      "file": "state-0.json",
+      "archive": "state-0.json.gz",
+      "bytes": 1896534,
+      "compressedBytes": 90011,
+      "sha256": "4b1806d70bec749c6b1d0373d749ba658189f524e7d352b9137791b7ad8443a9"
+    },
+    {
+      "file": "state-1.json",
+      "archive": "state-1.json.gz",
+      "bytes": 1903760,
+      "compressedBytes": 90131,
+      "sha256": "5ac39b64254361226804b1251e7017857739832b8b81263dbea6619daef487cd"
+    }
+  ]
+}

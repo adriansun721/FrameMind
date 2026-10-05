@@ -1,0 +1,7 @@
+{
+    "scenario":  "archive output is an existing file",
+    "actualExit":  1,
+    "newTemporaryProfilesRemaining":  0,
+    "expectedExit":  "nonzero",
+    "passed":  true
+}

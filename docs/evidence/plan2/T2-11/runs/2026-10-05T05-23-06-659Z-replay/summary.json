@@ -1,0 +1,680 @@
+{
+  "mode": "replay",
+  "startedAt": "2026-10-05T05:23:06.659Z",
+  "protocolHash": "0a7a088c4b768beb4ab9a8c985fe88e8fac96d1a096941598362e9b8bb0f4003",
+  "revision": "56a8349756646099e7eb44f1773694d3a8e3c4ea",
+  "changedFiles": [
+    "M docs/evidence/T11-cases-1080.png",
+    " M docs/evidence/T11-cases-1440.png",
+    " M docs/evidence/T11-comparison-1080.png",
+    " M docs/evidence/T11-comparison-1440.png",
+    " M docs/evidence/T12-editor-1080.png",
+    " M docs/evidence/T12-editor-1440.png",
+    " M docs/evidence/T12-results-1080.png",
+    " M docs/evidence/T12-results-1440.png",
+    " M docs/evidence/T16-dark-deformation-1080.png",
+    " M docs/evidence/T16-dark-deformation-1440.png",
+    " M docs/evidence/T16-dark-forces-1080.png",
+    " M docs/evidence/T16-dark-forces-1440.png",
+    " M docs/evidence/T16-dark-model-1080.png",
+    " M docs/evidence/T16-dark-model-1440.png",
+    " M docs/evidence/T16-dark-selection-error-1080.png",
+    " M docs/evidence/T16-light-deformation-1080.png",
+    " M docs/evidence/T16-light-deformation-1440.png",
+    " M docs/evidence/T16-light-forces-1080.png",
+    " M docs/evidence/T16-light-forces-1440.png",
+    " M docs/evidence/T16-light-model-1080.png",
+    " M docs/evidence/T16-light-model-1440.png",
+    " M docs/evidence/T16-light-selection-error-1080.png",
+    " M docs/evidence/T17-member-process.png",
+    " M docs/evidence/T19-dark-1080.png",
+    " M docs/evidence/T19-dark-1440.png",
+    " M docs/evidence/T19-light-1080.png",
+    " M docs/evidence/T19-light-1440.png",
+    " M docs/evidence/T20-dark-1080.png",
+    " M docs/evidence/T20-dark-1440.png",
+    " M docs/evidence/T20-light-1080.png",
+    " M docs/evidence/T20-light-1440.png",
+    " M docs/evidence/T21-dark-1080.png",
+    " M docs/evidence/T21-dark-1440.png",
+    " M docs/evidence/T21-light-1080.png",
+    " M docs/evidence/T21-light-1440.png",
+    " M docs/evidence/T22-dark-1080.png",
+    " M docs/evidence/T22-dark-1440.png",
+    " M docs/evidence/T22-light-1080.png",
+    " M docs/evidence/T22-light-1440.png",
+    " M docs/evidence/T23-dark-1080.png",
+    " M docs/evidence/T23-dark-1440.png",
+    " M docs/evidence/T23-light-1080.png",
+    " M docs/evidence/T23-light-1440.png",
+    " M docs/evidence/T23-result.png",
+    " M docs/evidence/T24-dark-1080.png",
+    " M docs/evidence/T24-dark-1440.png",
+    " M docs/evidence/T24-light-1080.png",
+    " M docs/evidence/T24-light-1440.png",
+    " M docs/evidence/T25-dark.png",
+    " M docs/evidence/T25-light.png",
+    " M docs/evidence/T25-replay.json",
+    " M docs/evidence/T26-comparison.png",
+    " M docs/evidence/T26-dark-preview.png",
+    " M docs/evidence/T26-light-preview.png",
+    " M docs/evidence/T26-replay.json",
+    " M docs/evidence/T27-offline-analysis.png",
+    " M docs/evidence/T27-recovery.png",
+    " M docs/evidence/T28-baseline.docx",
+    " M docs/evidence/T28-baseline.framemind",
+    " M docs/evidence/T28-combination.docx",
+    " M docs/evidence/T28-combination.framemind",
+    " M docs/evidence/T28-dark-1080.png",
+    " M docs/evidence/T28-dark-1440.png",
+    " M docs/evidence/T28-light-1080.png",
+    " M docs/evidence/T28-light-1440.png",
+    " M docs/evidence/T29-all.docx",
+    " M docs/evidence/T29-all.framemind",
+    " M docs/evidence/T29-dark-1080.png",
+    " M docs/evidence/T29-dark-1440.png",
+    " M docs/evidence/T29-light-1080.png",
+    " M docs/evidence/T29-light-1440.png",
+    " M docs/evidence/T29-selected.docx",
+    " M docs/evidence/T29-selected.framemind",
+    " M docs/evidence/T29-supplemental.docx",
+    " M docs/evidence/T29-supplemental.framemind",
+    " M docs/evidence/T30-all.docx",
+    " M docs/evidence/T30-all.framemind",
+    " M docs/evidence/T30-all.pdf",
+    " M docs/evidence/T30-dark-1080.png",
+    " M docs/evidence/T30-dark-1440.png",
+    " M docs/evidence/T30-light-1080.png",
+    " M docs/evidence/T30-light-1440.png",
+    " M docs/evidence/T30-long.docx",
+    " M docs/evidence/T30-long.framemind",
+    " M docs/evidence/T30-long.pdf",
+    " M docs/evidence/T30-selected.docx",
+    " M docs/evidence/T30-selected.framemind",
+    " M docs/evidence/T30-selected.pdf",
+    " M docs/evidence/T33/replay-dark/failure.json",
+    " M docs/evidence/T33/replay-dark/failure.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-dark/guide-1080.png",
+    " M docs/evidence/T33/replay-dark/guide-1440.png",
+    " M docs/evidence/T33/replay-dark/validation.json",
+    " M docs/evidence/T33/replay-light/failure.json",
+    " M docs/evidence/T33/replay-light/failure.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-light/guide-1080.png",
+    " M docs/evidence/T33/replay-light/guide-1440.png",
+    " M docs/evidence/T33/replay-light/validation.json",
+    " M docs/evidence/compact-cards/dark-1080-editor.png",
+    " M docs/evidence/compact-cards/dark-1080-summary.png",
+    " M docs/evidence/compact-cards/dark-1440-editor.png",
+    " M docs/evidence/compact-cards/dark-1440-summary.png",
+    " M docs/evidence/compact-cards/light-1080-editor.png",
+    " M docs/evidence/compact-cards/light-1080-summary.png",
+    " M docs/evidence/compact-cards/light-1440-editor.png",
+    " M docs/evidence/compact-cards/light-1440-summary.png",
+    " M docs/evidence/plan2/T2-05/component-conflict.png",
+    " M docs/evidence/plan2/T2-05/stable-targets.json",
+    " M docs/evidence/plan2/T2-05/targets-dark-1440.png",
+    " M docs/evidence/plan2/T2-05/targets-light-1080.png",
+    " M package.json",
+    "?? docs/evidence/plan2/T2-11/",
+    "?? e2e/plan2-t2-11-reliability.spec.ts",
+    "?? scripts/verify-plan2-t211.cjs"
+  ],
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.19.0",
+    "electron": "44.5.1"
+  },
+  "status": "failed",
+  "executions": [
+    {
+      "label": "contracts repetition 1/2",
+      "code": 0
+    },
+    {
+      "label": "contracts repetition 2/2",
+      "code": 0
+    },
+    {
+      "label": "desktop 2 repetitions",
+      "code": 1
+    }
+  ],
+  "coverage": {
+    "AC2-01": {
+      "passed": 68,
+      "total": 68,
+      "failures": []
+    },
+    "AC2-02": {
+      "passed": 30,
+      "total": 30,
+      "failures": []
+    },
+    "AC2-03": {
+      "passed": 20,
+      "total": 20,
+      "failures": []
+    },
+    "AC2-04": {
+      "passed": 48,
+      "total": 48,
+      "failures": []
+    },
+    "AC2-05": {
+      "passed": 64,
+      "total": 64,
+      "failures": []
+    },
+    "AC2-06": {
+      "passed": 64,
+      "total": 64,
+      "failures": []
+    },
+    "AC2-07": {
+      "passed": 30,
+      "total": 30,
+      "failures": []
+    },
+    "AC2-08": {
+      "passed": 20,
+      "total": 20,
+      "failures": []
+    },
+    "AC2-09": {
+      "passed": 64,
+      "total": 64,
+      "failures": []
+    },
+    "AC2-10": {
+      "passed": 42,
+      "total": 42,
+      "failures": []
+    },
+    "AC2-11": {
+      "passed": 170,
+      "total": 170,
+      "failures": []
+    }
+  },
+  "metrics": {
+    "stateRecognition": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 4,
+      "total": 4,
+      "rate": 0
+    },
+    "correctTools": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 8,
+      "total": 8,
+      "rate": 0
+    },
+    "taskCompletion": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 8,
+      "total": 8,
+      "rate": 0
+    },
+    "noUnintendedMutation": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 8,
+      "total": 8,
+      "rate": 0
+    },
+    "noRepeatedQuestions": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "restartUnconfirmed": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "noDuplicateApplication": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "preservedUnrelatedData": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "diagnosticSource": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    }
+  },
+  "samples": [
+    {
+      "id": "state",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 1,
+      "status": "failed"
+    }
+  ],
+  "failures": [
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "manual:stateRecognition",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "manual:correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "manual:taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "manual:noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "reopened:stateRecognition",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "reopened:correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "reopened:taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 0,
+      "check": "reopened:noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "manual:stateRecognition",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "manual:correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "manual:taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "manual:noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "reopened:stateRecognition",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "reopened:correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "reopened:taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "state",
+      "repeat": 1,
+      "check": "reopened:noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "noRepeatedQuestions",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "restartUnconfirmed",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "noDuplicateApplication",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 0,
+      "check": "preservedUnrelatedData",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "noRepeatedQuestions",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "restartUnconfirmed",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "noDuplicateApplication",
+      "status": "missing"
+    },
+    {
+      "id": "confirmation",
+      "repeat": 1,
+      "check": "preservedUnrelatedData",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 0,
+      "check": "correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 0,
+      "check": "taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 0,
+      "check": "diagnosticSource",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 0,
+      "check": "noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 1,
+      "check": "correctTools",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 1,
+      "check": "taskCompletion",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 1,
+      "check": "diagnosticSource",
+      "status": "missing"
+    },
+    {
+      "id": "diagnostic",
+      "repeat": 1,
+      "check": "noUnintendedMutation",
+      "status": "missing"
+    },
+    {
+      "desktop": "T2-11 state recognition after manual editing and reopening",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "eval at evaluate (:311:30), <anonymous>",
+            "column": 81,
+            "line": 5
+          },
+          "message": "Error: locator.evaluate: TypeError: Cannot read properties of null (reading 'textContent')\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at ask (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:76:37)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:121:22\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:59:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:114:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-11 whole-task confirmation, restart and requested local solve",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "eval at evaluate (:311:30), <anonymous>",
+            "column": 81,
+            "line": 5
+          },
+          "message": "Error: locator.evaluate: TypeError: Cannot read properties of null (reading 'textContent')\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at ask (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:76:37)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:136:5\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:59:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:133:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-11 evidence-based diagnostic trial stays separate from formal results",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "eval at evaluate (:311:30), <anonymous>",
+            "column": 81,
+            "line": 5
+          },
+          "message": "Error: locator.evaluate: TypeError: Cannot read properties of null (reading 'textContent')\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at ask (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:76:37)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:161:5\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:59:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:158:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-11 state recognition after manual editing and reopening",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "eval at evaluate (:311:30), <anonymous>",
+            "column": 81,
+            "line": 5
+          },
+          "message": "Error: locator.evaluate: TypeError: Cannot read properties of null (reading 'textContent')\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at ask (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:76:37)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:121:22\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:59:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:114:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-11 whole-task confirmation, restart and requested local solve",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "eval at evaluate (:311:30), <anonymous>",
+            "column": 81,
+            "line": 5
+          },
+          "message": "Error: locator.evaluate: TypeError: Cannot read properties of null (reading 'textContent')\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at ask (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:76:37)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:136:5\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:59:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:133:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-11 evidence-based diagnostic trial stays separate from formal results",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "eval at evaluate (:311:30), <anonymous>",
+            "column": 81,
+            "line": 5
+          },
+          "message": "Error: locator.evaluate: TypeError: Cannot read properties of null (reading 'textContent')\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at eval (eval at evaluate (:311:30), <anonymous>:5:81)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at ask (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:76:37)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:161:5\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:59:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-11-reliability.spec.ts:158:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T20 replays selected model reads, distinguishes committed edits and preserves project data",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\t20-readonly-ai.spec.ts",
+            "column": 44,
+            "line": 73
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('status')\nExpected substring: \u001b[32m\"已保存\"\u001b[39m\nError: strict mode violation: getByRole('status') resolved to 3 elements:\n    1) <span role=\"status\" class=\"ai-exploration-status\">…</span> aka getByRole('article').filter({ hasText: '这根梁的转角是多少？历史版本收起处理过程已整理请求读取选中对象读取当前模型回复已完成读取选中对象工具输入{}工具输出{ \"status\": \"' }).getByRole('status')\n    2) <span role=\"status\" class=\"ai-exploration-status\">…</span> aka getByRole('article').filter({ hasText: '再读取这根梁收起处理过程已整理请求读取指定对象读取当前模型回复已完成读取指定对象工具输入{\"objects\":[{\"kind\":\"member\",\"id\":\"' }).getByRole('status')\n    3) <footer role=\"status\" class=\"statusbar success\">…</footer> aka getByText('已保存 readonly.framemind当前选择')\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" getByRole('status') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('status')\u001b[22m\n\n\n  71 |     await expect(panel.locator(\".ai-tool-output\").last()).toContainText('\"rotationDegrees\": 45');\n  72 |     await page.keyboard.press(\"Control+s\");\n> 73 |     await expect(page.getByRole(\"status\")).toContainText(\"已保存\");\n     |                                            ^\n  74 |     const saved = await readFile(projectPath, \"utf8\");\n  75 |     expect(saved).not.toContain(\"[REDACTED]\");\n  76 |     expect(saved).not.toContain(\"这根梁\");\n    at D:\\FrameMind\\e2e\\t20-readonly-ai.spec.ts:73:44"
+        }
+      ]
+    },
+    {
+      "desktop": "T20 replays selected model reads, distinguishes committed edits and preserves project data",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\t20-readonly-ai.spec.ts",
+            "column": 44,
+            "line": 73
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('status')\nExpected substring: \u001b[32m\"已保存\"\u001b[39m\nError: strict mode violation: getByRole('status') resolved to 3 elements:\n    1) <span role=\"status\" class=\"ai-exploration-status\">…</span> aka getByRole('article').filter({ hasText: '这根梁的转角是多少？历史版本收起处理过程已整理请求读取选中对象读取当前模型回复已完成读取选中对象工具输入{}工具输出{ \"status\": \"' }).getByRole('status')\n    2) <span role=\"status\" class=\"ai-exploration-status\">…</span> aka getByRole('article').filter({ hasText: '再读取这根梁收起处理过程已整理请求读取指定对象读取当前模型回复已完成读取指定对象工具输入{\"objects\":[{\"kind\":\"member\",\"id\":\"' }).getByRole('status')\n    3) <footer role=\"status\" class=\"statusbar success\">…</footer> aka getByText('已保存 readonly.framemind当前选择')\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" getByRole('status') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('status')\u001b[22m\n\n\n  71 |     await expect(panel.locator(\".ai-tool-output\").last()).toContainText('\"rotationDegrees\": 45');\n  72 |     await page.keyboard.press(\"Control+s\");\n> 73 |     await expect(page.locator('footer[role=\"status\"]')).toContainText(\"已保存\");\n     |                                            ^\n  74 |     const saved = await readFile(projectPath, \"utf8\");\n  75 |     expect(saved).not.toContain(\"[REDACTED]\");\n  76 |     expect(saved).not.toContain(\"这根梁\");\n    at D:\\FrameMind\\e2e\\t20-readonly-ai.spec.ts:73:44"
+        }
+      ]
+    },
+    {
+      "desktop": "cards dock above the composer, retire after confirmation and continue the same vertical process",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\ui07-ai-process.spec.ts",
+            "column": 42,
+            "line": 148
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m799.6666870117188\u001b[39m\nReceived:    \u001b[31m872.1041870117188\u001b[39m\n\n  146 |       const cardBox = (await card.boundingBox())!;\n  147 |       const composerBox = (await page.locator(\".assistant-composer\").boundingBox())!;\n> 148 |       expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(composerBox.y);\n      |                                          ^\n  149 |       expect(cardBox.y).toBeGreaterThan((await log.boundingBox())!.y);\n  150 |       expect(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth)).toBe(true);\n  151 |       await page.screenshot({ path: `test-results/ai-card-dock-${width}.png` });\n    at D:\\FrameMind\\e2e\\ui07-ai-process.spec.ts:148:42\n    at desktop (D:\\FrameMind\\e2e\\frame-proposal-actions.ts:27:5)\n    at D:\\FrameMind\\e2e\\ui07-ai-process.spec.ts:115:3"
+        }
+      ]
+    },
+    {
+      "desktop": "cards dock above the composer, retire after confirmation and continue the same vertical process",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\ui07-ai-process.spec.ts",
+            "column": 42,
+            "line": 148
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m799.6666870117188\u001b[39m\nReceived:    \u001b[31m872.1041870117188\u001b[39m\n\n  146 |       const dockBox = (await page.getByRole(\"region\", { name: \"待确认参数\", exact: true }).boundingBox())!;\n  147 |       const composerBox = (await page.locator(\".assistant-composer\").boundingBox())!;\n> 148 |       // The dock scrolls long cards; its clipping viewport is the visible boundary.\n      |                                          ^\n  149 |       expect(dockBox.y + dockBox.height).toBeLessThanOrEqual(composerBox.y);\n  150 |       expect(dockBox.y).toBeGreaterThan((await log.boundingBox())!.y);\n  151 |       expect(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth)).toBe(true);\n    at D:\\FrameMind\\e2e\\ui07-ai-process.spec.ts:148:42\n    at desktop (D:\\FrameMind\\e2e\\frame-proposal-actions.ts:27:5)\n    at D:\\FrameMind\\e2e\\ui07-ai-process.spec.ts:115:3"
+        }
+      ]
+    }
+  ],
+  "desktopStats": {
+    "startTime": "2026-10-05T05:23:20.854Z",
+    "duration": 274056.989,
+    "expected": 66,
+    "skipped": 0,
+    "unexpected": 10,
+    "flaky": 0
+  },
+  "endedAt": "2026-10-05T05:27:55.030Z"
+}

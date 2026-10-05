@@ -1,0 +1,69 @@
+{
+  "format": "gzip",
+  "uncompressedHash": "SHA-256",
+  "files": [
+    {
+      "file": "confirmation-0.json",
+      "archive": "confirmation-0.json.gz",
+      "bytes": 1268481,
+      "compressedBytes": 65520,
+      "sha256": "9ee6e281c1d65a845a1d612a440a7273427ed5cd9fa5858c2ea1e73ce5558fe8"
+    },
+    {
+      "file": "confirmation-1.json",
+      "archive": "confirmation-1.json.gz",
+      "bytes": 1268481,
+      "compressedBytes": 65513,
+      "sha256": "4e5b3f03c3b2b461061abc227abd104b9bc705890bf501f57755c6c355f2bdcc"
+    },
+    {
+      "file": "contracts-0.json",
+      "archive": "contracts-0.json.gz",
+      "bytes": 76583,
+      "compressedBytes": 7818,
+      "sha256": "3ed46f631be81cef37dc65e404c722d70249ba8283264864a20680ef096d284c"
+    },
+    {
+      "file": "contracts-1.json",
+      "archive": "contracts-1.json.gz",
+      "bytes": 76585,
+      "compressedBytes": 7875,
+      "sha256": "f152398ecd192bc2878c2cf4a36a9b73be7ce9b7addb265b9c75c387f31b312a"
+    },
+    {
+      "file": "desktop.json",
+      "archive": "desktop.json.gz",
+      "bytes": 86738,
+      "compressedBytes": 5619,
+      "sha256": "af68d67d1462067365a71c5eecdbf90b37a179250bd34b57d824d73daec01da6"
+    },
+    {
+      "file": "diagnostic-0.json",
+      "archive": "diagnostic-0.json.gz",
+      "bytes": 1201135,
+      "compressedBytes": 64818,
+      "sha256": "98bdf36b06f258e40a9d0b0c31b6cc1ca673d5fa8411f342e5c96d51da34be2e"
+    },
+    {
+      "file": "diagnostic-1.json",
+      "archive": "diagnostic-1.json.gz",
+      "bytes": 1201135,
+      "compressedBytes": 64808,
+      "sha256": "01fe859681b22e0ae4de77481355c030d0aa6c1dba631d47850470fbb22277be"
+    },
+    {
+      "file": "state-0.json",
+      "archive": "state-0.json.gz",
+      "bytes": 1903047,
+      "compressedBytes": 89500,
+      "sha256": "ec6e8c256b678c7d491229662cde54ab60138745e705cc6ad2f1517ef5987bad"
+    },
+    {
+      "file": "state-1.json",
+      "archive": "state-1.json.gz",
+      "bytes": 1903047,
+      "compressedBytes": 89453,
+      "sha256": "c044dd729761a280b60d69428106c4e9d0e26bd4a03f75d437b802b15f51bf63"
+    }
+  ]
+}
