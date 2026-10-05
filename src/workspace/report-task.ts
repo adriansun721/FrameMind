@@ -14,7 +14,7 @@ export async function prepareProjectReport(project: FrameProject, analysisId: st
   if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
   // Capture before the first await; earlier analyses need not cross this boundary.
   const source = structuredClone({ project: { ...project, analysisResults: [selected], latestAnalysis: undefined }, selection, supplemental });
-  const report: EngineeringReport = { projectName: source.project.name, generatedAt: new Date().toISOString(), result: source.project.analysisResults[0] };
+  const report: EngineeringReport = { displayUnitPreset: source.project.displayUnitPreset, projectName: source.project.name, generatedAt: new Date().toISOString(), result: source.project.analysisResults[0] };
   const figures = format === "Word" ? await Promise.all(Object.values(createReportFigures(report)).map(async (svg) => ({ svg, bytes: await reportSvgToPng(svg) }))) : [];
   if (typeof Worker === "undefined") {
     const captured = captureEngineeringReport(source.project, analysisId, source.selection);

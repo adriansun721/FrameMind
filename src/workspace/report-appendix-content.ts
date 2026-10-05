@@ -1,9 +1,10 @@
+import { unitPresentation } from "../domain/units";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import { REPORT_APPENDIX_STEPS } from "../domain/report-appendix";
 import { heading, paragraph, table, tableCaption, type ReportBlock } from "./report-content-blocks";
 
 type Content = ReportBlock[];
-function matrixTables(title: string, matrix: number[][], indices: number[]): Content {
+function canonicalMatrixTables(title: string, matrix: number[][], indices: number[]): Content {
   if (!indices.length) return [tableCaption(`${title} · 0 × 0`), paragraph("无自由自由度，不存在待求解的自由子系统矩阵条目。")];
   const content: Content = [];
   // At most six numeric columns per page-width table; no values are omitted.
@@ -16,6 +17,12 @@ function matrixTables(title: string, matrix: number[][], indices: number[]): Con
 }
 
 export function reportAppendixContent(report: EngineeringReport): Content {
+  const u = unitPresentation(report.displayUnitPreset);
+  const mixed = (v: number, i: number, force = false) => u.number(v, force ? i % 6 < 3 ? "kN" : "kN·m" : i % 6 < 3 ? "m" : "rad", 7);
+  const matrixTables = (title: string, matrix: number[][], indices: number[]) => {
+    const converted = title.includes("矩阵 T") ? matrix : matrix.map((row, i) => row.map((v, j) => u.stiffness(v, indices[i], indices[j])));
+    return canonicalMatrixTables(title, converted, indices);
+  };
   const appendix = report.appendix;
   if (!appendix) return [];
   const { selection, overall, basis } = appendix;
@@ -27,7 +34,7 @@ export function reportAppendixContent(report: EngineeringReport): Content {
     paragraph(`正文来源分析 ${result.id}；输入修订 R${result.projectRevision}；${reportSourceLabel(result)}。`),
     paragraph(`所选步骤：${selection.steps.map((step) => REPORT_APPENDIX_STEPS[step]).join("；")}。所选杆件：${selection.memberIds.map((id) => `${memberLabel(id)} · ${id}`).join("；") || "无"}。`),
     paragraph("杆件过程与组装贡献仅输出所选杆件；整体编号、约束及整体矩阵作用于全部模型。索引从 0 起，单元位置 0—5 为起点、6—11 为终点，顺序 ux、uy、uz、rx、ry、rz。未保存完整消元轨迹。"),
-    paragraph("矩阵按最多六个数值列分块，块名和行列索引共同定位原条目。刚度项按行的力/力矩及列的位移/转角取单位：平移行/平移列 kN/m，平移行/转动列 kN/rad，转动行/平移列 kN·m/m，转动行/转动列 kN·m/rad。T 为方向余弦转换，数值无量纲。"),
+    paragraph(`矩阵按最多六个数值列分块，块名和行列索引共同定位原条目。刚度项按行的力/力矩及列的位移/转角取单位：${u.unit("kN")}/${u.unit("m")}，${u.unit("kN")}/${u.unit("rad")}，${u.unit("kN·m")}/${u.unit("m")}，${u.unit("kN·m")}/${u.unit("rad")}。T 为方向余弦转换，数值无量纲。`),
     ...appendix.missing.map((message) => paragraph(`缺少记录：${message}`)),
   ];
   const origin = (record: { origin: string; analysisId: string; sourceAnalysisId: string }) => paragraph(record.origin === "supplemental-reconstruction"
@@ -36,12 +43,12 @@ export function reportAppendixContent(report: EngineeringReport): Content {
   if (selection.steps.includes("member-process")) for (const record of appendix.members) {
     content.push(heading(`杆件过程 ${memberLabel(record.memberId)} · ${record.memberId}`), origin(record),
       paragraph(`求解器 ${record.solver.implementation}；算法 ${record.solver.algorithm}；约束 ${record.solver.constraints}；主元阈值 ${n(record.solver.relativePivotTolerance)}。`),
-      paragraph(`杆长 ${n(record.geometry.length)} m；局部轴按全局 XYZ：x (${Object.values(record.geometry.localX).map(n).join(", ")})，y (${Object.values(record.geometry.localY).map(n).join(", ")})，z (${Object.values(record.geometry.localZ).map(n).join(", ")})。`),
+      paragraph(`杆长 ${u.quantity(record.geometry.length, "m", 7)}；局部轴按全局 XYZ：x (${Object.values(record.geometry.localX).map(n).join(", ")})，y (${Object.values(record.geometry.localY).map(n).join(", ")})，z (${Object.values(record.geometry.localZ).map(n).join(", ")})。`),
       tableCaption("单元自由度映射"), table(["单元位置", "节点 / ID", "自由度", "整体索引"], record.dofs.map((dof, index) => [String(index), `${nodeLabel(dof.nodeId)} / ${dof.nodeId}`, dof.dof, String(dof.globalIndex)])),
       paragraph("u_local = T · u_global；K_global = Tᵀ · K_local · T；f_local = Kl · u_local − F_equivalent_local。"),
-      tableCaption("单元位移与等效荷载"), table(["位置 / 自由度", "整体 u (m/rad)", "局部 u (m/rad)", "局部 F (kN/kN·m)", "整体 F (kN/kN·m)"], record.dofs.map((dof, index) => [`${index} / ${dof.dof}`, n(record.globalDisplacement[index]), n(record.localDisplacement[index]), n(record.equivalentLocalForces[index]), n(record.equivalentGlobalForces[index])])),
-      tableCaption("局部均布力 xyz (kN/m)"), table(["来源", "qx", "qy", "qz"], [["显式荷载", ...Object.values(record.uniformIntensity).map(n)], ["自重", ...Object.values(record.selfWeightIntensity).map(n)], ["合计", ...Object.values(record.totalIntensity).map(n)]]),
-      tableCaption("局部端部作用分量"), table(["端点", "N (kN)", "Vy (kN)", "Vz (kN)", "T (kN·m)", "My (kN·m)", "Mz (kN·m)"], [["起点", ...record.localEndForces.start.map(n)], ["终点", ...record.localEndForces.end.map(n)]]),
+      tableCaption("单元位移与等效荷载"), table(["位置 / 自由度", `整体 u (${u.unit("m")}/${u.unit("rad")})`, `局部 u (${u.unit("m")}/${u.unit("rad")})`, `局部 F (${u.unit("kN")}/${u.unit("kN·m")})`, `整体 F (${u.unit("kN")}/${u.unit("kN·m")})`], record.dofs.map((dof, index) => [`${index} / ${dof.dof}`, mixed(record.globalDisplacement[index], index), mixed(record.localDisplacement[index], index), mixed(record.equivalentLocalForces[index], index, true), mixed(record.equivalentGlobalForces[index], index, true)])),
+      tableCaption(`局部均布力 xyz (${u.unit("kN/m")})`), table(["来源", "qx", "qy", "qz"], [["显式荷载", ...Object.values(record.uniformIntensity).map((v) => u.number(v, "kN/m", 7))], ["自重", ...Object.values(record.selfWeightIntensity).map((v) => u.number(v, "kN/m", 7))], ["合计", ...Object.values(record.totalIntensity).map((v) => u.number(v, "kN/m", 7))]]),
+      tableCaption("局部端部作用分量"), table(["端点", `N (${u.unit("kN")})`, `Vy (${u.unit("kN")})`, `Vz (${u.unit("kN")})`, `T (${u.unit("kN·m")})`, `My (${u.unit("kN·m")})`, `Mz (${u.unit("kN·m")})`], [["起点", ...record.localEndForces.start.map((v, i) => mixed(v, i, true))], ["终点", ...record.localEndForces.end.map((v, i) => mixed(v, i, true))]]),
       ...matrixTables("局部单元刚度 Kl", record.localStiffness, record.dofs.map((_, index) => index)),
       ...matrixTables("坐标转换矩阵 T", record.transformation, record.dofs.map((_, index) => index)),
       ...matrixTables("整体单元刚度 Kg", record.globalStiffness, record.dofs.map((_, index) => index)));
@@ -53,13 +60,13 @@ export function reportAppendixContent(report: EngineeringReport): Content {
       content.push(heading("所选杆件组装贡献"), paragraph("K = Σ kᵢ；将单元行列对号到整体索引后相加。以下只列所选贡献，不能当作完整 K。"));
       for (const member of overall.members.filter((member) => selection.memberIds.includes(member.memberId))) content.push(
         tableCaption(`${memberLabel(member.memberId)} · ${member.memberId} 对号与等效荷载`),
-        table(["单元位置", "节点 / 自由度", "整体索引", "等效 F (kN/kN·m)"], member.dofs.map((dof, index) => [String(index), `${dof.nodeId}.${dof.dof}`, String(member.globalDofIndices[index]), n(member.equivalentGlobalForces[index])])),
+        table(["单元位置", "节点 / 自由度", "整体索引", `等效 F (${u.unit("kN")}/${u.unit("kN·m")})`], member.dofs.map((dof, index) => [String(index), `${dof.nodeId}.${dof.dof}`, String(member.globalDofIndices[index]), mixed(member.equivalentGlobalForces[index], index, true)])),
         ...matrixTables(`${memberLabel(member.memberId)} 单元整体刚度贡献`, member.globalStiffness, member.globalDofIndices));
     }
     if (selection.steps.includes("constraints")) content.push(heading("约束处理与整体荷载"),
       paragraph("K · u = F；零位移约束 u_c = 0；消去约束行列得到 Kff · uf = Ff；R = K · u − F。"),
       paragraph(`约束索引 [${overall.constrainedDofs.join(", ")}]；自由索引 [${overall.freeDofs.join(", ")}]。`),
-      table(["整体索引", "节点 / 自由度", "状态", "F (kN/kN·m)", "Ff 位置"], overall.dofs.map((dof) => [String(dof.globalIndex), `${dof.nodeId}.${dof.dof}`, dof.restrained ? "约束 / u=0" : "自由", n(overall.loadVector[dof.globalIndex]), dof.restrained ? "已消去" : String(overall.freeDofs.indexOf(dof.globalIndex))])));
+      table(["整体索引", "节点 / 自由度", "状态", `F (${u.unit("kN")}/${u.unit("kN·m")})`, "Ff 位置"], overall.dofs.map((dof) => [String(dof.globalIndex), `${dof.nodeId}.${dof.dof}`, dof.restrained ? "约束 / u=0" : "自由", mixed(overall.loadVector[dof.globalIndex], dof.globalIndex, true), dof.restrained ? "已消去" : String(overall.freeDofs.indexOf(dof.globalIndex))])));
     if (selection.steps.includes("assembled-stiffness") && overall.assembledStiffness) content.push(...matrixTables("整体刚度矩阵 K", overall.assembledStiffness, overall.dofs.map((dof) => dof.globalIndex)));
     if (selection.steps.includes("reduced-stiffness") && overall.reducedStiffness) content.push(...matrixTables("约束后刚度矩阵 Kff", overall.reducedStiffness, overall.freeDofs));
   }

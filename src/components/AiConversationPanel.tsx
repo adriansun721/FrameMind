@@ -1,3 +1,6 @@
+import { useUnits } from "./UnitPresentation";
+import { CANONICAL_UNITS } from "../domain/units";
+import { convertToolQuantities } from "../workspace/unit-tools";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair, History, RotateCcw, Settings2, SquarePen, Trash2, X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
@@ -62,6 +65,8 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   if (!sameProjectInput(projectRef.current, persistedProject)) projectRef.current = persistedProject;
   const project = projectRef.current;
   const localViewRef = useRef(false);
+  const units = useUnits();
+  const editPreviewText = (value: unknown) => JSON.stringify(convertToolQuantities(value, (number, dimension) => units.value(number, CANONICAL_UNITS[dimension])));
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [taskTargets, setTaskTargets] = useState<readonly AiObjectRef[]>([]);
@@ -645,7 +650,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
           {modelEdits.preview.affectedMemberIds.length > 0 && <div><dt>关联杆件</dt><dd>{modelEdits.preview.affectedMemberIds.join("、")}</dd></div>}
         </dl>
         <p className="frame-draft-notice">草案仅来自当前项目修订 R{modelEdits.baseRevision}；确认后形成一个可撤销的整体历史项。节点删除会级联其支座、节点荷载、关联杆件及均布荷载。</p>
-        <details className="proposal-details"><summary>查看逐项变化</summary><ol>{modelEdits.preview.changes.map((change) => <li key={`${change.kind}:${change.id}`}><span>{change.kind} · {change.id}</span><code>{JSON.stringify(change.before ?? null)} -&gt; {JSON.stringify(change.after ?? null)}</code></li>)}</ol></details>
+        <details className="proposal-details"><summary>查看逐项变化</summary><p>坐标 {units.unit("m")} · 截面转角 {units.unit("°")}</p><ol>{modelEdits.preview.changes.map((change) => <li key={`${change.kind}:${change.id}`}><span>{change.kind} · {change.id}</span><code>{editPreviewText(change.before ?? null)} -&gt; {editPreviewText(change.after ?? null)}</code></li>)}</ol></details>
         {!modelEditsCurrent && <p className="frame-draft-notice">正式模型已变化，请重新生成草案。</p>}
         <div className="proposal-card-actions"><button type="button" onClick={() => rejectModelEdits()}>取消编辑</button><button type="button" className="proposal-confirm" disabled={busy || analysisBusy || conflicts.length > 0 || !modelEditsCurrent || Boolean(proposal) || Boolean(conditions) || Boolean(sectionChange)} onClick={confirmModelEdits}>确认编辑</button></div>
       </section>}

@@ -1,3 +1,4 @@
+import { UnitInput, useUnits } from "./UnitPresentation";
 import type { FrameProject, MemberId, Vector3 } from "../domain/project";
 import type { LoadStage } from "../workspace/load-stage";
 import type { ConditionSource } from "../workspace/condition-input";
@@ -43,10 +44,11 @@ export function loadStageOptions(project: FrameProject, draft: LoadStageDraft) {
 const provenance = (source: ConditionSource) => ({ user: "用户提供", suggestion: "建议 · 待确认", existing: "已有", catalog: "目录", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" }[source]);
 
 export function LoadStageFields({ project, draft, busy, onChange }: { project: FrameProject; draft: LoadStageDraft; busy: boolean; onChange(draft: LoadStageDraft): void }) {
+  const u = useUnits();
   const { cases } = loadStageOptions(project, draft);
   const options = cases.map((c) => <option key={c.value} value={c.value}>{c.label}</option>);
   const caseSelect = (label: string, value: string, change: (value: string) => void) => <label>工况<select aria-label={label} value={value} onChange={(e) => change(e.target.value)}><option value="">请选择工况</option>{options}</select></label>;
-  const vectors = (label: string, v: VectorDraft, unit: string, change: (v: VectorDraft) => void) => <div className="condition-vectors">{AXES.map((axis) => <label key={axis}>{axis.toUpperCase()} ({unit})<input aria-label={`${label} ${axis.toUpperCase()} (${unit})`} value={v[axis]} onChange={(e) => change({ ...v, [axis]: e.target.value })} /></label>)}</div>;
+  const vectors = (label: string, v: VectorDraft, unit: string, change: (v: VectorDraft) => void) => <div className="condition-vectors">{AXES.map((axis) => <label key={axis}>{axis.toUpperCase()} ({u.unit(unit)})<UnitInput unit={unit} aria-label={`${label} ${axis.toUpperCase()} (${u.unit(unit)})`} value={v[axis]} onValueChange={(value) => change({ ...v, [axis]: value })} /></label>)}</div>;
   const updateUniform = (index: number, patch: Partial<UniformDraft>) => onChange({ ...draft, uniformLoads: draft.uniformLoads!.map((l, i) => i === index ? { ...l, ...patch, source: "user" } : l) });
   const updateCase = (index: number, patch: Partial<NonNullable<LoadStageDraft["loadCases"]>[number]>) => onChange({ ...draft, loadCases: draft.loadCases!.map((c, i) => i === index ? { ...c, ...patch, source: "user" } : c) });
   const updateCombo = (index: number, patch: Partial<CombinationDraft>) => onChange({ ...draft, loadCombinations: draft.loadCombinations!.map((c, i) => i === index ? { ...c, ...patch, source: "user" } : c) });
@@ -64,7 +66,7 @@ export function LoadStageFields({ project, draft, busy, onChange }: { project: F
       </div>)}
       <button type="button" onClick={() => onChange({ ...draft, loadCases: [...(draft.loadCases ?? []), { ref: `case_${crypto.randomUUID()}`, name: "", description: "", source: "user" }] })}>添加工况条目</button>
     </fieldset></details>
-    <details className="proposal-editor-group" open={Boolean(draft.uniformLoads?.length)}><summary>杆件均布荷载</summary><fieldset disabled={busy}><legend>杆件均布荷载</legend><p>整根杆件 · 全局 XYZ 或杆件局部 xyz · kN/m。省略本组保留已有荷载。</p>
+    <details className="proposal-editor-group" open={Boolean(draft.uniformLoads?.length)}><summary>杆件均布荷载</summary><fieldset disabled={busy}><legend>杆件均布荷载</legend><p>整根杆件 · 全局 XYZ 或杆件局部 xyz · {u.unit("kN/m")}。省略本组保留已有荷载。</p>
       {draft.uniformLoads?.map((l, index) => <div className="condition-entry" key={index}>
         <strong>{l.id ? `修改 ${l.id}` : `新增均布荷载 ${index + 1}`} · {provenance(l.source)}</strong>
         <label>杆件<select aria-label={`均布荷载 ${index + 1} 杆件`} value={l.memberId} onChange={(e) => updateUniform(index, { memberId: e.target.value as MemberId })}><option value="">请选择杆件</option>{project.members.map((m) => <option key={m.id} value={m.id}>{m.label} · {m.id}</option>)}</select></label>
@@ -77,12 +79,12 @@ export function LoadStageFields({ project, draft, busy, onChange }: { project: F
       <button type="button" onClick={() => onChange({ ...draft, uniformLoads: [...(draft.uniformLoads ?? []), { memberId: (project.members[0]?.id ?? "") as MemberId, loadCaseId: firstCase, coordinateSystem: "global", intensity: { x: "0", y: "0", z: "0" }, source: "user" }] })}>添加均布荷载条目</button>
     </fieldset></details>
     <details className="proposal-editor-group" open={Boolean(draft.selfWeight)}><summary>结构自重</summary><fieldset disabled={busy}><legend>结构自重</legend>
-      <p>已确认：{project.selfWeight.enabled ? "启用" : "关闭"} · {project.selfWeight.loadCaseId} · g=({project.selfWeight.gravity.x}, {project.selfWeight.gravity.y}, {project.selfWeight.gravity.z}) m/s²。全结构只计入指定的一个工况。</p>
+      <p>已确认：{project.selfWeight.enabled ? "启用" : "关闭"} · {project.selfWeight.loadCaseId} · g={u.vector(project.selfWeight.gravity, "m/s²")}。全结构只计入指定的一个工况。</p>
       {draft.selfWeight ? <div className="condition-entry"><strong>{provenance(draft.selfWeight.source)}</strong>
         <label><input type="checkbox" aria-label="卡片启用结构自重" checked={draft.selfWeight.enabled} onChange={(e) => updateWeight({ enabled: e.target.checked })} />启用结构自重</label>
         {caseSelect("自重工况", draft.selfWeight.loadCaseId, (loadCaseId) => updateWeight({ loadCaseId }))}
         {vectors("重力", draft.selfWeight.gravity, "m/s²", (gravity) => updateWeight({ gravity }))}
-        <details className="self-weight-references"><summary>材料密度与截面面积</summary><ul>{project.members.map((m) => <li key={m.id}>{m.label} · ρ={project.materials.find((v) => v.id === m.materialId)?.densityKgM3 ?? "缺失"} kg/m³ · A={project.sections.find((v) => v.id === m.sectionId)?.areaM2 ?? "缺失"} m²</li>)}</ul></details>
+        <details className="self-weight-references"><summary>材料密度与截面面积</summary><ul>{project.members.map((m) => <li key={m.id}>{m.label} · ρ={u.quantity(project.materials.find((v) => v.id === m.materialId)!.densityKgM3, "kg/m³")} · A={u.quantity(project.sections.find((v) => v.id === m.sectionId)!.areaM2, "m²")}</li>)}</ul></details>
         <button type="button" onClick={() => onChange({ ...draft, selfWeight: undefined })}>本阶段不修改自重</button>
       </div> : <button type="button" onClick={() => onChange({ ...draft, selfWeight: { ...project.selfWeight, gravity: vectorDraft(project.selfWeight.gravity), source: "user" } })}>编辑自重条目</button>}
     </fieldset></details>

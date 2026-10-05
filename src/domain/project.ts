@@ -1,3 +1,4 @@
+import type { UnitPresetId } from "./units";
 import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisResult } from "./analysis";
 import { requireAnalysisCapability, type AnalysisMethod } from "./analysis-capabilities";
@@ -75,6 +76,7 @@ export interface FrameProject {
   updatedAt: string;
   revision: number;
   units: { length: "m"; force: "kN"; moment: "kN·m"; };
+  displayUnitPreset?: UnitPresetId;
   nodes: FrameNode[];
   materials: FrameMaterial[];
   sections: FrameSection[];

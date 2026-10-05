@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "solver": "framemind-native/2",
+  "switchPreservesRevision": true,
+  "switchPreservesFrozenResults": true,
+  "manualForceKN": 16,
+  "originalForceKN": 8,
+  "coordinate": {
+    "x": 1000000000.125,
+    "y": 0.000001,
+    "z": -0.0125
+  },
+  "pdfPages": 4,
+  "wordUnitLabels": [
+    "MPa",
+    "mm²",
+    "N",
+    "N·mm"
+  ],
+  "reopenedPreset": "mm-N"
+}

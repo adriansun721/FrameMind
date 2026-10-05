@@ -16,6 +16,8 @@ interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
 const modelTools = [
+  { type: "function", function: { name: "read_unit_contract", description: "Read canonical units, display presets and external-data unit rules. Never infer missing units from magnitude.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
+  { type: "function", function: { name: "convert_quantity", description: "Convert a quantity with explicitly declared dimension and source/target units. Missing or incompatible units are rejected.", parameters: { type: "object", additionalProperties: false, required: ["value", "dimension", "fromUnit", "toUnit"], properties: { value: { type: "number" }, dimension: { type: "string" }, fromUnit: { type: "string" }, toUnit: { type: "string" } } } } },
   { type: "function", function: { name: "propose_section_change", description: "Preview section reassignment for EXACTLY the currently selected vertical columns. Never updates a shared section or unselected members. Use either an existing project/catalog sectionId or new section properties. User must confirm the stage.",
     parameters: { type: "object", additionalProperties: false, required: ["source"], properties: {
       memberIds: { type: "array", items: { type: "string" }, description: "Optional, must exactly equal current selected columns." }, sectionId: { type: "string" },
@@ -133,7 +135,16 @@ function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
   const taskDraftActive = messages.some((message) => message.role === "system" && /当前完整任务草案：\{/.test(message.content));
   const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
   const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;
-  return editRequested ? [...base, ...modelEditTools] : base;
+  return (editRequested ? [...base, ...modelEditTools] : base).map((tool) => {
+    if (tool.function.name.startsWith("discard_") || ["request_analysis", "read_unit_contract", "convert_quantity", "inspect_diagnostics", "run_diagnostic_trial", "create_diagnostic_copy", "read_diagnostic", "compare_diagnostic_trials"].includes(tool.function.name)) return tool;
+    return { ...tool, function: { ...tool.function,
+      description: tool.function.description + " Numeric fields use canonical m, kN, kN·m, GPa, kg/m³, m², m⁴, degrees (orientation), rad (response), m/s² unless inputUnits explicitly overrides dimensions. External values with missing units require user clarification. outputUnitPreset changes returned data only; confirmation and reference payloads remain canonical.",
+      parameters: { ...tool.function.parameters, properties: { ...tool.function.parameters.properties,
+        inputUnits: { type: "object", additionalProperties: false, properties: Object.fromEntries(["length", "force", "moment", "distributedForce", "modulus", "density", "area", "inertia", "orientation", "rotation", "acceleration", "mass"].map((key) => [key, { type: "string" }])) },
+        outputUnitPreset: { type: "string", enum: ["m-kN", "mm-N", "mm-kN"] },
+      } },
+    } };
+  });
 }
 const MAX_CHAT_BYTES = 1_048_576;
 const MAX_TOOL_CALLS = 16;

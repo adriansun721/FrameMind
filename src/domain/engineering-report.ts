@@ -1,3 +1,4 @@
+import type { UnitPresetId } from "./units";
 import { decodeAnalysisResult } from "./project-file";
 import { freezeAnalysisInput, type AnalysisResult } from "./analysis";
 import { calculateMemberGeometry } from "./member-geometry";
@@ -5,6 +6,7 @@ import type { FrameProject } from "./project";
 import { captureReportAppendix, freezeReportData, type ReportAppendix, type ReportAppendixSelection } from "./report-appendix";
 
 export interface EngineeringReport {
+  displayUnitPreset?: UnitPresetId;
   projectName: string;
   generatedAt: string;
   result: AnalysisResult;
@@ -42,7 +44,7 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
     Object.freeze(member.localEndForces.start); Object.freeze(member.localEndForces.end); Object.freeze(member.localEndForces); Object.freeze(member);
   });
   Object.freeze(result.nodes); Object.freeze(result.members); Object.freeze(result);
-  return freezeReportData({ projectName: project.name, generatedAt: new Date().toISOString(), result, appendix: captureReportAppendix(result, selection) });
+  return freezeReportData({ displayUnitPreset: project.displayUnitPreset, projectName: project.name, generatedAt: new Date().toISOString(), result, appendix: captureReportAppendix(result, selection) });
 }
 
 export const reportNumber = (value: number): string => value === 0 ? "0" : Number(value.toPrecision(7)).toString();

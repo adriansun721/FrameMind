@@ -1,3 +1,4 @@
+import { useUnits } from "./UnitPresentation";
 import { useEffect, useRef, useState } from "react";
 import { createSupplementalAnalysisInput, getMemberAnalysisRecord, type AnalysisResult, type MemberAnalysisRecord } from "../domain/analysis";
 import { ProcessDisclosure } from "./ProcessDisclosure";
@@ -11,32 +12,37 @@ interface MemberAnalysisProcessProps {
 }
 
 const FORCE_LABELS = ["Fx", "Fy", "Fz", "Mx", "My", "Mz"];
-const formatNumber = (value: number) => Math.abs(value) < 1e-12 ? "0" : value.toPrecision(6);
-const vectorText = (values: number[], units: string) => `[${values.map(formatNumber).join(", ")}] ${units}`;
+const formatNumber = (value: number) => value === 0 ? "0" : value.toPrecision(6);
 const axisText = (value: { x: number; y: number; z: number }) => `(${formatNumber(value.x)}, ${formatNumber(value.y)}, ${formatNumber(value.z)})`;
 
 function ProcessVector({ label, values, units, order }: { label: string; values: number[]; units: string; order: string }) {
-  return <div className="member-process-vector"><strong>{label}</strong><span title={`${order} · ${vectorText(values, units)}`}>{vectorText(values, units)}</span><small>{order}</small></div>;
+  const u = useUnits();
+  const converted = u.mixedVector(values, units === "m / rad" ? "displacement" : "force");
+  const text = `[${converted.map(formatNumber).join(", ")}] ${units === "m / rad" ? `${u.unit("m")} / ${u.unit("rad")}` : `${u.unit("kN")} / ${u.unit("kN·m")}`}`;
+  return <div className="member-process-vector"><strong>{label}</strong><span title={`${order} · ${text}`}>{text}</span><small>{order}</small></div>;
 }
 
 function MatrixView({ label, matrix, order }: { label: string; matrix: number[][]; order: string[] }) {
-  return <ProcessDisclosure className="member-process-matrix" summary={<>{label} · 12 × 12</>}>{() => <><div className="member-process-matrix-note">行 / 列顺序：{order.join(" · ")}。矩阵按 m-kN-kN·m 基础显示，平移与转动自由度组合时量纲随行列变化。</div><div className="member-process-matrix-scroll"><table aria-label={label}><thead><tr><th scope="col">行＼列</th>{order.map((item) => <th scope="col" key={item}>{item}</th>)}</tr></thead><tbody>{matrix.map((row, rowIndex) => <tr key={rowIndex}><th scope="row">{order[rowIndex]}</th>{row.map((value, columnIndex) => <td key={columnIndex}>{formatNumber(value)}</td>)}</tr>)}</tbody></table></div></>}</ProcessDisclosure>;
+  const u = useUnits();
+  return <ProcessDisclosure className="member-process-matrix" summary={<>{label} · 12 × 12</>}>{() => <><div className="member-process-matrix-note">行 / 列顺序：{order.join(" · ")}。刚度行单位 {u.unit("kN")} / {u.unit("kN·m")}，列单位 {u.unit("m")} / {u.unit("rad")}；T 无量纲。</div><div className="member-process-matrix-scroll"><table aria-label={label}><thead><tr><th scope="col">行＼列</th>{order.map((item) => <th scope="col" key={item}>{item}</th>)}</tr></thead><tbody>{matrix.map((row, rowIndex) => <tr key={rowIndex}><th scope="row">{order[rowIndex]}</th>{row.map((value, columnIndex) => <td key={columnIndex}>{formatNumber(label.includes("转换 T") ? value : u.stiffness(value, rowIndex, columnIndex))}</td>)}</tr>)}</tbody></table></div></>}</ProcessDisclosure>;
 }
 
 function SavedMemberResult({ result, memberId }: { result: AnalysisResult; memberId: string }) {
+  const u = useUnits();
   const saved = result.members.find((member) => member.memberId === memberId);
   if (!saved) return null;
   return <section className="property-section member-process-saved"><h3>已保存的杆件结果</h3><dl>
-    <div><dt>杆长</dt><dd>{saved.length.toFixed(6)} m</dd></div>
+    <div><dt>杆长</dt><dd>{u.quantity(saved.length, "m")}</dd></div>
     <div><dt>局部 x</dt><dd>{axisText(saved.localAxes.x)}</dd></div>
     <div><dt>局部 y</dt><dd>{axisText(saved.localAxes.y)}</dd></div>
     <div><dt>局部 z</dt><dd>{axisText(saved.localAxes.z)}</dd></div>
-    <div><dt>起点杆端力</dt><dd>{vectorText(saved.localEndForces.start, "kN / kN·m")}</dd></div>
-    <div><dt>终点杆端力</dt><dd>{vectorText(saved.localEndForces.end, "kN / kN·m")}</dd></div>
+    <div><dt>起点杆端力</dt><dd>{u.forceVector(saved.localEndForces.start)}</dd></div>
+    <div><dt>终点杆端力</dt><dd>{u.forceVector(saved.localEndForces.end)}</dd></div>
   </dl></section>;
 }
 
 function MemberProcessDetails({ record, result }: { record: MemberAnalysisRecord; result: AnalysisResult }) {
+  const u = useUnits();
   const nodeLabel = (id: string) => result.input.nodes.find((node) => node.id === id)?.label ?? id;
   const matrixOrder = record.dofs.map(({ nodeId, dof }) => `${nodeLabel(nodeId)}.${dof}`);
   const origin = record.origin === "supplemental-reconstruction"
@@ -54,7 +60,7 @@ function MemberProcessDetails({ record, result }: { record: MemberAnalysisRecord
       <div><dt>局部 x</dt><dd>{axisText(record.geometry.localX)}</dd></div>
       <div><dt>局部 y</dt><dd>{axisText(record.geometry.localY)}</dd></div>
       <div><dt>局部 z</dt><dd>{axisText(record.geometry.localZ)}</dd></div>
-      <div><dt>杆长</dt><dd>{record.geometry.length.toFixed(6)} m</dd></div>
+      <div><dt>杆长</dt><dd>{u.quantity(record.geometry.length, "m")}</dd></div>
     </dl><div className="member-process-dof-table"><table aria-label="杆件自由度映射"><thead><tr><th>局部位置</th><th>节点</th><th>自由度</th><th>整体索引</th></tr></thead><tbody>{record.dofs.map((dof, index) => <tr key={`${dof.nodeId}-${dof.dof}`}><td>{index < 6 ? "起点" : "终点"} · {index + 1}</td><td>{nodeLabel(dof.nodeId)} · {dof.nodeId}</td><td>{dof.dof}</td><td>{dof.globalIndex}</td></tr>)}</tbody></table></div></section>
     <section className="property-section"><h3>转换关系与实际数值</h3><p className="member-process-equation"><code>u_local = T · u_global</code><code>K_global = Tᵀ · K_local · T</code></p><div className="member-process-vectors">
       <ProcessVector label="整体位移 / 转角" values={record.globalDisplacement} units="m / rad" order={matrixOrder.join(" · ")} />

@@ -1,3 +1,4 @@
+import { useUnits } from "./UnitPresentation";
 import type { AiTaskResult } from "../workspace/ai-task";
 import { resultReferenceLabel, type ResultReference } from "../workspace/ai-results";
 import type { AnalysisPairIds } from "../workspace/ai-comparison";
@@ -5,7 +6,9 @@ import type { FrameProject } from "../domain/project";
 import { isAnalysisResultCurrent } from "../domain/analysis";
 
 export function AiResultExplanation({ project, result, onLocate, onCompare }: { project: FrameProject; result: Pick<AiTaskResult, "assistant" | "records">; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
+  const u = useUnits();
   const current = (id: string) => { const analysis = project.analysisResults.find((item) => item.id === id); return Boolean(analysis && isAnalysisResultCurrent(project, analysis)); };
+  const displayReference = (ref: ResultReference) => resultReferenceLabel({ ...ref, value: u.value(ref.value, ref.unit), unit: u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
   const references = result.records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
   const comparisons = result.records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
   if (!result.assistant) return null;
@@ -16,22 +19,24 @@ export function AiResultExplanation({ project, result, onLocate, onCompare }: { 
       const ref = references.find((item) => item.token === part);
       const comparison = comparisons.find((item) => item.token === part);
       if (comparison) return <button key={index} className="ai-result-reference ai-comparison-reference" onClick={() => onCompare({ beforeId: comparison.before.analysisId, afterId: comparison.after.analysisId })}>
-        {comparison.after.object.label} · {comparison.after.component}：{comparison.before.value.toPrecision(8)} → {comparison.after.value.toPrecision(8)} {comparison.unit} · Δ {comparison.delta.toPrecision(8)} {comparison.unit}
+        {comparison.after.object.label} · {comparison.after.component}：{u.number(comparison.before.value, comparison.unit)} → {u.quantity(comparison.after.value, comparison.unit)} · Δ {u.quantity(comparison.delta, comparison.unit)}
         <small>{comparison.before.source.id} · 输入 R{comparison.before.inputRevision} → R{comparison.after.inputRevision}{!current(comparison.before.analysisId) || !current(comparison.after.analysisId) ? " · 含历史结果" : ""} · 查看同一对比表</small>
       </button>;
       return ref ? <button key={index} className="ai-result-reference" onClick={() => onLocate(ref)} title={`${ref.analysisId} · 输入 R${ref.inputRevision} · ${ref.source.id}`}>
-        {resultReferenceLabel(ref)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{current(ref.analysisId) ? "" : " · 历史结果"}</small>
+        {displayReference(ref)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{current(ref.analysisId) ? "" : " · 历史结果"}</small>
       </button> : <span key={index}>{part}</span>;
     })}</p>
   </div>;
 }
 
 export function ResultReferenceDetails({ reference, current, exists, onClose }: { reference: ResultReference; current: boolean; exists: boolean; onClose(): void }) {
+  const u = useUnits();
   const ref = reference;
-  const vector = (v: { x: number; y: number; z: number }) => `(${v.x}, ${v.y}, ${v.z}) m`;
+  const displayReference = (ref: ResultReference) => resultReferenceLabel({ ...ref, value: u.value(ref.value, ref.unit), unit: u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
+  const vector = (v: { x: number; y: number; z: number }) => u.vector(v, "m");
   return <section className="property-section ai-reference-details" aria-label="引用结果项">
     <div className="result-section-heading"><h3>引用结果项</h3><button onClick={onClose} aria-label="关闭引用结果">×</button></div>
-    <strong>{resultReferenceLabel(ref)}</strong>
+    <strong>{displayReference(ref)}</strong>
     <dl>
       <div><dt>分析身份</dt><dd>{ref.analysisId}</dd></div>
       <div><dt>冻结输入</dt><dd>R{ref.inputRevision} · {ref.createdAt}</dd></div>
@@ -39,7 +44,7 @@ export function ResultReferenceDetails({ reference, current, exists, onClose }: 
       <div><dt>稳定对象</dt><dd>{ref.object.id}</dd></div>
       <div><dt>输入坐标</dt><dd>{vector(ref.object.position)}{ref.object.endPosition && ` → ${vector(ref.object.endPosition)}`}</dd></div>
       <div><dt>坐标与符号</dt><dd>{ref.coordinateSystem} · {ref.quantity === "sectionForces" ? "正局部 x 面截面内力" : ref.object.kind === "member" ? "杆端节点作用力" : "全局分量"}</dd></div>
-      <div><dt>原始数值</dt><dd>{ref.value} {ref.unit}</dd></div>
+      <div><dt>原始数值</dt><dd>{u.quantity(ref.value, ref.unit, 12)}</dd></div>
     </dl>
     {ref.source.terms && <p>用户自定义组合：{ref.source.terms.map((term) => `${term.loadCaseId} × ${term.factor}`).join(" + ")}</p>}
     <p className="ai-result-note">{current ? "引用分析与当前模型输入一致。" : "历史输入结果；当前模型需重新计算。"}{!exists && " 对象已从当前模型删除，保留冻结输入位置。"}</p>

@@ -1,3 +1,4 @@
+import { useUnits } from "./UnitPresentation";
 import { useEffect, useRef } from "react";
 import { Scan, Weight } from "lucide-react";
 import * as THREE from "three";
@@ -264,6 +265,7 @@ function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: Fra
 }
 
 export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
+  const u = useUnits();
   const responseCache = useRef(new WeakMap<AnalysisResult, Map<string, ReturnType<typeof getMemberResponseSamples>>>());
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -524,12 +526,12 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
       {displayedWeight && <div className={`viewport-weight-marker${weightPending ? " pending" : ""}`} aria-label={weightPending ? "待确认自重标记" : "自重标记"}>
         <Weight size={16} /><div><strong>{displayedWeight.enabled ? "结构自重" : "关闭自重"}{weightPending ? " · 待确认" : " · 已启用"}</strong>
           <span>{weightPending ? preview!.selfWeight!.caseLabel : selfWeightLabel ?? displayedWeight.loadCaseId} · 全结构</span>
-          <small>全局 g ({displayedWeight.gravity.x}, {displayedWeight.gravity.y}, {displayedWeight.gravity.z}) m/s²</small></div>
+          <small>全局 g {u.vector(displayedWeight.gravity, "m/s²")}</small></div>
       </div>}
-      {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m"}`}</div>}
+      {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${u.unit(["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m")}`}</div>}
       {((supports?.length ?? 0) + (nodalLoads?.length ?? 0) > 100 || (uniformLoads?.length ?? 0) > 100) && <div className="viewport-label-policy">密集条件仅标注选中对象；完整编号见项目树</div>}
-      {selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ ({selectedNode.position.x}, {selectedNode.position.y}, {selectedNode.position.z}) m</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F ({selectedNodalLoad.force.x}, {selectedNodalLoad.force.y}, {selectedNodalLoad.force.z}) kN</span><span>M ({selectedNodalLoad.moment.x}, {selectedNodalLoad.moment.y}, {selectedNodalLoad.moment.z}) kN·m</span></>}</div>}
-      {selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q ({selectedLoad.intensity.x}, {selectedLoad.intensity.y}, {selectedLoad.intensity.z}) kN/m</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {selectedMaterial.elasticModulusGPa} GPa</span><span>{selectedSection.name} · A {selectedSection.areaM2} m²</span><small>分析线模型 · 截面转角 {selectedMember.rotationDegrees}°</small></div>}
+      {selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ {u.vector(selectedNode.position, "m")}</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F {u.vector(selectedNodalLoad.force, "kN")}</span><span>M {u.vector(selectedNodalLoad.moment, "kN·m")}</span></>}</div>}
+      {selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q {u.vector(selectedLoad.intensity, "kN/m")}</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {u.quantity(selectedMaterial.elasticModulusGPa, "GPa")}</span><span>{selectedSection.name} · A {u.quantity(selectedSection.areaM2, "m²")}</span><small>分析线模型 · 截面转角 {u.quantity(selectedMember.rotationDegrees, "°")}</small></div>}
       {nodes.length === 0 && !preview?.nodes.length && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
     </div>
   );

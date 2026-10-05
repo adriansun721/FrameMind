@@ -1,3 +1,4 @@
+import { UnitInput, useUnits } from "./UnitPresentation";
 import { useState } from "react";
 import type { FrameProject, NodeId } from "../domain/project";
 import { conditionsIssues, proposeConditions, type ConditionsProposal } from "../workspace/analysis-conditions";
@@ -17,6 +18,7 @@ const zero = () => ({ x: "0", y: "0", z: "0" });
 const sourceLabel: Record<string, string> = { existing: "已有", user: "用户提供", catalog: "目录", suggestion: "建议 · 待确认", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" };
 
 export function AnalysisConditionsCard({ project, proposal, busy, current, baseRevision, visible, calculate, previous, onDirty, onChange, onConfirm, onReject }: Props) {
+  const u = useUnits();
   const [supports, setSupports] = useState(proposal.supports);
   const [loads, setLoads] = useState(() => proposal.nodalLoads?.map((load) => ({ ...load,
     force: { x: String(load.force.x), y: String(load.force.y), z: String(load.force.z) },
@@ -26,7 +28,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
   const [analysisSourceId, setAnalysisSourceId] = useState(proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
   const [error, setError] = useState("");
   const edit = () => { setDirty(true); onDirty(true); setError(""); };
-  const nodeOptions = project.nodes.map((node) => <option key={node.id} value={node.id}>{node.label} · {node.id} · ({node.position.x}, {node.position.y}, {node.position.z}) m</option>);
+  const nodeOptions = project.nodes.map((node) => <option key={node.id} value={node.id}>{node.label} · {node.id} · {u.vector(node.position, "m")}</option>);
   const issues = conditionsIssues(project, proposal);
   const options = loadStageOptions(project, loadStage);
   const update = () => {
@@ -41,7 +43,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
       setDirty(false); onDirty(false); setError("");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "条件无效"); }
   };
-  const summaries = conditionSummaries(project, proposal);
+  const summaries = conditionSummaries(project, proposal, u.preset);
   const summaryFields = { 支座: "supports", 节点荷载: "nodalLoads", 均布荷载: "uniformLoads", 工况: "loadCases", 组合: "loadCombinations", 自重: "selfWeight" } as const;
   const changed = (key: keyof ConditionsProposal) => previous?.id === proposal.id && JSON.stringify(previous[key]) !== JSON.stringify(proposal[key]);
   const sourceName = loadStageOptions(project, loadStageDraft(proposal)).sources.find((source) => source.value === (proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId))?.label;
@@ -71,7 +73,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
       ...(!summaries.length ? [{ label: "变更", value: "本阶段无新增或修改条件" }] : []),
       { label: "计算来源", changed: changed("analysisSourceId"), value: sourceName ?? proposal.analysisSourceId ?? project.activeAnalysisCaseId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId },
     ]}>
-    <p>全局 XYZ · 平移 UX/UY/UZ、转动 RX/RY/RZ · 勾选表示约束。力 kN，力矩 kN·m（右手规则）。</p>
+    <p>全局 XYZ · 平移 UX/UY/UZ、转动 RX/RY/RZ · 勾选表示约束。力 {u.unit("kN")}，力矩 {u.unit("kN·m")}（右手规则）。</p>
     <form onSubmit={(event) => { event.preventDefault(); update(); }}>
       <div className="frame-parameter"><label>确认后计算来源<select aria-label="确认后计算来源" value={analysisSourceId} disabled={busy} onChange={(event) => { edit(); setAnalysisSourceId(event.target.value); }}>
         {options.sources.map((source) => <option key={source.value} value={source.value}>{source.label}</option>)}
@@ -97,8 +99,8 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
           <label>荷载节点<select aria-label={`荷载 ${index + 1} 节点`} value={load.nodeId} onChange={(e) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, nodeId: e.target.value as NodeId, source: "user" } : item)); }}><option value="">请选择节点</option>{nodeOptions}</select></label>
           <label>工况<select aria-label={`荷载 ${index + 1} 工况`} value={load.loadCaseId} onChange={(e) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, loadCaseId: e.target.value, source: "user" } : item)); }}>{options.cases.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</select></label>
           <div className="condition-vectors">{(["force", "moment"] as const).flatMap((kind) => AXES.map((axis) => {
-            const label = `${kind === "force" ? "F" : "M"}${axis.toUpperCase()} (${kind === "force" ? "kN" : "kN·m"})`;
-            return <label key={`${kind}:${axis}`}>{label}<input aria-label={`荷载 ${index + 1} ${label}`} value={load[kind][axis]} onChange={(e) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, source: "user", [kind]: { ...item[kind], [axis]: e.target.value } } : item)); }} /></label>;
+            const label = `${kind === "force" ? "F" : "M"}${axis.toUpperCase()} (${u.unit(kind === "force" ? "kN" : "kN·m")})`;
+            return <label key={`${kind}:${axis}`}>{label}<UnitInput unit={kind === "force" ? "kN" : "kN·m"} aria-label={`荷载 ${index + 1} ${label}`} value={load[kind][axis]} onValueChange={(value) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, source: "user", [kind]: { ...item[kind], [axis]: value } } : item)); }} /></label>;
           }))}</div>
           {load.id && <p>原荷载：{JSON.stringify(project.nodalLoads.find((item) => item.id === load.id))}</p>}
           <button type="button" onClick={() => { edit(); setLoads(loads.filter((_, i) => i !== index)); }}>移除荷载条目 {index + 1}</button>

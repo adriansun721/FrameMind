@@ -1,3 +1,4 @@
+import { UnitInput, useUnits } from "./UnitPresentation";
 import { useMemo, useState } from "react";
 import type { AiSnapshot } from "../workspace/ai-tools";
 import { buildFramePreview, editFrameParameter, FRAME_FIELDS, frameResourceOptions, type FrameField, type FrameProposal, type ParameterValue } from "../workspace/frame-proposal";
@@ -12,6 +13,9 @@ const valueText = (value: ParameterValue | undefined) => Array.isArray(value) ? 
 const sourceLabel: Record<string, string> = { existing: "已有", user: "用户提供", catalog: "目录", suggestion: "建议 · 待确认", assumption: "假设 · 待确认", unknown: "未知 · 待补齐" };
 
 export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevision, visible, onConfirm, onChange, onDirty, onReject }: Props) {
+  const u = useUnits();
+  const fieldUnit = (field: FrameField) => ["origin", "xSpans", "ySpans", "storeyHeights"].includes(field) ? "m" : field === "rotationDegrees" ? "°" : "无";
+  const parameterText = (field: FrameField, value: ParameterValue | undefined) => typeof value === "number" ? u.number(value, fieldUnit(field)) : Array.isArray(value) ? value.map((n) => u.number(n, fieldUnit(field))).join(", ") : valueText(value);
   const fields = Object.keys(FRAME_FIELDS) as FrameField[];
   const [texts, setTexts] = useState(() => Object.fromEntries(fields.map((field) => [field, valueText(proposal.parameters[field]?.value)])) as Record<FrameField, string>);
   const [dirty, setDirty] = useState(false);
@@ -37,8 +41,8 @@ export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevis
       ? compact ? snapshot.model.materials.find((item) => item.id === p?.value)?.name ?? snapshot.model.sections.find((item) => item.id === p?.value)?.name
         ?? frameResourceOptions(snapshot, field).find((option) => option.value === p?.value)?.label.split(" · ")[0] ?? valueText(p?.value)
         : frameResourceOptions(snapshot, field).find((option) => option.value === p?.value)?.label ?? valueText(p?.value)
-      : valueText(p?.value);
-    return <span className={proposal.changes.some((change) => change.field === field) ? "proposal-row-changed" : undefined}>{p ? `${text}${unit}` : "缺失"}{p && <small className={p.source === "suggestion" || p.source === "assumption" || p.source === "unknown" ? "proposal-suggestion" : "proposal-source"}>{sourceLabel[p.source]}</small>}</span>;
+      : parameterText(field, p?.value);
+    return <span className={proposal.changes.some((change) => change.field === field) ? "proposal-row-changed" : undefined}>{p ? `${text}${unit ? " " + u.unit(fieldUnit(field)) : ["origin", "xSpans", "ySpans", "storeyHeights", "rotationDegrees"].includes(field) ? " " + u.unit(fieldUnit(field)) : ""}` : "缺失"}{p && <small className={p.source === "suggestion" || p.source === "assumption" || p.source === "unknown" ? "proposal-suggestion" : "proposal-source"}>{sourceLabel[p.source]}</small>}</span>;
   };
   const details = <>
     <p>V{proposal.version} · 基础 R{baseRevision} · 未应用</p>
@@ -47,10 +51,10 @@ export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevis
     <p>支座与荷载尚未设置。此方案未进入正式模型或分析输入。</p>
     <h4>涉及对象与创建内容</h4><div className="frame-object-list">
       {[...preview.nodes, ...preview.members].slice(objectPage * 100, (objectPage + 1) * 100).map((object) => <div key={object.id}>{object.label} · {"position" in object
-        ? `(${object.position.x}, ${object.position.y}, ${object.position.z}) m`
+        ? u.vector(object.position, "m")
         : `${object.role === "column" ? "柱" : "梁"} · ${nodeLabels.get(object.startNodeId)} → ${nodeLabels.get(object.endNodeId)} · ${preview.sections.find((section) => section.id === object.sectionId)?.name}`}</div>)}
     </div><div className="frame-proposal-actions"><button disabled={objectPage === 0} onClick={() => setObjectPage((page) => page - 1)}>上一页对象</button><span>第 {objectPage + 1} 页 · 共 {preview.nodes.length + preview.members.length} 对象</span><button disabled={(objectPage + 1) * 100 >= preview.nodes.length + preview.members.length} onClick={() => setObjectPage((page) => page + 1)}>下一页对象</button></div>
-    {proposal.changes.length > 0 && <><h4>本次参数变化</h4>{proposal.changes.map((change) => <p key={change.field}>{FRAME_FIELDS[change.field]}：{valueText(change.before) || "缺失"} → {valueText(change.after)}</p>)}</>}
+    {proposal.changes.length > 0 && <><h4>本次参数变化</h4>{proposal.changes.map((change) => <p key={change.field}>{FRAME_FIELDS[change.field]}：{parameterText(change.field, change.before) || "缺失"} → {parameterText(change.field, change.after)} {u.unit(fieldUnit(change.field))}</p>)}</>}
   </>;
   return <ProposalCard title="空间刚架建模方案" label="建模参数卡片" visible={visible} current={current} busy={busy} dirty={dirty} issues={preview.issues}
     confirmLabel="确认建模" onConfirm={onConfirm} details={details} onCancelEdit={() => {
@@ -70,14 +74,14 @@ export function FrameProposalCard({ snapshot, proposal, busy, current, baseRevis
         const isResource = ["material", "columnSection", "beamSection"].includes(field);
         const change = (value: string) => { setTexts((previous) => ({ ...previous, [field]: value })); setDirty(true); onDirty(true); setError(""); };
         return <div className="frame-parameter" key={field}>
-          <label><span>{FRAME_FIELDS[field]}</span><small>{parameter ? sourceLabel[parameter.source] : "尚缺失"}</small>
+          <label><span>{FRAME_FIELDS[field]}{!["material", "columnSection", "beamSection", "storeys"].includes(field) && ` (${u.unit(fieldUnit(field))})`}</span><small>{parameter ? sourceLabel[parameter.source] : "尚缺失"}</small>
             {isResource ? <select aria-label={FRAME_FIELDS[field]} value={texts[field]} disabled={busy} onChange={(event) => change(event.target.value)}>
               <option value="">请选择</option>
               {parameter && !frameResourceOptions(snapshot, field).some((option) => option.value === texts[field]) && <option value={texts[field]}>{texts[field]}（资源不存在）</option>}
               {frameResourceOptions(snapshot, field).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select> : <input aria-label={FRAME_FIELDS[field]} value={texts[field]} placeholder={field === "storeyHeights" ? "如：3, 3（两层）" : field === "origin" ? "如：0, 0, 0" : "输入数值；多项用逗号分隔"} disabled={busy} onChange={(event) => change(event.target.value)} />}
+            </select> : <UnitInput unit={fieldUnit(field)} list={field !== "rotationDegrees" && field !== "storeys"} aria-label={FRAME_FIELDS[field]} value={texts[field]} placeholder="输入数值；多项用逗号分隔" disabled={busy} onValueChange={change} />}
           </label>
-          {parameter?.conflict !== undefined && <div className="frame-conflict" role="alert">待澄清：当前 {valueText(parameter.value)} / 新值 {valueText(parameter.conflict)}。编辑选定值后更新。</div>}
+          {parameter?.conflict !== undefined && <div className="frame-conflict" role="alert">待澄清：当前 {parameterText(field, parameter.value)} / 新值 {parameterText(field, parameter.conflict)} {u.unit(fieldUnit(field))}。编辑选定值后更新。</div>}
         </div>;
       })}
       {error && <p role="alert" className="frame-conflict">{error}</p>}

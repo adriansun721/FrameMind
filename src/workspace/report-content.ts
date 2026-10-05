@@ -1,3 +1,4 @@
+import { unitPresentation } from "../domain/units";
 import { getSelfWeightSummary } from "../domain/analysis";
 import { ANALYSIS_STAGE_LABELS } from "../domain/analysis-diagnostics";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
@@ -6,13 +7,16 @@ import { createReportFigures } from "./report-figures";
 import { reportAppendixContent } from "./report-appendix-content";
 import { heading, paragraph, table, tableCaption, title, image, type ReportBlock } from "./report-content-blocks";
 
-const vector = (value: Vector3) => [n(value.x), n(value.y), n(value.z)];
 function provenance(label: string, value: ResourceProvenance): ReportBlock {
   const source = value.source ?? value.derivedFrom?.source;
   return paragraph(`${label}：${value.kind === "catalog" ? "库资源" : value.derivedFrom ? "由库资源修改的自定义参数" : "用户自定义参数"}${source ? `；${source.publisher}，${source.title}，${source.edition}；${source.url}；核对日期 ${source.accessedOn}；${source.units}` : ""}`);
 }
 
 export function createReportContent(report: EngineeringReport): ReportBlock[] {
+  const u = unitPresentation(report.displayUnitPreset);
+  const vector = (v: Vector3, unit = "无") => [v.x, v.y, v.z].map((value) => u.number(value, unit, 7));
+  const q = (v: number, unit: string) => u.number(v, unit, 7);
+  const forceVector = (v: readonly number[]) => v.map((value, i) => q(value, i < 3 ? "kN" : "kN·m"));
   const { result } = report; const { input } = result;
   const figures = createReportFigures(report);
   const nodeLabel = (id: string) => input.nodes.find((item) => item.id === id)!.label;
@@ -28,7 +32,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     paragraph(`分析时间 ${result.createdAt}；报告生成时间 ${report.generatedAt}（ISO 8601）`),
     paragraph(result.service ? `运行来源 ${result.service.origin.kind}；请求 ${result.service.requestId}；实际阶段 ${result.service.stages.map((item) => `${ANALYSIS_STAGE_LABELS[item.stage]} (${item.startedAt})`).join(" → ")}。` : "历史结果未保存服务运行阶段；不重建或推测原始阶段时间。"),
     paragraph(`选定来源 ${source}；${input.nodes.length} 个节点，${input.members.length} 根杆件，${input.supports.length} 个支座。正文、表格及图片均使用本次分析的冻结输入与输出。`),
-    paragraph("单位约定：坐标与长度 m；力 kN；力矩 kN·m；位移 m；转角 rad；均布荷载 kN/m。材料 E 以 GPa 输入；密度 kg/m³；面积 m²；Iy、Iz、J 为 m⁴。"),
+    paragraph(`显示单位：坐标与长度 ${u.unit("m")}；力 ${u.unit("kN")}；力矩 ${u.unit("kN·m")}；位移 ${u.unit("m")}；转角 ${u.unit("rad")}；均布荷载 ${u.unit("kN/m")}；E ${u.unit("GPa")}；密度 ${u.unit("kg/m³")}；面积 ${u.unit("m²")}；Iy、Iz、J ${u.unit("m⁴")}。内部规范单位及冻结数值未改变。`),
     image(figures.model, `冻结输入模型 ${source}`),
     paragraph("图 1 冻结输入模型。全局 +X、+Y、+Z 方向见图，杆件连接和支座自由度以正文表为准。大模型省略对象标签，稳定 ID 见表。"),
     heading("2 理论假设与适用边界"),
@@ -39,15 +43,15 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     paragraph(`求解器 ${input.solver?.implementation ?? "历史结果未记录版本"}；算法 ${input.solver?.algorithm ?? "未记录"}；约束 ${input.solver?.constraints ?? "未记录"}；相对主元阈值 ${input.solver ? n(input.solver.relativePivotTolerance) : "未记录"}。`),
     heading("3 材料截面与模型参数"),
     tableCaption("材料参数"),
-    table(["材料", "名称", "E (GPa)", "ν", "ρ (kg/m³)"], input.materials.map((item) => [item.label, item.name, n(item.elasticModulusGPa), n(item.poissonRatio), n(item.densityKgM3)])),
+    table(["材料", "名称", `E (${u.unit("GPa")})`, "ν", `ρ (${u.unit("kg/m³")})`], input.materials.map((item) => [item.label, item.name, q(item.elasticModulusGPa, "GPa"), n(item.poissonRatio), q(item.densityKgM3, "kg/m³")])),
     ...input.materials.map((item) => provenance(`${item.label} · ${item.id}`, item.provenance)),
     tableCaption("截面参数"),
-    table(["截面", "名称", "A (m²)", "Iy (m⁴)", "Iz (m⁴)", "J (m⁴)"], input.sections.map((item) => [item.label, item.name, n(item.areaM2), n(item.secondMomentYM4), n(item.secondMomentZM4), n(item.torsionalConstantM4)])),
+    table(["截面", "名称", `A (${u.unit("m²")})`, `Iy (${u.unit("m⁴")})`, `Iz (${u.unit("m⁴")})`, `J (${u.unit("m⁴")})`], input.sections.map((item) => [item.label, item.name, q(item.areaM2, "m²"), q(item.secondMomentYM4, "m⁴"), q(item.secondMomentZM4, "m⁴"), q(item.torsionalConstantM4, "m⁴")])),
     ...input.sections.map((item) => provenance(`${item.label} · ${item.id}`, item.provenance)),
     tableCaption("节点坐标与稳定标识"),
-    table(["节点", "ID", "X (m)", "Y (m)", "Z (m)"], input.nodes.map((item) => [item.label, item.id, ...vector(item.position)])),
+    table(["节点", "ID", `X (${u.unit("m")})`, `Y (${u.unit("m")})`, `Z (${u.unit("m")})`], input.nodes.map((item) => [item.label, item.id, ...vector(item.position, "m")])),
     tableCaption("杆件连接、分配与截面朝向"),
-    table(["杆件及 ID", "起点 → 终点", "材料 / 截面", "长度 (m)", "转角 (°)"], input.members.map((item) => [item.label + "\n" + item.id, `${nodeLabel(item.startNodeId)} → ${nodeLabel(item.endNodeId)}`, `${input.materials.find((m) => m.id === item.materialId)!.label} / ${input.sections.find((s) => s.id === item.sectionId)!.label}`, n(result.members.find((m) => m.memberId === item.id)!.length), n(item.rotationDegrees)])),
+    table(["杆件及 ID", "起点 → 终点", "材料 / 截面", `长度 (${u.unit("m")})`, `转角 (${u.unit("°")})`], input.members.map((item) => [item.label + "\n" + item.id, `${nodeLabel(item.startNodeId)} → ${nodeLabel(item.endNodeId)}`, `${input.materials.find((m) => m.id === item.materialId)!.label} / ${input.sections.find((s) => s.id === item.sectionId)!.label}`, q(result.members.find((m) => m.memberId === item.id)!.length, "m"), q(item.rotationDegrees, "°")])),
     tableCaption("局部单位轴向量按全局 XYZ 分量表示"),
     table(["杆件", "局部 x", "局部 y", "局部 z"], result.members.map((item) => [memberLabel(item.memberId), vector(item.localAxes.x).join(", "), vector(item.localAxes.y).join(", "), vector(item.localAxes.z).join(", ")])),
     heading("4 支座与边界条件"),
@@ -61,13 +65,13 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
       table(["工况", "名称", "系数"], input.combination.definition.terms.map((term) => [term.loadCaseId, input.combination!.cases.find((item) => item.loadCase.id === term.loadCaseId)!.loadCase.name, n(term.factor)])));
   }
   const loadTables = (label: string, loads: typeof input.nodalLoads, uniform: NonNullable<typeof input.uniformLoads>) => {
-    children.push(tableCaption(label), loads.length ? table(["荷载 / 节点", "FX (kN)", "FY (kN)", "FZ (kN)", "MX (kN·m)", "MY (kN·m)", "MZ (kN·m)"], loads.map((item) => [`${item.label} / ${nodeLabel(item.nodeId)}`, ...vector(item.force), ...vector(item.moment)])) : paragraph("无节点集中荷载。"));
-    children.push(uniform.length ? table(["荷载 / 杆件", "坐标系", "qx (kN/m)", "qy (kN/m)", "qz (kN/m)"], uniform.map((item) => [`${item.label} / ${memberLabel(item.memberId)}`, item.coordinateSystem === "global" ? "全局 XYZ" : "局部 xyz", ...vector(item.intensity)])) : paragraph("无显式杆件均布荷载。"));
+    children.push(tableCaption(label), loads.length ? table(["荷载 / 节点", `FX (${u.unit("kN")})`, `FY (${u.unit("kN")})`, `FZ (${u.unit("kN")})`, `MX (${u.unit("kN·m")})`, `MY (${u.unit("kN·m")})`, `MZ (${u.unit("kN·m")})`], loads.map((item) => [`${item.label} / ${nodeLabel(item.nodeId)}`, ...vector(item.force, "kN"), ...vector(item.moment, "kN·m")])) : paragraph("无节点集中荷载。"));
+    children.push(uniform.length ? table(["荷载 / 杆件", "坐标系", `qx (${u.unit("kN/m")})`, `qy (${u.unit("kN/m")})`, `qz (${u.unit("kN/m")})`], uniform.map((item) => [`${item.label} / ${memberLabel(item.memberId)}`, item.coordinateSystem === "global" ? "全局 XYZ" : "局部 xyz", ...vector(item.intensity, "kN/m")])) : paragraph("无显式杆件均布荷载。"));
   };
   const selfWeightText = (selfWeight: typeof input.selfWeight, label: string) => {
     const summary = getSelfWeightSummary({ ...input, selfWeight });
-    children.push(paragraph(`${label}：${summary.enabled ? "启用" : "未启用"}；归属工况 ${summary.loadCaseId}；重力向量 (${selfWeight ? vector(selfWeight.gravity).join(", ") : "未记录"}) m/s²。`));
-    if (summary.enabled) children.push(paragraph(`按 m = ρ · A · L，qg = ρ · A · g / 1000 (kN/m) 施加一次；总质量 ${n(summary.totalMassKg)} kg；重力合力 (${vector(summary.totalForce).join(", ")}) kN；合力幅值 ${n(Math.hypot(summary.totalForce.x, summary.totalForce.y, summary.totalForce.z))} kN。`));
+    children.push(paragraph(`${label}：${summary.enabled ? "启用" : "未启用"}；归属工况 ${summary.loadCaseId}；重力向量 (${selfWeight ? vector(selfWeight.gravity, "m/s²").join(", ") : "未记录"}) ${u.unit("m/s²")}。`));
+    if (summary.enabled) children.push(paragraph(`按内部规范单位计算 m = ρ · A · L，qg = ρ · A · g / 1000 (kN/m)，自重施加一次；总质量 ${u.quantity(summary.totalMassKg, "kg", 7)}；重力合力 (${vector(summary.totalForce, "kN").join(", ")}) ${u.unit("kN")}；合力幅值 ${u.quantity(Math.hypot(summary.totalForce.x, summary.totalForce.y, summary.totalForce.z), "kN", 7)}。`));
   };
   if (input.combination) for (const item of input.combination.cases) {
     loadTables(`${item.loadCase.id} · ${item.loadCase.name} 分项工况原始荷载`, item.nodalLoads, item.uniformLoads);
@@ -77,16 +81,16 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
   selfWeightText(input.selfWeight, input.combination ? "本次组合等效自重" : "本次工况自重");
   children.push(
     heading("6 关键响应与完整结果"),
-    paragraph(`最大节点位移幅值 ${n(Math.hypot(maxNode.displacement.x, maxNode.displacement.y, maxNode.displacement.z))} m，节点 ${nodeLabel(maxNode.nodeId)}；分量 (${vector(maxNode.displacement).join(", ")}) m。`),
+    paragraph(`最大节点位移幅值 ${u.quantity(Math.hypot(maxNode.displacement.x, maxNode.displacement.y, maxNode.displacement.z), "m", 7)}，节点 ${nodeLabel(maxNode.nodeId)}；分量 (${vector(maxNode.displacement, "m").join(", ")}) ${u.unit("m")}。`),
     image(figures.displacement, `节点位移幅值 ${source}`, 100 + Math.min(12, result.nodes.length) * 18.5),
     paragraph(`图 2 ${source} 节点位移幅值，未放大数值；图中最多显示幅值最大的 12 个节点，全部方向分量如下。`),
     tableCaption("节点位移与转角 按全局 XYZ"),
-    table(["节点", "UX (m)", "UY (m)", "UZ (m)", "RX (rad)", "RY (rad)", "RZ (rad)"], result.nodes.map((item) => [nodeLabel(item.nodeId), ...vector(item.displacement), ...vector(item.rotation)])),
+    table(["节点", `UX (${u.unit("m")})`, `UY (${u.unit("m")})`, `UZ (${u.unit("m")})`, `RX (${u.unit("rad")})`, `RY (${u.unit("rad")})`, `RZ (${u.unit("rad")})`], result.nodes.map((item) => [nodeLabel(item.nodeId), ...vector(item.displacement, "m"), ...vector(item.rotation, "rad")])),
     tableCaption("节点反力与反力矩 按全局 XYZ 包括未约束自由度的数值残差"),
-    table(["节点", "FX (kN)", "FY (kN)", "FZ (kN)", "MX (kN·m)", "MY (kN·m)", "MZ (kN·m)"], result.nodes.map((item) => [nodeLabel(item.nodeId), ...vector(item.reaction), ...vector(item.reactionMoment)])),
+    table(["节点", `FX (${u.unit("kN")})`, `FY (${u.unit("kN")})`, `FZ (${u.unit("kN")})`, `MX (${u.unit("kN·m")})`, `MY (${u.unit("kN·m")})`, `MZ (${u.unit("kN·m")})`], result.nodes.map((item) => [nodeLabel(item.nodeId), ...vector(item.reaction, "kN"), ...vector(item.reactionMoment, "kN·m")])),
     tableCaption("杆端局部内力 正值沿局部正轴 端点以起点和终点区分"),
-    table(["杆件 / 端点", "N (kN)", "Vy (kN)", "Vz (kN)", "T (kN·m)", "My (kN·m)", "Mz (kN·m)"], result.members.flatMap((item) => [
-      [`${memberLabel(item.memberId)} / 起点`, ...item.localEndForces.start.map(n)], [`${memberLabel(item.memberId)} / 终点`, ...item.localEndForces.end.map(n)],
+    table(["杆件 / 端点", `N (${u.unit("kN")})`, `Vy (${u.unit("kN")})`, `Vz (${u.unit("kN")})`, `T (${u.unit("kN·m")})`, `My (${u.unit("kN·m")})`, `Mz (${u.unit("kN·m")})`], result.members.flatMap((item) => [
+      [`${memberLabel(item.memberId)} / 起点`, ...forceVector(item.localEndForces.start)], [`${memberLabel(item.memberId)} / 终点`, ...forceVector(item.localEndForces.end)],
     ])),
     paragraph("以上数值保留七位有效数字供逐项核对；内部计算未按报告显示精度舍入。杆端表不代表杆件全长极值，也不构成强度或稳定性结论。"),
   );

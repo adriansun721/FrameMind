@@ -1,3 +1,4 @@
+import { requireUnitPreset } from "./units";
 import { decodeAnalysisRun } from "./analysis-service-contract";
 import {
   validateAnalysisCase,
@@ -451,6 +452,7 @@ export function decodeProject(source: string): FrameProject {
     name: requireString(value.name, "项目缺少名称"),
     createdAt: requireString(value.createdAt, "项目缺少创建时间"), updatedAt: requireString(value.updatedAt, "项目缺少更新时间"),
     revision: value.revision, units: { length: "m", force: "kN", moment: "kN·m" },
+    ...(value.displayUnitPreset === undefined ? {} : { displayUnitPreset: requireUnitPreset(value.displayUnitPreset) }),
     nodes, materials, sections, members, supports, nodalLoads, uniformLoads, selfWeight, loadCases, activeLoadCaseId, nextLoadCaseNumber, analysisResults,
     loadCombinations, nextLoadCombinationNumber, activeLoadCombinationId, analysisCases, nextAnalysisCaseNumber, activeAnalysisCaseId,
     latestAnalysis,

@@ -36,6 +36,7 @@ export class ProjectHistory {
 
 /** Undo changes model input, while completed analyses remain available for provenance checks. */
 function preserveResults(restored: FrameProject, current: FrameProject): FrameProject {
+  if (restored.displayUnitPreset !== current.displayUnitPreset) restored = { ...restored, displayUnitPreset: current.displayUnitPreset };
   if (restored.confirmedOperations !== current.confirmedOperations || restored.taskState !== current.taskState) restored = { ...restored, confirmedOperations: current.confirmedOperations, taskState: current.taskState };
   const known = new Set(restored.analysisResults.map((result) => result.id));
   const extra = current.analysisResults.filter((result) => !known.has(result.id)

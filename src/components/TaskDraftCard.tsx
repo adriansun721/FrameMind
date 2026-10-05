@@ -1,3 +1,6 @@
+import { useUnits } from "./UnitPresentation";
+import { CANONICAL_UNITS } from "../domain/units";
+import { convertToolQuantities, toolFieldDimension } from "../workspace/unit-tools";
 import { useMemo, useState } from "react";
 import type { AiSnapshot } from "../workspace/ai-tools";
 import { buildTaskDraftPreview, type TaskDraft } from "../workspace/task-draft";
@@ -13,6 +16,12 @@ export function TaskDraftCard({ snapshot, draft, busy, current, onConfirm, onRej
   onReject(): void;
   onRevise(prompt: string): void;
 }) {
+  const u = useUnits();
+  const changeText = (label: string, value: unknown) => {
+    const dimension = toolFieldDimension(label);
+    const converted = convertToolQuantities(value, (v, d) => u.value(v, CANONICAL_UNITS[d]), dimension);
+    return JSON.stringify(converted) + (dimension ? ` ${u.unit(CANONICAL_UNITS[dimension])}` : value && typeof value === "object" && !Array.isArray(value) ? `（力 ${u.unit("kN")}；力矩 ${u.unit("kN·m")}；均布力 ${u.unit("kN/m")}；重力 ${u.unit("m/s²")}）` : "");
+  };
   const [revision, setRevision] = useState("");
   const preview = useMemo(() => buildTaskDraftPreview(snapshot, draft), [snapshot, draft]);
   const categoryCount = (category: string) => preview.changes.filter((change) => change.category === category).length;
@@ -49,7 +58,7 @@ export function TaskDraftCard({ snapshot, draft, busy, current, onConfirm, onRej
     <details className="proposal-details"><summary>查看目标、差异与影响</summary>
       <p>对象：{preview.objectRefs.filter((item) => item.category === "new").length} 个新对象，{preview.objectRefs.filter((item) => item.category === "existing").length} 个已有对象可引用。</p>
       {retainedConditions.length > 0 && <p>确认后保留已有条件：{retainedConditions.join("；")}</p>}
-      <ol>{preview.changes.map((change, index) => <li key={`${change.category}:${change.label}:${index}`}><strong>{change.label}</strong> · {sourceLabel[change.source] ?? change.source}<br />{change.before === undefined ? "缺失" : JSON.stringify(change.before)} → {change.after === undefined ? "未改变" : JSON.stringify(change.after)}{change.impact ? ` · ${change.impact}` : ""}</li>)}</ol>
+      <ol>{preview.changes.map((change, index) => <li key={`${change.category}:${change.label}:${index}`}><strong>{change.label}</strong> · {sourceLabel[change.source] ?? change.source}<br />{change.before === undefined ? "缺失" : changeText(change.label, change.before)} → {change.after === undefined ? "未改变" : changeText(change.label, change.after)}{change.impact ? ` · ${change.impact}` : ""}</li>)}</ol>
     </details>
     <form className="task-draft-revision" onSubmit={(event) => { event.preventDefault(); if (revision.trim() && !busy && current) { onRevise(revision.trim()); setRevision(""); } }}>
       <label>修订完整任务<textarea aria-label="完整任务修订" rows={2} value={revision} disabled={busy || !current} placeholder={current ? "补充或修改几何、支座、荷载或分析要求" : "正式模型已变化，请重新准备完整任务草案"} onChange={(event) => setRevision(event.target.value)} /></label>

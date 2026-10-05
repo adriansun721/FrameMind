@@ -1,4 +1,5 @@
-import { reportNumber, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
+import { unitPresentation } from "../domain/units";
+import { reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import type { Vector3 } from "../domain/project";
 
 const escapeXml = (text: string) => text.replace(/[<>&"']/g, (value) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" })[value]!);
@@ -9,6 +10,7 @@ function svg(report: EngineeringReport, title: string, body: string, height = 66
 }
 
 export function createReportFigures(report: EngineeringReport): { model: string; displacement: string } {
+  const u = unitPresentation(report.displayUnitPreset);
   const { input, nodes } = report.result;
   const project = (p: Vector3) => ({ x: p.x - p.y * 0.6, y: -p.z + (p.x + p.y) * 0.3 });
   const projected = input.nodes.map((node) => project(node.position));
@@ -43,7 +45,7 @@ export function createReportFigures(report: EngineeringReport): { model: string;
   }
   model += `<g stroke="#777" stroke-width="2"><path d="M60 530 L120 548 M60 530 L24 548 M60 530 L60 470" fill="none"/></g>${text(124, 553, "+X")}${text(8, 567, "+Y")}${text(49, 461, "+Z")}`;
   model += text(200, 577, "蓝线 杆件    蓝点 节点    棕色三角 受约束节点");
-  model += text(200, 607, "示意投影  单位 m    标签拥挤时省略；完整编号与支座见正文表");
+  model += text(200, 607, `示意投影  单位 ${u.unit("m")}    标签拥挤时省略；完整编号与支座见正文表`);
   const values = nodes.map((node) => ({ label: input.nodes.find((item) => item.id === node.nodeId)!.label, value: Math.hypot(node.displacement.x, node.displacement.y, node.displacement.z) }))
     .sort((a, b) => b.value - a.value).slice(0, 12);
   const maximum = Math.max(...values.map((item) => item.value), 1e-30);
@@ -51,9 +53,9 @@ export function createReportFigures(report: EngineeringReport): { model: string;
   let chart = text(30, 105, "全局 XYZ  按幅值排序  最多 12 个节点  方向分量见正文表");
   values.forEach((item, index) => {
     const y = 125 + index * 37;
-    chart += text(30, y + 20, item.label) + `<rect x="150" y="${y}" width="${760 * item.value / maximum}" height="25" fill="#245979"/>` + text(925, y + 20, `${reportNumber(item.value)} m`);
+    chart += text(30, y + 20, item.label) + `<rect x="150" y="${y}" width="${760 * item.value / maximum}" height="25" fill="#245979"/>` + text(925, y + 20, u.quantity(item.value, "m", 7));
   });
-  chart += text(30, chartHeight - 52, "蓝色条 |u| = √(ux² + uy² + uz²)  单位 m  零值为空条");
+  chart += text(30, chartHeight - 52, `蓝色条 |u| = √(ux² + uy² + uz²)  单位 ${u.unit("m")}  零值为空条`);
   return { model: svg(report, "冻结输入模型", model), displacement: svg(report, "节点位移幅值", chart, chartHeight) };
 }
 
