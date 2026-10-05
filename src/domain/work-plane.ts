@@ -16,6 +16,7 @@ export interface DrawnMemberInput {
 /** A forward ray intersection, in local double precision before adding the world origin. */
 export function intersectWorkPlane(rayOrigin: Vector3, direction: Vector3, plane: WorkPlane, offset: number, sceneOrigin: Vector3): Vector3 | null {
   const axis = PLANE_NORMAL_AXIS[plane];
+  if (![rayOrigin, direction, sceneOrigin].every((vector) => Object.values(vector).every(Number.isFinite))) return null;
   if (!Number.isFinite(offset) || Math.abs(direction[axis]) < GEOMETRY_CONTRACT.snapping.parallelRayTolerance) return null;
   const distance = (offset - sceneOrigin[axis] - rayOrigin[axis]) / direction[axis];
   if (!Number.isFinite(distance) || distance < 0) return null;

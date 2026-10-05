@@ -21,6 +21,9 @@ describe("T2-19 work-plane drawing", () => {
     expect(intersectWorkPlane(origin, { x: 1, y: 1, z: 0 }, "XY", 0, zero)).toBeNull();
     expect(intersectWorkPlane(origin, { x: 0, y: 0, z: 1 }, "XY", 0, zero)).toBeNull();
     expect(intersectWorkPlane(origin, direction, "XY", NaN, zero)).toBeNull();
+    expect(intersectWorkPlane({ x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: -Infinity }, "XY", 0, zero)).toBeNull();
+    expect(intersectWorkPlane({ ...origin, z: Infinity }, direction, "XY", 0, zero)).toBeNull();
+    expect(intersectWorkPlane(origin, direction, "XY", 0, { ...zero, z: NaN })).toBeNull();
   });
 
   it("retains small offsets at large world coordinates in a local ray intersection", () => {

@@ -285,11 +285,10 @@ export function SceneViewport(props: SceneViewportProps) {
 
 function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin, drawingEnabled = false, drawingReset = 0, onExitDrawing, onDrawSegment }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
   const u = useUnits();
-  const drawing = useWorkPlaneDrawing(worldNodes, (input) => onDrawSegment?.(input) ?? null);
+  const drawing = useWorkPlaneDrawing(worldNodes, materials, sections, (input) => onDrawSegment?.(input) ?? null);
   const drawingRef = useRef({ enabled: drawingEnabled, state: drawing, origin, nodes: worldNodes, materialId: "", sectionId: "" });
   drawingRef.current = { enabled: drawingEnabled, state: drawing, origin, nodes: worldNodes,
-    materialId: materials.some((item) => item.id === drawing.materialId) ? drawing.materialId : materials[0]?.id ?? "",
-    sectionId: sections.some((item) => item.id === drawing.sectionId) ? drawing.sectionId : sections[0]?.id ?? "" };
+    materialId: drawing.materialId, sectionId: drawing.sectionId };
   useEffect(() => { drawing.reset(); }, [projectId, drawingEnabled, drawingReset, drawing.reset]);
   const responseCache = useRef(new WeakMap<AnalysisResult, Map<string, ReturnType<typeof getMemberResponseSamples>>>());
   const nodesRef = useRef(nodes); nodesRef.current = nodes;

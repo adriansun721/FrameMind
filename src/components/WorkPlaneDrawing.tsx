@@ -3,7 +3,7 @@ import type { FrameMaterial, FrameNode, FrameSection, Vector3 } from "../domain/
 import { exactDrawingPoint, PLANE_NORMAL_AXIS, type DrawingPoint, type DrawnMemberInput, type WorkPlane } from "../domain/work-plane";
 import { UnitInput, useUnits } from "./UnitPresentation";
 
-export function useWorkPlaneDrawing(nodes: FrameNode[], onCommit: (input: DrawnMemberInput) => FrameNode | null) {
+export function useWorkPlaneDrawing(nodes: FrameNode[], materials: FrameMaterial[], sections: FrameSection[], onCommit: (input: DrawnMemberInput) => FrameNode | null) {
   const [plane, setPlane] = useState<WorkPlane>("XY");
   const [offsetText, setOffsetText] = useState("0");
   const [snap, setSnap] = useState(true);
@@ -35,7 +35,9 @@ export function useWorkPlaneDrawing(nodes: FrameNode[], onCommit: (input: DrawnM
     setCandidate(Object.values(next).every((value) => value.trim() && Number.isFinite(Number(value)))
       ? exactDrawingPoint(position, nodes, snap) : null);
   };
-  return { plane, offset, offsetText, snap, start, candidate, coordinates, materialId, sectionId, error, reset, preview, accept, changeCoordinates,
+  return { plane, offset, offsetText, snap, start, candidate, coordinates,
+    materialId: materials.some((item) => item.id === materialId) ? materialId : materials[0]?.id ?? "",
+    sectionId: sections.some((item) => item.id === sectionId) ? sectionId : sections[0]?.id ?? "", error, reset, preview, accept, changeCoordinates,
     setMaterialId, setSectionId,
     changePlane(value: WorkPlane) { setPlane(value); reset(); setCoordinates((current) => ({ ...current, [PLANE_NORMAL_AXIS[value]]: offsetText })); },
     changeOffset(value: string) { setOffsetText(value); reset(); setCoordinates((current) => ({ ...current, [PLANE_NORMAL_AXIS[plane]]: value })); },
@@ -49,8 +51,7 @@ export function WorkPlaneDrawingPanel({ drawing: d, nodes, materials, sections, 
   drawing: WorkPlaneDrawingState; nodes: FrameNode[]; materials: FrameMaterial[]; sections: FrameSection[]; onExit(): void; onAlign(): void;
 }) {
   const u = useUnits();
-  const materialId = materials.some((item) => item.id === d.materialId) ? d.materialId : materials[0]?.id ?? "";
-  const sectionId = sections.some((item) => item.id === d.sectionId) ? d.sectionId : sections[0]?.id ?? "";
+  const { materialId, sectionId } = d;
   const label = (point: DrawingPoint) => nodes.find((node) => node.id === point.nodeId)?.label ?? point.nodeId;
   useEffect(() => {
     const cancel = (event: KeyboardEvent) => { if (event.key === "Escape") d.reset(); };

@@ -9,7 +9,7 @@ import { UnitPresetContext } from "./UnitPresentation";
 
 function Harness({ preset = "m-kN" }: { preset?: "m-kN" | "mm-N" }) {
   const [project, setProject] = useState(freeGeometryFixtures()[0].project);
-  const drawing = useWorkPlaneDrawing(project.nodes, (input) => {
+  const drawing = useWorkPlaneDrawing(project.nodes, project.materials, project.sections, (input) => {
     const updated = applyProjectEdits(project, prepareDrawnMemberEdits(project, input)).project;
     setProject(updated); return updated.nodes.find((node) => node.id === updated.members.at(-1)!.endNodeId)!;
   });

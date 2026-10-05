@@ -140,10 +140,16 @@ test("T2-19 oblique mouse drawing and controllable node snapping on XY XZ YZ", a
     await page.screenshot({ path: "docs/evidence/plan2/T2-19/mouse-oblique.png" });
     await form.getByRole("button", { name: "取消当前段" }).click(); await form.getByLabel("捕捉已有节点", { exact: false }).check();
     await form.getByRole("button", { name: "正对平面" }).click();
+    const aligned = (await page.getByLabel("三维模型视图").getAttribute("data-camera-state"))!.split(",").map(Number);
+    expect(Math.abs(aligned[0] - aligned[3])).toBeLessThan(.001);
+    expect(Math.abs(aligned[1] - aligned[4])).toBeLessThan(.001);
     const normalStart = await screenPoint(page, project.nodes[2].position, true);
     await page.mouse.click(normalStart.x, normalStart.y); await expect(form.getByLabel("绘杆状态")).toContainText("起点 N3");
     await page.mouse.wheel(0, -100);
     await page.evaluate(() => new Promise<void>((done) => { let frames = 0; const step = () => ++frames > 60 ? done() : requestAnimationFrame(step); step(); }));
+    const zoomed = (await page.getByLabel("三维模型视图").getAttribute("data-camera-state"))!.split(",").map(Number);
+    expect(Math.abs(zoomed[0] - zoomed[3])).toBeLessThan(.001);
+    expect(Math.abs(zoomed[1] - zoomed[4])).toBeLessThan(.001);
     const normalEnd = await screenPoint(page, project.nodes[1].position, true);
     await page.mouse.click(normalEnd.x + 5, normalEnd.y); await expect(page.getByTestId("viewport-node-count")).toHaveText("9 个节点");
     await expect(page.getByTestId("viewport-member-count")).toHaveText("8 根杆件");

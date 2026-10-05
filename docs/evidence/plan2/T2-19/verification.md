@@ -17,10 +17,11 @@
 
 - `npm run typecheck`：通过。
 - `npm run build`：通过；保留既有大 chunk 提示，无构建错误。
-- `npm test`：63 个文件、486 项测试通过，14.32 s。
+- `npm test`：初次 63 个文件、486 项测试通过，14.32 s；审查修正后全量复跑同样通过，12.52 s。
 - `npm run evidence:plan2:t219`：生产构建、3 个相关单元文件／46 项测试、2 项 Electron 场景通过；桌面耗时 12.9 s。
 - `node scripts/run-e2e-isolated.cjs e2e/plan2-t2-19-drawing.spec.ts e2e/t07-synchronized-editing.spec.ts e2e/t08-batch-history.spec.ts e2e/ui04-engineering-viewport.spec.ts`：9 项通过，38.6 s。随后扩充 T2-19 三平面自由射线断言，单独复跑通过。
 - `git diff --check`：任务文件通过。
+- 双轴审查后修正非有限射线输入守卫、统一材料／截面缺省解析；类型检查、生产构建、完整单元测试及 2 项桌面场景再次通过（桌面 11.5 s）。正对平面与缩放后相机方向另有数值断言。
 
 机器生成证据：[数值／存储流程](desktop-numeric.json)、[鼠标／捕捉流程](desktop-mouse.json)。视觉证据：`drawing-{dark,light}-{1440,1080}.png`、`mouse-oblique.png`、`mouse-normal-zoom.png`。截图已人工查看，控件与文字在深浅主题和窄窗口中可读；全模型跨度大时短杆视觉占比小，完整坐标和拓扑以 JSON 验证为准。截图不替代几何断言。
 
