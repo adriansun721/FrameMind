@@ -25,8 +25,8 @@ struct Failure : std::runtime_error {
     }
 };
 
-static void require(bool condition, const std::string& message) {
-    if (!condition) throw Failure("native-input-error", message);
+static void require(bool condition, const std::string& message, Json target = nullptr, std::string field = "input") {
+    if (!condition) throw Failure("native-input-error", message, target, field);
 }
 static double number(const Json& value) {
     require(value.is_number(), "Expected a finite numeric value");
@@ -38,8 +38,23 @@ static std::string id(const Json& value) {
     require(value.is_string() && !value.get<std::string>().empty(), "Missing object identity");
     return value.get<std::string>();
 }
-static Vec3 vector3(const Json& value) {
-    return Vec3(number(value.at("x")), number(value.at("y")), number(value.at("z")));
+static double parameter(const Json& resource, const std::string& kind, const std::string& field, bool positive) {
+    const Json target={{"kind",kind},{"id",resource.at("id")}};
+    require(resource.contains(field) && resource.at(field).is_number(), "Missing or invalid " + field, target, field);
+    const double value=resource.at(field).get<double>();
+    require(std::isfinite(value) && (!positive || value>0), "Invalid " + field, target, field);
+    return value;
+}
+static Vec3 vector3(const Json& value, Json target, const std::string& prefix) {
+    Vec3 result;
+    const char* axes[]={"x","y","z"};
+    for (int i=0;i<3;++i) {
+        const std::string field=prefix+"."+axes[i];
+        require(value.contains(axes[i]) && value.at(axes[i]).is_number(), "Missing or invalid " + field, target, field);
+        result[i]=value.at(axes[i]).get<double>();
+        require(std::isfinite(result[i]), "Invalid " + field, target, field);
+    }
+    return result;
 }
 static Json json3(const Vec3& v) { return {{"x", v[0]}, {"y", v[1]}, {"z", v[2]}}; }
 static Json jsonVector(const Vector& v) {
@@ -141,24 +156,28 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
     const auto& nodes=input.at("nodes"); const auto& members=input.at("members");
     require(nodes.is_array() && nodes.size()==2 && members.is_array() && members.size()==1, "T2-13 supports exactly two nodes and one member");
     const auto& member=members[0]; id(member.at("id"));
+    const Json memberTarget={{"kind","member"},{"id",member.at("id")}};
     const std::string n0=id(nodes[0].at("id")), n1=id(nodes[1].at("id"));
     require(n0!=n1, "Duplicate node identity");
     const int start=member.at("startNodeId")==n0 ? 0 : 1, end=1-start;
-    require(member.at("startNodeId")==nodes[start]["id"] && member.at("endNodeId")==nodes[end]["id"], "Invalid member node reference");
-    const Vec3 delta=vector3(nodes[end].at("position"))-vector3(nodes[start].at("position"));
+    require(member.at("startNodeId")==nodes[start]["id"], "Invalid member start node", memberTarget, "startNodeId");
+    require(member.at("endNodeId")==nodes[end]["id"], "Invalid member end node", memberTarget, "endNodeId");
+    const Vec3 delta=vector3(nodes[end].at("position"),{{"kind","node"},{"id",nodes[end]["id"]}},"position")
+        -vector3(nodes[start].at("position"),{{"kind","node"},{"id",nodes[start]["id"]}},"position");
     const double length=delta.norm();
-    require(std::isfinite(length) && length>1e-12, "Invalid member length");
+    require(std::isfinite(length) && length>1e-12, "Invalid member length", memberTarget, "endNodeId");
     auto resource = [&](const std::string& key, const std::string& reference) -> Json {
         require(input.at(key).is_array(), "Invalid resource array");
         Json found; int matches=0;
         for (const auto& value:input.at(key)) if (value.at("id")==member.at(reference)) { found=value; ++matches; }
-        require(matches==1, "Missing or duplicate referenced resource"); return found;
+        require(matches==1, "Missing or duplicate referenced resource", memberTarget, reference); return found;
     };
     const auto material=resource("materials","materialId"), section=resource("sections","sectionId");
-    const double e=number(material.at("elasticModulusGPa"))*1e6, nu=number(material.at("poissonRatio"));
-    const double area=number(section.at("areaM2")), iy=number(section.at("secondMomentYM4")), iz=number(section.at("secondMomentZM4")), j=number(section.at("torsionalConstantM4"));
-    require(e>0 && nu>-1 && nu<0.5 && area>0 && iy>0 && iz>0 && j>0 && number(material.at("densityKgM3"))>0, "Invalid material or section parameter");
-    const double angle=number(member.at("rotationDegrees"))*std::acos(-1.0)/180;
+    const double e=parameter(material,"material","elasticModulusGPa",true)*1e6, nu=parameter(material,"material","poissonRatio",false);
+    const double area=parameter(section,"section","areaM2",true), iy=parameter(section,"section","secondMomentYM4",true), iz=parameter(section,"section","secondMomentZM4",true), j=parameter(section,"section","torsionalConstantM4",true);
+    require(nu>-1 && nu<0.5, "Poisson ratio must be between -1 and 0.5", {{"kind","material"},{"id",material.at("id")}}, "poissonRatio");
+    parameter(material,"material","densityKgM3",true);
+    const double angle=parameter(member,"member","rotationDegrees",false)*std::acos(-1.0)/180;
     const Vec3 x=delta/length, reference=std::abs(x.z())<0.9 ? Vec3(0,0,1) : Vec3(0,1,0);
     const Vec3 baseY=reference.cross(x).normalized(), baseZ=x.cross(baseY);
     const Vec3 y=baseY*std::cos(angle)+baseZ*std::sin(angle), z=-baseY*std::sin(angle)+baseZ*std::cos(angle);
@@ -168,21 +187,24 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
     require(input.at("supports").is_array(), "Invalid supports");
     for (const auto& support:input.at("supports")) {
         id(support.at("id"));
-        require(support.at("nodeId")==n0 || support.at("nodeId")==n1, "Invalid support node");
+        const Json target={{"kind","support"},{"id",support.at("id")}};
+        require(support.at("nodeId")==n0 || support.at("nodeId")==n1, "Invalid support node",target,"nodeId");
         const int node=support.at("nodeId")==n0 ? 0 : 1;
         const auto& restraints=support.at("restraints");
-        require(restraints.is_array() && restraints.size()==6, "Invalid support DOFs");
-        for (int d=0;d<6;++d) { require(restraints[d].is_boolean(), "Invalid restraint"); restrained[node*6+d]=restrained[node*6+d] || restraints[d].get<bool>(); }
+        require(restraints.is_array() && restraints.size()==6, "Invalid support DOFs",target,"restraints");
+        for (int d=0;d<6;++d) { require(restraints[d].is_boolean(), "Invalid restraint",target,"restraints"); restrained[node*6+d]=restrained[node*6+d] || restraints[d].get<bool>(); }
     }
     Vector force=Vector::Zero(12);
     auto addLoads = [&](const Json& loads, const Json& uniform, const Json& weight, const Json& caseId, double factor) {
         require(loads.is_array() && uniform.is_array() && uniform.empty() && weight.at("enabled")==false, "T2-13 supports nodal end loads only; distributed loads and self-weight require T2-14");
         for (const auto& load:loads) {
             id(load.at("id"));
-            require(load.at("loadCaseId")==caseId && (load.at("nodeId")==n0 || load.at("nodeId")==n1), "Invalid load case or node reference");
+            const Json target={{"kind","load"},{"id",load.at("id")}};
+            require(load.at("loadCaseId")==caseId, "Invalid load case reference",target,"loadCaseId");
+            require(load.at("nodeId")==n0 || load.at("nodeId")==n1, "Invalid load node reference",target,"nodeId");
             const int node=load.at("nodeId")==n0 ? 0 : 1;
-            force.segment<3>(node*6)+=factor*vector3(load.at("force"));
-            force.segment<3>(node*6+3)+=factor*vector3(load.at("moment"));
+            force.segment<3>(node*6)+=factor*vector3(load.at("force"),target,"force");
+            force.segment<3>(node*6+3)+=factor*vector3(load.at("moment"),target,"moment");
         }
     };
     Json dependencies=Json::array(); Json source;

@@ -1,4 +1,5 @@
 extends: ./electron-builder.yml
+electronDist: ./node_modules/electron/dist
 directories:
   output: release/t213
 extraResources:

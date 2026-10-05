@@ -37,7 +37,7 @@ import {
   type ResourceProvenance,
   type CatalogSource,
 } from "./project";
-import { ANALYSIS_DOF_ORDER, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, sameInputValue, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
 import { decodeTaskState, decodeConfirmedOperations } from "../workspace/task-persistence";
 import { redactPersistence } from "../../electron/persistence-redaction";
 
@@ -309,7 +309,7 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
     const length = requireFinite(member.length, "分析结果杆件长度无效"); if (length <= 0) throw new Error("分析结果杆件长度无效");
     let nativeResponses;
     if (member.nativeResponses !== undefined) {
-      if (input.solver?.implementation !== "framemind-native/1" || !Array.isArray(member.nativeResponses) || member.nativeResponses.length !== 17) throw new Error("原生沿杆结果无效");
+      if (input.solver?.implementation !== NATIVE_ANALYSIS_SOLVER.implementation || !Array.isArray(member.nativeResponses) || member.nativeResponses.length !== 17) throw new Error("原生沿杆结果无效");
       nativeResponses = member.nativeResponses.map((sample, index) => {
         if (!isRecord(sample) || typeof sample.position !== "number" || !Number.isFinite(sample.position) || Math.abs(sample.position - length * index / 16) > 1e-12 * length) throw new Error("原生沿杆位置无效");
         return { position: sample.position, forces: forceVector(sample.forces, "沿杆内力"), localDisplacement: finiteVector(sample.localDisplacement, "沿杆局部位移"), globalDisplacement: finiteVector(sample.globalDisplacement, "沿杆总体位移") };
@@ -320,7 +320,26 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
-  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process: decodeAnalysisProcess(value.process, input), service: decodeAnalysisRun(value.service, input, id) };
+  const process = decodeAnalysisProcess(value.process, input), service = decodeAnalysisRun(value.service, input, id);
+  if (input.solver?.implementation === NATIVE_ANALYSIS_SOLVER.implementation) {
+    if (!sameInputValue(input.solver, NATIVE_ANALYSIS_SOLVER) || inputNodes.length !== 2 || inputMembers.length !== 1
+      || !service || !process || !sameInputValue(process.solver, input.solver)
+      || !process.assembledStiffness || !process.reducedStiffness || process.members.length !== 1
+      || members.some((member) => !member.nativeResponses) || input.uniformLoads?.length || input.selfWeight?.enabled) throw new Error("原生分析缺少完整实际过程或恢复记录");
+    const expectedDofs = inputNodes.flatMap((node, nodeIndex) => ANALYSIS_DOF_ORDER.map((dof, index) => ({
+      nodeId: node.id, dof, globalIndex: nodeIndex * 6 + index,
+      restrained: input.supports.some((support) => support.nodeId === node.id && support.restraints[index]),
+    })));
+    const expectedFree = expectedDofs.filter((dof) => !dof.restrained).map((dof) => dof.globalIndex);
+    const expectedConstrained = expectedDofs.filter((dof) => dof.restrained).map((dof) => dof.globalIndex);
+    const member = inputMembers[0], contribution = process.members[0];
+    const expectedIndices = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((_, index) => inputNodes.findIndex((node) => node.id === nodeId) * 6 + index));
+    if (!expectedFree.length || !sameInputValue(process.dofs, expectedDofs) || !sameInputValue(process.freeDofs, expectedFree)
+      || !sameInputValue(process.constrainedDofs, expectedConstrained) || contribution.memberId !== member.id
+      || !sameInputValue(contribution.globalDofIndices, expectedIndices)
+      || !sameInputValue(contribution.dofs, expectedIndices.map((index) => expectedDofs[index]))) throw new Error("原生分析自由度分区或对象映射不完整");
+  }
+  return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process, service };
 }
 
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {

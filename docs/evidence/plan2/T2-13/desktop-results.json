@@ -2,16 +2,16 @@
   "passed": true,
   "installed": false,
   "compilerPath": "Windows System32 only",
-  "directory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-HhOYBI",
+  "directory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-osYLDL",
   "records": [
     {
       "id": "axial",
       "passed": true,
       "result": {
-        "id": "analysis_4cbab257-b695-4a16-9d7a-1dd9e77a95f6",
-        "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+        "id": "analysis_a38cfe17-20c7-47ab-bd00-39cabd90111c",
+        "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:26Z",
+        "createdAt": "2026-10-05T08:20:51Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -96,7 +96,7 @@
               }
             }
           ],
-          "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+          "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
           "projectRevision": 7,
           "sections": [
             {
@@ -1211,7 +1211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_4cbab257-b695-4a16-9d7a-1dd9e77a95f6",
+          "analysisId": "analysis_a38cfe17-20c7-47ab-bd00-39cabd90111c",
           "dependencies": [
             {
               "factor": 1,
@@ -1221,9 +1221,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+          "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
           "projectRevision": 7,
-          "requestId": "request_46217fe4-cd0e-4594-b66c-beb848b2e94c",
+          "requestId": "request_6b572b06-98a6-42ab-b8a1-18340ccb240c",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -1234,19 +1234,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             }
           ],
           "status": "complete",
@@ -1258,10 +1258,10 @@
       "id": "bend-y",
       "passed": true,
       "result": {
-        "id": "analysis_94c70197-1db7-4504-9071-67c941820896",
-        "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+        "id": "analysis_dc67cf7d-9133-42a4-b28a-bbc22f410af2",
+        "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:26Z",
+        "createdAt": "2026-10-05T08:20:51Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -1346,7 +1346,7 @@
               }
             }
           ],
-          "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+          "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
           "projectRevision": 7,
           "sections": [
             {
@@ -2461,7 +2461,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_94c70197-1db7-4504-9071-67c941820896",
+          "analysisId": "analysis_dc67cf7d-9133-42a4-b28a-bbc22f410af2",
           "dependencies": [
             {
               "factor": 1,
@@ -2471,9 +2471,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+          "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
           "projectRevision": 7,
-          "requestId": "request_cd4ef82d-d50c-43cf-baa7-e3281fe0f3ac",
+          "requestId": "request_8b628e6b-9d61-4471-92d8-f5845027b7e6",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -2484,19 +2484,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:26Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             }
           ],
           "status": "complete",
@@ -2508,10 +2508,10 @@
       "id": "bend-z",
       "passed": true,
       "result": {
-        "id": "analysis_f751de10-dcdf-4eaf-8500-4bc3ec8b1c9e",
-        "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+        "id": "analysis_4b864264-33c7-4c33-ba4f-1f44addd03ea",
+        "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:27Z",
+        "createdAt": "2026-10-05T08:20:51Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -2596,7 +2596,7 @@
               }
             }
           ],
-          "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+          "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
           "projectRevision": 7,
           "sections": [
             {
@@ -3711,7 +3711,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_f751de10-dcdf-4eaf-8500-4bc3ec8b1c9e",
+          "analysisId": "analysis_4b864264-33c7-4c33-ba4f-1f44addd03ea",
           "dependencies": [
             {
               "factor": 1,
@@ -3721,9 +3721,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+          "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
           "projectRevision": 7,
-          "requestId": "request_8efacdf9-33e3-4405-95cc-10cc1466323d",
+          "requestId": "request_5efae1ee-f56d-4ff1-aa35-5cdafe599ce1",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -3734,19 +3734,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             }
           ],
           "status": "complete",
@@ -3758,10 +3758,10 @@
       "id": "torsion",
       "passed": true,
       "result": {
-        "id": "analysis_a57c41ec-2d0d-4331-8600-1697ec31e1c5",
-        "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+        "id": "analysis_4157a4b4-7c65-4fba-a252-6f57d5bef494",
+        "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:27Z",
+        "createdAt": "2026-10-05T08:20:51Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -3846,7 +3846,7 @@
               }
             }
           ],
-          "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+          "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
           "projectRevision": 7,
           "sections": [
             {
@@ -4961,7 +4961,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_a57c41ec-2d0d-4331-8600-1697ec31e1c5",
+          "analysisId": "analysis_4157a4b4-7c65-4fba-a252-6f57d5bef494",
           "dependencies": [
             {
               "factor": 1,
@@ -4971,9 +4971,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+          "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
           "projectRevision": 7,
-          "requestId": "request_cb630769-d7d7-4507-bf2e-ba5967d59107",
+          "requestId": "request_54001f0c-6868-4d35-8023-c835c1b69f92",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -4984,19 +4984,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:51Z"
             }
           ],
           "status": "complete",
@@ -5008,10 +5008,10 @@
       "id": "moment-y",
       "passed": true,
       "result": {
-        "id": "analysis_173cc3e5-ace8-4f29-b6f2-46eabbc5dd7e",
-        "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+        "id": "analysis_87f2d1c0-58ef-4705-a602-e4d46a8b7af7",
+        "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:27Z",
+        "createdAt": "2026-10-05T08:20:52Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -5096,7 +5096,7 @@
               }
             }
           ],
-          "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+          "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
           "projectRevision": 7,
           "sections": [
             {
@@ -6211,7 +6211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_173cc3e5-ace8-4f29-b6f2-46eabbc5dd7e",
+          "analysisId": "analysis_87f2d1c0-58ef-4705-a602-e4d46a8b7af7",
           "dependencies": [
             {
               "factor": 1,
@@ -6221,9 +6221,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+          "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
           "projectRevision": 7,
-          "requestId": "request_b2f46da7-1343-4b49-b974-45cce7c2fc9a",
+          "requestId": "request_23cf5530-e69b-4e0d-bc15-1b29a10f77e8",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -6234,19 +6234,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             }
           ],
           "status": "complete",
@@ -6258,10 +6258,10 @@
       "id": "moment-z",
       "passed": true,
       "result": {
-        "id": "analysis_440a2a4f-ace5-418f-8885-d79667b19b6f",
-        "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+        "id": "analysis_fffc04a1-3c7b-4290-bfae-cf2385dfffa4",
+        "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:27Z",
+        "createdAt": "2026-10-05T08:20:52Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -6346,7 +6346,7 @@
               }
             }
           ],
-          "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+          "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
           "projectRevision": 7,
           "sections": [
             {
@@ -7461,7 +7461,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_440a2a4f-ace5-418f-8885-d79667b19b6f",
+          "analysisId": "analysis_fffc04a1-3c7b-4290-bfae-cf2385dfffa4",
           "dependencies": [
             {
               "factor": 1,
@@ -7471,9 +7471,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+          "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
           "projectRevision": 7,
-          "requestId": "request_16e3ec4e-c62c-41f1-be4a-ac2e807498fd",
+          "requestId": "request_7b2ecc5d-72f2-4726-957a-d4a09a6d455d",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -7484,19 +7484,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             }
           ],
           "status": "complete",
@@ -7508,10 +7508,10 @@
       "id": "six-components",
       "passed": true,
       "result": {
-        "id": "analysis_34cfefdf-6708-427a-9a9e-dd69c91e821c",
-        "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+        "id": "analysis_899594c5-2d46-4d6e-a2e0-f32ee7a8c18c",
+        "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:27Z",
+        "createdAt": "2026-10-05T08:20:52Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -7596,7 +7596,7 @@
               }
             }
           ],
-          "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+          "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
           "projectRevision": 7,
           "sections": [
             {
@@ -8711,7 +8711,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_34cfefdf-6708-427a-9a9e-dd69c91e821c",
+          "analysisId": "analysis_899594c5-2d46-4d6e-a2e0-f32ee7a8c18c",
           "dependencies": [
             {
               "factor": 1,
@@ -8721,9 +8721,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+          "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
           "projectRevision": 7,
-          "requestId": "request_b80aa0f9-dfdd-4692-b16f-b5246e2b1b34",
+          "requestId": "request_37345262-b8a2-48b5-b9e9-db8a6973953b",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -8734,19 +8734,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:27Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             }
           ],
           "status": "complete",
@@ -8758,10 +8758,10 @@
       "id": "vertical",
       "passed": true,
       "result": {
-        "id": "analysis_9511cc46-c787-43d3-afa2-d4f432ed7bd8",
-        "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+        "id": "analysis_b21b6c06-2517-435f-8d2a-2e42ccd5951e",
+        "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:28Z",
+        "createdAt": "2026-10-05T08:20:52Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -8846,7 +8846,7 @@
               }
             }
           ],
-          "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+          "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
           "projectRevision": 7,
           "sections": [
             {
@@ -9961,7 +9961,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_9511cc46-c787-43d3-afa2-d4f432ed7bd8",
+          "analysisId": "analysis_b21b6c06-2517-435f-8d2a-2e42ccd5951e",
           "dependencies": [
             {
               "factor": 1,
@@ -9971,9 +9971,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+          "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
           "projectRevision": 7,
-          "requestId": "request_88896d92-66a0-4457-81fe-3f2f46dda1f7",
+          "requestId": "request_14bc7be4-91b3-4424-9e28-ec7d2bcb157c",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -9984,19 +9984,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:52Z"
             }
           ],
           "status": "complete",
@@ -10008,10 +10008,10 @@
       "id": "skew-rotated-section",
       "passed": true,
       "result": {
-        "id": "analysis_6c34e0df-af20-479f-9a9b-7f72af552a9f",
-        "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+        "id": "analysis_7f33461c-97e5-4829-ab07-bd345d3c56bf",
+        "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:01:28Z",
+        "createdAt": "2026-10-05T08:20:53Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -10096,7 +10096,7 @@
               }
             }
           ],
-          "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+          "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
           "projectRevision": 7,
           "sections": [
             {
@@ -11211,7 +11211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_6c34e0df-af20-479f-9a9b-7f72af552a9f",
+          "analysisId": "analysis_7f33461c-97e5-4829-ab07-bd345d3c56bf",
           "dependencies": [
             {
               "factor": 1,
@@ -11221,9 +11221,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+          "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
           "projectRevision": 7,
-          "requestId": "request_25bae9f3-e55a-4f49-94f3-4950ae6241ae",
+          "requestId": "request_31e52810-3fda-4e77-9996-f2f901cf45bd",
           "solver": {
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
@@ -11234,19 +11234,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:53Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:53Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:53Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:01:28Z"
+              "startedAt": "2026-10-05T08:20:53Z"
             }
           ],
           "status": "complete",
@@ -11255,5 +11255,6 @@
       }
     }
   ],
+  "nativeFailureDidNotSaveResult": true,
   "legacyFormalEntry": "passed"
 }

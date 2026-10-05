@@ -4,7 +4,7 @@
 
 Windows 桌面增加“C++ 单杆试算”，经既有统一分析请求和任务 facade 调用独立 C++ 进程，计算三维杆件刚度、约束消元、位移、反力、端力及 17 个沿杆站位。结果与真实阶段／矩阵同源保存；原正式 TypeScript 入口保留。方案、依赖、许可、安装与限制见 [ADR-0046](../../../decisions/0046-native-single-member-core.md)。
 
-[criteria.md](./criteria.md) 在首次新增求解运行前登记独立参考与容差。9 个成功算例、702 项检查及 4 个输入／求解失败用例通过，未修改 `t31-references.json`。[numerical-results.json](./numerical-results.json) 包含实际量值和残差；[wire-samples.json](./wire-samples.json) 包含原生请求、响应和用于桌面重跑的工程。
+[criteria.md](./criteria.md) 在首次新增求解运行前登记独立参考与容差。9 个成功算例、702 项检查及 6 个输入／求解失败用例通过，未修改 `t31-references.json`。[numerical-results.json](./numerical-results.json) 包含实际量值和残差；[wire-samples.json](./wire-samples.json) 包含原生请求、响应和用于桌面重跑的工程。
 
 首次验证脚本以严格 JS deepEqual 比较解码后的可选 `undefined` 字段以及 JSON 往返的负零，产生非数值失败；改为既有工程值等价比较后通过，没有修改求解、参考或容差。桌面九个算例经按钮计算、浏览、保存、重开及旧正式入口回归通过。
 
@@ -17,3 +17,5 @@ node scripts/verify-plan2-t213-install.cjs
 ```
 
 T2-14 继续承担完整多杆、均布荷载、自重与组合回归；T2-15 承担正式入口切换与完整故障调度；T2-44 承担干净 Windows 验收。
+
+代码审查发现空自由度／空约化矩阵可能被接受，以及原生参数错误缺少定位，均已修复并独立复查。原生成功结果现在在统一解码入口核对完整过程、自由／约束分区、实际单元映射和站位；保存重开也执行同一校验。材料、截面、节点、支座、荷载参数及杆件资源引用返回对象和字段。新增 3 项保存／畸形结果测试，并补充非法截面、引用的原生失败用例。

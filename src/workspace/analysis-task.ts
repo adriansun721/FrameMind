@@ -1,4 +1,4 @@
-﻿import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
 import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
@@ -79,9 +79,6 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
         || !sameInputValue(result.service.origin, request.origin)) throw new Error("分析输出与请求来源不一致");
       decodeAnalysisRun(result.service, result.input, result.id);
       if (!sameInputValue(result.service.stages, stages)) throw new Error("分析结果阶段与实际运行消息不一致");
-      if (native && (!result.process || !sameInputValue(result.process.solver, request.input.solver)
-        || result.process.members.length !== 1 || !result.process.assembledStiffness || !result.process.reducedStiffness
-        || result.members.some((member) => !member.nativeResponses))) throw new Error("原生结果缺少实际矩阵或沿杆恢复记录");
       freezeAnalysisInput(result.input);
       finish(() => resolvePromise(result));
     } catch (error) { fail(error, "invalid-service-output"); }
@@ -142,4 +139,3 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
     rejectPromise(new AnalysisCancelledError(analysisRunRecord(request, "cancelled", stages)));
   }) };
 }
-

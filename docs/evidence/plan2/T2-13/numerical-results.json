@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-05T08:00:32.304Z",
-  "baseCommit": "a96a4cc2916f6e2ea52d6858b2b91d6301f83ae7",
-  "executableSha256": "b06870ab1ba80c4559caa71027be33c6e67d521d57f695d0ef6da28d0031b19c",
+  "generatedAt": "2026-10-05T08:16:26.402Z",
+  "baseCommit": "27750c49f987b0cd6c89297d9c9cf02eea4c1e5f",
+  "executableSha256": "af869f3d585e2766daa24bd42d8f8cc3c6674df2efa0bb13df2dd38bdc54da01",
   "referenceSha256": "64c378ed7d7fc521f8a39fc38da2383715b4e6b77a25a771232b1a469cdac31b",
   "environment": {
     "platform": "win32",
@@ -12,7 +12,7 @@
   "passed": true,
   "summary": {
     "cases": 9,
-    "failureCases": 4,
+    "failureCases": 6,
     "checks": 702,
     "failed": []
   },
@@ -104,7 +104,7 @@
             }
           }
         ],
-        "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+        "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
         "projectRevision": 7,
         "sections": [
           {
@@ -1472,7 +1472,7 @@
             }
           }
         ],
-        "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+        "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
         "projectRevision": 7,
         "sections": [
           {
@@ -2840,7 +2840,7 @@
             }
           }
         ],
-        "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+        "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
         "projectRevision": 7,
         "sections": [
           {
@@ -4208,7 +4208,7 @@
             }
           }
         ],
-        "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+        "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
         "projectRevision": 7,
         "sections": [
           {
@@ -5576,7 +5576,7 @@
             }
           }
         ],
-        "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+        "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
         "projectRevision": 7,
         "sections": [
           {
@@ -6944,7 +6944,7 @@
             }
           }
         ],
-        "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+        "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
         "projectRevision": 7,
         "sections": [
           {
@@ -8312,7 +8312,7 @@
             }
           }
         ],
-        "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+        "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
         "projectRevision": 7,
         "sections": [
           {
@@ -9680,7 +9680,7 @@
             }
           }
         ],
-        "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+        "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
         "projectRevision": 7,
         "sections": [
           {
@@ -11048,7 +11048,7 @@
             }
           }
         ],
-        "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+        "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
         "projectRevision": 7,
         "sections": [
           {
@@ -12338,8 +12338,44 @@
       "diagnostics": [
         {
           "code": "native-input-error",
-          "field": "input",
-          "message": "Invalid material or section parameter"
+          "field": "elasticModulusGPa",
+          "message": "Invalid elasticModulusGPa",
+          "target": {
+            "id": "material_0001",
+            "kind": "material"
+          }
+        }
+      ]
+    },
+    {
+      "id": "invalid-section",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "areaM2",
+          "message": "Invalid areaM2",
+          "target": {
+            "id": "section_0001",
+            "kind": "section"
+          }
+        }
+      ]
+    },
+    {
+      "id": "invalid-reference",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "materialId",
+          "message": "Missing or duplicate referenced resource",
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
         }
       ]
     },

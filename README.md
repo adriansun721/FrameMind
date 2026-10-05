@@ -1,5 +1,7 @@
 # FrameMind
 
+T2-13 新增“C++ 单杆试算”，用于两个节点、一根三维悬臂杆和节点端力／力矩；原“计算”和 agent 正式静力入口继续使用 TypeScript。开发原生程序先运行 `npm run build:native`（需要 Visual Studio 2026 C++ x64 Build Tools 与 CMake）；安装运行不需要编译器。`npm run evidence:plan2:t213` 复跑独立单杆基准及桌面保存，`npm run package:win:native-candidate` 生成 `release/t213/` 下的独立候选，安装验证运行 `node scripts/verify-plan2-t213-install.cjs`。完整多杆迁移与干净 Windows 验收仍待后续任务；见 [T2-13 记录](docs/evidence/plan2/T2-13/implementation.md)。
+
 T34 已加入 Windows x64 NSIS 候选安装包、固定示例和质量资料、安装版离线回归与禁网 Sandbox 复验脚本。开发构建运行 `npm ci`、`npm run package:win`，输出到 `release/`；安装验证运行 `npm run evidence:t34`，真实 DeepSeek 完整流程运行 `npm run evidence:t34:online`（复用已有本机加密凭据并产生 API 用量）。详见 [启动与限制说明](docs/release/Windows-quick-start.md) 和 [验收索引](docs/release/T34-acceptance.md)。**真人试用与干净 Windows 实测仍待执行，当前为候选交付，首版未全部完成。**
 
 T33 已增加首次使用引导、固定两层钢刚架完整演示、双主题回放和真实 DeepSeek 联测，修复 AI 新增柱截面的身份错误导致报告导出/项目重开失败的问题。技术验收与项目、Word/PDF 证据见 [T33 验收记录](docs/evidence/T33-validation.md)。**真人首次试用尚待执行，T33 未标为全部完成**；试用材料见 [首次使用记录](docs/evidence/T33-first-use.md)。`npm run evidence:t33` 运行固定回放；`npm run evidence:t33:online` 复用本机已配置的加密凭据，会产生 DeepSeek API 用量。两种模式独立记录，回放不计作在线通过。

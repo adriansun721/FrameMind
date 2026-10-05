@@ -46,12 +46,25 @@ test("T2-13 desktop calls C++, browses and saves all independent single-member l
     }
     await mkdir(evidence, { recursive: true });
     await page.screenshot({ path: join(evidence, installed ? "installed-native.png" : "native-process.png") });
+    const mechanism = structuredClone(samples[0].project);
+    mechanism.supports[0].restraints = [true, true, true, false, false, false];
+    await writeFile(projectPath, encodeProject(mechanism));
+    await page.keyboard.press("Control+o");
+    await expect(page.locator('footer[role="status"]')).toContainText("已打开");
+    await page.getByRole("button", { name: "C++ 单杆试算", exact: true }).click();
+    await expect(page.locator('footer[role="status"]')).toContainText("方程求解失败");
+    await page.keyboard.press("Control+s");
+    await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+    expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis).toBeUndefined();
+    await writeFile(projectPath, encodeProject(samples[0].project));
+    await page.keyboard.press("Control+o");
+    await expect(page.locator('footer[role="status"]')).toContainText("已打开");
     await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
     await page.keyboard.press("Control+s");
     await expect(page.locator('footer[role="status"]')).toContainText("已保存");
     expect(decodeProject(await readFile(projectPath, "utf8")).latestAnalysis!.input.solver!.implementation).toBe("framemind-frame/3");
     await writeFile(join(evidence, installed ? "installed-desktop.json" : "desktop-results.json"), JSON.stringify({ passed: true, installed: installed ?? false,
-      compilerPath: "Windows System32 only", directory, records, legacyFormalEntry: "passed" }, null, 2) + "\n");
+      compilerPath: "Windows System32 only", directory, records, nativeFailureDidNotSaveResult: true, legacyFormalEntry: "passed" }, null, 2) + "\n");
   } finally { await app.close(); }
 });

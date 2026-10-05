@@ -49,22 +49,25 @@ try {
   });
   const failures = [];
   if (samples.length) {
-    for (const [id, edit, expectedStage, code] of [
-      ["invalid-material", (r) => { r.input.materials[0].elasticModulusGPa = 0; }, "model-check", "native-input-error"],
+    for (const [id, edit, expectedStage, code, targetKind, field] of [
+      ["invalid-material", (r) => { r.input.materials[0].elasticModulusGPa = 0; }, "model-check", "native-input-error", "material", "elasticModulusGPa"],
+      ["invalid-section", (r) => { r.input.sections[0].areaM2 = -1; }, "model-check", "native-input-error", "section", "areaM2"],
+      ["invalid-reference", (r) => { r.input.members[0].materialId = "material_9999"; }, "model-check", "native-input-error", "member", "materialId"],
       ["mechanism", (r) => { r.input.supports[0].restraints = [true,true,true,false,false,false]; }, "solve", "singular-system"],
       ["overflow", (r) => { r.input.sections[0].areaM2 = 1e308; }, "assembly", "native-computation-error"],
       ["invalid-units", (r) => { r.input.assumptions.units = "mm-N"; }, "model-check", "native-input-error"],
     ]) {
       const request = structuredClone(samples[0].request); edit(request);
       try { invoke(request); failures.push({ id, passed: false }); }
-      catch (error) { failures.push({ id, passed: error instanceof AnalysisFailure && error.stage === expectedStage && error.diagnostics[0].code === code, stage: error.stage, diagnostics: error.diagnostics }); }
+      catch (error) { failures.push({ id, passed: error instanceof AnalysisFailure && error.stage === expectedStage && error.diagnostics[0].code === code
+        && (!targetKind || error.diagnostics[0].target?.kind === targetKind && error.diagnostics[0].field === field), stage: error.stage, diagnostics: error.diagnostics }); }
     }
   }
   const failed = [...cases, ...failures].filter((item) => !item.passed).map((item) => item.id);
   const report = { generatedAt: new Date().toISOString(), baseCommit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     executableSha256: createHash("sha256").update(await readFile(executable)).digest("hex"), referenceSha256: createHash("sha256").update(bytes).digest("hex"),
     environment: { platform: process.platform, arch: process.arch, node: process.version, childPath: "Windows System32 only" },
-    passed: cases.length === ids.length && failed.length === 0 && failures.length === 4,
+    passed: cases.length === ids.length && failed.length === 0 && failures.length === 6,
     summary: { cases: cases.length, failureCases: failures.length, checks: cases.flatMap((item) => item.checks ?? []).length, failed }, cases, failures };
   await mkdir(directory, { recursive: true });
   await writeFile(`${directory}/numerical-results.json`, JSON.stringify(report, null, 2) + "\n");

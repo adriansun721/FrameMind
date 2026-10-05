@@ -3,13 +3,13 @@
     "id": "axial",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_fa626f1f-acce-4084-b4b5-09f446e8cae7",
-      "analysisId": "analysis_423f3ca5-4be4-47ac-8e58-62144bd3f896",
+      "requestId": "request_8178f130-4a75-49e6-a67b-f98d2061e3b0",
+      "analysisId": "analysis_fe27187e-cc7c-437d-90b9-4922e4218809",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+        "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -148,10 +148,10 @@
       ]
     },
     "result": {
-      "id": "analysis_423f3ca5-4be4-47ac-8e58-62144bd3f896",
-      "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+      "id": "analysis_fe27187e-cc7c-437d-90b9-4922e4218809",
+      "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:25Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -236,7 +236,7 @@
             }
           }
         ],
-        "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+        "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
         "projectRevision": 7,
         "sections": [
           {
@@ -1351,7 +1351,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_423f3ca5-4be4-47ac-8e58-62144bd3f896",
+        "analysisId": "analysis_fe27187e-cc7c-437d-90b9-4922e4218809",
         "dependencies": [
           {
             "factor": 1,
@@ -1361,9 +1361,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+        "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
         "projectRevision": 7,
-        "requestId": "request_fa626f1f-acce-4084-b4b5-09f446e8cae7",
+        "requestId": "request_8178f130-4a75-49e6-a67b-f98d2061e3b0",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -1374,19 +1374,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           }
         ],
         "status": "complete",
@@ -1396,10 +1396,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_582a9b0a-20c4-4dea-b4ff-5c6d10937a97",
+      "id": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
       "name": "T31 axial",
-      "createdAt": "2026-10-05T08:00:31.578Z",
-      "updatedAt": "2026-10-05T08:00:31.585Z",
+      "createdAt": "2026-10-05T08:16:25.759Z",
+      "updatedAt": "2026-10-05T08:16:25.763Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -1532,13 +1532,13 @@
     "id": "bend-y",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_27e2287f-c301-483d-aec0-8a41edb863c5",
-      "analysisId": "analysis_3e1c4897-a073-4746-a9a1-6ba194856c19",
+      "requestId": "request_501d0807-1c70-4e7a-ac93-1a5925997168",
+      "analysisId": "analysis_64974d34-abce-4d2f-b30d-9fba87a54ebf",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+        "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -1677,10 +1677,10 @@
       ]
     },
     "result": {
-      "id": "analysis_3e1c4897-a073-4746-a9a1-6ba194856c19",
-      "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+      "id": "analysis_64974d34-abce-4d2f-b30d-9fba87a54ebf",
+      "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:25Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -1765,7 +1765,7 @@
             }
           }
         ],
-        "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+        "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
         "projectRevision": 7,
         "sections": [
           {
@@ -2880,7 +2880,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_3e1c4897-a073-4746-a9a1-6ba194856c19",
+        "analysisId": "analysis_64974d34-abce-4d2f-b30d-9fba87a54ebf",
         "dependencies": [
           {
             "factor": 1,
@@ -2890,9 +2890,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+        "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
         "projectRevision": 7,
-        "requestId": "request_27e2287f-c301-483d-aec0-8a41edb863c5",
+        "requestId": "request_501d0807-1c70-4e7a-ac93-1a5925997168",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -2903,19 +2903,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           }
         ],
         "status": "complete",
@@ -2925,10 +2925,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_bcd9e279-399a-43dc-a9ee-72a95bb29e53",
+      "id": "project_21783916-399b-4310-b9eb-b5714a40c657",
       "name": "T31 bend-y",
-      "createdAt": "2026-10-05T08:00:31.657Z",
-      "updatedAt": "2026-10-05T08:00:31.657Z",
+      "createdAt": "2026-10-05T08:16:25.840Z",
+      "updatedAt": "2026-10-05T08:16:25.840Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -3061,13 +3061,13 @@
     "id": "bend-z",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_84692521-68e8-4b6d-9afb-7cfe5725b0b1",
-      "analysisId": "analysis_12b82ff4-32cf-4f01-9692-16ede23f0bd3",
+      "requestId": "request_9eb87dc7-e68e-4a53-aeb6-330ea4e87f56",
+      "analysisId": "analysis_b2a27fb1-39a8-4675-a62b-9bae12d413e7",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+        "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -3206,10 +3206,10 @@
       ]
     },
     "result": {
-      "id": "analysis_12b82ff4-32cf-4f01-9692-16ede23f0bd3",
-      "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+      "id": "analysis_b2a27fb1-39a8-4675-a62b-9bae12d413e7",
+      "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:25Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -3294,7 +3294,7 @@
             }
           }
         ],
-        "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+        "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
         "projectRevision": 7,
         "sections": [
           {
@@ -4409,7 +4409,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_12b82ff4-32cf-4f01-9692-16ede23f0bd3",
+        "analysisId": "analysis_b2a27fb1-39a8-4675-a62b-9bae12d413e7",
         "dependencies": [
           {
             "factor": 1,
@@ -4419,9 +4419,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+        "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
         "projectRevision": 7,
-        "requestId": "request_84692521-68e8-4b6d-9afb-7cfe5725b0b1",
+        "requestId": "request_9eb87dc7-e68e-4a53-aeb6-330ea4e87f56",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -4432,19 +4432,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           }
         ],
         "status": "complete",
@@ -4454,10 +4454,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_45080ab1-41c9-4562-9328-dcf30f8aa92f",
+      "id": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
       "name": "T31 bend-z",
-      "createdAt": "2026-10-05T08:00:31.714Z",
-      "updatedAt": "2026-10-05T08:00:31.714Z",
+      "createdAt": "2026-10-05T08:16:25.888Z",
+      "updatedAt": "2026-10-05T08:16:25.888Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -4590,13 +4590,13 @@
     "id": "torsion",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_56eb9007-14a1-4e33-8181-73dc8d36a138",
-      "analysisId": "analysis_5ed4dcaa-0b11-4dac-876f-521b87cb1a0e",
+      "requestId": "request_d885614e-f116-45ed-9038-d2422fdf3a7b",
+      "analysisId": "analysis_59365722-86dc-47bf-85e7-701bed32a971",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+        "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -4735,10 +4735,10 @@
       ]
     },
     "result": {
-      "id": "analysis_5ed4dcaa-0b11-4dac-876f-521b87cb1a0e",
-      "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+      "id": "analysis_59365722-86dc-47bf-85e7-701bed32a971",
+      "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:25Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -4823,7 +4823,7 @@
             }
           }
         ],
-        "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+        "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
         "projectRevision": 7,
         "sections": [
           {
@@ -5938,7 +5938,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_5ed4dcaa-0b11-4dac-876f-521b87cb1a0e",
+        "analysisId": "analysis_59365722-86dc-47bf-85e7-701bed32a971",
         "dependencies": [
           {
             "factor": 1,
@@ -5948,9 +5948,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+        "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
         "projectRevision": 7,
-        "requestId": "request_56eb9007-14a1-4e33-8181-73dc8d36a138",
+        "requestId": "request_d885614e-f116-45ed-9038-d2422fdf3a7b",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -5961,19 +5961,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:25Z"
           }
         ],
         "status": "complete",
@@ -5983,10 +5983,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_f052f3d2-c8d8-4f75-bb3d-c3d4f67ed1a2",
+      "id": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
       "name": "T31 torsion",
-      "createdAt": "2026-10-05T08:00:31.766Z",
-      "updatedAt": "2026-10-05T08:00:31.767Z",
+      "createdAt": "2026-10-05T08:16:25.934Z",
+      "updatedAt": "2026-10-05T08:16:25.934Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -6119,13 +6119,13 @@
     "id": "moment-y",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_10cc5927-5710-4df0-9bb1-1a445395ede7",
-      "analysisId": "analysis_2e496e58-ed11-4b0f-baef-55e21362369e",
+      "requestId": "request_609990c8-e8d3-4bdb-b34b-6e0732081e2c",
+      "analysisId": "analysis_941e66bd-35dc-4009-be5e-e80f2606772d",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+        "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -6264,10 +6264,10 @@
       ]
     },
     "result": {
-      "id": "analysis_2e496e58-ed11-4b0f-baef-55e21362369e",
-      "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+      "id": "analysis_941e66bd-35dc-4009-be5e-e80f2606772d",
+      "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:26Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -6352,7 +6352,7 @@
             }
           }
         ],
-        "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+        "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
         "projectRevision": 7,
         "sections": [
           {
@@ -7467,7 +7467,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_2e496e58-ed11-4b0f-baef-55e21362369e",
+        "analysisId": "analysis_941e66bd-35dc-4009-be5e-e80f2606772d",
         "dependencies": [
           {
             "factor": 1,
@@ -7477,9 +7477,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+        "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
         "projectRevision": 7,
-        "requestId": "request_10cc5927-5710-4df0-9bb1-1a445395ede7",
+        "requestId": "request_609990c8-e8d3-4bdb-b34b-6e0732081e2c",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -7490,19 +7490,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           }
         ],
         "status": "complete",
@@ -7512,10 +7512,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_d1b87491-f077-4ff9-86fd-9b321346439c",
+      "id": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
       "name": "T31 moment-y",
-      "createdAt": "2026-10-05T08:00:31.818Z",
-      "updatedAt": "2026-10-05T08:00:31.819Z",
+      "createdAt": "2026-10-05T08:16:25.975Z",
+      "updatedAt": "2026-10-05T08:16:25.975Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -7648,13 +7648,13 @@
     "id": "moment-z",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_f6322d72-17d6-4597-9550-2d9cb0676d23",
-      "analysisId": "analysis_f9ad7a00-0f16-4c9e-bba5-15132decc984",
+      "requestId": "request_e88b4e0e-c685-4fa9-b46c-6dce30add71a",
+      "analysisId": "analysis_5aa4caf6-8aed-48e3-915e-5a8088966651",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+        "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -7793,10 +7793,10 @@
       ]
     },
     "result": {
-      "id": "analysis_f9ad7a00-0f16-4c9e-bba5-15132decc984",
-      "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+      "id": "analysis_5aa4caf6-8aed-48e3-915e-5a8088966651",
+      "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:26Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -7881,7 +7881,7 @@
             }
           }
         ],
-        "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+        "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
         "projectRevision": 7,
         "sections": [
           {
@@ -8996,7 +8996,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_f9ad7a00-0f16-4c9e-bba5-15132decc984",
+        "analysisId": "analysis_5aa4caf6-8aed-48e3-915e-5a8088966651",
         "dependencies": [
           {
             "factor": 1,
@@ -9006,9 +9006,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+        "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
         "projectRevision": 7,
-        "requestId": "request_f6322d72-17d6-4597-9550-2d9cb0676d23",
+        "requestId": "request_e88b4e0e-c685-4fa9-b46c-6dce30add71a",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -9019,19 +9019,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           }
         ],
         "status": "complete",
@@ -9041,10 +9041,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_851e14bb-4224-44d3-9a8f-8e3de60da2de",
+      "id": "project_91abef65-1e10-421c-acaf-833711459f51",
       "name": "T31 moment-z",
-      "createdAt": "2026-10-05T08:00:31.877Z",
-      "updatedAt": "2026-10-05T08:00:31.877Z",
+      "createdAt": "2026-10-05T08:16:26.016Z",
+      "updatedAt": "2026-10-05T08:16:26.016Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -9177,13 +9177,13 @@
     "id": "six-components",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_49042d8b-062e-487f-894f-276dfb71592a",
-      "analysisId": "analysis_0dc7ae32-47ed-4a2e-8f82-853ec3605e61",
+      "requestId": "request_7b8d3bfc-b72e-4cdb-9238-5f7986a3b07f",
+      "analysisId": "analysis_19b6ebb2-23c9-4d28-81d3-c2e8cbd5eba3",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+        "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -9322,10 +9322,10 @@
       ]
     },
     "result": {
-      "id": "analysis_0dc7ae32-47ed-4a2e-8f82-853ec3605e61",
-      "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+      "id": "analysis_19b6ebb2-23c9-4d28-81d3-c2e8cbd5eba3",
+      "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:31Z",
+      "createdAt": "2026-10-05T08:16:26Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -9410,7 +9410,7 @@
             }
           }
         ],
-        "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+        "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
         "projectRevision": 7,
         "sections": [
           {
@@ -10525,7 +10525,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_0dc7ae32-47ed-4a2e-8f82-853ec3605e61",
+        "analysisId": "analysis_19b6ebb2-23c9-4d28-81d3-c2e8cbd5eba3",
         "dependencies": [
           {
             "factor": 1,
@@ -10535,9 +10535,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+        "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
         "projectRevision": 7,
-        "requestId": "request_49042d8b-062e-487f-894f-276dfb71592a",
+        "requestId": "request_7b8d3bfc-b72e-4cdb-9238-5f7986a3b07f",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -10548,19 +10548,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:31Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           }
         ],
         "status": "complete",
@@ -10570,10 +10570,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_d3f171ce-7b0d-42cf-b60f-33f2156535cb",
+      "id": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
       "name": "T31 six-components",
-      "createdAt": "2026-10-05T08:00:31.936Z",
-      "updatedAt": "2026-10-05T08:00:31.936Z",
+      "createdAt": "2026-10-05T08:16:26.054Z",
+      "updatedAt": "2026-10-05T08:16:26.054Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -10706,13 +10706,13 @@
     "id": "vertical",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_72351402-2440-4661-ab9d-eff7c487321e",
-      "analysisId": "analysis_54f8d6cd-ccfb-429c-bfa4-eff60bcd6a37",
+      "requestId": "request_72426f32-9d4b-4b46-bbc8-50fb23475719",
+      "analysisId": "analysis_5a526399-2baf-4b5b-861b-233e76bc368b",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+        "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -10851,10 +10851,10 @@
       ]
     },
     "result": {
-      "id": "analysis_54f8d6cd-ccfb-429c-bfa4-eff60bcd6a37",
-      "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+      "id": "analysis_5a526399-2baf-4b5b-861b-233e76bc368b",
+      "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:32Z",
+      "createdAt": "2026-10-05T08:16:26Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -10939,7 +10939,7 @@
             }
           }
         ],
-        "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+        "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
         "projectRevision": 7,
         "sections": [
           {
@@ -12054,7 +12054,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_54f8d6cd-ccfb-429c-bfa4-eff60bcd6a37",
+        "analysisId": "analysis_5a526399-2baf-4b5b-861b-233e76bc368b",
         "dependencies": [
           {
             "factor": 1,
@@ -12064,9 +12064,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+        "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
         "projectRevision": 7,
-        "requestId": "request_72351402-2440-4661-ab9d-eff7c487321e",
+        "requestId": "request_72426f32-9d4b-4b46-bbc8-50fb23475719",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -12077,19 +12077,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           }
         ],
         "status": "complete",
@@ -12099,10 +12099,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_0261dcc1-5bdd-4425-9cad-f37cabc69b20",
+      "id": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
       "name": "T31 vertical",
-      "createdAt": "2026-10-05T08:00:31.993Z",
-      "updatedAt": "2026-10-05T08:00:31.993Z",
+      "createdAt": "2026-10-05T08:16:26.099Z",
+      "updatedAt": "2026-10-05T08:16:26.099Z",
       "revision": 7,
       "units": {
         "length": "m",
@@ -12235,13 +12235,13 @@
     "id": "skew-rotated-section",
     "request": {
       "version": "framemind-analysis/1",
-      "requestId": "request_cf3dff77-d6f4-44ef-8cfc-83e7dcad2eb1",
-      "analysisId": "analysis_7a006b00-d93b-4429-b557-8465bb130d57",
+      "requestId": "request_e4acad21-8815-4b29-a537-5b9814e74e97",
+      "analysisId": "analysis_1dfb3681-f03a-4b7f-bc8f-33ca3e956e20",
       "origin": {
         "kind": "formal-model"
       },
       "input": {
-        "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+        "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -12380,10 +12380,10 @@
       ]
     },
     "result": {
-      "id": "analysis_7a006b00-d93b-4429-b557-8465bb130d57",
-      "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+      "id": "analysis_1dfb3681-f03a-4b7f-bc8f-33ca3e956e20",
+      "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
       "projectRevision": 7,
-      "createdAt": "2026-10-05T08:00:32Z",
+      "createdAt": "2026-10-05T08:16:26Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -12468,7 +12468,7 @@
             }
           }
         ],
-        "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+        "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
         "projectRevision": 7,
         "sections": [
           {
@@ -13583,7 +13583,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_7a006b00-d93b-4429-b557-8465bb130d57",
+        "analysisId": "analysis_1dfb3681-f03a-4b7f-bc8f-33ca3e956e20",
         "dependencies": [
           {
             "factor": 1,
@@ -13593,9 +13593,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+        "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
         "projectRevision": 7,
-        "requestId": "request_cf3dff77-d6f4-44ef-8cfc-83e7dcad2eb1",
+        "requestId": "request_e4acad21-8815-4b29-a537-5b9814e74e97",
         "solver": {
           "algorithm": "partial-pivot-gaussian",
           "constraints": "free-dof-elimination",
@@ -13606,19 +13606,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-05T08:00:32Z"
+            "startedAt": "2026-10-05T08:16:26Z"
           }
         ],
         "status": "complete",
@@ -13628,10 +13628,10 @@
     "project": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_b44a9c3c-e248-4108-9fc9-b7901f10434b",
+      "id": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
       "name": "T31 skew-rotated-section",
-      "createdAt": "2026-10-05T08:00:32.049Z",
-      "updatedAt": "2026-10-05T08:00:32.049Z",
+      "createdAt": "2026-10-05T08:16:26.139Z",
+      "updatedAt": "2026-10-05T08:16:26.139Z",
       "revision": 7,
       "units": {
         "length": "m",

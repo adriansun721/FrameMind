@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-10-05T08:21:25.351Z",
+  "platform": "10.0.26200",
+  "installer": "D:\\FrameMind\\release\\t213\\FrameMind-0.1.0-Windows-x64-Setup.exe",
+  "target": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-install-JwSEa4\\中文安装目录",
+  "cleanWindows": false,
+  "limitation": "Developer host; application and native child PATH contains Windows System32 only. Clean Windows acceptance remains T2-44.",
+  "passed": true,
+  "installerSha256": "7e46b6696341c07a774de57b261919b01611d340770d0ef09662f988c9494c74",
+  "coreSha256": "af869f3d585e2766daa24bd42d8f8cc3c6674df2efa0bb13df2dd38bdc54da01",
+  "uninstalled": true
+}
