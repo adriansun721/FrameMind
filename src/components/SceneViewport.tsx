@@ -1,10 +1,12 @@
 import { useUnits } from "./UnitPresentation";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Scan, Weight } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import type { FrameMaterial, FrameMember, FrameNode, FrameNodalLoad, FrameSection, FrameSupport, FrameUniformLoad, FrameSelfWeight, LoadId, MemberId, NodeId, ProjectId, SupportId } from "../domain/project";
+import type { FrameMaterial, FrameMember, FrameNode, FrameNodalLoad, FrameSection, FrameSupport, FrameUniformLoad, FrameSelfWeight, LoadId, MemberId, NodeId, ProjectId, SupportId, Vector3 } from "../domain/project";
+import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
+import { localSceneNodes } from "./scene-coordinates";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { uniformLoadVector } from "../domain/uniform-loads";
 import { getMemberResponseSamples, type AnalysisResult } from "../domain/analysis";
@@ -264,12 +266,23 @@ function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: Fra
     for (const child of previous.values()) disposeObjectTree(child);
 }
 
-export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0 }: SceneViewportProps) {
+export function SceneViewport(props: SceneViewportProps) {
+  const anchor = props.nodes[0]?.position ?? props.preview?.nodes[0]?.position;
+  const origin = useMemo(() => ({ x: anchor?.x ?? 0, y: anchor?.y ?? 0, z: anchor?.z ?? 0 }), [anchor?.x, anchor?.y, anchor?.z]);
+  const nodes = useMemo(() => localSceneNodes(props.nodes, origin), [props.nodes, origin]);
+  const preview = useMemo(() => props.preview ? { ...props.preview, nodes: localSceneNodes(props.preview.nodes, origin),
+    ...(props.preview.conditionNodes ? { conditionNodes: localSceneNodes(props.preview.conditionNodes, origin) } : {}) } : props.preview, [props.preview, origin]);
+  const analysis = useMemo(() => props.analysis ? { ...props.analysis, input: { ...props.analysis.input, nodes: localSceneNodes(props.analysis.input.nodes, origin) } } : undefined, [props.analysis, origin]);
+  return <SceneViewportScene {...props} nodes={nodes} preview={preview} analysis={analysis} worldNodes={props.nodes} origin={origin} />;
+}
+
+function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
   const u = useUnits();
   const responseCache = useRef(new WeakMap<AnalysisResult, Map<string, ReturnType<typeof getMemberResponseSamples>>>());
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
   const hostRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<SceneRuntime | null>(null);
+  const previousOrigin = useRef(origin);
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
   const onSelectLoadRef = useRef(onSelectUniformLoad); onSelectLoadRef.current = onSelectUniformLoad;
   const onSelectConditionRef = useRef(onSelectCondition); onSelectConditionRef.current = onSelectCondition;
@@ -277,7 +290,7 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
   const selectedMember = selection?.kind === "member" ? members.find((member) => member.id === selection.id) : undefined;
   const selectedMaterial = selectedMember ? materials.find((material) => material.id === selectedMember.materialId) : undefined;
   const selectedSection = selectedMember ? sections.find((section) => section.id === selectedMember.sectionId) : undefined;
-  const selectedNode = selection?.kind === "node" ? nodes.find((node) => node.id === selection.id) : undefined;
+  const selectedNode = selection?.kind === "node" ? worldNodes.find((node) => node.id === selection.id) : undefined;
   const selectedSupport = conditionSelection?.kind === "support" ? supports?.find((support) => support.id === conditionSelection.id) : undefined;
   const selectedNodalLoad = conditionSelection?.kind === "load" ? nodalLoads?.find((load) => load.id === conditionSelection.id) : undefined;
 
@@ -307,7 +320,7 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
     const previewGroup = new THREE.Group(); previewGroup.name = "unapplied-frame-preview"; scene.add(previewGroup);
     runtimeRef.current = { scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, preview: previewGroup, projectId: null, hasFramedModel: false };
 
-    const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.04;
+    const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = GEOMETRY_CONTRACT.picking.lineThreshold;
     const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
     const hitAtPointer = (event: PointerEvent): THREE.Intersection | undefined => {
       const bounds = renderer.domElement.getBoundingClientRect();
@@ -319,7 +332,7 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
     const finishPointer = (event: PointerEvent) => {
       if (event.button !== 0 || !pointerStart) return;
       const moved = pointerStart.distanceTo(new THREE.Vector2(event.clientX, event.clientY)); pointerStart = null;
-      if (moved > 4) return;
+      if (moved > GEOMETRY_CONTRACT.picking.clickMovementPixels) return;
       const hit = hitAtPointer(event);
       if (hit?.object.userData.kind === "uniform-load") onSelectLoadRef.current?.(hit.object.userData.id as LoadId);
       else if (hit?.object.userData.kind === "support" || hit?.object.userData.kind === "load") onSelectConditionRef.current?.(hit.object.userData as SceneConditionSelection);
@@ -369,6 +382,16 @@ export function SceneViewport({ preview, theme = "dark", supports, nodalLoads, c
     runtime.axes.setColors(palette.axisX, palette.axisY, palette.axisZ);
     runtime.model.setPalette(palette);
   }, [theme]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current; if (!runtime) return;
+    const shift = new THREE.Vector3(previousOrigin.current.x - origin.x, previousOrigin.current.y - origin.y, previousOrigin.current.z - origin.z);
+    runtime.camera.position.add(shift); runtime.controls.target.add(shift);
+    runtime.grid.position.set(-origin.x, -origin.y, -origin.z);
+    runtime.axes.position.set(-origin.x - 0.01, -origin.y - 0.01, -origin.z + 0.02);
+    previousOrigin.current = origin;
+    runtime.controls.update();
+  }, [origin]);
 
   useEffect(() => {
     const runtime = runtimeRef.current; if (!runtime) return;

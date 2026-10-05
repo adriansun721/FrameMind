@@ -3,7 +3,7 @@ import {
   addNode,
   deleteMember,
   updateMember,
-  updateNode,
+  updateNodes,
   addAnalysisCase, updateAnalysisCase, deleteAnalysisCase,
   type FrameAnalysisCase,
   type FrameProject,
@@ -37,7 +37,7 @@ export function applyProjectTransaction(project: FrameProject, mutations: readon
 export interface NodeBatchUpdate { id: NodeId; position: Vector3; }
 
 export function batchUpdateNodes(project: FrameProject, updates: readonly NodeBatchUpdate[]): FrameProject {
-  return applyProjectTransaction(project, updates.map(({ id, position }) => (current) => updateNode(current, id, position)));
+  return applyProjectTransaction(project, (current) => updateNodes(current, updates));
 }
 
 export interface MemberBatchUpdate { id: MemberId; changes: Partial<MemberProperties>; }
@@ -125,15 +125,24 @@ export interface ProjectEditReceipt {
 /** Manual edits and reviewed tool drafts execute the same commands and return the same object diff. */
 export function applyProjectEdits(project: FrameProject, operations: readonly ProjectEditOperation[]): { project: FrameProject; receipt: ProjectEditReceipt } {
   const created: ProjectEditReceipt["created"] = [];
+  // Consecutive node updates describe one geometry draft, not intermediate physical models.
+  const updateGroups = new Map<number, Extract<ProjectEditOperation, { type: "update_node" }>[]>();
+  const groupedIndices = new Set<number>();
+  for (let index = 0; index < operations.length; index++) {
+    const operation = operations[index];
+    if (operation.type !== "update_node") continue;
+    const group = [operation]; const first = index;
+    while (operations[index + 1]?.type === "update_node") {
+      index++; group.push(operations[index] as Extract<ProjectEditOperation, { type: "update_node" }>); groupedIndices.add(index);
+    }
+    updateGroups.set(first, group);
+  }
   const next = applyProjectTransaction(project, operations.map((operation, operationIndex) => (current) => {
+    if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
       case "create_node": changed = addNode(current, operation.position); break;
-      case "update_node": {
-        const node = current.nodes.find((item) => item.id === operation.id);
-        if (!node) throw new Error(`节点 ${operation.id} 不存在`);
-        changed = updateNode(current, operation.id, { ...node.position, ...operation.position }); break;
-      }
+      case "update_node": changed = updateNodes(current, updateGroups.get(operationIndex)!); break;
       case "duplicate_node": changed = duplicateNode(current, operation.id); break;
       case "delete_node": changed = deleteNode(current, operation.id); break;
       case "create_member": changed = addMember(current, operation.properties); break;

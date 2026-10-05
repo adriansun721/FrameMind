@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { launchFrameMind } from "./electron-app";
+import { enterWorkbenchWithoutRecovery, launchFrameMind } from "./electron-app";
 import { createNode } from "./modeling-actions";
 import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -21,9 +21,9 @@ test("T07 edits node coordinates through the bottom inspector and project tree u
     await page.getByRole("region", { name: "项目树" }).getByText("N1", { exact: true }).click();
     await properties.getByLabel("X 坐标").fill("2.5");
     await expect(properties.getByLabel("X 坐标")).toHaveValue("2.5");
-    await expect(properties.getByText("0.000 m", { exact: true })).toHaveCount(3);
+    await expect(properties.getByText("0 m", { exact: true })).toHaveCount(3);
     await properties.getByLabel("X 坐标").press("Enter");
-    await expect(properties.getByText("2.500 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("2.5 m", { exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "项目树" }).locator(".tree-item.selected")).toContainText("2.5, 0, 0");
 
     await properties.getByLabel("Y 坐标").fill("-3");
@@ -74,11 +74,12 @@ async function expectRenderedSelection(page: Page) {
 
 test("T07 synchronizes member assignments, rejects invalid drafts and reopens applied edits", async () => {
   const directory = await mkdtemp(join(tmpdir(), "framemind-t07-"));
-  const environment: NodeJS.ProcessEnv = { ...process.env, FRAMEMIND_E2E_PROJECT_PATH: join(directory, "synchronized.framemind") };
+  const environment: NodeJS.ProcessEnv = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: join(directory, "synchronized.framemind") };
   delete environment.ELECTRON_RUN_AS_NODE;
   let app = await electron.launch({ args: ["."], env: environment });
   try {
     const page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     for (const coordinates of [["0", "0", "0"], ["4", "0", "0"], ["0", "0", "3"]] as [string, string, string][]) await createNode(page, coordinates);
     for (const name of ["Steel A", "Steel B"]) {
       await page.getByRole("button", { name: "创建材料与截面" }).click();
@@ -97,12 +98,12 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await properties.getByLabel("截面转角（°）").fill("45");
     await expect(properties.getByLabel("终点节点")).toHaveValue("node_0003");
     await expect(properties.getByLabel("截面转角（°）")).toHaveValue("45");
-    await expect(properties.getByText("4.000 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("4 m", { exact: true })).toBeVisible();
     await properties.getByRole("button", { name: "保存杆件属性" }).click();
-    await expect(properties.getByText("3.000 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("3 m", { exact: true })).toBeVisible();
     await expect(page.getByTestId("viewport-member-details")).toContainText("Steel B");
     await expect(page.getByTestId("viewport-member-details")).toContainText("Section B");
-    await expect(page.getByTestId("viewport-member-details")).toContainText("45°");
+    await expect(page.getByTestId("viewport-member-details")).toContainText("45 °");
 
     await properties.getByLabel("起点节点").selectOption("node_0002");
     await properties.getByLabel("材料", { exact: true }).selectOption("material_0001");
@@ -113,19 +114,19 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await expect(properties.getByLabel("材料", { exact: true })).toHaveValue("material_0001");
     await expect(properties.getByLabel("截面", { exact: true })).toHaveValue("section_0001");
     await expect(properties.getByLabel("截面转角（°）")).toHaveValue("-30");
-    await expect(properties.getByText("5.000 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("5 m", { exact: true })).toBeVisible();
 
     const appliedContent = await savedProjectContent(page, environment.FRAMEMIND_E2E_PROJECT_PATH!);
     await properties.getByLabel("截面转角（°）").fill("");
     await properties.getByRole("button", { name: "保存杆件属性" }).click();
     await expect(properties.getByRole("alert")).toHaveText("截面转角不能为空");
-    await expect(page.getByTestId("viewport-member-details")).toContainText("-30°");
+    await expect(page.getByTestId("viewport-member-details")).toContainText("-30 °");
     await page.getByRole("region", { name: "项目树" }).getByText("M1", { exact: true }).click();
     await properties.getByLabel("终点节点").selectOption("node_0002");
     await properties.getByRole("button", { name: "保存杆件属性" }).click();
     await expect(properties.getByRole("alert")).toContainText("两个节点不能位于同一位置");
     expect(await savedProjectContent(page, environment.FRAMEMIND_E2E_PROJECT_PATH!)).toBe(appliedContent);
-    await expect(properties.getByText("5.000 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("5 m", { exact: true })).toBeVisible();
     await page.getByRole("region", { name: "项目树" }).getByText("M1", { exact: true }).click();
 
     await page.getByRole("region", { name: "项目树" }).getByText("N3", { exact: true }).click();
@@ -133,7 +134,7 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await properties.getByLabel("Z 坐标").fill("0");
     await properties.getByRole("button", { name: "保存节点属性" }).click();
     await expect(properties.getByRole("alert")).toContainText("零长度");
-    await expect(properties.getByText("3.000 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("3 m", { exact: true })).toBeVisible();
     await page.getByRole("region", { name: "项目树" }).getByText("N3", { exact: true }).click();
     await properties.getByLabel("X 坐标").fill("");
     await properties.getByRole("button", { name: "保存节点属性" }).click();
@@ -143,7 +144,7 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await properties.getByLabel("Z 坐标").fill("6");
     await properties.getByRole("button", { name: "保存节点属性" }).click();
     await page.getByRole("region", { name: "项目树" }).getByText("M1", { exact: true }).click();
-    await expect(properties.getByText("7.211 m", { exact: true })).toBeVisible();
+    await expect(properties.getByText("7.2111026 m", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "适合模型", exact: true }).click();
     await expectRenderedSelection(page);
     await page.screenshot({ path: test.info().outputPath("T07-synchronized-desktop.png") });
@@ -165,6 +166,7 @@ test("T07 synchronizes member assignments, rejects invalid drafts and reopens ap
     await app.close();
     app = await electron.launch({ args: ["."], env: environment });
     const reopened = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(reopened);
     await reopened.getByRole("button", { name: "文件", exact: true }).click();
     await reopened.getByRole("menuitem", { name: /打开项目/ }).click();
     await expect(reopened.getByRole("status")).toContainText("已打开");

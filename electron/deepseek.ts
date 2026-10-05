@@ -16,6 +16,7 @@ interface Credential { version: 1; apiKey: string; model: DeepSeekModel; }
 interface StoredSettings { settings: DeepSeekSettings; credential?: Credential; }
 
 const modelTools = [
+  { type: "function", function: { name: "read_geometry_contract", description: "Read independent picking, snapping, exact coordinate duplicate and solver tolerances in canonical metres. Finite XYZ may be negative, fractional or outside the visual grid. Connections use explicit node IDs; crossing or coincident geometry never automatically connects or splits members.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
   { type: "function", function: { name: "read_unit_contract", description: "Read canonical units, display presets and external-data unit rules. Never infer missing units from magnitude.", parameters: { type: "object", additionalProperties: false, properties: {} } } },
   { type: "function", function: { name: "convert_quantity", description: "Convert a quantity with explicitly declared dimension and source/target units. Missing or incompatible units are rejected.", parameters: { type: "object", additionalProperties: false, required: ["value", "dimension", "fromUnit", "toUnit"], properties: { value: { type: "number" }, dimension: { type: "string" }, fromUnit: { type: "string" }, toUnit: { type: "string" } } } } },
   { type: "function", function: { name: "propose_section_change", description: "Preview section reassignment for EXACTLY the currently selected vertical columns. Never updates a shared section or unselected members. Use either an existing project/catalog sectionId or new section properties. User must confirm the stage.",
@@ -131,12 +132,12 @@ const modelEditTools = [
   ...MODEL_EDIT_TOOL_DEFINITIONS,
 ];
 function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
-  const editRequested = messages.some((message) => message.role === "user" && /基础编辑|批量|移到|转角|旋转|(?:(?:创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
+  const editRequested = messages.some((message) => message.role === "user" && /自由坐标|自由数值|斜杆|基础编辑|批量|移到|转角|旋转|(?:(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member)|(?:node|member).*(?:edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
   const taskDraftActive = messages.some((message) => message.role === "system" && /当前完整任务草案：\{/.test(message.content));
   const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
   const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;
   return (editRequested ? [...base, ...modelEditTools] : base).map((tool) => {
-    if (tool.function.name.startsWith("discard_") || ["request_analysis", "read_unit_contract", "convert_quantity"].includes(tool.function.name)) return tool;
+    if (tool.function.name.startsWith("discard_") || ["request_analysis", "read_unit_contract", "read_geometry_contract", "convert_quantity"].includes(tool.function.name)) return tool;
     return { ...tool, function: { ...tool.function,
       description: tool.function.description + " Numeric fields use canonical m, kN, kN·m, GPa, kg/m³, m², m⁴, degrees (orientation), rad (response), m/s² unless inputUnits explicitly overrides dimensions. External values with missing units require user clarification. outputUnitPreset changes returned data only; confirmation and reference payloads remain canonical.",
       parameters: { ...tool.function.parameters, properties: { ...tool.function.parameters.properties,

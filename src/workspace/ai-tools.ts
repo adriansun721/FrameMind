@@ -1,4 +1,5 @@
 import { CANONICAL_UNITS, convertQuantity, UNIT_CONTRACT, type QuantityDimension } from "../domain/units";
+import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
 import { normalizeToolUnits, presentToolData } from "./unit-tools";
 import { ANALYSIS_CAPABILITIES } from "../domain/analysis-capabilities";
 import type { FrameProject } from "../domain/project";
@@ -262,6 +263,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
     if (call.function.name === "read_unit_contract") { exactFields(input, []); return { status: "completed", message: "已读取单位契约", context: snapshot.context, data: UNIT_CONTRACT }; }
+    if (call.function.name === "read_geometry_contract") { exactFields(input, []); return { status: "completed", message: "已读取几何与交互容差契约（规范单位 m）", context: snapshot.context, data: GEOMETRY_CONTRACT }; }
     if (call.function.name === "convert_quantity") {
       exactFields(input, ["value", "dimension", "fromUnit", "toUnit"]);
       if (typeof input.dimension !== "string" || !Object.hasOwn(CANONICAL_UNITS, input.dimension) || typeof input.value !== "number" || typeof input.fromUnit !== "string" || typeof input.toUnit !== "string") throw new Error("外部数值必须明确量纲及源单位和目标单位");
@@ -456,7 +458,7 @@ function finalizeAiToolResult(snapshot: AiSnapshot, value: unknown, result: AiTo
   // References and confirmation payloads remain canonical for navigation and persistence.
   try {
     const call = validateCall(value); const args = record(JSON.parse(call.function.arguments));
-    if ((args.outputUnitPreset !== undefined || snapshot.editProject.displayUnitPreset !== undefined) && result.data !== undefined && result.status !== "failed" && !["read_unit_contract", "convert_quantity"].includes(call.function.name)) {
+    if ((args.outputUnitPreset !== undefined || snapshot.editProject.displayUnitPreset !== undefined) && result.data !== undefined && result.status !== "failed" && !["read_unit_contract", "read_geometry_contract", "convert_quantity"].includes(call.function.name)) {
       const outputPreset = args.outputUnitPreset === undefined ? snapshot.editProject.displayUnitPreset : normalizeToolUnits(args).outputPreset;
       return { ...result, data: presentToolData(result.data, outputPreset!), receipt: buildReceipt(snapshot, value, result) };
     }

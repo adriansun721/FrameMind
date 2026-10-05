@@ -174,8 +174,8 @@ export function validateMember(project: FrameProject, label: string, member: Mem
   if (!Number.isFinite(member.rotationDegrees)) throw new Error(`杆件 ${label} 的截面转角必须是有限数值`);
   try {
     calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
-  } catch {
-    throw new Error(`杆件 ${label} 的两个节点不能位于同一位置`);
+  } catch (error) {
+    throw new Error(`杆件 ${label} 的两个节点不能位于同一位置；${error instanceof Error ? error.message : "几何无效"}`);
   }
   return { ...member };
 }
@@ -203,14 +203,25 @@ export function addNode(project: FrameProject, position: Vector3): FrameProject 
 }
 
 export function updateNode(project: FrameProject, id: NodeId, position: Vector3): FrameProject {
-  assertFiniteVector(position);
-  if (!project.nodes.some((node) => node.id === id)) throw new Error(`节点 ${id} 不存在`);
-  const nodes = project.nodes.map((node) => node.id === id ? { ...node, position: { ...position } } : node);
-  for (const member of project.members.filter((item) => item.startNodeId === id || item.endNodeId === id)) {
+  return updateNodes(project, [{ id, position }]);
+}
+
+/** Validate the final geometry together, allowing endpoint swaps and rigid translations. */
+export function updateNodes(project: FrameProject, updates: readonly { id: NodeId; position: Partial<Vector3> }[]): FrameProject {
+  if (!updates.length) return project;
+  const positions = new Map<NodeId, Vector3>();
+  for (const { id, position } of updates) {
+    const node = project.nodes.find((item) => item.id === id);
+    if (!node) throw new Error(`节点 ${id} 不存在`);
+    const next = { ...(positions.get(id) ?? node.position), ...position };
+    assertFiniteVector(next); positions.set(id, next);
+  }
+  const nodes = project.nodes.map((node) => positions.has(node.id) ? { ...node, position: { ...positions.get(node.id)! } } : node);
+  for (const member of project.members.filter((item) => positions.has(item.startNodeId) || positions.has(item.endNodeId))) {
     const start = nodes.find((node) => node.id === member.startNodeId)!;
     const end = nodes.find((node) => node.id === member.endNodeId)!;
     try { calculateMemberGeometry(start.position, end.position, member.rotationDegrees); }
-    catch { throw new Error(`节点修改会使杆件 ${member.label} 变为零长度`); }
+    catch (error) { throw new Error(`节点修改会使杆件 ${member.label} 变为零长度或无效几何；${error instanceof Error ? error.message : "几何无效"}`); }
   }
   return { ...project, nodes, ...nextRevision(project) };
 }

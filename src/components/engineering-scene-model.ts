@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { calculateMemberGeometry } from "../domain/member-geometry";
+import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
 import type { FrameMember, FrameNode, MemberId, NodeId } from "../domain/project";
 import { disposeObjectTree } from "./three-resources";
 
@@ -148,7 +149,7 @@ export class EngineeringSceneModel {
     display.renderOrder = 2;
 
     const hitTarget = new THREE.Mesh(
-      new THREE.SphereGeometry(0.22, 8, 6),
+      new THREE.SphereGeometry(GEOMETRY_CONTRACT.picking.nodeRadius, 8, 6),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     );
     hitTarget.position.set(node.position.x, node.position.y, node.position.z);
@@ -166,8 +167,10 @@ export class EngineeringSceneModel {
       new THREE.LineBasicMaterial({ color: this.palette.member }),
     );
     const length = startVector.distanceTo(endVector);
+    const picking = GEOMETRY_CONTRACT.picking;
+    const radius = Math.min(picking.memberRadiusMax, Math.max(picking.memberRadiusMin, length * picking.memberLengthFactor));
     const hitTarget = new THREE.Mesh(
-      new THREE.CylinderGeometry(Math.min(0.16, Math.max(0.08, length * 0.02)), Math.min(0.16, Math.max(0.08, length * 0.02)), length, 6),
+      new THREE.CylinderGeometry(radius, radius, length, 6),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     );
     placeCylinderBetween(hitTarget, startVector, endVector);

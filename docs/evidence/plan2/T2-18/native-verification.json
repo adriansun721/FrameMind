@@ -1,0 +1,88 @@
+{
+  "passed": true,
+  "geometryContract": {
+    "coordinateUnit": "m",
+    "coordinates": "finite-double-no-grid-clipping",
+    "connectivity": "explicit-node-id-only",
+    "intersections": "do-not-connect-or-split",
+    "duplicates": {
+      "comparison": "exact-xyz",
+      "automaticMerge": false
+    },
+    "snapping": {
+      "enabled": false,
+      "implementationTask": "T2-19"
+    },
+    "memberLength": {
+      "minimumExclusive": 1e-12,
+      "scaleWithCoordinates": false
+    },
+    "picking": {
+      "nodeRadius": 0.22,
+      "memberRadiusMin": 0.08,
+      "memberRadiusMax": 0.16,
+      "memberLengthFactor": 0.02,
+      "lineThreshold": 0.04,
+      "clickMovementPixels": 4
+    },
+    "solver": {
+      "relativePivotTolerance": 1e-12,
+      "relativeResidualTolerance": 1e-10,
+      "absoluteResidualTolerance": 1e-9
+    }
+  },
+  "solver": {
+    "implementation": "framemind-native/2",
+    "algorithm": "sparse-ldlt",
+    "constraints": "free-dof-elimination",
+    "relativePivotTolerance": 1e-12
+  },
+  "references": "Axial PL/EA; cantilever PL^3/(3EI); unloaded disconnected member zero response",
+  "cases": [
+    {
+      "id": "diagonal",
+      "expectedTip": {
+        "x": 0.000015,
+        "y": 0,
+        "z": 0.00002
+      },
+      "actualTip": {
+        "x": 0.000015000000000000002,
+        "y": -1.94215014441094e-21,
+        "z": 0.00002
+      },
+      "nodeCount": 2,
+      "memberCount": 1
+    },
+    {
+      "id": "large-close",
+      "expectedTip": {
+        "x": 4.8828125e-10,
+        "y": 0,
+        "z": 0
+      },
+      "actualTip": {
+        "x": 4.8828125e-10,
+        "y": 0,
+        "z": 0
+      },
+      "nodeCount": 2,
+      "memberCount": 1
+    },
+    {
+      "id": "crossing",
+      "expectedTip": {
+        "x": 0,
+        "y": 0,
+        "z": -0.03016988933062603
+      },
+      "actualTip": {
+        "x": 3.8805107275647466e-18,
+        "y": -3.8805107275647466e-18,
+        "z": -0.030169889330626035
+      },
+      "nodeCount": 4,
+      "memberCount": 2
+    }
+  ]
+}

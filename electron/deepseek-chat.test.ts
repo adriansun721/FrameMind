@@ -42,23 +42,24 @@ test("a selected-object conversation receives read-only tool calls and sends the
   } });
   const firstBody = JSON.parse(requests[0].init!.body as string);
   expect(firstBody).toMatchObject({ model: "deepseek-flash", thinking: { type: "disabled" }, stream: false, max_tokens: 2048, tool_choice: "auto" });
-  expect(firstBody.tools.map((tool: { function: { name: string } }) => tool.function.name).sort()).toEqual(["read_unit_contract", "convert_quantity", "propose_section_change", "discard_section_change", "read_comparison", "read_comparison_result", "read_results", "read_result", "request_analysis", "discard_frame_proposal", "read_model", "read_selection", "read_objects", "propose_frame", "discard_analysis_conditions", "propose_analysis_conditions", "inspect_diagnostics", "create_diagnostic_copy", "run_diagnostic_trial", "read_diagnostic", "compare_diagnostic_trials", "discard_diagnostic_copy"].sort());
+  expect(firstBody.tools.map((tool: { function: { name: string } }) => tool.function.name).sort()).toEqual(["read_unit_contract", "read_geometry_contract", "convert_quantity", "propose_section_change", "discard_section_change", "read_comparison", "read_comparison_result", "read_results", "read_result", "request_analysis", "discard_frame_proposal", "read_model", "read_selection", "read_objects", "propose_frame", "discard_analysis_conditions", "propose_analysis_conditions", "inspect_diagnostics", "create_diagnostic_copy", "run_diagnostic_trial", "read_diagnostic", "compare_diagnostic_trials", "discard_diagnostic_copy"].sort());
   expect(JSON.parse(requests[1].init!.body as string).messages[2]).toEqual({ role: "tool", tool_call_id: "call-selection", content: toolContent });
   expect(JSON.stringify([first, second])).not.toContain("sk-private-t20");
 });
 
-test("common Chinese node/member edit wording exposes the reviewed edit tools", async () => {
+test.each(["把 N1 移到 X=-1，并把 M1 转角改成30度", "建立负坐标节点并连接斜杆", "使用自由坐标建模"]) ("Chinese edit wording exposes reviewed free geometry tools: %s", async (prompt) => {
   const requests: RequestInit[] = [];
   const connection = await setup(async (_url, init) => {
     requests.push(init ?? {});
     return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核对基础编辑草案。" } }] }));
   });
-  const result = await connection.chat({ requestId: "edit-intent", messages: [{ role: "user", content: "把 N1 移到 X=-1，并把 M1 转角改成30度" }] });
+  const result = await connection.chat({ requestId: "edit-intent", messages: [{ role: "user", content: prompt }] });
   expect(result.status).toBe("success");
   const names = (JSON.parse(requests[0].body as string).tools as { function: { name: string } }[]).map((tool) => tool.function.name);
   expect(names).toContain("propose_model_edits");
   expect(names).toContain("update_node");
   expect(names).toContain("update_member");
+  expect(names).toContain("create_nodes"); expect(names).toContain("create_members"); expect(names).toContain("read_geometry_contract");
 });
 
 test("whole-task wording exposes a single reviewed task-draft tool", async () => {

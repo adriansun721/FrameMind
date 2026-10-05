@@ -2,6 +2,7 @@ import { _electron as electron, expect, test, type Page } from "@playwright/test
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
 
 async function runFileAction(page: Page, action: "新建项目" | "打开项目" | "保存项目") {
   await page.getByRole("button", { name: "文件" }).click();
@@ -14,9 +15,11 @@ test("creates, displays, saves, closes, and reopens a spatial node", async () =>
   const environment: NodeJS.ProcessEnv = { ...process.env };
   delete environment.ELECTRON_RUN_AS_NODE;
   environment.FRAMEMIND_E2E_PROJECT_PATH = projectPath;
+  environment.FRAMEMIND_E2E_USER_DATA_PATH = directory;
 
   const firstRun = await electron.launch({ args: ["."], env: environment });
   const firstWindow = await firstRun.firstWindow();
+  await enterWorkbenchWithoutRecovery(firstWindow);
 
   await firstWindow.getByRole("button", { name: "创建节点" }).click();
   await firstWindow.getByLabel("X 坐标").fill("1.25");
@@ -39,12 +42,13 @@ test("creates, displays, saves, closes, and reopens a spatial node", async () =>
 
   const secondRun = await electron.launch({ args: ["."], env: environment });
   const secondWindow = await secondRun.firstWindow();
+  await enterWorkbenchWithoutRecovery(secondWindow);
   await runFileAction(secondWindow, "打开项目");
   await secondWindow.getByText("N1", { exact: true }).click();
 
   await expect(secondWindow.getByTestId("viewport-node-count")).toHaveText("1 个节点");
   await expect(secondWindow.getByText("node_0001", { exact: true })).toBeVisible();
-  await expect(secondWindow.getByText("1.250 m", { exact: true })).toBeVisible();
+  await expect(secondWindow.getByText("1.25 m", { exact: true })).toBeVisible();
 
   await secondRun.close();
   await rm(directory, { recursive: true, force: true });
@@ -56,9 +60,11 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
   const environment: NodeJS.ProcessEnv = { ...process.env };
   delete environment.ELECTRON_RUN_AS_NODE;
   environment.FRAMEMIND_E2E_PROJECT_PATH = projectPath;
+  environment.FRAMEMIND_E2E_USER_DATA_PATH = directory;
 
   const firstRun = await electron.launch({ args: ["."], env: environment });
   const page = await firstRun.firstWindow();
+  await enterWorkbenchWithoutRecovery(page);
   for (const coordinates of [["0", "0", "0"], ["4", "0", "0"]]) {
     await page.getByRole("button", { name: "创建节点" }).click();
     const nodeDialog = page.getByRole("dialog", { name: "创建空间节点" });
@@ -82,7 +88,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
 
   await expect(page.getByTestId("viewport-member-count")).toHaveText("1 根杆件");
   await expect(page.getByText("member_0001", { exact: true })).toBeVisible();
-  await expect(page.getByText("4.000 m", { exact: true })).toBeVisible();
+  await expect(page.getByText("4 m", { exact: true })).toBeVisible();
   await page.getByText("局部坐标与参考轴", { exact: true }).click();
   await expect(page.getByText("局部 y", { exact: true })).toBeVisible();
 
@@ -96,7 +102,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
   await page.getByLabel("面积 A").fill("0.012");
   await page.getByRole("button", { name: "保存截面属性" }).click();
   await page.getByText("M1", { exact: true }).click();
-  await expect(page.getByText("5.000 m", { exact: true })).toBeVisible();
+  await expect(page.getByText("5 m", { exact: true })).toBeVisible();
   await expect(page.getByTestId("viewport-member-details")).toContainText("E 210 GPa");
   await expect(page.getByTestId("viewport-member-details")).toContainText("A 0.012 m²");
   await page.getByLabel("截面转角（°）").fill("30");
@@ -119,6 +125,7 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
 
   const secondRun = await electron.launch({ args: ["."], env: environment });
   const reopened = await secondRun.firstWindow();
+  await enterWorkbenchWithoutRecovery(reopened);
   await runFileAction(reopened, "打开项目");
   await reopened.getByText("M1", { exact: true }).click();
   await expect(reopened.getByText("member_0001", { exact: true })).toBeVisible();
