@@ -1,4 +1,5 @@
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
@@ -151,7 +152,9 @@ test("T27 edits and computes without credentials, then reopens saved results aft
     await app.close(); app = undefined;
 
     app = await electron.launch({ args: ["."], env: environment });
-    page = await app.firstWindow(); await openProject(page);
+    page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
+    await openProject(page);
     await expect(page.getByTestId("viewport-node-count")).toHaveText("4 个节点");
     await expect(page.getByTestId("ai-turn-status")).toHaveCount(0);
     const reopened = await save(page, path);

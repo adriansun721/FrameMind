@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, safeStorage, type IpcMainInvokeEvent } from "electron";
 import { join } from "node:path";
+import { stat } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import {
   DesktopChannel,
@@ -11,12 +12,14 @@ import {
 } from "./contracts";
 import { ProjectFileStore } from "./project-files";
 import { ChatHistoryStore } from "./chat-history";
+import { RecoveryStore } from "./recovery-store";
 import { DeepSeekConnection } from "./deepseek";
 import { renderReportPdf } from "./report-pdf";
 
 const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
 const chatHistories = new ChatHistoryStore(join(app.getPath("userData"), "chat-history"));
+const recoveries = new RecoveryStore(join(app.getPath("userData"), "recovery"));
 
 let deepSeek: DeepSeekConnection;
 const productionUrl = pathToFileURL(join(__dirname, "../dist/index.html")).href;
@@ -64,6 +67,9 @@ ipcMain.handle(DesktopChannel.LoadChatHistory, (event, projectId: string) => {
   requireTrustedSender(event);
   return chatHistories.load(projectId);
 });
+ipcMain.handle(DesktopChannel.SaveRecovery, (event, request) => { requireTrustedSender(event); return recoveries.save(request); });
+ipcMain.handle(DesktopChannel.ListRecovery, (event) => { requireTrustedSender(event); return recoveries.list(); });
+ipcMain.handle(DesktopChannel.ReadRecovery, (event, id: string) => { requireTrustedSender(event); return recoveries.read(id); });
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -102,7 +108,8 @@ function createWindow(): void {
   }
 }
 
-ipcMain.handle(DesktopChannel.SaveProject, async (_event, request: SaveProjectRequest): Promise<SaveProjectResult> => {
+ipcMain.handle(DesktopChannel.SaveProject, async (event, request: SaveProjectRequest): Promise<SaveProjectResult> => {
+  requireTrustedSender(event);
   const automatedPath = process.env.FRAMEMIND_E2E_PROJECT_PATH;
   let targetPath = request.path ?? automatedPath ?? null;
 
@@ -119,10 +126,11 @@ ipcMain.handle(DesktopChannel.SaveProject, async (_event, request: SaveProjectRe
   }
 
   await projectFiles.save(targetPath, request.content);
-  return { status: "saved" as const, path: targetPath };
+  return { status: "saved" as const, path: targetPath, savedAt: (await stat(targetPath)).mtime.toISOString() };
 });
 
-ipcMain.handle(DesktopChannel.OpenProject, async (): Promise<OpenProjectResult> => {
+ipcMain.handle(DesktopChannel.OpenProject, async (event): Promise<OpenProjectResult> => {
+  requireTrustedSender(event);
   const automatedPath = process.env.FRAMEMIND_E2E_PROJECT_PATH;
   let targetPath = automatedPath ?? null;
 
@@ -142,6 +150,7 @@ ipcMain.handle(DesktopChannel.OpenProject, async (): Promise<OpenProjectResult> 
     status: "opened" as const,
     path: targetPath,
     content: await projectFiles.open(targetPath),
+    savedAt: (await stat(targetPath)).mtime.toISOString(),
   };
 });
 

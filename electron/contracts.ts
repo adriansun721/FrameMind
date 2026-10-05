@@ -3,6 +3,9 @@ export const enum DesktopChannel {
   OpenProject = "project:open",
   SaveChatHistory = "chat-history:save",
   LoadChatHistory = "chat-history:load",
+  SaveRecovery = "recovery:save",
+  ListRecovery = "recovery:list",
+  ReadRecovery = "recovery:read",
   SetTheme = "app:theme",
   GetDeepSeekSettings = "deepseek:settings",
   SaveDeepSeekSettings = "deepseek:save",
@@ -59,6 +62,21 @@ export interface SaveProjectRequest {
   content: string;
 }
 
+export interface RecoverySaveRequest {
+  content: string;
+  formalSave: { path: string; savedAt: string } | null;
+}
+export interface RecoveryEntry {
+  id: string;
+  projectId: string;
+  projectName: string;
+  createdAt: string;
+  formalSave: RecoverySaveRequest["formalSave"];
+  source: "automatic-snapshot";
+  matchesFormalSave?: boolean;
+}
+export interface RecoveryListing { entries: RecoveryEntry[]; issues: string[]; }
+
 export interface ExportReportWordRequest {
   suggestedName: string;
   base64: string;
@@ -70,14 +88,17 @@ export interface ExportReportPdfRequest {
 }
 
 export type SaveProjectResult =
-  | { status: "saved"; path: string }
+  | { status: "saved"; path: string; savedAt?: string }
   | { status: "cancelled" };
 
 export type OpenProjectResult =
-  | { status: "opened"; path: string; content: string }
+  | { status: "opened"; path: string; content: string; savedAt?: string }
   | { status: "cancelled" };
 
 export interface FrameMindDesktopApi {
+  saveRecovery(request: RecoverySaveRequest): Promise<void>;
+  listRecovery(): Promise<RecoveryListing>;
+  readRecovery(id: string): Promise<string>;
   exportReportPdf(request: ExportReportPdfRequest): Promise<SaveProjectResult>;
   exportReportWord(request: ExportReportWordRequest): Promise<SaveProjectResult>;
   setTheme(theme: AppTheme): Promise<void>;

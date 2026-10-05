@@ -2,6 +2,7 @@
 
 - 日期：2026-10-03
 - 状态：已接受
+- 自动恢复后续规则：[ADR-0043](0043-consistent-automatic-recovery-snapshots.md) 扩展未保存任务恢复；启动选择后仍由用户决定恢复任务或继续。
 - 持久化后续规则：[ADR-0042](0042-project-task-persistence-and-restart.md) 将完整聊天改为独立本机保存；可继续的工程任务以正式项目摘要、草案及回执为准，重开后等待用户操作。
 - 来源：用户在本次会话提供的参考截图与交互要求
 - 后续规则：下文关于模型、选择与分析变化使暂停任务失效的规则由 [ADR-0038](0038-stable-task-targets-and-manual-edit-coordination.md) 替换；T2-05 保留发送时绑定，浏览不中断，兼容编辑重读与协调，项目新会话仍隔离旧响应。

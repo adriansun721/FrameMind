@@ -157,6 +157,20 @@ button { color: inherit; }
   background: var(--surface-root);
 }
 
+.startup-recovery { height: 100dvh; padding: 64px 48px; overflow: auto; background: var(--surface-root); }
+.recovery-panel { max-width: 880px; margin: 0 auto; color: var(--text-primary); }
+.recovery-panel h1 { font-size: 22px; font-weight: 600; }
+.recovery-panel > p { color: var(--text-muted); line-height: 1.7; }
+.recovery-candidate { margin: 18px 0; padding: 18px; background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: 6px; }
+.recovery-candidate h2 { margin: 0 0 12px; font-size: 16px; }
+.recovery-candidate dl { font-size: 13px; }
+.recovery-candidate dl > div { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 12px; margin-bottom: 9px; }
+.recovery-candidate dt { color: var(--text-muted); }
+.recovery-candidate dd { margin: 0; overflow-wrap: anywhere; }
+.recovery-actions { display: flex; gap: 12px; margin-top: 18px; }
+.recovery-panel [role="alert"] { color: var(--status-error); overflow-wrap: anywhere; }
+.recovery-notice { overflow: hidden; text-overflow: ellipsis; }
+
 .topbar {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

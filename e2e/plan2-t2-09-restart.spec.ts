@@ -9,6 +9,7 @@ import { captureAiSnapshot } from "../src/workspace/ai-tools";
 import { ConditionsStageConfirmation, prepareConditionsConfirmation, proposeConditions } from "../src/workspace/analysis-conditions";
 import { persistTaskState, type ConversationHistory } from "../src/workspace/task-persistence";
 import type { FrameProject } from "../src/domain/project";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
 
 function conversation(project: FrameProject): ConversationHistory {
   return { id: "saved-task", updatedAt: 1, turns: [], proposalSource: project, conditionsSource: project, sectionSource: project, modelEditsSource: project, taskDraftSource: project,
@@ -21,7 +22,11 @@ test("T2-09 restarts the desktop with an unconfirmed draft, full local chat and 
   const env = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: path };
   delete env.ELECTRON_RUN_AS_NODE;
   let app: ElectronApplication | undefined;
-  const launch = async () => { app = await electron.launch({ args: ["."], env }); return app.firstWindow(); };
+  const launch = async () => {
+    app = await electron.launch({ args: ["."], env }); const page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
+    return page;
+  };
   const open = async (page: Page) => { await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click(); await expect(page.locator('footer[role="status"]')).toContainText("已打开"); };
   try {
     let page = await launch();
@@ -117,6 +122,7 @@ for (const stage of ["applied", "failed"] as const) test(`T2-09 resumes the save
     }
     await writeFile(path, encodeProject({ ...project, taskState: persistTaskState(project.id, [saved], []) }), "utf8");
     app = await electron.launch({ args: ["."], env }); const page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
     await page.getByRole("button", { name: "恢复任务", exact: true }).click();
@@ -150,6 +156,7 @@ test("T2-09 freezes an interrupted local calculation and resumes it offline only
   const launch = async () => {
     app = await electron.launch({ args: ["."], env });
     const page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     await page.getByRole("button", { name: "文件", exact: true }).click();
     await page.getByRole("menuitem", { name: /打开项目/ }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");

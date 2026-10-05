@@ -13,6 +13,7 @@ import { ResourceLibraryPanel, type LibraryResource } from "./components/Resourc
 import { MemberAnalysisProcess } from "./components/MemberAnalysisProcess";
 import { AnalysisProcess } from "./components/AnalysisProcess";
 import { EngineeringReportDialog } from "./components/EngineeringReportDialog";
+import { StartupRecovery, recoveryTime } from "./components/StartupRecovery";
 import { DeepSeekSettingsPanel } from "./components/DeepSeekSettingsPanel";
 import { AiConversationPanel } from "./components/AiConversationPanel";
 import { ResultReferenceDetails } from "./components/AiResultReferences";
@@ -43,7 +44,8 @@ import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
 import { TaskScheduler, type ScheduledTaskHandle, type TaskSchedulerSnapshot } from "./workspace/task-scheduler";
-import type { AppTheme } from "../electron/contracts";
+import { RecoveryAutosave } from "./workspace/recovery-autosave";
+import type { AppTheme, RecoveryEntry, RecoverySaveRequest } from "../electron/contracts";
 
 type StatusTone = "neutral" | "success" | "error";
 type Selection = AnalysisTarget | null;
@@ -92,6 +94,15 @@ export function App() {
   const [aiPreview, setAiPreview] = useState<FramePreview | null>(null);
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProject, setSavedProject] = useState<FrameProject | null>(null);
+  const [startupReady, setStartupReady] = useState(false);
+  const [recoverySource, setRecoverySource] = useState<RecoveryEntry | null>(null);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const [formalSave, setFormalSave] = useState<RecoverySaveRequest["formalSave"]>(null);
+  const formalSaveRef = useRef(formalSave); formalSaveRef.current = formalSave;
+  const [recoveryAutosave] = useState(() => new RecoveryAutosave((request) => window.frameMind.saveRecovery(request),
+    (failed) => setRecoveryError(failed ? "自动恢复快照写入失败；最近完整快照保留。请手动保存项目，应用将继续重试。" : null)));
+  const recoveryTimerRef = useRef<number | null>(null);
+  const captureRecoveryRef = useRef<() => void>(() => {});
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
@@ -197,6 +208,7 @@ export function App() {
 
   const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record") => {
     const previous = activeProjectRef.current;
+    if (newSession && startupReady) captureRecoveryRef.current();
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
@@ -258,7 +270,7 @@ export function App() {
     activateProject(deleteUniformLoad(project, selectedUniform.id), false); setSelection(null); setFormError(null); setStatus({ tone: "success", text: "已删除均布荷载" });
   };
 
-  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setSavedRevision(0); setSavedProject(next); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
+  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setFormalSave(null); setRecoverySource(null); setSavedRevision(0); setSavedProject(next); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
   const switchSidebarModule = (module: typeof sidebarModule) => {
     setResourcePanelOpen((open) => module === sidebarModule ? !open : true);
     setSidebarModule(module);
@@ -278,6 +290,7 @@ export function App() {
     try {
       const result = await window.frameMind.openProject(); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
       const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProject(opened); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
+      setFormalSave({ path: result.path, savedAt: result.savedAt ?? opened.updatedAt }); setRecoverySource(null);
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" }); }
   };
   const saveProject = async () => {
@@ -287,6 +300,7 @@ export function App() {
     try {
       const result = await window.frameMind.saveProject({ path: projectPath, content }); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
       setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProject(source); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
+      setFormalSave({ path: result.path, savedAt: result.savedAt ?? new Date().toISOString() }); setRecoverySource(null);
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" }); }
   };
 
@@ -502,6 +516,7 @@ export function App() {
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
+      if (!startupReady) return;
       if (event.key === "Escape") { setFileMenuOpen(false); return; }
       if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
       const key = event.key.toLowerCase();
@@ -527,6 +542,35 @@ export function App() {
     activeAnalysis.task.cancel();
   }, []);
 
+  useEffect(() => {
+    if (!startupReady) return;
+    captureRecoveryRef.current = () => {
+      const current = activeProjectRef.current;
+      if (current.revision === 0 && !current.taskState?.conversations.length && !current.taskState?.scheduled.length && !current.taskState?.analyses.length) return;
+      const request = { content: encodeProject(current), formalSave: formalSaveRef.current };
+      recoveryAutosave.capture(current.id, request);
+    };
+    if (recoveryTimerRef.current === null) recoveryTimerRef.current = window.setTimeout(() => {
+      recoveryTimerRef.current = null; captureRecoveryRef.current();
+    }, 250);
+  }, [project, formalSave, startupReady]);
+
+  useEffect(() => {
+    if (!startupReady) return;
+    const interval = window.setInterval(() => { captureRecoveryRef.current(); recoveryAutosave.retryFailed(); }, 2000);
+    return () => {
+      window.clearInterval(interval);
+      if (recoveryTimerRef.current !== null) window.clearTimeout(recoveryTimerRef.current);
+      recoveryTimerRef.current = null;
+    };
+  }, [startupReady]);
+
+  if (!startupReady) return <StartupRecovery onContinue={() => setStartupReady(true)} onRecover={(restored, entry) => {
+    activateProject(restored, true); setProjectPath(entry.formalSave?.path ?? null); setFormalSave(entry.formalSave);
+    setSavedProject(null); setSavedRevision(-1); setRecoverySource(entry); setStartupReady(true);
+    setStatus({ tone: "neutral", text: "已恢复自动快照；当前工作尚未手动保存，任务等待用户选择继续" });
+  }} />;
+
   return <main className="app-shell">
     <header className="topbar">
       <div className="brand-and-file">
@@ -544,7 +588,7 @@ export function App() {
         {(["荷载", "分析", "结果"] as const).map((task) => <button className="task-tab" role="tab" aria-selected="false" disabled title={`${task}请使用当前任务工具`} key={task}>{task}</button>)}
         </nav>
       </div>
-      <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{filename(projectPath) ?? "未保存项目"}</small></div>
+      <div className="document-title"><span>{project.name}</span>{dirty && <span className="dirty-dot" aria-label="未保存修改" />}<small>{recoverySource ? "自动快照 · 未保存" : filename(projectPath) ?? "未保存项目"}</small></div>
       <div className="layout-controls" role="group" aria-label="面板布局">
         <button className={`icon-button ${resourcePanelOpen ? "active" : ""}`} aria-label="切换资源管理器" aria-pressed={resourcePanelOpen} aria-controls={sidebarModule === "project" ? "resource-panel" : `${sidebarModule}-panel`} title={resourcePanelOpen ? "收起资源管理器" : "展开资源管理器"} onClick={() => setResourcePanelOpen((open) => !open)}><PanelLeft size={15} /></button>
         <button className={`icon-button ${propertyPanelOpen ? "active" : ""}`} aria-label="切换属性面板" aria-pressed={propertyPanelOpen} aria-controls="property-panel" title={propertyPanelOpen ? "收起属性面板" : "展开属性面板"} onClick={() => setPropertyPanelOpen((open) => !open)}><Table2 size={15} /></button>
@@ -779,7 +823,9 @@ export function App() {
         }} />
     </ResizableWorkspace>
 
-    <footer className={`statusbar ${status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span><span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>
+    <footer className={`statusbar ${recoveryError ? "error" : status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span>
+      {(recoveryError || recoverySource) && <span className="recovery-notice" data-testid="recovery-notice" role={recoveryError ? "alert" : undefined} title={recoveryError ?? recoverySource!.id}>{recoveryError ?? `本机自动快照 ${recoveryTime(recoverySource!.createdAt)} · 尚未手动保存`}</span>}
+      <span className="status-spacer" /><span>当前选择 {currentSelectionLabel}</span><span>{project.nodes.length} 节点</span><span>{project.members.length} 杆件</span><span>长度 m</span><span>全局坐标系 · Z 向上</span></footer>
 
     {nodeDialogOpen && <Dialog title="创建空间节点" copy="输入全局坐标。长度统一以米（m）保存和显示。" onClose={() => { setNodeDialogOpen(false); setFormError(null); }}><form onSubmit={submitNode}><div className="coordinate-inputs">{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={newNodeDraft[axis]} onChange={(value) => setNewNodeDraft({ ...newNodeDraft, [axis]: value })} unit="m" />)}</div><FormFeedback error={formError} /><DialogActions close={() => { setNodeDialogOpen(false); setFormError(null); }} submit="添加到模型" /></form></Dialog>}
     {resourceDialogOpen && <Dialog title="创建材料与截面" copy="可从已核对库条目载入，也可保留为自定义参数。所有值以项目文件实际保存的参数为准。" onClose={() => setResourceDialogOpen(false)}><form onSubmit={submitResources}><div className="resource-columns"><fieldset className="resource-fieldset"><legend>材料库</legend><SelectField label="库条目" value={materialCatalogId} onChange={(value) => { setMaterialCatalogId(value); const entry = getMaterialCatalogEntry(value); if (entry) setMaterialDraft({ name: entry.name, elasticModulusGPa: String(entry.elasticModulusGPa), poissonRatio: String(entry.poissonRatio), densityKgM3: String(entry.densityKgM3) }); }} options={[{ value: "", label: "自定义参数" }, ...MATERIAL_CATALOG.map((entry) => ({ value: entry.catalogId, label: entry.displayName }))]} />{materialCatalogId && <CatalogSourceView source={getMaterialCatalogEntry(materialCatalogId)?.source} />}</fieldset><fieldset className="resource-fieldset"><legend>截面库</legend><SelectField label="库条目" value={sectionCatalogId} onChange={(value) => { setSectionCatalogId(value); const entry = getSectionCatalogEntry(value); if (entry) setSectionDraft({ name: entry.name, areaM2: String(entry.areaM2), secondMomentYM4: String(entry.secondMomentYM4), secondMomentZM4: String(entry.secondMomentZM4), torsionalConstantM4: String(entry.torsionalConstantM4) }); }} options={[{ value: "", label: "自定义参数" }, ...SECTION_CATALOG.map((entry) => ({ value: entry.catalogId, label: entry.displayName }))]} />{sectionCatalogId && <><CatalogSourceView source={getSectionCatalogEntry(sectionCatalogId)?.source} /><SectionFieldNotes /></>}</fieldset></div><div className="resource-columns"><MaterialFields draft={materialDraft} setDraft={(value) => { setMaterialCatalogId(""); setMaterialDraft(value); }} /><SectionFields draft={sectionDraft} setDraft={(value) => { setSectionCatalogId(""); setSectionDraft(value); }} /></div><FormFeedback error={formError} /><DialogActions close={() => setResourceDialogOpen(false)} submit="保存材料与截面" /></form></Dialog>}
