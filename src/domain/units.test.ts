@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { CANONICAL_UNITS, convertQuantity, UNIT_PRESETS, unitPresentation } from "./units";
-import { addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, type FrameProject } from "./project";
+import { addMaterial, addMember, addNode, addNodalLoad, addSection, addSupport, attachAnalysisResult, createProject, updateNodalLoad, updateSelfWeight, type FrameProject } from "./project";
 import { decodeProject, encodeProject } from "./project-file";
 import { isAnalysisResultCurrent, solveFrame } from "./analysis";
 import { captureEngineeringReport } from "./engineering-report";
 import { createReportContent } from "../workspace/report-content";
-import { captureAiSnapshot, executeAiTool } from "../workspace/ai-tools";
+import { captureAiSnapshot, executeAiTool, prepareDiagnosticTool, finishDiagnosticTool } from "../workspace/ai-tools";
 
 export function axialUnitProject(): FrameProject {
   let p = createProject("单位等价轴向算例");
@@ -17,7 +17,10 @@ export function axialUnitProject(): FrameProject {
   p = addNodalLoad(p, p.nodes[1].id, { x: 8, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
   return attachAnalysisResult(p, solveFrame(p));
 }
-const call = (name: string, args: unknown) => ({ id: "units", type: "function", function: { name, arguments: JSON.stringify(args) } });
+import { ProjectHistory } from "./project-history";
+import { createDiagnosticCopy, runDiagnosticTrial } from "../workspace/diagnostic-trial";
+
+const call = (name: string, args: unknown) => ({ id: "units", type: "function" as const, function: { name, arguments: JSON.stringify(args) } });
 
 describe("T2-17 unit contract through project, tool and report boundaries", () => {
   it("converts engineering dimensions from worked literals and rejects absent/incompatible units", () => {
@@ -77,6 +80,55 @@ describe("T2-17 unit contract through project, tool and report boundaries", () =
     expect(filtered.data).toMatchObject({ total: 1, items: [{ "displacement.x": .008 }] });
   });
 
+  it("normalizes legacy flat coordinates before single and batch node proposals", () => {
+    const p = axialUnitProject(); const snapshot = captureAiSnapshot(p, []);
+    for (const [name, args] of [
+      ["create_node", { x: 2000, y: 0, z: 0 }],
+      ["create_nodes", { nodes: [{ x: 2000, y: 0, z: 0 }] }],
+      ["update_node", { id: p.nodes[1].id, x: 2000 }],
+      ["update_nodes", { updates: [{ id: p.nodes[1].id, x: 2000 }] }],
+    ] as const) {
+      const result = executeAiTool(snapshot, call(name, { ...args, inputUnits: { length: "mm" } }));
+      expect(result.status).toBe("awaiting-confirmation");
+      const operation = result.modelEdits!.operations[0];
+      expect(operation).toMatchObject({ position: { x: 2 } });
+    }
+  });
+
+  it("uses explicit units in asynchronous diagnostics while retaining canonical trial evidence", () => {
+    const p = axialUnitProject(); const snapshot = captureAiSnapshot({ ...p, displayUnitPreset: "mm-N" }, []);
+    const request = call("run_diagnostic_trial", { label: "双倍轴力", inputUnits: { force: "N" }, operations: [
+      { type: "set_nodal_load", id: p.nodalLoads[0].id, nodeId: p.nodes[1].id, loadCaseId: "LC1", force: { x: 16000, y: 0, z: 0 }, moment: { x: 0, y: 0, z: 0 } },
+    ] });
+    const prepared = prepareDiagnosticTool(snapshot, request, createDiagnosticCopy(p));
+    expect(prepared).not.toHaveProperty("result");
+    if ("result" in prepared) throw new Error(prepared.result.message);
+    expect(prepared.request.operations[0]).toMatchObject({ force: { x: 16 } });
+    const outcome = runDiagnosticTrial(prepared.copy, prepared.request);
+    const result = finishDiagnosticTool(snapshot, request, outcome);
+    expect(result.status).toBe("completed");
+    expect(result.diagnosticTrial?.result?.nodes[1].displacement.x).toBeCloseTo(16e-6, 13);
+    expect(result.data).toMatchObject({ displayUnitPreset: "mm-N", trial: { result: { nodes: [expect.anything(), { displacement: { x: .016 } }] } } });
+    const synchronous = executeAiTool(snapshot, request, undefined, undefined, undefined, undefined, undefined, prepared.copy);
+    expect(synchronous.data).toMatchObject({ trial: { result: { nodes: [expect.anything(), { displacement: { x: .016 } }] } } });
+    expect(p.nodalLoads[0].force.x).toBe(8);
+  });
+
+  it("presents comparison deltas and per-member self weight in the declared units", () => {
+    const before = axialUnitProject(); const beforeId = before.latestAnalysis!.id;
+    let after = updateNodalLoad(before, before.nodalLoads[0].id, before.nodes[1].id, { x: 16, y: 0, z: 0 }, { x: 0, y: 2, z: 0 });
+    after = attachAnalysisResult(after, solveFrame(after));
+    const snapshot = captureAiSnapshot(after, [], undefined, { beforeId, afterId: after.latestAnalysis!.id });
+    const members = executeAiTool(snapshot, call("read_comparison", { collection: "members", outputUnitPreset: "mm-N" }));
+    expect(members.status).toBe("completed");
+    expect(members.data).toMatchObject({ quantityUnits: { force: "N", moment: "N·mm" }, items: [{ startDelta: [-8000, expect.any(Number), expect.any(Number), 0, expect.any(Number), 0], endDelta: [8000, 0, 0, 0, 2000000, 0] }] });
+    after = updateSelfWeight(after, { enabled: true, loadCaseId: "LC1", gravity: { x: 0, y: 0, z: -9.81 } });
+    after = attachAnalysisResult(after, solveFrame(after));
+    const weight = executeAiTool(captureAiSnapshot(after, [], undefined, { beforeId, afterId: after.latestAnalysis!.id }), call("read_comparison", { collection: "summary", outputUnitPreset: "mm-N" }));
+    expect(weight.status).toBe("completed");
+    expect(weight.data).toMatchObject({ selfWeight: { after: { totalMassKg: 157, totalWeightKN: expect.closeTo(1540.17, 8), members: [{ massKg: 157, length: 2000, weightKN: expect.closeTo(1540.17, 8), globalForce: { z: expect.closeTo(-1540.17, 8) } }] } } });
+  });
+
   it("converts report body, figures and mixed-dimension process appendix from frozen data", () => {
     const p = axialUnitProject(); const original = JSON.stringify(p.latestAnalysis);
     const report = captureEngineeringReport({ ...p, displayUnitPreset: "mm-N" }, p.latestAnalysis!.id, { memberIds: [p.members[0].id], steps: ["member-process", "assembly", "constraints", "assembled-stiffness", "reduced-stiffness"] });
@@ -87,6 +139,16 @@ describe("T2-17 unit contract through project, tool and report boundaries", () =
     expect(text).toContain("MX (N·mm)"); expect(text).toContain("0.008 mm");
     expect(text).toContain("N/mm"); expect(text).toContain("N·mm/rad");
     expect(JSON.stringify(p.latestAnalysis)).toBe(original);
+  });
+
+  it("retains the selected display preset across model undo and redo", () => {
+    const before = axialUnitProject();
+    const after = updateNodalLoad(before, before.nodalLoads[0].id, before.nodes[1].id, { x: 16, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const history = new ProjectHistory(); history.record(before, after);
+    const restored = history.undo({ ...after, displayUnitPreset: "mm-N" })!;
+    expect(restored.displayUnitPreset).toBe("mm-N"); expect(restored.nodalLoads[0].force.x).toBe(8);
+    const redone = history.redo({ ...restored, displayUnitPreset: "mm-kN" })!;
+    expect(redone.displayUnitPreset).toBe("mm-kN"); expect(redone.nodalLoads[0].force.x).toBe(16);
   });
 
   it("retains large coordinates, tiny spacing and nonzero responses across round trips", () => {

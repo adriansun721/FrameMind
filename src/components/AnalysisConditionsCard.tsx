@@ -19,6 +19,9 @@ const sourceLabel: Record<string, string> = { existing: "已有", user: "用户�
 
 export function AnalysisConditionsCard({ project, proposal, busy, current, baseRevision, visible, calculate, previous, onDirty, onChange, onConfirm, onReject }: Props) {
   const u = useUnits();
+  const existingLoad = (value: FrameProject["nodalLoads"][number] | FrameProject["uniformLoads"][number] | undefined) => !value ? "未找到原荷载"
+    : "force" in value ? `${value.label} · ${value.loadCaseId} · F=${u.vector(value.force, "kN")} · M=${u.vector(value.moment, "kN·m")}`
+      : `${value.label} · ${value.loadCaseId} · ${value.coordinateSystem === "global" ? "全局" : "局部"} q=${u.vector(value.intensity, "kN/m")}`;
   const [supports, setSupports] = useState(proposal.supports);
   const [loads, setLoads] = useState(() => proposal.nodalLoads?.map((load) => ({ ...load,
     force: { x: String(load.force.x), y: String(load.force.y), z: String(load.force.z) },
@@ -52,11 +55,11 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
     {summaries.map((summary) => <section key={summary.label}><h4>{summary.label}</h4>{summary.groups.map((group, i) => <p key={i}>{group.objects.join("、")}：{group.setting}{group.suggested && <small className="proposal-suggestion">建议</small>}</p>)}</section>)}
     <h4>涉及对象身份与原值</h4>
     {proposal.supports?.map((s, i) => <p key={`support:${i}`}>{project.nodes.find((n) => n.id === s.nodeId)?.label} · {s.nodeId} · {s.id ?? "新增"}{s.id && ` · 原约束：${project.supports.find((v) => v.id === s.id)?.restraints.map((v, a) => `${DOFS[a]} ${v ? "约束" : "自由"}`).join(" / ")}`}</p>)}
-    {proposal.nodalLoads?.map((l, i) => <p key={`load:${i}`}>{l.nodeId} · {l.id ?? "新增"}{l.id && ` · 原荷载：${JSON.stringify(project.nodalLoads.find((v) => v.id === l.id))}`}</p>)}
-    {proposal.uniformLoads?.map((l, i) => <p key={`uniform:${i}`}>{l.memberId} · {l.id ?? "新增"}{l.id && ` · 原荷载：${JSON.stringify(project.uniformLoads.find((v) => v.id === l.id))}`}</p>)}
+    {proposal.nodalLoads?.map((l, i) => <p key={`load:${i}`}>{l.nodeId} · {l.id ?? "新增"}{l.id && ` · 原荷载：${existingLoad(project.nodalLoads.find((v) => v.id === l.id))}`}</p>)}
+    {proposal.uniformLoads?.map((l, i) => <p key={`uniform:${i}`}>{l.memberId} · {l.id ?? "新增"}{l.id && ` · 原荷载：${existingLoad(project.uniformLoads.find((v) => v.id === l.id))}`}</p>)}
     {proposal.loadCases?.map((c, i) => <p key={`case:${i}`}>{c.id ?? c.ref} · {c.name} · {sourceLabel[c.source]}{c.id && ` · 原工况：${project.loadCases.find((v) => v.id === c.id)?.name}`}</p>)}
     {proposal.loadCombinations?.map((c, i) => <p key={`combination:${i}`}>{c.id ?? c.ref} · {c.name}{c.id && ` · 原组合：${JSON.stringify(project.loadCombinations.find((v) => v.id === c.id))}`}</p>)}
-    {proposal.selfWeight && <details><summary>材料密度与截面面积</summary><ul>{project.members.map((m) => <li key={m.id}>{m.label} · ρ={project.materials.find((v) => v.id === m.materialId)?.densityKgM3 ?? "缺失"} kg/m³ · A={project.sections.find((v) => v.id === m.sectionId)?.areaM2 ?? "缺失"} m²</li>)}</ul></details>}
+    {proposal.selfWeight && <details><summary>材料密度与截面面积</summary><ul>{project.members.map((m) => <li key={m.id}>{m.label} · ρ={u.quantity(project.materials.find((v) => v.id === m.materialId)!.densityKgM3, "kg/m³")} · A={u.quantity(project.sections.find((v) => v.id === m.sectionId)!.areaM2, "m²")}</li>)}</ul></details>}
     <p>确认后计算来源：{sourceName}</p>
   </>;
   return <ProposalCard title="分析条件与荷载组合" label="分析条件卡片" visible={visible} current={current} busy={busy} dirty={dirty} issues={issues}
@@ -102,7 +105,7 @@ export function AnalysisConditionsCard({ project, proposal, busy, current, baseR
             const label = `${kind === "force" ? "F" : "M"}${axis.toUpperCase()} (${u.unit(kind === "force" ? "kN" : "kN·m")})`;
             return <label key={`${kind}:${axis}`}>{label}<UnitInput unit={kind === "force" ? "kN" : "kN·m"} aria-label={`荷载 ${index + 1} ${label}`} value={load[kind][axis]} onValueChange={(value) => { edit(); setLoads(loads.map((item, i) => i === index ? { ...item, source: "user", [kind]: { ...item[kind], [axis]: value } } : item)); }} /></label>;
           }))}</div>
-          {load.id && <p>原荷载：{JSON.stringify(project.nodalLoads.find((item) => item.id === load.id))}</p>}
+          {load.id && <p>原荷载：{existingLoad(project.nodalLoads.find((item) => item.id === load.id))}</p>}
           <button type="button" onClick={() => { edit(); setLoads(loads.filter((_, i) => i !== index)); }}>移除荷载条目 {index + 1}</button>
         </div>)}
         <div className="frame-proposal-actions"><button type="button" onClick={() => { edit(); setLoads([...(loads ?? []), { nodeId: "" as NodeId, loadCaseId: project.activeLoadCaseId, force: zero(), moment: zero(), source: "user" }]); }}>添加荷载条目</button>

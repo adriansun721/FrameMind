@@ -11,7 +11,7 @@
     "evidence:plan2:t213": "npm run build:native && npm run build && node scripts/verify-plan2-t213.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-13-native.spec.ts",
     "evidence:plan2:t214": "npm run build:native && npm run build && node scripts/verify-plan2-t214.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-14-native.spec.ts",
     "evidence:plan2:t215": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-native.ps1 -WithTestFixtures && npm run build && node scripts/verify-plan2-t215.mjs && cross-env FRAMEMIND_T214_EVIDENCE=docs/evidence/plan2/T2-15 FRAMEMIND_T213_EVIDENCE=docs/evidence/plan2/T2-15/single-member node scripts/run-e2e-isolated.cjs e2e/plan2-t2-15-native.spec.ts e2e/plan2-t2-14-native.spec.ts e2e/plan2-t2-13-native.spec.ts e2e/t06-analysis-task.spec.ts",
-    "evidence:plan2:t217": "npm run build && npx vitest run src/domain/units.test.ts src/components/UnitPresentation.test.tsx && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-17-units.spec.ts",
+    "evidence:plan2:t217": "npm run build:native && npm run build && npx vitest run src/domain/units.test.ts src/components/UnitPresentation.test.tsx && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-17-units.spec.ts",
     "evidence:plan2:t216": "npm run build:native && npm run build && node scripts/verify-plan2-t216.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-16-analysis-cases.spec.ts",
     "package:win:native-production": "npm run build:native && npm run build && electron-builder --config electron-builder.production-native.yml --win nsis --x64 --publish never",
     "build": "npm run typecheck && npm run build:main && vite build",

@@ -3,7 +3,7 @@ import { CANONICAL_UNITS, convertQuantity, requireUnitPreset, UNIT_CONTRACT, uni
 const FIELD_DIMENSIONS: Record<string, QuantityDimension> = {
   position: "length", endPosition: "length", origin: "length", xSpans: "length", ySpans: "length", storeyHeights: "length", length: "length",
   displacement: "length", displacementDelta: "length", rotation: "rotation", rotationDelta: "rotation", rotationDegrees: "orientation",
-  force: "force", reaction: "force", reactionDelta: "force", totalForce: "force", totalWeightKN: "force",
+  force: "force", reaction: "force", reactionDelta: "force", totalForce: "force", totalWeightKN: "force", weightKN: "force", globalForce: "force", massKg: "mass", area: "area",
   moment: "moment", reactionMoment: "moment", reactionMomentDelta: "moment",
   intensity: "distributedForce", gravity: "acceleration", elasticModulusGPa: "modulus", densityKgM3: "density",
   areaM2: "area", secondMomentYM4: "inertia", secondMomentZM4: "inertia", torsionalConstantM4: "inertia", totalMassKg: "mass",
@@ -24,7 +24,7 @@ export function convertToolQuantities(value: unknown, convert: (n: number, dimen
   const result: Record<string, unknown> = {};
   for (const [key, child] of Object.entries(record)) {
     if (["assumptions", "solver", "service", "provenance", "basis", "process"].includes(key)) { result[key] = child; continue; }
-    if (["localEndForces", "startEndForces", "endEndForces"].includes(key)) {
+    if (["localEndForces", "startEndForces", "endEndForces", "startDelta", "endDelta"].includes(key)) {
       const forces = (v: unknown): unknown => Array.isArray(v) ? v.map((n, i) => typeof n === "number" ? convert(n, i % 6 < 3 ? "force" : "moment") : n)
         : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, a]) => [k, forces(a)])) : v;
       result[key] = forces(child); continue;
@@ -36,7 +36,7 @@ export function convertToolQuantities(value: unknown, convert: (n: number, dimen
   return result;
 }
 
-export function normalizeToolUnits(input: Record<string, unknown>): { input: Record<string, unknown>; outputPreset?: UnitPresetId } {
+export function normalizeToolUnits(input: Record<string, unknown>, toolName?: string): { input: Record<string, unknown>; outputPreset?: UnitPresetId } {
   const { inputUnits, outputUnitPreset, ...args } = input;
   const outputPreset = outputUnitPreset === undefined ? undefined : requireUnitPreset(outputUnitPreset);
   if (inputUnits === undefined) return { input: args, outputPreset };
@@ -49,6 +49,18 @@ export function normalizeToolUnits(input: Record<string, unknown>): { input: Rec
   const canonicalize = (value: number, dimension: QuantityDimension) => convertQuantity(value, dimension,
     declared[dimension] as string ?? CANONICAL_UNITS[dimension], CANONICAL_UNITS[dimension]);
   const converted = convertToolQuantities(args, canonicalize) as Record<string, unknown>;
+  if (toolName && ["create_node", "update_node", "create_nodes", "update_nodes"].includes(toolName)) {
+    const flat = (entry: unknown) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) return entry;
+      const record = entry as Record<string, unknown>;
+      return Object.fromEntries(Object.entries(record).map(([key, value]) => [key,
+        ["x", "y", "z"].includes(key) && typeof value === "number" ? canonicalize(value, "length") : value]));
+    };
+    if (toolName.endsWith("nodes")) {
+      const key = toolName === "create_nodes" ? "nodes" : "updates";
+      if (Array.isArray(converted[key])) converted[key] = converted[key].map(flat);
+    } else return { input: flat(converted) as Record<string, unknown>, outputPreset };
+  }
   return { input: converted, outputPreset };
 }
 

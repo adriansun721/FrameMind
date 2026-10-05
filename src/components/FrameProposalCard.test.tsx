@@ -5,6 +5,7 @@ import { createProject } from "../domain/project";
 import { captureAiSnapshot } from "../workspace/ai-tools";
 import { proposeFrame } from "../workspace/frame-proposal";
 import { FrameProposalCard } from "./FrameProposalCard";
+import { UnitPresetContext } from "./UnitPresentation";
 
 afterEach(cleanup);
 const snapshot = captureAiSnapshot(createProject(), []);
@@ -16,6 +17,21 @@ const initial = proposeFrame({ parameters: {
 } });
 
 describe("proposal editing", () => {
+  it("labels mm drafts correctly, preserves storey counts and converts edited spans to canonical metres", () => {
+    const changed = vi.fn();
+    render(<UnitPresetContext.Provider value="mm-N"><FrameProposalCard snapshot={snapshot} proposal={initial} busy={false} current baseRevision={0}
+      onChange={changed} onDirty={() => {}} onReject={() => {}} onConfirm={() => {}} /></UnitPresetContext.Provider>);
+    const card = screen.getByRole("region", { name: "建模参数卡片" });
+    expect(card).toHaveTextContent("2 层");
+    expect(card).toHaveTextContent("6000 mm");
+    fireEvent.click(within(card).getByRole("button", { name: "编辑" }));
+    const editor = screen.getByRole("dialog");
+    expect(within(editor).getByLabelText("X 向跨长 (mm)")).toHaveValue("6000");
+    expect(within(editor).queryByLabelText("X 向跨长 (m)")).toBeNull();
+    fireEvent.change(within(editor).getByLabelText("X 向跨长 (mm)"), { target: { value: "8000" } });
+    fireEvent.click(within(editor).getByRole("button", { name: "更新预览" }));
+    expect(changed.mock.calls[0][0].parameters.xSpans.value).toEqual([8]);
+  });
   it("keeps edits local until preview update, cancels without losing the proposal, and confirms the updated proposal", async () => {
     const confirmed = vi.fn();
     const changed = vi.fn();

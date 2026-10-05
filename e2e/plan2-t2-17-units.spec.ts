@@ -35,6 +35,10 @@ test("T2-17 manual units preserve native physics, history, project precision and
     await expect(page.locator(".analysis-result-panel")).toContainText("当前");
     await expect(page.locator(".analysis-result-panel")).toContainText("位移 (0.016, 0, 0) mm");
     await expect(page.locator(".analysis-result-panel")).toContainText("-8000 N");
+    await page.getByRole("tab", { name: "内力图", exact: true }).click();
+    await expect(page.locator(".result-legend")).toContainText("8000 N");
+    await expect(page.getByLabel("视图结果图例")).toContainText("N · N");
+    await page.getByRole("tab", { name: "结果表", exact: true }).click();
     for (const theme of ["dark", "light"]) {
       if (theme === "light") { await page.getByRole("button", { name: "设置", exact: true }).click(); await page.getByRole("button", { name: "浅色", exact: true }).click(); await page.getByRole("dialog", { name: "设置", exact: true }).getByRole("button", { name: "关闭", exact: true }).click(); }
       for (const width of [1440, 1080]) {

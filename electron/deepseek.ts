@@ -136,7 +136,7 @@ function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
   const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
   const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;
   return (editRequested ? [...base, ...modelEditTools] : base).map((tool) => {
-    if (tool.function.name.startsWith("discard_") || ["request_analysis", "read_unit_contract", "convert_quantity", "inspect_diagnostics", "run_diagnostic_trial", "create_diagnostic_copy", "read_diagnostic", "compare_diagnostic_trials"].includes(tool.function.name)) return tool;
+    if (tool.function.name.startsWith("discard_") || ["request_analysis", "read_unit_contract", "convert_quantity"].includes(tool.function.name)) return tool;
     return { ...tool, function: { ...tool.function,
       description: tool.function.description + " Numeric fields use canonical m, kN, kN·m, GPa, kg/m³, m², m⁴, degrees (orientation), rad (response), m/s² unless inputUnits explicitly overrides dimensions. External values with missing units require user clarification. outputUnitPreset changes returned data only; confirmation and reference payloads remain canonical.",
       parameters: { ...tool.function.parameters, properties: { ...tool.function.parameters.properties,

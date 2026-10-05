@@ -33,7 +33,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
       const before = snapshot.model.sections.find((item) => item.id === member?.sectionId);
       if (!member || !before) return <p key={id}>{id} · 目标或原截面已删除</p>;
       return <div className="section-change-object" key={id}><strong>{member.label} · {id}</strong><p>{before.name} → {proposal.section.name}</p>
-        <dl>{Object.entries(SECTION_PARAMETERS).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{u.quantity(before[key as keyof typeof SECTION_PARAMETERS], fieldUnit(key))} → {u.quantity(proposal.section[key as keyof typeof SECTION_PARAMETERS], fieldUnit(key))}</dd></div>)}</dl>
+        <dl>{Object.entries(SECTION_PARAMETERS).map(([key, label]) => <div key={key}><dt>{label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}</dt><dd>{u.quantity(before[key as keyof typeof SECTION_PARAMETERS], fieldUnit(key))} → {u.quantity(proposal.section[key as keyof typeof SECTION_PARAMETERS], fieldUnit(key))}</dd></div>)}</dl>
       </div>;
     })}
     {snapshot.model.selfWeight.enabled && <p>自重已启用 · {snapshot.model.selfWeight.loadCaseId}。新面积同时改变质量和重算荷载，前后差异包含自重影响。</p>}
@@ -70,7 +70,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
       </select></label>
       {resource === "custom" && <fieldset disabled={busy || !current}><legend>自定义参数</legend>
         <label>名称<input aria-label="新柱截面名称" value={name} onChange={(event) => { edit(); setName(event.target.value); }} /></label>
-        {Object.entries(SECTION_PARAMETERS).map(([key, label]) => <label key={key}>{label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}<UnitInput unit={fieldUnit(key)} aria-label={`新柱截面 ${label}`} value={parameters[key]} onValueChange={(value) => { edit(); setParameters({ ...parameters, [key]: value }); }} /></label>)}
+        {Object.entries(SECTION_PARAMETERS).map(([key, label]) => <label key={key}>{label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}<UnitInput unit={fieldUnit(key)} aria-label={`新柱截面 ${label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}`} value={parameters[key]} onValueChange={(value) => { edit(); setParameters({ ...parameters, [key]: value }); }} /></label>)}
       </fieldset>}
       {dirty && <p className="frame-draft-notice">编辑尚未保存，当前三维预览保持原方案。</p>}{error && <p role="alert">{error}</p>}
     </form>

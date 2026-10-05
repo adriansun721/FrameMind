@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useUnits } from "./UnitPresentation";
 import { Plus, Save, Trash2, Weight, X } from "lucide-react";
 import { addLoadCase, deleteLoadCase, getLoadCaseReferences, selectLoadCase, updateLoadCase, type FrameProject } from "../domain/project";
 import { getLoadCaseResult, isAnalysisResultCurrent } from "../domain/analysis";
 
 export function LoadCaseManager({ project, onChange, onSelfWeight, onClose }: { project: FrameProject; onChange(project: FrameProject): void; onSelfWeight(loadCaseId: string): void; onClose(): void }) {
+  const u = useUnits();
   const [editingId, setEditingId] = useState(project.activeLoadCaseId);
   const initial = project.loadCases.find((item) => item.id === project.activeLoadCaseId)!;
   const [name, setName] = useState(initial.name);
@@ -55,10 +57,10 @@ export function LoadCaseManager({ project, onChange, onSelfWeight, onClose }: { 
       {project.analysisResults.length > 0 && <section className="load-case-comparison" aria-label="工况响应比较">
         <h3>工况响应比较</h3>
         <label className="field"><span>比较节点</span><select value={nodeId} onChange={(event) => setNodeId(event.target.value)}>{project.nodes.map((node) => <option key={node.id} value={node.id}>{node.label}</option>)}</select></label>
-        <div className="load-case-table-scroll"><table><thead><tr><th>工况 / 来源</th><th>位移 XYZ (m)</th><th>反力 XYZ (kN)</th></tr></thead><tbody>{project.loadCases.map((item) => {
+        <div className="load-case-table-scroll"><table><thead><tr><th>工况 / 来源</th><th>位移 XYZ ({u.unit("m")})</th><th>反力 XYZ ({u.unit("kN")})</th></tr></thead><tbody>{project.loadCases.map((item) => {
           const result = getLoadCaseResult(project, item.id); const node = result?.nodes.find((node) => node.nodeId === nodeId);
-          const vector = (value: { x: number; y: number; z: number }) => [value.x, value.y, value.z].map((n) => n.toPrecision(6)).join(", ");
-          return <tr key={item.id}><th>{item.id} · {item.name}<small>{result ? `R${result.projectRevision} · ${isAnalysisResultCurrent(project, result) ? "当前" : "已过期"}` : "未计算"}</small></th><td>{node ? vector(node.displacement) : "—"}</td><td>{node ? vector(node.reaction) : "—"}</td></tr>;
+          const vector = (value: { x: number; y: number; z: number }, unit: string) => [value.x, value.y, value.z].map((n) => u.number(n, unit)).join(", ");
+          return <tr key={item.id}><th>{item.id} · {item.name}<small>{result ? `R${result.projectRevision} · ${isAnalysisResultCurrent(project, result) ? "当前" : "已过期"}` : "未计算"}</small></th><td>{node ? vector(node.displacement, "m") : "—"}</td><td>{node ? vector(node.reaction, "kN") : "—"}</td></tr>;
         })}</tbody></table></div>
       </section>}
     </div>

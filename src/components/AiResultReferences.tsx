@@ -1,3 +1,4 @@
+import { unitPresentation } from "../domain/units";
 import { useUnits } from "./UnitPresentation";
 import type { AiTaskResult } from "../workspace/ai-task";
 import { resultReferenceLabel, type ResultReference } from "../workspace/ai-results";
@@ -5,10 +6,13 @@ import type { AnalysisPairIds } from "../workspace/ai-comparison";
 import type { FrameProject } from "../domain/project";
 import { isAnalysisResultCurrent } from "../domain/analysis";
 
+function displayReference(ref: ResultReference, u: ReturnType<typeof unitPresentation>): string {
+  return resultReferenceLabel({ ...ref, value: u.value(ref.value, ref.unit), unit: u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
+}
+
 export function AiResultExplanation({ project, result, onLocate, onCompare }: { project: FrameProject; result: Pick<AiTaskResult, "assistant" | "records">; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
   const u = useUnits();
   const current = (id: string) => { const analysis = project.analysisResults.find((item) => item.id === id); return Boolean(analysis && isAnalysisResultCurrent(project, analysis)); };
-  const displayReference = (ref: ResultReference) => resultReferenceLabel({ ...ref, value: u.value(ref.value, ref.unit), unit: u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
   const references = result.records.flatMap((record) => record.result.reference ? [record.result.reference] : []);
   const comparisons = result.records.flatMap((record) => record.result.comparisonReference ? [record.result.comparisonReference] : []);
   if (!result.assistant) return null;
@@ -23,7 +27,7 @@ export function AiResultExplanation({ project, result, onLocate, onCompare }: { 
         <small>{comparison.before.source.id} · 输入 R{comparison.before.inputRevision} → R{comparison.after.inputRevision}{!current(comparison.before.analysisId) || !current(comparison.after.analysisId) ? " · 含历史结果" : ""} · 查看同一对比表</small>
       </button>;
       return ref ? <button key={index} className="ai-result-reference" onClick={() => onLocate(ref)} title={`${ref.analysisId} · 输入 R${ref.inputRevision} · ${ref.source.id}`}>
-        {displayReference(ref)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{current(ref.analysisId) ? "" : " · 历史结果"}</small>
+        {displayReference(ref, u)}<small>{ref.source.id} · 输入 R{ref.inputRevision}{current(ref.analysisId) ? "" : " · 历史结果"}</small>
       </button> : <span key={index}>{part}</span>;
     })}</p>
   </div>;
@@ -32,11 +36,10 @@ export function AiResultExplanation({ project, result, onLocate, onCompare }: { 
 export function ResultReferenceDetails({ reference, current, exists, onClose }: { reference: ResultReference; current: boolean; exists: boolean; onClose(): void }) {
   const u = useUnits();
   const ref = reference;
-  const displayReference = (ref: ResultReference) => resultReferenceLabel({ ...ref, value: u.value(ref.value, ref.unit), unit: u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
   const vector = (v: { x: number; y: number; z: number }) => u.vector(v, "m");
   return <section className="property-section ai-reference-details" aria-label="引用结果项">
     <div className="result-section-heading"><h3>引用结果项</h3><button onClick={onClose} aria-label="关闭引用结果">×</button></div>
-    <strong>{displayReference(ref)}</strong>
+    <strong>{displayReference(ref, u)}</strong>
     <dl>
       <div><dt>分析身份</dt><dd>{ref.analysisId}</dd></div>
       <div><dt>冻结输入</dt><dd>R{ref.inputRevision} · {ref.createdAt}</dd></div>

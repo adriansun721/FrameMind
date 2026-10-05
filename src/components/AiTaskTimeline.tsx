@@ -30,6 +30,7 @@ interface Step {
 }
 
 export const TOOL_LABELS: Record<string, string> = {
+  read_unit_contract: "读取单位约定", convert_quantity: "换算明确单位",
   read_model: "读取当前模型", read_selection: "读取选中对象", read_objects: "读取指定对象",
   propose_frame: "整理建模参数", discard_frame_proposal: "取消建模方案", confirm_frame_stage: "确认建模参数",
   propose_task: "整理完整任务草案", discard_task_draft: "取消完整任务草案", confirm_task_draft: "确认完整任务",
@@ -140,7 +141,7 @@ export function AiTaskTimeline({ turns, paused }: { turns: readonly TimelineTurn
       <span className="ai-process-dot" aria-hidden="true">{step.state === "done" ? <svg className="ai-process-check" width="16" height="16" viewBox="0 0 20 20" fill="none">
         <path d="M3.4 10.3 Q5.8 12 7.2 14.3 Q10.5 8.5 16.6 4.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg> : step.state === "issue" ? <span className="ai-process-alert">!</span> : step.state === "cancelled" ? <Minus size={11} /> : null}</span>
-      <div>{step.parameters ? <details className="ai-confirmed-parameters"><summary>{step.label}</summary><p>{step.parameters}</p></details> : <span>{step.label}{step.state === "active" && <span className="ai-thinking-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>}</span>}
+      <div>{step.parameters ? <details className="ai-confirmed-parameters"><summary>{step.label}</summary><p>确认时参数（规范单位：m、kN、kN·m、GPa、kg/m³、m²、m⁴、°）</p><p>{step.parameters}</p></details> : <span>{step.label}{step.state === "active" && <span className="ai-thinking-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>}</span>}
         {step.detail && <p className="ai-process-detail">{step.detail}</p>}</div>
     </li>)}</ol>}
     {!collapsed && <div className="ai-tool-records">{turns.flatMap((turn) => turn.result?.records ?? turn.output?.records ?? []).filter((record) => record.round > 0).map(toolRecordDetails)}</div>}

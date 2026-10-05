@@ -450,7 +450,7 @@
 
 **证据：** [实现与技术决定](./docs/evidence/plan2/T2-17/implementation.md)、[逐项验收](./docs/evidence/plan2/T2-17/acceptance.md)、[验证记录](./docs/evidence/plan2/T2-17/verification.md)、[审查记录](./docs/evidence/plan2/T2-17/review.md)。
 
-**最新验证：** 类型检查、生产构建、完整单元测试（59 文件／462 测试）及原生桌面单位输入、保存重开、Word/PDF 流程通过。显示切换保持模型修订及冻结结果；PDF 单位与数值已核验。动态输入输出、真实 AI 联测及干净 Windows 未执行。
+**最新验证：** 类型检查、生产构建、完整单元测试（59 文件／468 测试）及原生桌面单位输入、保存重开、Word/PDF 流程通过。显示切换保持模型修订及冻结结果；PDF 单位与数值已核验。动态输入输出、真实 AI 联测及干净 Windows 未执行。
 
 ### T2-18 — 自由数值建模与几何容差
 
