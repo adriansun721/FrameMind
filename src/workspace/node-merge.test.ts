@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addNode, addSupport, attachAnalysisResult, type NodeId } from "../domain/project";
+import { addNode, addSupport, addMaterial, attachAnalysisResult, updateNode, updateMaterial, type NodeId } from "../domain/project";
 import { inspectNearNodes, inspectNodeMerge } from "../domain/node-merge";
 import { applyProjectEdits } from "../domain/project-operations";
 import { solveFrame, isAnalysisResultCurrent } from "../domain/analysis";
@@ -75,6 +75,12 @@ describe("T2-21 reviewed node merge public boundaries", () => {
     expect(coordinateModelEdits(p, fresh, draft).conflicts.join(" ")).toContain("合并影响");
     expect(new ModelEditConfirmation().confirm(fresh, prepareModelEditConfirmation(p, draft)).result.status).toBe("failed");
     const unrelated = addNode(p, { x: 50, y: 0, z: 0 }); expect(coordinateModelEdits(p, unrelated, draft).conflicts).toEqual([]);
+    const remoteEndpoint = updateNode(p, p.nodes[0].id, { x: 0, y: 1, z: 0 });
+    expect(coordinateModelEdits(p, remoteEndpoint, draft).conflicts.join(" ")).toContain("合并影响");
+    const unrelatedMaterial = addMaterial(p, { name: "Unused", elasticModulusGPa: 100, poissonRatio: .25, densityKgM3: 5000 });
+    expect(coordinateModelEdits(p, unrelatedMaterial, draft).conflicts).toEqual([]);
+    const changedMaterial = updateMaterial(p, p.materials[0].id, { ...p.materials[0], elasticModulusGPa: 210 });
+    expect(coordinateModelEdits(p, changedMaterial, draft).conflicts.join(" ")).toContain("合并影响");
     const future = { ...p, members: p.members.map((m) => ({ ...m, endRelease: "hinged" })) };
     expect(() => applyProjectEdits(future, [{ type: "merge_nodes", ...input }])).toThrow("未登记");
     const tampered = { ...draft, preview: { ...draft.preview, nodeMerges: [] } };

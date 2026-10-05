@@ -102,11 +102,15 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
     if (operation.type === "merge_nodes") {
       // New incident members/conditions can expand a merge's impact even without moving a node.
       const nodes = new Set(operation.nodeIds);
-      const ids = new Set(draft.preview.nodeMerges?.flatMap((merge) => merge.members.map((m) => m.before.id)) ?? []);
-      const impact = (project: FrameProject) => [project.nodes.filter((node) => nodes.has(node.id)),
+      const reviewedMembers = draft.preview.nodeMerges?.flatMap((merge) => merge.members) ?? [];
+      const ids = new Set(reviewedMembers.map((m) => m.before.id));
+      const endpoints = new Set([...nodes, ...reviewedMembers.flatMap((m) => [m.before.startNodeId, m.before.endNodeId, m.after.startNodeId, m.after.endNodeId])]);
+      const materials = new Set(reviewedMembers.map((m) => m.before.materialId));
+      const sections = new Set(reviewedMembers.map((m) => m.before.sectionId));
+      const impact = (project: FrameProject) => [project.nodes.filter((node) => endpoints.has(node.id)),
         project.members.filter((m) => ids.has(m.id) || nodes.has(m.startNodeId) || nodes.has(m.endNodeId)),
         project.supports.filter((s) => nodes.has(s.nodeId)), project.nodalLoads.filter((l) => nodes.has(l.nodeId)),
-        project.uniformLoads.filter((l) => ids.has(l.memberId)), project.materials, project.sections];
+        project.uniformLoads.filter((l) => ids.has(l.memberId)), project.materials.filter((m) => materials.has(m.id)), project.sections.filter((s) => sections.has(s.id))];
       if (!same(impact(base), impact(current))) conflicts.push("合并目标、关联杆件或边界荷载已变化，请重读并重新确认合并影响");
       return operation;
     }
