@@ -1,0 +1,185 @@
+{
+  "generatedAt": "2026-10-05T07:08:48.905Z",
+  "isolation": "one temporary profile per test case",
+  "passed": true,
+  "cases": 22,
+  "previousAttempts": [],
+  "results": [
+    {
+      "file": "plan2-t2-11-reliability.spec.ts",
+      "title": "T2-11 state recognition after manual editing and reopening",
+      "startedAt": "2026-10-05T07:06:25.810Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:8792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\plan2-t2-11-reliability.spec.ts:114:5 › T2-11 state recognition after manual editing and reopening (7.5s)\n\n  1 passed (8.3s)\n"
+    },
+    {
+      "file": "plan2-t2-11-reliability.spec.ts",
+      "title": "T2-11 whole-task confirmation, restart and requested local solve",
+      "startedAt": "2026-10-05T07:06:34.778Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:42288) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\plan2-t2-11-reliability.spec.ts:137:5 › T2-11 whole-task confirmation, restart and requested local solve (4.5s)\n\n  1 passed (5.1s)\n"
+    },
+    {
+      "file": "plan2-t2-11-reliability.spec.ts",
+      "title": "T2-11 evidence-based diagnostic trial stays separate from formal results",
+      "startedAt": "2026-10-05T07:06:40.625Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:39276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\plan2-t2-11-reliability.spec.ts:165:5 › T2-11 evidence-based diagnostic trial stays separate from formal results (3.1s)\n\n  1 passed (3.8s)\n"
+    },
+    {
+      "file": "plan2-t2-12-analysis-service.spec.ts",
+      "title": "T2-12 runs a real Worker, browses and persists the same service record, and exports its actual stages",
+      "startedAt": "2026-10-05T07:06:45.127Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:31888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\plan2-t2-12-analysis-service.spec.ts:10:5 › T2-12 runs a real Worker, browses and persists the same service record, and exports its actual stages (2.7s)\n\n  1 passed (3.4s)\n"
+    },
+    {
+      "file": "t03-analysis.spec.ts",
+      "title": "T03 computes and displays a constrained spatial cantilever",
+      "startedAt": "2026-10-05T07:06:49.225Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:38072) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t03-analysis.spec.ts:5:5 › T03 computes and displays a constrained spatial cantilever (2.5s)\n\n  1 passed (3.1s)\n"
+    },
+    {
+      "file": "t04-analysis.spec.ts",
+      "title": "T04 manually builds, solves, reads and reopens a spatial multi-member frame",
+      "startedAt": "2026-10-05T07:06:53.050Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:42404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t04-analysis.spec.ts:13:5 › T04 manually builds, solves, reads and reopens a spatial multi-member frame (6.7s)\n\n  1 passed (7.3s)\n"
+    },
+    {
+      "file": "t05-diagnostics.spec.ts",
+      "title": "T05 locates model and solver failures, repairs them and retains historical results",
+      "startedAt": "2026-10-05T07:07:01.084Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:10216) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t05-diagnostics.spec.ts:7:5 › T05 locates model and solver failures, repairs them and retains historical results (5.0s)\n\n  1 passed (5.6s)\n"
+    },
+    {
+      "file": "t06-analysis-task.spec.ts",
+      "title": "T06 keeps the workbench interactive while an analysis task is pending",
+      "startedAt": "2026-10-05T07:07:07.429Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:8136) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t06-analysis-task.spec.ts:4:5 › T06 keeps the workbench interactive while an analysis task is pending (2.1s)\n\n  1 passed (2.7s)\n"
+    },
+    {
+      "file": "t17-member-process.spec.ts",
+      "title": "T17 exposes the selected member's real axes, mapping, vectors and matrices",
+      "startedAt": "2026-10-05T07:07:10.900Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:40420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t17-member-process.spec.ts:5:5 › T17 exposes the selected member's real axes, mapping, vectors and matrices (2.6s)\n\n  1 passed (3.1s)\n"
+    },
+    {
+      "file": "t18-analysis-process.spec.ts",
+      "title": "T18 exposes overall DOF numbering, assembly and textbook page mapping",
+      "startedAt": "2026-10-05T07:07:14.883Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:41020) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t18-analysis-process.spec.ts:5:5 › T18 exposes overall DOF numbering, assembly and textbook page mapping (2.8s)\n\n  1 passed (3.3s)\n"
+    },
+    {
+      "file": "t23-analysis-conditions.spec.ts",
+      "title": "T23 continues a requested computation after two reviewed stages, and previews every later condition change",
+      "startedAt": "2026-10-05T07:07:18.977Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t23-analysis-conditions.spec.ts:22:5 › T23 continues a requested computation after two reviewed stages, and previews every later condition change (6.9s)\n\n  1 passed (7.4s)\n"
+    },
+    {
+      "file": "t23-analysis-conditions.spec.ts",
+      "title": "T23 honours revoking a queued computation and cannot solve from a plain assistant reply or unrequested tool",
+      "startedAt": "2026-10-05T07:07:27.133Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:34228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t23-analysis-conditions.spec.ts:84:5 › T23 honours revoking a queued computation and cannot solve from a plain assistant reply or unrequested tool (3.8s)\n\n  1 passed (4.4s)\n"
+    },
+    {
+      "file": "t23-analysis-conditions.spec.ts",
+      "title": "T23 selects the reviewed existing load case for continuation and honours natural-language cancellation before confirmation",
+      "startedAt": "2026-10-05T07:07:32.285Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:47236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t23-analysis-conditions.spec.ts:119:5 › T23 selects the reviewed existing load case for continuation and honours natural-language cancellation before confirmation (3.8s)\n\n  1 passed (4.3s)\n"
+    },
+    {
+      "file": "t23-analysis-conditions.spec.ts",
+      "title": "T23 reports model-check and solve failures, retains confirmed work, and refreshes compatible conditions",
+      "startedAt": "2026-10-05T07:07:37.374Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:2944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t23-analysis-conditions.spec.ts:159:5 › T23 reports model-check and solve failures, retains confirmed work, and refreshes compatible conditions (4.7s)\n\n  1 passed (5.3s)\n"
+    },
+    {
+      "file": "t23-analysis-conditions.spec.ts",
+      "title": "T23 cancels a pending local analysis in the conversation and keeps confirmed model changes",
+      "startedAt": "2026-10-05T07:07:43.397Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:46420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t23-analysis-conditions.spec.ts:192:5 › T23 cancels a pending local analysis in the conversation and keeps confirmed model changes (2.8s)\n\n  1 passed (3.4s)\n"
+    },
+    {
+      "file": "t28-engineering-report.spec.ts",
+      "title": "T28 exports selected frozen inputs and results offline while edits continue",
+      "startedAt": "2026-10-05T07:07:47.526Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:8904) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t28-engineering-report.spec.ts:11:5 › T28 exports selected frozen inputs and results offline while edits continue (4.5s)\n\n  1 passed (5.2s)\n"
+    },
+    {
+      "file": "t28-engineering-report.spec.ts",
+      "title": "T28 exports raw combination cases, factors and weighted responses",
+      "startedAt": "2026-10-05T07:07:53.545Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:41192) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t28-engineering-report.spec.ts:88:5 › T28 exports raw combination cases, factors and weighted responses (2.9s)\n\n  1 passed (3.7s)\n"
+    },
+    {
+      "file": "t29-report-appendix.spec.ts",
+      "title": "T29 selects historical objects and steps, keeps the body and exports frozen process records",
+      "startedAt": "2026-10-05T07:07:57.992Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:33512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t29-report-appendix.spec.ts:11:5 › T29 selects historical objects and steps, keeps the body and exports frozen process records (5.2s)\n\n  1 passed (6.0s)\n"
+    },
+    {
+      "file": "t29-report-appendix.spec.ts",
+      "title": "T29 labels missing legacy records and exports a separate frozen-input supplemental appendix",
+      "startedAt": "2026-10-05T07:08:04.758Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:6128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t29-report-appendix.spec.ts:84:5 › T29 labels missing legacy records and exports a separate frozen-input supplemental appendix (3.6s)\n\n  1 passed (4.4s)\n"
+    },
+    {
+      "file": "t29-report-appendix.spec.ts",
+      "title": "T29 filters multiple members and exports all explicitly selected process steps",
+      "startedAt": "2026-10-05T07:08:09.889Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:31588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t29-report-appendix.spec.ts:135:5 › T29 filters multiple members and exports all explicitly selected process steps (4.5s)\n\n  1 passed (5.3s)\n"
+    },
+    {
+      "file": "t30-report-pdf.spec.ts",
+      "title": "T30 exports PDF and Word with the same selected source, repeats export and preserves a file after failure",
+      "startedAt": "2026-10-05T07:08:15.947Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:9320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t30-report-pdf.spec.ts:11:5 › T30 exports PDF and Word with the same selected source, repeats export and preserves a file after failure (16.4s)\n\n  1 passed (17.2s)\n"
+    },
+    {
+      "file": "t30-report-pdf.spec.ts",
+      "title": "T30 exports all matrices and long names with multipage body and appendix tables",
+      "startedAt": "2026-10-05T07:08:33.843Z",
+      "exitCode": 0,
+      "passed": true,
+      "output": "\nRunning 1 test using 1 worker\n\n(node:42736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ok 1 e2e\\t30-report-pdf.spec.ts:88:5 › T30 exports all matrices and long names with multipage body and appendix tables (13.6s)\n\n  1 passed (14.4s)\n"
+    }
+  ]
+}

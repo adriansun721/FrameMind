@@ -1,4 +1,4 @@
-import { freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { ANALYSIS_DOF_ORDER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
 import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
@@ -27,6 +27,18 @@ export interface AnalysisTaskOptions {
 export interface AnalysisTask {
   promise: Promise<AnalysisResult>;
   cancel(): void;
+}
+
+function validDiagnostic(value: AnalysisDiagnostic): boolean {
+  if (!value || typeof value !== "object" || typeof value.code !== "string" || !value.code.trim()
+    || typeof value.message !== "string" || !value.message.trim()
+    || value.field !== undefined && typeof value.field !== "string"
+    || value.dof !== undefined && !ANALYSIS_DOF_ORDER.includes(value.dof)) return false;
+  if (value.target && (!value.target.id || typeof value.target.id !== "string"
+    || !["node", "member", "material", "section", "support", "load", "uniform-load", "self-weight"].includes(value.target.kind))) return false;
+  if (value.evidence && (![value.evidence.pivotMagnitude, value.evidence.threshold, value.evidence.matrixScale].every(Number.isFinite)
+    || !Number.isSafeInteger(value.evidence.globalDofIndex) || value.evidence.globalDofIndex < 0)) return false;
+  return true;
 }
 
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
@@ -64,6 +76,7 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
         || result.service.requestId !== request.requestId || !sameInputValue(result.input, request.input)
         || !sameInputValue(result.service.origin, request.origin)) throw new Error("分析输出与请求来源不一致");
       decodeAnalysisRun(result.service, result.input, result.id);
+      if (!sameInputValue(result.service.stages, stages)) throw new Error("分析结果阶段与实际运行消息不一致");
       freezeAnalysisInput(result.input);
       finish(() => resolvePromise(result));
     } catch (error) { fail(error, "invalid-service-output"); }
@@ -84,7 +97,11 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
         else if (message.kind === "result") complete(message.result);
         else if (message.kind === "error") {
           const error = message.error;
-          if (error.stage && error.diagnostics) {
+          if (error.stage !== undefined || error.diagnostics !== undefined || error.run !== undefined) {
+            if (error.name !== "AnalysisFailure" || !error.stage || !ANALYSIS_STAGE_ORDER.includes(error.stage)
+              || !Array.isArray(error.diagnostics) || !error.diagnostics.length || !error.diagnostics.every(validDiagnostic)) {
+              throw new Error("分析 Worker 返回无效诊断");
+            }
             const failure = new AnalysisFailure(error.stage, error.diagnostics);
             if (error.run && !sameInputValue(error.run, analysisRunRecord(request, "failed", stages))) throw new Error("分析失败来源与请求不一致");
             fail(error.run ? new AnalysisServiceFailure(error.stage, error.diagnostics, error.run) : failure);

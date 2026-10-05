@@ -13,7 +13,7 @@ export interface AnalysisServiceRequest {
 }
 
 export class AnalysisServiceFailure extends AnalysisFailure {
-  constructor(stage: AnalysisStage, diagnostics: AnalysisDiagnostic[], public readonly run: AnalysisRunRecord) {
+  constructor(stage: AnalysisStage, diagnostics: AnalysisDiagnostic[], public readonly run?: AnalysisRunRecord) {
     super(stage, diagnostics);
   }
 }
@@ -34,14 +34,22 @@ export function createAnalysisRequest(input: AnalysisInputSnapshot, origin: Anal
   return Object.freeze(request);
 }
 
-export function analysisRunRecord(request: AnalysisServiceRequest, status: AnalysisRunRecord["status"], stages: readonly AnalysisStageRecord[]): AnalysisRunRecord {
-  return {
-    version: request.version, requestId: request.requestId, analysisId: request.analysisId,
-    projectId: request.input.projectId, projectRevision: request.input.projectRevision,
-    origin: structuredClone(request.origin), sourceId: analysisSourceId(request.input),
-    dependencies: analysisDependencies(request.input), solver: { ...request.input.solver! },
-    status, stages: structuredClone([...stages]),
-  };
+export function analysisRunRecord(request: AnalysisServiceRequest, status: AnalysisRunRecord["status"], stages: readonly AnalysisStageRecord[]): AnalysisRunRecord | undefined {
+  try {
+    if (!request?.input || request.version !== ANALYSIS_SERVICE_VERSION
+      || typeof request.requestId !== "string" || !request.requestId.trim()
+      || typeof request.analysisId !== "string" || !request.analysisId.trim()
+      || typeof request.input.projectId !== "string" || !request.input.projectId.trim()
+      || !Number.isSafeInteger(request.input.projectRevision) || request.input.projectRevision < 0
+      || !request.input.solver || !validAnalysisOrigin(request.origin, request.input)) return undefined;
+    return {
+      version: request.version, requestId: request.requestId, analysisId: request.analysisId,
+      projectId: request.input.projectId, projectRevision: request.input.projectRevision,
+      origin: structuredClone(request.origin), sourceId: analysisSourceId(request.input),
+      dependencies: analysisDependencies(request.input), solver: { ...request.input.solver },
+      status, stages: structuredClone([...stages]),
+    };
+  } catch { return undefined; }
 }
 
 export function analysisServiceFailure(request: AnalysisServiceRequest, stages: readonly AnalysisStageRecord[], error: unknown, code = "service-error"): AnalysisServiceFailure {
@@ -49,6 +57,8 @@ export function analysisServiceFailure(request: AnalysisServiceRequest, stages: 
   const stage = error instanceof AnalysisFailure ? error.stage : stages.at(-1)?.stage ?? "model-check";
   const diagnostics = error instanceof AnalysisFailure ? error.diagnostics
     : [{ code, message: error instanceof Error ? error.message : String(error), field: "analysis-service" }];
+  // A malformed protocol packet may have no readable engineering identity.
+  // Return its structured diagnostic without inventing provenance or throwing again.
   return new AnalysisServiceFailure(stage, diagnostics, analysisRunRecord(request, "failed", stages));
 }
 
@@ -56,6 +66,10 @@ export function analysisServiceFailure(request: AnalysisServiceRequest, stages: 
 export function executeAnalysisRequest(request: AnalysisServiceRequest, onStage?: (record: AnalysisStageRecord) => void): AnalysisResult {
   const stages: AnalysisStageRecord[] = [];
   try {
+    if (!request || typeof request !== "object" || !request.input || typeof request.input !== "object"
+      || !Array.isArray(request.input.dofOrder) || !request.input.assumptions) {
+      throw new AnalysisFailure("model-check", [{ code: "unsupported-analysis-contract", message: "分析请求缺少可读取的冻结输入、自由度或理论设置", field: "input" }]);
+    }
     const { input } = request;
     if (request.version !== ANALYSIS_SERVICE_VERSION || !request.requestId || !request.analysisId
       || !validAnalysisOrigin(request.origin, input) || !input.projectId

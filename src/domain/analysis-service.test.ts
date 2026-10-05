@@ -77,6 +77,16 @@ describe("unified static analysis service", () => {
     }
   });
 
+  it("returns a structured model-check rejection when a malformed request has no readable input", () => {
+    const request = createAnalysisRequest(captureAnalysisInput(reportFixture()));
+    for (const invalid of [null, { ...request, input: null }, { ...request, input: {} }]) {
+      expect(() => executeAnalysisRequest(invalid as unknown as typeof request)).toThrow(expect.objectContaining({
+        name: "AnalysisFailure", stage: "model-check", diagnostics: [expect.objectContaining({ code: "unsupported-analysis-contract", field: "input" })],
+        run: undefined,
+      }));
+    }
+  });
+
   it.each(references.cases)("matches the registered independent static sample through the service: $id", (benchmark) => {
     const report = runNumericalBenchmark(benchmark, (project) => executeAnalysisRequest(createAnalysisRequest(captureAnalysisInput(project))));
     expect(report.checks.filter((check) => !check.passed)).toEqual([]);

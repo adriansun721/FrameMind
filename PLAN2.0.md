@@ -4,7 +4,7 @@
 
 需求基线：[PRD2.0.md](./PRD2.0.md)，第二轮产品需求基线 v2.0
 
-状态：实施中；T2-01—T2-05、T2-09—T2-11 已登记实现及确定性验证；T2-11 已完成当前静力基础的真实 AI 联测。其他任务进展见对应实现和验收记录，新增能力真实 AI 联测和整轮综合验收仍待完成。
+状态：实施中；T2-01—T2-05、T2-09—T2-12 已登记实现及确定性验证；T2-11 已完成当前静力基础的真实 AI 联测。其他任务进展见对应实现和验收记录，新增能力真实 AI 联测和整轮综合验收仍待完成。
 
 交付形式：按 to-tickets 的纵向切片方法汇总在本文件中，尚未发布正式工单。
 
@@ -352,7 +352,7 @@
 - [x] 手动计算、已有 agent 续算、取消和结果查询复用服务；错误不能只返回无法定位的普通文本。为诊断输入保留独立身份契约，副本能力由 T2-07 接入。
 - [x] 用现有公开入口回归静力、取消、来源及报告过程，明确原生核心后续应提供的真实记录，不引入虚构矩阵或进度。
 
-**证据：** [实现与复跑](./docs/evidence/plan2/T2-12/implementation.md)、[服务契约与原生记录责任](./docs/decisions/0045-unified-static-analysis-service.md)、[独立数值回归](./docs/evidence/plan2/T2-12/numerical-results.json)、[原生桥接核对样本](./docs/evidence/plan2/T2-12/wire-samples.json)。
+**证据：** [实现与复跑](./docs/evidence/plan2/T2-12/implementation.md)、[服务契约与原生记录责任](./docs/decisions/0045-unified-static-analysis-service.md)、[独立数值回归](./docs/evidence/plan2/T2-12/numerical-results.json)、[原生桥接核对样本](./docs/evidence/plan2/T2-12/wire-samples.json)、[验证记录](./docs/evidence/plan2/T2-12/verification.md)、[两轴审查](./docs/evidence/plan2/T2-12/review.md)。
 
 ### T2-13 — C++ 单杆计算与安装通路
 

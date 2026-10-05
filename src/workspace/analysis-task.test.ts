@@ -74,6 +74,7 @@ describe("analysis task boundary", () => {
 
     first.cancel();
     firstWorker.emit({ requestId: firstWorker.request.requestId, kind: "result", result });
+    result.service!.stages.forEach((record) => secondWorker.emit({ requestId: secondWorker.request.requestId, kind: "phase", record }));
     secondWorker.emit({ requestId: secondWorker.request.requestId, kind: "result", result });
 
     await firstRejection;
@@ -130,5 +131,25 @@ describe("analysis task boundary", () => {
     worker.emit({ requestId: worker.request.requestId, kind: "result", result });
     await expect(task.promise).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: "invalid-service-output" })], run: { status: "failed" } });
     expect(worker.terminated).toBe(true);
+  });
+
+  it("rejects fabricated stage history in an otherwise valid result", async () => {
+    vi.stubGlobal("Worker", ControlledWorker);
+    const task = startAnalysisTask(captureAnalysisInput(reportFixture()));
+    const worker = ControlledWorker.instances[0];
+    worker.emit({ requestId: worker.request.requestId, kind: "result", result: executeAnalysisRequest(worker.request) });
+    await expect(task.promise).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: "invalid-service-output" })] });
+  });
+
+  it.each([
+    { name: "AnalysisFailure", stage: "made-up", diagnostics: [{ code: "x", message: "x" }] },
+    { name: "AnalysisFailure", stage: "solve", diagnostics: [{}] },
+    { name: "AnalysisFailure", stage: "solve", diagnostics: [{ code: "x", message: "x", target: { kind: "node" } }] },
+  ])("rejects malformed worker diagnostics without exposing unusable UI data: %j", async (error) => {
+    vi.stubGlobal("Worker", ControlledWorker);
+    const task = startAnalysisTask(captureAnalysisInput(reportFixture()));
+    const worker = ControlledWorker.instances[0];
+    worker.emit({ requestId: worker.request.requestId, kind: "error", error });
+    await expect(task.promise).rejects.toMatchObject({ stage: "model-check", diagnostics: [expect.objectContaining({ code: "invalid-service-output" })] });
   });
 });

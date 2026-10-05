@@ -1,13 +1,13 @@
 {
   "passed": true,
   "result": {
-    "id": "analysis_8a190060-5f1b-4716-a50d-aa3c27c513f9",
-    "projectId": "project_bc453339-999e-4778-b74c-2b68a95fd870",
+    "id": "analysis_d1c61a25-3b59-4b17-b6b2-0e71e5b2f8ac",
+    "projectId": "project_fffd5bfa-e441-454c-810f-6f72a0c31c59",
     "projectRevision": 8,
-    "createdAt": "2026-10-05T06:56:59.978Z",
+    "createdAt": "2026-10-05T07:06:47.785Z",
     "status": "complete",
     "input": {
-      "projectId": "project_bc453339-999e-4778-b74c-2b68a95fd870",
+      "projectId": "project_fffd5bfa-e441-454c-810f-6f72a0c31c59",
       "projectRevision": 8,
       "dofOrder": [
         "ux",
@@ -846,9 +846,9 @@
     },
     "service": {
       "version": "framemind-analysis/1",
-      "requestId": "request_3f042f42-d8f2-4860-ab61-2407ab30232b",
-      "analysisId": "analysis_8a190060-5f1b-4716-a50d-aa3c27c513f9",
-      "projectId": "project_bc453339-999e-4778-b74c-2b68a95fd870",
+      "requestId": "request_1057a497-4ebc-4111-bdb4-4575003cf83b",
+      "analysisId": "analysis_d1c61a25-3b59-4b17-b6b2-0e71e5b2f8ac",
+      "projectId": "project_fffd5bfa-e441-454c-810f-6f72a0c31c59",
       "projectRevision": 8,
       "origin": {
         "kind": "formal-model"
@@ -870,19 +870,19 @@
       "stages": [
         {
           "stage": "model-check",
-          "startedAt": "2026-10-05T06:56:59.973Z"
+          "startedAt": "2026-10-05T07:06:47.781Z"
         },
         {
           "stage": "assembly",
-          "startedAt": "2026-10-05T06:56:59.975Z"
+          "startedAt": "2026-10-05T07:06:47.782Z"
         },
         {
           "stage": "solve",
-          "startedAt": "2026-10-05T06:56:59.977Z"
+          "startedAt": "2026-10-05T07:06:47.783Z"
         },
         {
           "stage": "recovery",
-          "startedAt": "2026-10-05T06:56:59.977Z"
+          "startedAt": "2026-10-05T07:06:47.784Z"
         }
       ]
     }

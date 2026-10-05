@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-05T06:49:20.670Z",
-  "baseCommit": "ce3550fed1ae196b6d631df2902784971fe11edd",
+  "generatedAt": "2026-10-05T07:06:23.354Z",
+  "baseCommit": "e28658b49aa68fd80e493ab066c99bf0c010fd90",
   "environment": {
     "platform": "win32",
     "arch": "x64",
@@ -21,7 +21,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_f914662c-7c0d-4ded-bafc-58e30a4e3fc3",
+        "projectId": "project_3039cba2-6d69-4fe5-8507-b3ede7509815",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -1030,7 +1030,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_b711ed72-97c7-42e6-b882-46f705f1a9d1",
+        "projectId": "project_d27eb876-0564-4c98-b011-004ccb83dcef",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -2039,7 +2039,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_60fe23c0-cac4-4ad2-914c-65cccf7d454c",
+        "projectId": "project_7b19f202-6b86-4c2e-a07a-eb0142992649",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -3048,7 +3048,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_ff252b3a-328d-4dc6-aa11-fddaff58b364",
+        "projectId": "project_2b95464e-5a65-4f85-ab13-2dfcef8f16ae",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -4057,7 +4057,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_166499f4-8515-41d3-988a-a991fcab9f4d",
+        "projectId": "project_4f5799bc-a958-4d43-b163-3ddcc5869e43",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -5066,7 +5066,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_3c7fdcfb-e42d-4053-ae2e-58cf3f269e16",
+        "projectId": "project_90cd993c-da58-4873-a17a-f29c52bc456a",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -6075,7 +6075,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_29730510-c338-4d4f-b0cf-3e27fb8be9c3",
+        "projectId": "project_f75db967-4e91-430b-a0e6-a50ff2545bb9",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -7084,7 +7084,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_75d81c7f-c9ee-424b-8dc5-6e953b87ce34",
+        "projectId": "project_f959ae6c-6ed8-4e4e-bfe2-39c14cdefc78",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -8093,7 +8093,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_b8d00901-1478-425e-9d0f-796f3c4a2a62",
+        "projectId": "project_be19bd20-5f61-40d6-aa36-d0df0fd7fd9c",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -9102,7 +9102,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_5e9ae168-41f9-449a-82d0-b70287a124b2",
+        "projectId": "project_54cd40b1-8d41-4cf2-ad8e-eb2bdd8c3360",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -10108,7 +10108,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_e2f6f507-f1f1-450e-9ce1-afda560ed0b9",
+        "projectId": "project_13a0e32f-d299-4e0e-bf12-fb18743605d6",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -11114,7 +11114,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_058bdaea-5f25-43ef-9573-7fca1c5420f7",
+        "projectId": "project_1f9b1ace-a07b-49f6-b164-5d3fe719cf62",
         "projectRevision": 7,
         "dofOrder": [
           "ux",
@@ -12106,7 +12106,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_3596c820-b877-4e0e-9549-cfa1070ed917",
+        "projectId": "project_d430a36c-fe26-4fc3-b49c-148dfe9d2c1f",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -13115,7 +13115,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_2bf36abf-4083-4363-94ff-126e9570ed4f",
+        "projectId": "project_774db916-1ec1-4d3a-876a-3e39d5852c2a",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -14138,7 +14138,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_03672ad9-491a-4a15-8620-f495ed48aa3b",
+        "projectId": "project_7bdcbfd6-9586-4fa8-b1fa-cf7b23635b53",
         "projectRevision": 12,
         "dofOrder": [
           "ux",
@@ -15279,7 +15279,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_4ae6d75f-b8a2-4168-aa18-6654b2f2ad88",
+        "projectId": "project_8ccda2d4-3d2c-470a-8ea0-d17f13834e82",
         "projectRevision": 12,
         "dofOrder": [
           "ux",
@@ -16420,7 +16420,7 @@
       "source": "Continuum equilibrium + unit-load virtual work",
       "passed": true,
       "input": {
-        "projectId": "project_b5206fa3-19c6-41a2-8c8b-8501617f5d0d",
+        "projectId": "project_5b216f15-0570-4653-9ee7-3ee3a207f98f",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -18012,7 +18012,7 @@
       "source": "ADR-0004 + independent continuum virtual-work reproduction",
       "passed": true,
       "input": {
-        "projectId": "project_4ab44585-a672-43f8-b9cf-4a28b523d2fb",
+        "projectId": "project_0cba3942-8ce5-4b57-80b0-6ee1a8598eb5",
         "projectRevision": 11,
         "dofOrder": [
           "ux",
@@ -20141,7 +20141,7 @@
       "source": "Six-redundant force method, exact continuum energy compatibility",
       "passed": true,
       "input": {
-        "projectId": "project_62524305-a96d-4166-a06f-204412c6effd",
+        "projectId": "project_8c8785f6-7419-471a-9e35-45e75c107903",
         "projectRevision": 16,
         "dofOrder": [
           "ux",
@@ -23738,7 +23738,7 @@
       "source": "计算结构力学 (2014), example 2-1, printed pp.42-46 / PDF pp.51-55; independently recomputed by force method",
       "passed": true,
       "input": {
-        "projectId": "project_0d94f092-b68d-4f36-8e79-3b2fe51ffda4",
+        "projectId": "project_70b4ef4b-2f48-4378-9fb4-bcc5ef98d626",
         "projectRevision": 16,
         "dofOrder": [
           "ux",
@@ -26472,7 +26472,7 @@
       "source": "计算结构力学 example 2-1, printed p.43 FA=(40,-26,-1200) kN/kN·cm; theta_book=-rz, so physical Mz=+12 kN·m. Distinct reduced-load model, not original loads",
       "passed": true,
       "input": {
-        "projectId": "project_90d9ef93-e8e7-4f69-8f20-505b802c376b",
+        "projectId": "project_270a9bfe-ecb6-4027-87ed-d6da2c0dd70a",
         "projectRevision": 10,
         "dofOrder": [
           "ux",
@@ -28054,7 +28054,7 @@
       "source": "Independent original-load condensation: (20,0,+15)+(20,-20,0)+(0,-9,-4.5)=(40,-29,+10.5); corner response must match the original five-node continuum solution",
       "passed": true,
       "input": {
-        "projectId": "project_e59449aa-9a71-495b-9e5a-700ba2e558c5",
+        "projectId": "project_78d3541b-5694-4ff6-a7c3-7ff2a8268813",
         "projectRevision": 10,
         "dofOrder": [
           "ux",
@@ -29639,10 +29639,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_f6226c30-967e-4ee2-94f4-0e34bbf7f15d",
+        "id": "project_26e5b36a-7159-4935-b8a7-2c4d7f1f129d",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.668Z",
-        "updatedAt": "2026-10-05T06:49:20.668Z",
+        "createdAt": "2026-10-05T07:06:23.347Z",
+        "updatedAt": "2026-10-05T07:06:23.347Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -29796,10 +29796,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_45964b7c-04a8-4891-8e2e-2f253d112b3e",
+        "id": "project_8c611dfd-0a46-4947-a103-1468a88e9c1e",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.668Z",
-        "updatedAt": "2026-10-05T06:49:20.668Z",
+        "createdAt": "2026-10-05T07:06:23.348Z",
+        "updatedAt": "2026-10-05T07:06:23.348Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -29954,10 +29954,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_b12b5d71-9598-42bb-aceb-e24d9fe5ffa7",
+        "id": "project_ed20b572-5d8f-497b-bd62-05bfa30768bd",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.668Z",
-        "updatedAt": "2026-10-05T06:49:20.668Z",
+        "createdAt": "2026-10-05T07:06:23.348Z",
+        "updatedAt": "2026-10-05T07:06:23.348Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -30100,10 +30100,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_2daf8aec-be51-4929-b4bc-7aae7c42a007",
+        "id": "project_135928f9-eb87-4e92-8335-07eae368e639",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.669Z",
-        "updatedAt": "2026-10-05T06:49:20.669Z",
+        "createdAt": "2026-10-05T07:06:23.349Z",
+        "updatedAt": "2026-10-05T07:06:23.350Z",
         "revision": 8,
         "units": {
           "length": "m",
@@ -30267,10 +30267,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_9a4cf190-3322-42aa-b3a3-6ea08296e411",
+        "id": "project_183b9d25-4d74-44fa-91d6-8af512660c47",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.669Z",
-        "updatedAt": "2026-10-05T06:49:20.669Z",
+        "createdAt": "2026-10-05T07:06:23.350Z",
+        "updatedAt": "2026-10-05T07:06:23.350Z",
         "revision": 10,
         "units": {
           "length": "m",
@@ -30451,10 +30451,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_d08be4c0-c5c6-499a-ad62-21175cd90992",
+        "id": "project_b78c94a9-0f55-4614-a760-7c5af17a685b",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.669Z",
-        "updatedAt": "2026-10-05T06:49:20.669Z",
+        "createdAt": "2026-10-05T07:06:23.351Z",
+        "updatedAt": "2026-10-05T07:06:23.351Z",
         "revision": 7,
         "units": {
           "length": "m",
@@ -30598,10 +30598,10 @@
       "input": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_63fbb354-00ba-4ad2-9822-1c19b179e14a",
+        "id": "project_872c31ce-3636-47bf-8a1a-f3e8760ae550",
         "name": "T31 axial",
-        "createdAt": "2026-10-05T06:49:20.669Z",
-        "updatedAt": "2026-10-05T06:49:20.669Z",
+        "createdAt": "2026-10-05T07:06:23.352Z",
+        "updatedAt": "2026-10-05T07:06:23.353Z",
         "revision": 7,
         "units": {
           "length": "m",

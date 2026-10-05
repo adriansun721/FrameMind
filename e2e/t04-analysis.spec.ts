@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createNode } from "./modeling-actions";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
 
 async function fileAction(page: Page, action: "保存项目" | "打开项目") {
   await page.getByRole("button", { name: "文件", exact: true }).click();
@@ -16,6 +17,7 @@ test("T04 manually builds, solves, reads and reopens a spatial multi-member fram
   let app = await electron.launch({ args: ["."], env: environment });
   try {
     let page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     for (const coordinates of [["0", "0", "0"], ["4", "0", "0"], ["4", "3", "0"], ["4", "3", "2"]] as [string, string, string][]) await createNode(page, coordinates);
     await page.getByRole("button", { name: "创建材料与截面" }).click();
     await page.getByLabel("弹性模量 E").fill("200");
@@ -56,6 +58,7 @@ test("T04 manually builds, solves, reads and reopens a spatial multi-member fram
     await app.close();
     app = await electron.launch({ args: ["."], env: environment });
     page = await app.firstWindow();
+    await enterWorkbenchWithoutRecovery(page);
     await fileAction(page, "打开项目");
     await expect(page.getByText("位移 (0.028, 0.009, -0.024) m", { exact: true })).toBeVisible();
     await expect(page.getByText(/R\d+ · 已过期/)).toBeVisible();
