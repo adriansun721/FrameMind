@@ -383,6 +383,15 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         if (!analysisWithinBudget) return result("failed", explorationStopMessage(exploration!.snapshot()));
         if (toolResult.proposal === null || toolResult.conditions === null || toolResult.sectionChange === null || toolResult.modelEdits === null || toolResult.taskDraft === null) return result("completed", toolResult.message);
         if (toolResult.status !== "completed") {
+          const prerequisite = toolResult.data && typeof toolResult.data === "object" && "requiredTool" in toolResult.data
+            && toolResult.data.requiredTool === "create_diagnostic_copy";
+          if (toolResult.status === "missing-input" && prerequisite) {
+            if (exploration && !exploration.recordOutcome({ failureKey: `tool-prerequisite:${call.function.name}:create_diagnostic_copy` })) {
+              return result("failed", explorationStopMessage(exploration.snapshot()));
+            }
+            messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(publicResult) });
+            continue;
+          }
           if (toolResult.status === "missing-input" || toolResult.status === "awaiting-confirmation") exploration?.waitForUser();
           if (toolResult.status === "failed" && exploration) {
             const canRetry = exploration.recordOutcome(outcomeFingerprint(toolResult));

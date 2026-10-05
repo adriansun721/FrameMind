@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "registeredDate": "2026-10-05",
+  "timezone": "Asia/Taipei",
+  "repetitions": 2,
+  "timeoutMs": 360000,
+  "scope": "Current static analysis and AC2-01 through AC2-11. Real provider samples are a small fixed baseline, not a population reliability estimate.",
+  "gates": { "contractPassRate": 1, "stateRecognition": 1, "correctTools": 1, "taskCompletion": 1, "noDuplicateApplication": 1, "noUnintendedMutation": 1, "noRepeatedQuestions": 1 },
+  "metrics": {
+    "stateRecognition": "Correct project/revision, stable node ID, coordinate literals, whole-model node/member totals, checked after manual creation and formal-file reopen.",
+    "correctTools": "Successful read_model without write tools; successful propose_task for the fully specified whole task; successful inspect_diagnostics/create_diagnostic_copy/run_diagnostic_trial for diagnosis.",
+    "taskCompletion": "Read/diagnosis has completed status and actual tool evidence; confirmed task has two formal results, FX=10 on both existing loads and analytical displacement 0.010666666666666666 m (absolute tolerance 1e-10 m).",
+    "noDuplicateApplication": "Double-click after restarting the pending draft leaves one durable receipt, four nodes and two existing loads; undo/retry is separately covered by the fixed contract suite.",
+    "noUnintendedMutation": "Engineering fields unchanged before confirmation and for reads/diagnosis; diagnosis retains all formal result content.",
+    "noRepeatedQuestions": "Fully specified existing-model task reaches awaiting-confirmation with no replacement geometry. Measures redundant blocking clarification, not stylistic questions in prose."
+  },
+  "scenarios": {
+    "state": ["manual:stateRecognition", "manual:correctTools", "manual:taskCompletion", "manual:noUnintendedMutation", "reopened:stateRecognition", "reopened:correctTools", "reopened:taskCompletion", "reopened:noUnintendedMutation"],
+    "confirmation": ["noUnintendedMutation", "correctTools", "noRepeatedQuestions", "restartUnconfirmed", "taskCompletion", "noDuplicateApplication", "preservedUnrelatedData"],
+    "diagnostic": ["correctTools", "taskCompletion", "diagnosticSource", "noUnintendedMutation"]
+  },
+  "unitCoverage": {
+    "AC2-01": ["src/workspace/ai-tools.test.ts", "src/workspace/ai-task.test.ts"],
+    "AC2-02": ["src/workspace/model-edits.test.ts", "src/workspace/task-draft.test.ts", "src/workspace/analysis-intent.test.ts"],
+    "AC2-03": ["src/workspace/task-draft.test.ts"],
+    "AC2-04": ["src/workspace/task-draft.test.ts", "src/workspace/task-restart.test.ts", "electron/recovery-store.test.ts"],
+    "AC2-05": ["src/workspace/draft-coordination.test.ts", "src/workspace/ai-task.test.ts"],
+    "AC2-06": ["src/workspace/draft-coordination.test.ts", "src/workspace/ai-task.test.ts"],
+    "AC2-07": ["src/workspace/task-scheduler.test.ts"],
+    "AC2-08": ["src/workspace/diagnostic-trial.test.ts", "src/workspace/ai-tools.test.ts"],
+    "AC2-09": ["src/workspace/exploration-budget.test.ts", "src/workspace/ai-task.test.ts"],
+    "AC2-10": ["src/workspace/task-restart.test.ts", "src/domain/project-restart.test.ts", "electron/recovery-store.test.ts"],
+    "AC2-11": ["src/workspace/ai-task.test.ts", "electron/deepseek.test.ts", "electron/deepseek-chat.test.ts"]
+  },
+  "desktopFiles": ["e2e/plan2-t2-11-reliability.spec.ts", "e2e/t20-readonly-ai.spec.ts", "e2e/t20-basic-edit-tools.spec.ts", "e2e/plan2-t2-05-coordination.spec.ts", "e2e/plan2-t2-09-restart.spec.ts", "e2e/plan2-t2-10-recovery.spec.ts", "e2e/t27-ai-recovery.spec.ts", "e2e/ui07-ai-process.spec.ts"],
+  "network": "Replay replaces only provider replies. Online never replaces fetch or chatDeepSeek; encrypted DeepSeek credentials and Local State are copied to an isolated temporary profile. Missing credentials or launch failure is blocked/failed, never skipped or counted as passed.",
+  "failurePolicy": "No automatic retries. Archive each repetition, failed checks, missing observations, inputs, tool outputs, model/settings and reporter failures. Fixes require a new timestamped run; retain previous runs. Never change gates after observing a result."
+}

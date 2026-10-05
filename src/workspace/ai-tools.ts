@@ -270,7 +270,8 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
           data: { copyId: copy.id, source: copy.source, modelRevision: copy.model.revision } };
       }
       if (call.function.name === "discard_diagnostic_copy") return { status: "completed", message: "已丢弃诊断副本，正式模型及正式结果保留", context: snapshot.context, diagnosticCopy: null, diagnosticState: "discarded" };
-      if (!previousDiagnosticCopy) return { status: "missing-input", message: "请先创建诊断副本，再进行试算、读取或比较", context: snapshot.context };
+      if (!previousDiagnosticCopy) return { status: "missing-input", message: "请先创建诊断副本，再进行试算、读取或比较", context: snapshot.context,
+        data: { requiredTool: "create_diagnostic_copy" } };
       if (!diagnosticCopyIsCurrent(snapshot, previousDiagnosticCopy)) return { status: "missing-input", message: "正式模型已变化，旧诊断副本来源过期；请重新读取并创建副本", context: snapshot.context };
       if (call.function.name === "run_diagnostic_trial") {
         try {

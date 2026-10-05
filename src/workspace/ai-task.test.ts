@@ -24,6 +24,38 @@ const selectedRead: DeepSeekChatResult = { status: "success", message: "工具�
 afterEach(() => vi.useRealTimers());
 
 describe("AI progressive output", () => {
+  it("lets the agent repair a missing diagnostic copy without asking the user or changing the formal model", async () => {
+    const project = columns();
+    const snapshot = captureAiSnapshot(project, []);
+    const tool = (name: string, input: unknown): DeepSeekChatResult => ({ status: "success", message: "工具请求", assistant: {
+      role: "assistant", content: null, tool_calls: [{ id: name, type: "function", function: { name, arguments: JSON.stringify(input) } }],
+    } });
+    const candidate = { label: "独立基准", operations: [] };
+    const script = replay([tool("run_diagnostic_trial", candidate), tool("create_diagnostic_copy", {}), tool("run_diagnostic_trial", candidate),
+      { status: "success", message: "回复", assistant: { role: "assistant", content: "数值成功不等于工程有效性验证" } }]);
+    const result = await startAiTask(snapshot, "检查并隔离试算", {
+      transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, exploration: { mode: "normal" },
+    }).promise;
+    expect(result.status).toBe("completed");
+    expect(result.records.map((record) => record.call.function.name)).toEqual(["read_model", "run_diagnostic_trial", "create_diagnostic_copy", "run_diagnostic_trial"]);
+    expect(script.requests[1].messages.at(-1)).toMatchObject({ role: "tool", content: expect.stringContaining("create_diagnostic_copy") });
+    expect(result.diagnosticTrial).toMatchObject({ status: "complete", engineeringValidity: "numerically-solved-not-engineering-validated" });
+    expect(project.analysisResults).toHaveLength(1);
+    expect(result.diagnosticCopy?.id).not.toBe(project.id);
+  });
+
+  it("stops an agent that repeatedly ignores the diagnostic-copy prerequisite", async () => {
+    const snapshot = captureAiSnapshot(columns(), []);
+    const response: DeepSeekChatResult = { status: "success", message: "工具请求", assistant: { role: "assistant", content: null,
+      tool_calls: [{ id: "trial", type: "function", function: { name: "run_diagnostic_trial", arguments: '{"label":"重复候选","operations":[]}' } }] } };
+    const script = replay([response, response, response]);
+    const result = await startAiTask(snapshot, "诊断", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+      exploration: { mode: "normal", repeatedFailureLimit: 2 } }).promise;
+    expect(result).toMatchObject({ status: "failed", exploration: { stopReason: "repeated-failure" } });
+    expect(result.records.filter((record) => record.call.function.name === "run_diagnostic_trial")).toHaveLength(2);
+    expect(script.requests).toHaveLength(2);
+  });
+
   it("reveals Unicode text gradually and pauses/resumes locally without repeating a request", async () => {
     vi.useFakeTimers();
     const answer = "你好🙂，这是逐步显示的回答。";

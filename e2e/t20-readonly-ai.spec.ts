@@ -70,10 +70,11 @@ test("T20 replays selected model reads, distinguishes committed edits and preser
     await panel.getByText("工具输出", { exact: true }).last().click();
     await expect(panel.locator(".ai-tool-output").last()).toContainText('"rotationDegrees": 45');
     await page.keyboard.press("Control+s");
-    await expect(page.getByRole("status")).toContainText("已保存");
+    await expect(page.locator('footer[role="status"]')).toContainText("已保存");
     const saved = await readFile(projectPath, "utf8");
     expect(saved).not.toContain("sk-t20-");
-    expect(saved).not.toContain("这根梁");
+    // Project v2 retains task goals; full assistant prose remains in local chat.
+    expect(saved).not.toContain("M1 当前转角为 45 度。");
     expect(JSON.parse(saved).members[0].rotationDegrees).toBe(45);
     while (await panel.locator(".ai-tool-record[open] > summary").count()) {
       await panel.locator(".ai-tool-record[open] > summary").first().click();

@@ -115,7 +115,7 @@ const taskToolDefinitions = [
         source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] },
       } } },
       ...LOAD_STAGE_SCHEMA,
-      analysis: { type: "object", additionalProperties: false, required: ["requested"], properties: {
+      analysis: { type: "object", additionalProperties: false, required: ["requested", "source"], properties: {
         requested: { type: "boolean" }, sourceId: { type: "string", maxLength: 200 },
         source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] },
       } }, analysisRequested: { type: "boolean" },

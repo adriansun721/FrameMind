@@ -143,10 +143,11 @@ test("cards dock above the composer, retire after confirmation and continue the 
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     for (const width of [1440, 1080]) {
       await app.evaluate(({ BrowserWindow }, size) => BrowserWindow.getAllWindows()[0].setSize(size, 900), width);
-      const cardBox = (await card.boundingBox())!;
+      const dockBox = (await page.getByRole("region", { name: "待确认参数", exact: true }).boundingBox())!;
       const composerBox = (await page.locator(".assistant-composer").boundingBox())!;
-      expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(composerBox.y);
-      expect(cardBox.y).toBeGreaterThan((await log.boundingBox())!.y);
+      // The dock scrolls long cards; its clipping viewport is the visible boundary.
+      expect(dockBox.y + dockBox.height).toBeLessThanOrEqual(composerBox.y);
+      expect(dockBox.y).toBeGreaterThan((await log.boundingBox())!.y);
       expect(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth)).toBe(true);
       await page.screenshot({ path: `test-results/ai-card-dock-${width}.png` });
     }

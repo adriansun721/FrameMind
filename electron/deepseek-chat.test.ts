@@ -83,6 +83,7 @@ test("whole-task tool advertises geometry and analysis fields accepted by the ta
   await connection.chat({ requestId: "whole-task-schema", messages: [{ role: "user", content: "建立几何、支座和荷载的完整任务" }] });
   const tools = JSON.parse(requests[0].body as string).tools as { function: { name: string; parameters: any } }[];
   const schema = tools.find((tool) => tool.function.name === "propose_task")!.function.parameters;
+  expect(schema.properties.analysis.required).toEqual(expect.arrayContaining(["requested", "source"]));
   const parameterProperties = schema.properties.frame.properties.parameters.properties;
   expect(schema.properties.frame.required).toEqual(["parameters"]);
   expect(parameterProperties).toHaveProperty("storeys");
