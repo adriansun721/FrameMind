@@ -1,4 +1,4 @@
-import { SECTION_INPUT_SCHEMA } from "./section-schema";
+import { MODEL_SECTION_INPUT_SCHEMA as SECTION_INPUT_SCHEMA } from "./section-schema";
 const identity = { type: "string", minLength: 1, maxLength: 200 };
 const position = { type: "object", additionalProperties: false, minProperties: 1,
   properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } };

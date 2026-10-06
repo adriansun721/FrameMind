@@ -1,4 +1,5 @@
 import { ParametricSectionEditor } from "./components/ParametricSectionEditor";
+import { SectionBasisView } from "./components/SectionBasisView";
 import { SectionGeometryPreview } from "./components/SectionGeometryPreview";
 import type { SectionInput } from "./domain/project";
 import { UnitPresetContext, UnitInput, useUnits } from "./components/UnitPresentation";
@@ -343,7 +344,7 @@ export function App() {
         ? addCatalogMaterial(project, materialToNumbers(materialDraft), { kind: "catalog", catalogId: materialEntry.catalogId, source: materialEntry.source })
         : addMaterial(project, materialToNumbers(materialDraft));
       updated = sectionEntry
-        ? addCatalogSection(updated, sectionToNumbers(sectionDraft), { kind: "catalog", catalogId: sectionEntry.catalogId, source: sectionEntry.source })
+        ? addCatalogSection(updated, sectionEntry, { kind: "catalog", catalogId: sectionEntry.catalogId, source: sectionEntry.source })
         : addSection(updated, sectionToNumbers(sectionDraft));
       activateProject(updated, false); setResourceDialogOpen(false); setFormError(null); setStatus({ tone: "success", text: `已创建材料 ${updated.materials.at(-1)!.label} 与截面 ${updated.sections.at(-1)!.label}` });
     }
@@ -490,7 +491,7 @@ export function App() {
   const saveMaterialEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedMaterial) return; try { const updated = updateMaterial(project, selectedMaterial.id, materialToNumbers(materialDraft)); activateProject(updated, false); setStatus({ tone: "success", text: `已更新材料 ${selectedMaterial.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新材料失败"); } };
   const saveSectionEdit = (event: React.FormEvent) => {
     event.preventDefault(); if (!selectedSection) return;
-    try { setSectionEditor({ id: selectedSection.id, input: selectedSection.geometry ? { name: sectionDraft.name, geometry: selectedSection.geometry } : sectionToNumbers(sectionDraft) }); setFormError(null); }
+    try { setSectionEditor({ id: selectedSection.id, input: selectedSection.catalogBasis ? { ...selectedSection, name: sectionDraft.name } : selectedSection.geometry ? { name: sectionDraft.name, geometry: selectedSection.geometry } : sectionToNumbers(sectionDraft) }); setFormError(null); }
     catch (error) { setFormError(error instanceof Error ? error.message : "Invalid section"); }
   };
   const saveSupportEdit = (event: React.FormEvent) => { event.preventDefault(); if (!selectedSupport) return; try { activateProject(updateSupport(project, selectedSupport.id, supportNodeId as NodeId, supportRestraints), false); setStatus({ tone: "success", text: `已更新支座 ${selectedSupport.label}` }); setFormError(null); } catch (error) { setFormError(error instanceof Error ? error.message : "更新支座失败"); } };
@@ -762,7 +763,7 @@ export function App() {
             {caseResult && <MemberAnalysisProcess result={caseResult} memberId={selectedMember.id} memberLabel={selectedMember.label} resultIsCurrent={resultIsCurrent(caseResult)} />}
           </Inspector>}
           {selectedMaterial && <Inspector title={selectedMaterial.provenance.kind === "catalog" ? "库材料" : "自定义材料"} label={`${selectedMaterial.label} · ${selectedMaterial.name}`} icon={<Layers3 size={15} />} id={selectedMaterial.id}><ResourceProvenanceView provenance={selectedMaterial.provenance} /><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveMaterialEdit(event)}>保存材料属性</button></Inspector>}
-          {selectedSection && <Inspector title={selectedSection.provenance.kind === "catalog" ? "库截面" : "自定义截面"} label={`${selectedSection.label} · ${selectedSection.name}`} icon={<Box size={15} />} id={selectedSection.id}><ResourceProvenanceView provenance={selectedSection.provenance} /><SectionFieldNotes /><SectionGeometryPreview geometry={selectedSection.geometry} />{selectedSection.geometry ? <button className="button" onClick={() => setSectionEditor({ id: selectedSection.id })}>编辑尺寸与共享影响</button> : <SectionFields draft={sectionDraft} setDraft={setSectionDraft} />}<FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveSectionEdit(event)}>保存截面属性</button></Inspector>}
+          {selectedSection && <Inspector title={selectedSection.provenance.kind === "catalog" ? "库截面" : "自定义截面"} label={`${selectedSection.label} · ${selectedSection.name}`} icon={<Box size={15} />} id={selectedSection.id}><ResourceProvenanceView provenance={selectedSection.provenance} /><SectionFieldNotes /><SectionGeometryPreview geometry={selectedSection.geometry} /><SectionBasisView section={selectedSection} />{selectedSection.geometry ? <button className="button" onClick={() => setSectionEditor({ id: selectedSection.id })}>编辑尺寸与共享影响</button> : <SectionFields draft={sectionDraft} setDraft={setSectionDraft} />}<FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveSectionEdit(event)}>保存截面属性</button></Inspector>}
           {selectedSupport && <Inspector title="节点支座" label={selectedSupport.label} icon={<Anchor size={15} />} id={selectedSupport.id}><form className="property-form" onSubmit={saveSupportEdit}>
             <SelectField label="约束节点" value={supportNodeId} onChange={setSupportNodeId} options={project.nodes.map((node) => ({ value: node.id, label: node.label }))} />
             <RestraintFields restraints={supportRestraints} onChange={setSupportRestraints} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存支座属性</button>

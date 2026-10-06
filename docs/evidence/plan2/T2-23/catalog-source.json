@@ -1,0 +1,60 @@
+{
+  "publisher": "ArcelorMittal Europe - Long Products",
+  "title": "Sections and Merchant Bars",
+  "edition": "V2026-1 (EN sections C1=2026-1)",
+  "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+  "checkedOn": "2026-10-06",
+  "sha256": "84d01778d48973bc03670c77dbe6e17141b20f1be449dc614f26cceee283c5b9",
+  "sheet": "EN sections",
+  "columns": {
+    "C": "Designation",
+    "G": "h (mm)",
+    "H": "b (mm)",
+    "I": "tw (mm)",
+    "J": "tf (mm)",
+    "K": "r (mm)",
+    "N": "A (cm2)",
+    "AD": "Iy (cm4)",
+    "AI": "Iz (cm4)",
+    "AN": "It (cm4)"
+  },
+  "rows": [
+    {
+      "C54": "IPE 200",
+      "G54": "200",
+      "H54": "100",
+      "I54": "5.6",
+      "J54": "8.5",
+      "K54": "12",
+      "N54": "28.5",
+      "AD54": "1943",
+      "AI54": "142.30000000000001",
+      "AN54": "6.915"
+    },
+    {
+      "C70": "IPE 100",
+      "G70": "100",
+      "H70": "55",
+      "I70": "4.0999999999999996",
+      "J70": "5.7",
+      "K70": "7",
+      "N70": "10.3",
+      "AD70": "171",
+      "AI70": "15.91",
+      "AN70": "1.157"
+    },
+    {
+      "C174": "HE 200 A",
+      "G174": "190",
+      "H174": "200",
+      "I174": "6.5",
+      "J174": "10",
+      "K174": "18",
+      "N174": "53.8",
+      "AD174": "3692",
+      "AI174": "1335",
+      "AN174": "21.04"
+    }
+  ],
+  "notes": "All three first-release rows checked against downloaded original. Original lexical floats retained; mm to m /1000, cm2 to m2 /10000, cm4 to m4 /100000000. No idealized substitution of solver values."
+}

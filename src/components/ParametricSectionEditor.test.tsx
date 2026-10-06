@@ -6,7 +6,32 @@ import { UnitPresetContext } from "./UnitPresentation";
 import { ParametricSectionEditor } from "./ParametricSectionEditor";
 import { SectionEditImpact } from "./SectionEditImpact";
 import { proposeModelEdits } from "../workspace/model-edits";
+import { SECTION_CATALOG } from "../domain/resource-library";
+import { updateSection } from "../domain/project";
 afterEach(cleanup);
+
+it("preserves catalog mechanics on reviewed edits and explicitly converts to property-only input", () => {
+  const base = sectionCantilever(); const project = updateSection(base, base.sections[0].id, SECTION_CATALOG[0]);
+  const commit = vi.fn();
+  render(<UnitPresetContext.Provider value="mm-N"><ParametricSectionEditor project={project} initialSectionId={project.sections[0].id} onCommit={commit} onClose={() => {}} /></UnitPresetContext.Provider>);
+  expect(screen.getByLabelText("截面形状")).toHaveValue("catalog");
+  expect(screen.getByLabelText("目录与理想化参数依据")).toHaveTextContent("正式分析采用目录参数");
+  expect(screen.getByLabelText("目录与理想化参数依据")).toHaveTextContent("圆角 r = 7 mm");
+  fireEvent.click(screen.getByText("预览截面影响"));
+  expect(commit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByText("确认截面变更"));
+  expect(commit.mock.calls[0][0].sections[0].torsionalConstantM4).toBe(1.157e-8);
+  fireEvent.change(screen.getByLabelText("截面形状"), { target: { value: "properties" } });
+  expect(screen.getByText("确认截面变更")).toBeDisabled();
+  expect(screen.getByLabelText("面积 A")).toHaveValue(1030);
+  fireEvent.change(screen.getByLabelText("面积 A"), { target: { value: "1200" } });
+  fireEvent.click(screen.getByText("预览截面影响"));
+  expect(screen.getByLabelText("截面影响预览")).toHaveTextContent("几何未定义");
+  fireEvent.click(screen.getByText("确认截面变更"));
+  expect(commit.mock.calls[1][0].sections[0]).toMatchObject({ areaM2: .0012 });
+  expect(commit.mock.calls[1][0].sections[0].geometry).toBeUndefined();
+  expect(commit.mock.calls[1][0].sections[0].catalogBasis).toBeUndefined();
+});
 
 it("keeps current section properties when converting an edited geometric section to property input", () => {
   const project = sectionCantilever();

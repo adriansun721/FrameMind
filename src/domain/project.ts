@@ -1,4 +1,6 @@
 import { validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
+import { validateSectionDimensions } from "./section-geometry";
+import { validateCatalogSectionBasis, type CatalogSectionBasis } from "./catalog-section";
 import type { UnitPresetId } from "./units";
 import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisResult } from "./analysis";
@@ -29,7 +31,7 @@ export interface MaterialProperties { name: string; elasticModulusGPa: number; p
 export interface CatalogSource { publisher: string; title: string; edition: string; url: string; accessedOn: string; units: string; }
 export interface ResourceProvenance { kind: "catalog" | "custom"; catalogId?: string; source?: CatalogSource; derivedFrom?: { catalogId: string; source: CatalogSource; } }
 export interface FrameMaterial extends MaterialProperties { id: MaterialId; label: string; provenance: ResourceProvenance; }
-export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; geometry?: SectionGeometry; parameterBasis?: ReturnType<typeof sectionParameterBasis>; }
+export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; geometry?: SectionGeometry; parameterBasis?: ReturnType<typeof sectionParameterBasis>; catalogBasis?: CatalogSectionBasis; }
 export type SectionInput = SectionProperties | { name: string; geometry: SectionGeometry };
 export interface FrameSection extends SectionProperties { id: SectionId; label: string; provenance: ResourceProvenance; }
 export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; }
@@ -155,8 +157,10 @@ export function validateMaterial(label: string, material: MaterialProperties): M
 
 export function validateSection(label: string, section: SectionInput): SectionProperties {
   const name = cleanName(section.name, `截面 ${label} 的名称不能为空`);
-  const geometry = section.geometry === undefined ? undefined : validateSectionGeometry(section.geometry);
-  const derived = geometry ? sectionMechanicalProperties(geometry) : undefined;
+  const archived = (section as Partial<SectionProperties>).catalogBasis;
+  const geometry = section.geometry === undefined ? undefined : archived === undefined ? validateSectionGeometry(section.geometry) : validateSectionDimensions(section.geometry);
+  const catalogBasis = archived === undefined ? undefined : validateCatalogSectionBasis(archived, geometry, section as Partial<SectionProperties>);
+  const derived = geometry && !catalogBasis ? sectionMechanicalProperties(geometry) : undefined;
   const keys = ["areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"] as const;
   const parameterNames = { areaM2: "面积", secondMomentYM4: " Iy ", secondMomentZM4: " Iz ", torsionalConstantM4: "扭转常数 J " };
   for (const key of keys) {
@@ -166,7 +170,7 @@ export function validateSection(label: string, section: SectionInput): SectionPr
   }
   const values = derived ?? section as SectionProperties;
   return { name, areaM2: values.areaM2, secondMomentYM4: values.secondMomentYM4, secondMomentZM4: values.secondMomentZM4, torsionalConstantM4: values.torsionalConstantM4,
-    ...(geometry ? { geometry, parameterBasis: sectionParameterBasis(geometry.shape) } : {}) };
+    ...(geometry ? { geometry, ...(catalogBasis ? { catalogBasis } : { parameterBasis: sectionParameterBasis(geometry.shape) }) } : {}) };
 }
 
 function requireNode(project: FrameProject, id: NodeId, label: string, role: "起点" | "终点"): FrameNode {
@@ -257,7 +261,9 @@ export function updateMaterial(project: FrameProject, id: MaterialId, input: Mat
 
 export function addSection(project: FrameProject, input: SectionInput, provenance: ResourceProvenance = { kind: "custom" }): FrameProject {
   assertCounter(project.nextSectionNumber); const number = project.nextSectionNumber;
-  const section: FrameSection = { id: `section_${String(number).padStart(4, "0")}` as SectionId, label: `S${number}`, ...validateSection(`S${number}`, input), provenance };
+  const properties = validateSection(`S${number}`, input);
+  if (properties.catalogBasis) provenance = { kind: "catalog", catalogId: properties.catalogBasis.catalogId, source: properties.catalogBasis.source };
+  const section: FrameSection = { id: `section_${String(number).padStart(4, "0")}` as SectionId, label: `S${number}`, ...properties, provenance };
   return { ...project, sections: [...project.sections, section], nextSectionNumber: number + 1, ...nextRevision(project) };
 }
 
@@ -269,10 +275,11 @@ export function addCatalogSection(project: FrameProject, input: SectionInput, pr
 export function updateSection(project: FrameProject, id: SectionId, input: SectionInput): FrameProject {
   const current = project.sections.find((item) => item.id === id); if (!current) throw new Error(`截面 ${id} 不存在`);
   const properties = validateSection(current.label, input);
-  const provenance = current.provenance.kind === "catalog" && current.provenance.catalogId && current.provenance.source
+  const provenance = properties.catalogBasis ? { kind: "catalog" as const, catalogId: properties.catalogBasis.catalogId, source: properties.catalogBasis.source }
+    : current.provenance.kind === "catalog" && current.provenance.catalogId && current.provenance.source
     ? { kind: "custom" as const, derivedFrom: { catalogId: current.provenance.catalogId, source: current.provenance.source } }
     : current.provenance;
-  return { ...project, sections: project.sections.map((item) => item.id === id ? { ...item, geometry: undefined, parameterBasis: undefined, ...properties, provenance } : item), ...nextRevision(project) };
+  return { ...project, sections: project.sections.map((item) => item.id === id ? { ...item, geometry: undefined, parameterBasis: undefined, catalogBasis: undefined, ...properties, provenance } : item), ...nextRevision(project) };
 }
 
 export function addMember(project: FrameProject, input: MemberProperties): FrameProject {

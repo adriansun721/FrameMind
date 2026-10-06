@@ -12,3 +12,6 @@ export const SECTION_INPUT_SCHEMA = { anyOf: [
   { type: "object", additionalProperties: false, required: ["name", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"],
     properties: { name: { type: "string", minLength: 1 }, areaM2: positive, secondMomentYM4: positive, secondMomentZM4: positive, torsionalConstantM4: positive } },
 ] };
+export const MODEL_SECTION_INPUT_SCHEMA = { anyOf: [...SECTION_INPUT_SCHEMA.anyOf,
+  { type: "object", additionalProperties: false, required: ["name", "catalogId"], properties: { name: { type: "string", minLength: 1 }, catalogId: { type: "string", enum: ["arcelor-ipe100", "arcelor-ipe200", "arcelor-hea200"] } } },
+] };

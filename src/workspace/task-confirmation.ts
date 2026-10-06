@@ -80,8 +80,8 @@ function verifyTaskApplication(project: FrameProject, next: FrameProject, draft:
   }
   for (const section of preview.frame?.sections ?? []) {
     const id = formal(section.id); const actual = requireObject(next.sections, id, "截面");
-    if (!same({ name: actual.name, areaM2: actual.areaM2, secondMomentYM4: actual.secondMomentYM4, secondMomentZM4: actual.secondMomentZM4, torsionalConstantM4: actual.torsionalConstantM4, ...(actual.geometry ? { geometry: actual.geometry, parameterBasis: actual.parameterBasis } : {}), provenance: actual.provenance },
-      { name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4, ...(section.geometry ? { geometry: section.geometry, parameterBasis: section.parameterBasis } : {}), provenance: section.provenance })) throw new Error(`应用后核验失败：截面 ${id} 参数不一致`);
+    if (!same({ name: actual.name, areaM2: actual.areaM2, secondMomentYM4: actual.secondMomentYM4, secondMomentZM4: actual.secondMomentZM4, torsionalConstantM4: actual.torsionalConstantM4, ...(actual.geometry ? { geometry: actual.geometry, parameterBasis: actual.parameterBasis, ...(actual.catalogBasis ? { catalogBasis: actual.catalogBasis } : {}) } : {}), provenance: actual.provenance },
+      { name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4, ...(section.geometry ? { geometry: section.geometry, parameterBasis: section.parameterBasis, ...(section.catalogBasis ? { catalogBasis: section.catalogBasis } : {}) } : {}), provenance: section.provenance })) throw new Error(`应用后核验失败：截面 ${id} 参数不一致`);
     addObject("sections", id);
   }
   for (const member of preview.frame?.members ?? []) {
@@ -153,7 +153,7 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
       const id = current.materials.at(-1)!.id; materials.set(material.id, id); mapping[material.id] = id;
     }
     for (const section of preview.frame?.sections ?? []) {
-      current = addSection(current, { name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4, ...(section.geometry ? { geometry: section.geometry } : {}) }, structuredClone(section.provenance));
+      current = addSection(current, { name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4, ...(section.geometry ? { geometry: section.geometry } : {}), ...(section.catalogBasis ? { catalogBasis: section.catalogBasis } : {}) }, structuredClone(section.provenance));
       const id = current.sections.at(-1)!.id; sections.set(section.id, id); mapping[section.id] = id;
     }
     for (const node of preview.frame?.nodes ?? []) {

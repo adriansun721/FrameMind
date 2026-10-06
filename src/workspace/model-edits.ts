@@ -1,4 +1,5 @@
 import { validateSection, type SectionInput } from "../domain/project";
+import { getSectionCatalogEntry } from "../domain/resource-library";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
 import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
 import { prepareDrawnMemberEdits, type DrawingPoint } from "../domain/work-plane";
@@ -53,10 +54,16 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
     switch (input.type) {
       case "create_section": case "update_section": {
         object(input, input.type === "create_section" ? ["type", "properties"] : ["type", "id", "properties"]);
-        const properties = object(input.properties, ["name", "geometry", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"]);
+        let properties = object(input.properties, ["name", "catalogId", "geometry", "catalogBasis", "parameterBasis", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"]);
+        if (properties.catalogId !== undefined) {
+          object(properties, ["name", "catalogId"]);
+          const entry = getSectionCatalogEntry(identity(properties.catalogId));
+          if (!entry) throw new Error("标准截面目录条目不存在");
+          properties = { ...entry, name: properties.name };
+        }
         if (typeof properties.name !== "string") throw new Error("Section name required");
         const validated = validateSection("draft", properties as unknown as SectionInput);
-        return { type: input.type, ...(input.type === "update_section" ? { id: identity(input.id) as SectionId } : {}), properties: validated.geometry ? { name: validated.name, geometry: validated.geometry } : properties as unknown as SectionInput } as ProjectEditOperation;
+        return { type: input.type, ...(input.type === "update_section" ? { id: identity(input.id) as SectionId } : {}), properties: validated } as ProjectEditOperation;
       }
       case "duplicate_section": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) as SectionId };
       case "assign_section": {

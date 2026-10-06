@@ -2,6 +2,7 @@ import type { FrameProject, FrameSection, FrameNode, FrameMember } from "../doma
 import type { ProjectEditReceipt } from "../domain/project-operations";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { SectionGeometryPreview } from "./SectionGeometryPreview";
+import { SectionBasisView } from "./SectionBasisView";
 import { useUnits } from "./UnitPresentation";
 
 export function SectionEditImpact({ project, receipt }: { project: FrameProject; receipt: ProjectEditReceipt }) {
@@ -16,6 +17,7 @@ export function SectionEditImpact({ project, receipt }: { project: FrameProject;
   const vector = (v: { x: number; y: number; z: number }) => [v.x, v.y, v.z].map((n) => n.toPrecision(5)).join(", ");
   return <section aria-label="截面影响预览">
     {sections.map((s) => <div key={s.id}><strong>{s.label} · {s.name}</strong><SectionGeometryPreview geometry={s.geometry} />
+      <SectionBasisView section={s} />
       <dl>{([ ["面积 A", s.areaM2, "m²"], ["Iy", s.secondMomentYM4, "m⁴"], ["Iz", s.secondMomentZM4, "m⁴"], ["J", s.torsionalConstantM4, "m⁴"] ] as const).map(([label, value, unit]) => <div key={label}><dt>{label}</dt><dd>{u.quantity(value, unit)}</dd></div>)}</dl>
     </div>)}
     <p>影响杆件 {receipt.affectedMemberIds.length} 根：{receipt.affectedMemberIds.join("、") || "无引用"}。共享编辑影响全部引用；面积改变同时影响已启用的自重。相关结果需要重算。</p>

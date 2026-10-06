@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "legacySameNameNotMatched": true,
+  "legacyNativeSolve": "analysis_3705f9df-62e3-4dbf-a482-e8de6e76ca7d",
+  "confirmedCatalogSolve": "analysis_5d484428-d19d-4cb9-b7b7-8261aecb58e8",
+  "undoRedo": true,
+  "restartPreservesCatalogAndHistoricalInput": true
+}

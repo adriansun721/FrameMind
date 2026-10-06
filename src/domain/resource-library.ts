@@ -1,4 +1,6 @@
 import type { CatalogSource, MaterialProperties, SectionProperties } from "./project";
+import type { SectionGeometry } from "./section-geometry";
+import type { SectionMechanicalValues } from "./catalog-section";
 export type { CatalogSource } from "./project";
 
 export interface MaterialCatalogEntry extends MaterialProperties {
@@ -34,8 +36,8 @@ const SECTION_SOURCE: CatalogSource = Object.freeze({
   title: "Sections and Merchant Bars - ArcelorMittal",
   edition: "V2026-1, EN sections sheet",
   url: "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
-  accessedOn: "2026-10-02",
-  units: "A in m²; Iy, Iz and It (Saint-Venant torsion constant) in m⁴; values converted from cm²/cm⁴",
+  accessedOn: "2026-10-06",
+  units: "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴",
 });
 
 /** Checked first-release catalog entries. Values are copied into a project when selected. */
@@ -52,10 +54,18 @@ const SECTION_NOTES = {
   torsionalConstant: "J：Saint-Venant 扭转常数",
 } as const;
 
+function catalogSection(catalogId: string, name: string, designation: string, row: number, dimensions: [number, number, number, number, number], properties: SectionMechanicalValues): SectionCatalogEntry {
+  const [h, b, tw, tf, r] = dimensions;
+  const geometry: SectionGeometry = { shape: "i-section", height: h / 1000, width: b / 1000, webThickness: tw / 1000, flangeThickness: tf / 1000 };
+  return { catalogId, displayName: `${name} · I/H 形截面`, name, ...properties, geometry, source: SECTION_SOURCE, fieldNotes: SECTION_NOTES,
+    catalogBasis: { method: "catalog-section-v1", catalogId, designation, source: { ...SECTION_SOURCE }, location: `EN sections!C${row}:AN${row}; h/G, b/H, tw/I, tf/J, r/K, A/N, Iy/AD, Iz/AI, It/AN`,
+      rootRadiusM: r / 1000, referenceGeometry: { ...geometry }, referenceProperties: { ...properties } } };
+}
+
 export const SECTION_CATALOG: readonly SectionCatalogEntry[] = Object.freeze([
-  { catalogId: "arcelor-ipe100", displayName: "IPE 100 · I 形截面", name: "IPE 100", areaM2: 0.00103, secondMomentYM4: 1.71e-6, secondMomentZM4: 1.591e-7, torsionalConstantM4: 1.157e-8, source: SECTION_SOURCE, fieldNotes: SECTION_NOTES },
-  { catalogId: "arcelor-ipe200", displayName: "IPE 200 · I 形截面", name: "IPE 200", areaM2: 0.00285, secondMomentYM4: 1.943e-5, secondMomentZM4: 1.423e-6, torsionalConstantM4: 6.915e-8, source: SECTION_SOURCE, fieldNotes: SECTION_NOTES },
-  { catalogId: "arcelor-hea200", displayName: "HEA 200 · 宽翼缘 H 形截面", name: "HEA 200", areaM2: 0.00538, secondMomentYM4: 3.692e-5, secondMomentZM4: 1.335e-5, torsionalConstantM4: 2.104e-7, source: SECTION_SOURCE, fieldNotes: SECTION_NOTES },
+  catalogSection("arcelor-ipe100", "IPE 100", "IPE 100", 70, [100, 55, 4.1, 5.7, 7], { areaM2: .00103, secondMomentYM4: 1.71e-6, secondMomentZM4: 1.591e-7, torsionalConstantM4: 1.157e-8 }),
+  catalogSection("arcelor-ipe200", "IPE 200", "IPE 200", 54, [200, 100, 5.6, 8.5, 12], { areaM2: .00285, secondMomentYM4: 1.943e-5, secondMomentZM4: 1.423e-6, torsionalConstantM4: 6.915e-8 }),
+  catalogSection("arcelor-hea200", "HEA 200", "HE 200 A", 174, [190, 200, 6.5, 10, 18], { areaM2: .00538, secondMomentYM4: 3.692e-5, secondMomentZM4: 1.335e-5, torsionalConstantM4: 2.104e-7 }),
 ]);
 
 export function getMaterialCatalogEntry(catalogId: string): MaterialCatalogEntry | undefined {

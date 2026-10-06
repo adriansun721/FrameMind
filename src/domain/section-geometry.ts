@@ -26,7 +26,7 @@ export function sectionParameterBasis(shape: SectionGeometry["shape"]) {
           : "理想圆形/同心圆环，J = Iy + Iz；忽略制造偏差。" };
 }
 
-export function validateSectionGeometry(value: unknown): SectionGeometry {
+export function validateSectionDimensions(value: unknown): SectionGeometry {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("截面几何必须为尺寸对象");
   const raw = value as Record<string, unknown>;
   if (typeof raw.shape !== "string" || !Object.hasOwn(SECTION_SHAPE_FIELDS, raw.shape)) throw new Error("仅支持五类双对称截面");
@@ -37,17 +37,22 @@ export function validateSectionGeometry(value: unknown): SectionGeometry {
   if (g.shape === "rectangular-tube" || g.shape === "circular-tube") {
     const size = g.shape === "rectangular-tube" ? Math.min(g.width, g.height) : g.diameter;
     if (2 * g.thickness >= size) throw new Error("壁厚必须小于最小外尺寸的一半");
-    if (g.shape === "rectangular-tube" && g.thickness / size > .1 + 1e-14) throw new Error("矩形管薄壁近似要求壁厚/最小外尺寸 ≤ 0.1");
   }
   if (g.shape === "i-section") {
     if (2 * g.flangeThickness >= g.height || g.webThickness >= g.width) throw new Error("I/H 翼缘或腹板尺寸无效");
-    if (g.flangeThickness / g.width > .1 + 1e-14 || g.webThickness / (g.height - 2 * g.flangeThickness) > .1 + 1e-14) throw new Error("I/H 薄壁近似要求 tf/b、tw/(h−2tf) ≤ 0.1");
   }
   return g;
 }
 
-export function sectionMechanicalProperties(value: unknown) {
-  const g = validateSectionGeometry(value);
+export function validateSectionGeometry(value: unknown): SectionGeometry {
+  const g = validateSectionDimensions(value);
+  if (g.shape === "rectangular-tube" && g.thickness / Math.min(g.width, g.height) > .1 + 1e-14) throw new Error("矩形管薄壁近似要求壁厚/最小外尺寸 ≤ 0.1");
+  if (g.shape === "i-section" && (g.flangeThickness / g.width > .1 + 1e-14 || g.webThickness / (g.height - 2 * g.flangeThickness) > .1 + 1e-14)) throw new Error("I/H 薄壁近似要求 tf/b、tw/(h−2tf) ≤ 0.1");
+  return g;
+}
+
+export function sectionMechanicalProperties(value: unknown, purpose: "analysis" | "catalog-comparison" = "analysis") {
+  const g = purpose === "analysis" ? validateSectionGeometry(value) : validateSectionDimensions(value);
   let areaM2: number, secondMomentYM4: number, secondMomentZM4: number, torsionalConstantM4: number;
   if (g.shape === "circle" || g.shape === "circular-tube") {
     const d = g.diameter, inner = g.shape === "circle" ? 0 : d - 2 * g.thickness;

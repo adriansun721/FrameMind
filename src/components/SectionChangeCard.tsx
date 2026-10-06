@@ -5,6 +5,7 @@ import { frameResourceOptions } from "../workspace/frame-proposal";
 import { proposeSectionChange, SECTION_PARAMETERS, type SectionChangeProposal } from "../workspace/section-stage";
 import { ProposalCard } from "./ProposalCard";
 import { SectionGeometryPreview } from "./SectionGeometryPreview";
+import { SectionBasisView } from "./SectionBasisView";
 import { SECTION_DIMENSIONS, SECTION_SHAPE_FIELDS, type SectionGeometry } from "../domain/section-geometry";
 
 export function SectionChangeCard({ snapshot, proposal, current, busy, visible, calculate, previous, onChange, onDirty, onConfirm, onReject, onRegenerate }: {
@@ -30,6 +31,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
   }))];
   const details = <>
     <SectionGeometryPreview geometry={proposal.section.geometry} />
+    <SectionBasisView section={proposal.section} />
     <p>{proposal.source === "user" ? "用户提供" : "建议 · 待确认"} · {proposal.memberIds.length} 根柱 · 输入 R{snapshot.context.modelRevision}</p>
     <p>仅重新指定下列柱的截面，共享截面保持原参数。全部 {snapshot.model.members.length} 根杆件的响应将在重算后更新。</p>
     {proposal.memberIds.map((id) => {

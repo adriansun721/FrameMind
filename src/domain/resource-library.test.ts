@@ -11,7 +11,7 @@ describe("T13 checked material and section catalog", () => {
       expect(entry.source.publisher).toBeTruthy();
       expect(entry.source.edition).toBeTruthy();
       expect(entry.source.url).toMatch(/^https:\/\//);
-      expect(entry.source.accessedOn).toMatch(/^2026-10-02$/);
+      expect(entry.source.accessedOn).toMatch(/^2026-10-(02|06)$/);
     }
     expect(getSectionCatalogEntry("arcelor-ipe200")?.fieldNotes.torsionalConstant).toContain("扭转常数");
     expect(getSectionCatalogEntry("arcelor-ipe100")).toMatchObject({ areaM2: 0.00103, secondMomentYM4: 1.71e-6, secondMomentZM4: 1.591e-7, torsionalConstantM4: 1.157e-8 });
@@ -39,7 +39,7 @@ describe("T13 checked material and section catalog", () => {
     project = addCatalogMaterial(project, steel, { kind: "catalog", catalogId: steel.catalogId, source: steel.source });
     project = addCatalogSection(project, section, { kind: "catalog", catalogId: section.catalogId, source: section.source });
     project = updateMaterial(project, project.materials[0].id, { ...project.materials[0], name: "S355JR custom", elasticModulusGPa: 205, poissonRatio: 0.3, densityKgM3: 7800 });
-    project = updateSection(project, project.sections[0].id, { ...project.sections[0], name: "IPE 100 custom", areaM2: 0.0011, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4 });
+    project = updateSection(project, project.sections[0].id, { ...project.sections[0], geometry: undefined, catalogBasis: undefined, name: "IPE 100 custom", areaM2: 0.0011, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4 });
     expect(project.materials[0].provenance).toMatchObject({ kind: "custom", derivedFrom: { catalogId: steel.catalogId } });
     expect(project.sections[0].provenance).toMatchObject({ kind: "custom", derivedFrom: { catalogId: section.catalogId } });
   });

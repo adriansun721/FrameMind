@@ -1,6 +1,8 @@
 import { CANONICAL_UNITS, convertQuantity, UNIT_CONTRACT, type QuantityDimension } from "../domain/units";
 import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
 import { SECTION_SHAPES, SECTION_SHAPE_FIELDS, sectionParameterBasis } from "../domain/section-geometry";
+import { SECTION_CATALOG } from "../domain/resource-library";
+import { describeSection } from "../domain/catalog-section";
 import { inspectNearNodes, inspectNodeMerge } from "../domain/node-merge";
 import type { NodeId } from "../domain/project";
 import { normalizeToolUnits, presentToolData } from "./unit-tools";
@@ -137,7 +139,7 @@ const queryFields: Record<string, readonly string[]> = {
   nodes: ["id", "label", "position.x", "position.y", "position.z"],
   members: ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"],
   materials: ["id", "label", "name", "elasticModulusGPa", "poissonRatio", "densityKgM3"],
-  sections: ["id", "label", "name", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"],
+  sections: ["id", "label", "name", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4", "geometry", "geometryStatus", "catalogBasis", "parameterBasis", "idealizedComparison"],
   supports: ["id", "label", "nodeId"],
   loads: ["id", "label", "kind", "nodeId", "memberId", "loadCaseId"],
   "load-cases": ["id", "name", "description"],
@@ -271,9 +273,11 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       exactFields(input, []);
       return { status: "completed", message: "已读取五类截面公式与近似范围", context: snapshot.context, data: {
         dimensions: "m", orientation: "° around local x by right-hand rule; width along local y, height along local z",
+        catalog: SECTION_CATALOG.map(describeSection),
+        legacy: "几何未定义：仅力学属性；使用分析线。不按名称或 A/I/J 猜测几何，不在迁移时匹配目录。",
         shapes: Object.entries(SECTION_SHAPES).map(([shape, name]) => ({ shape, name, fields: SECTION_SHAPE_FIELDS[shape as keyof typeof SECTION_SHAPES], parameterBasis: sectionParameterBasis(shape as keyof typeof SECTION_SHAPES) })),
         validation: "Positive finite dimensions; tube 2t < min outer size; rectangular tube t/min(b,h) <= .1; I/H tf/b <= .1 and tw/(h-2tf) <= .1. Properties generated from geometry, no arbitrary polygons.",
-        operations: "propose_model_edits: create_section/update_section properties={name,geometry}; duplicate_section id; assign_section id,memberIds,optional rotationDegrees. Confirmation required; shared editing impacts all referencing members.",
+        operations: "propose_model_edits: create_section/update_section properties={name,catalogId} uses archived catalog mechanics, or {name,geometry} uses idealized formulas. duplicate_section id; assign_section id,memberIds,optional rotationDegrees. Confirmation required; shared editing impacts all referencing members. Catalog geometry ignores fillets; idealizedComparison is NOT used by the solver.",
       } };
     }
     if (call.function.name === "convert_quantity") {
@@ -439,14 +443,14 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       const endNode = snapshot.model.nodes.find((item) => item.id === member.endNodeId)!;
       return { kind: ref.kind, ...member, startNode, endNode,
         material: snapshot.model.materials.find((item) => item.id === member.materialId),
-        section: snapshot.model.sections.find((item) => item.id === member.sectionId),
+        section: describeSection(snapshot.model.sections.find((item) => item.id === member.sectionId)!),
         geometry: calculateMemberGeometry(startNode.position, endNode.position, member.rotationDegrees) };
     });
     return { status: "completed", message: "已读取对象及其已应用参数", context: snapshot.context, data: { units: snapshot.model.units, objects } };
   }
   const model = snapshot.model;
   const modelCollections: Record<string, readonly unknown[]> = {
-    nodes: model.nodes, members: model.members, materials: model.materials, sections: model.sections,
+    nodes: model.nodes, members: model.members, materials: model.materials, sections: model.sections.map(describeSection),
     supports: model.supports, loads: [...model.nodalLoads.map((load) => ({ kind: "nodal", ...load })), ...model.uniformLoads],
     "load-cases": model.loadCases, "analysis-cases": model.analysisCases,
   };

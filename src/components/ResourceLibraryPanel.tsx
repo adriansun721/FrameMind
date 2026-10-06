@@ -6,6 +6,7 @@ import { emptySharedResourceLibrary, loadSharedResourceLibrary, saveSharedResour
 import { validateMaterial, validateSection, type CatalogSource, type MaterialProperties, type SectionProperties } from "../domain/project";
 import { SECTION_SHAPES, SECTION_DIMENSIONS, SECTION_SHAPE_FIELDS, type SectionGeometry } from "../domain/section-geometry";
 import { SectionGeometryPreview } from "./SectionGeometryPreview";
+import { SectionBasisView } from "./SectionBasisView";
 
 export type LibraryResource =
   | { kind: "material"; id: string; properties: MaterialProperties; catalogId?: string; source?: CatalogSource }
@@ -38,7 +39,7 @@ function materialProperties(item: MaterialProperties): MaterialProperties {
 }
 
 function sectionProperties(item: SectionProperties): SectionProperties {
-  return { name: item.name, areaM2: item.areaM2, secondMomentYM4: item.secondMomentYM4, secondMomentZM4: item.secondMomentZM4, torsionalConstantM4: item.torsionalConstantM4, ...(item.geometry ? { geometry: item.geometry, parameterBasis: item.parameterBasis } : {}) };
+  return validateSection("资源库", item);
 }
 
 export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryResource): void }) {
@@ -131,6 +132,7 @@ export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryR
         <div className="library-detail-heading"><strong>{selected.properties.name}</strong>{!selected.catalogId && <div className="library-actions"><button className="icon-button" title={`编辑自定义${label}`} aria-label={`编辑自定义${label}`} disabled={!!initial.error} onClick={() => beginEdit(selected)}><Pencil size={14} /></button><button className="icon-button" title={`删除自定义${label}`} aria-label={`删除自定义${label}`} disabled={!!initial.error} onClick={remove}><Trash2 size={14} /></button></div>}</div>
         <dl>{FIELDS[kind].map((field) => <div key={field.key}><dt>{field.label}</dt><dd>{u.number(Number(Object.entries(selected.properties).find(([key]) => key === field.key)?.[1]), field.unit)} <span>{u.unit(field.unit)}</span></dd></div>)}</dl>
         {selected.kind === "section" && <SectionGeometryPreview geometry={selected.properties.geometry} />}
+        {selected.kind === "section" && <SectionBasisView section={selected.properties} />}
         {selected.source && <div className="library-source"><span>{selected.source.publisher}</span><span>{selected.source.edition}</span><a href={selected.source.url} target="_blank" rel="noreferrer">来源文档</a></div>}
         <button className="button" onClick={() => onImport(selected)}><CopyPlus size={14} />加入当前项目</button>
       </section>}
