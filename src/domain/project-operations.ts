@@ -3,6 +3,7 @@ import {
   type SectionInput, type FrameSection, type SectionId,
   addMember,
   addNode,
+  setNodeMass,
   deleteMember,
   updateMember,
   updateNodes,
@@ -53,7 +54,8 @@ export function batchUpdateMembers(project: FrameProject, updates: readonly Memb
 export function duplicateNode(project: FrameProject, id: NodeId): FrameProject {
   const source = project.nodes.find((node) => node.id === id);
   if (!source) throw new Error(`节点 ${id} 不存在`);
-  return addNode(project, source.position);
+  const copied = addNode(project, source.position);
+  return source.additionalMassKg === undefined ? copied : setNodeMass(copied, copied.nodes.at(-1)!.id, source.additionalMassKg);
 }
 
 export function duplicateMember(project: FrameProject, id: MemberId): FrameProject {
@@ -65,6 +67,7 @@ export function duplicateMember(project: FrameProject, id: MemberId): FrameProje
     materialId: source.materialId,
     sectionId: source.sectionId,
     rotationDegrees: source.rotationDegrees,
+    ...(source.additionalLineMassKgM !== undefined ? { additionalLineMassKgM: source.additionalLineMassKgM } : {}),
     ...(source.endReleases ? { endReleases: source.endReleases } : {}),
   });
 }
@@ -110,6 +113,7 @@ export type ProjectEditOperation =
   | ({ type: "split_member" | "connect_members" } & TopologyInput)
   | { type: "create_node"; position: Vector3 }
   | { type: "update_node"; id: NodeId; position: Partial<Vector3> }
+  | { type: "set_node_mass"; id: NodeId; massKg: number }
   | { type: "duplicate_node" | "delete_node"; id: NodeId }
   | { type: "create_member"; properties: MemberProperties }
   | { type: "update_member"; id: MemberId; changes: Partial<MemberProperties> }
@@ -181,6 +185,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
         break;
       }
       case "create_node": changed = addNode(current, operation.position); break;
+      case "set_node_mass": changed = setNodeMass(current, operation.id, operation.massKg); break;
       case "update_node": changed = updateNodes(current, updateGroups.get(operationIndex)!); break;
       case "duplicate_node": changed = duplicateNode(current, operation.id); break;
       case "delete_node": changed = deleteNode(current, operation.id); break;

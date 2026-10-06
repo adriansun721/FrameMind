@@ -5,7 +5,7 @@ const position = { type: "object", additionalProperties: false, minProperties: 1
 const bendingRelease = { type: "object", additionalProperties: false, required: ["my", "mz"], properties: { my: { type: "boolean" }, mz: { type: "boolean" } } };
 const endReleases = { type: "object", additionalProperties: false, required: ["start", "end"], properties: { start: bendingRelease, end: bendingRelease }, description: "Local My/Mz only; independent of global supports. Omission means rigid. No torsion/axial/shear releases." };
 const member = { type: "object", additionalProperties: false, minProperties: 1,
-  properties: { startNodeId: identity, endNodeId: identity, materialId: identity, sectionId: identity, rotationDegrees: { type: "number" }, endReleases } };
+  properties: { startNodeId: identity, endNodeId: identity, materialId: identity, sectionId: identity, rotationDegrees: { type: "number" }, endReleases, additionalLineMassKgM: { type: "number", minimum: 0, description: "Isotropic translational line mass kg/m on reference axis, no rotary inertia; zero removes it." } } };
 const topologyProperties = (type: string) => ({
   memberIds: { type: "array", minItems: type === "split_member" ? 1 : 2, maxItems: type === "split_member" ? 1 : 100, uniqueItems: true, items: identity },
   position: { ...position, required: ["x", "y", "z"] }, nodeId: identity,
@@ -35,6 +35,7 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
+      { type: "object", additionalProperties: false, required: ["type", "id", "massKg"], properties: { type: { const: "set_node_mass" }, id: identity, massKg: { type: "number", minimum: 0 } } },
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_section" }, properties: SECTION_INPUT_SCHEMA } },
       { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_section" }, id: identity, properties: SECTION_INPUT_SCHEMA } },
       { type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: "duplicate_section" }, id: identity } },
@@ -64,6 +65,7 @@ const memberProperties = { properties: { ...member, required: ["startNodeId", "e
 const memberUpdate = { id: identity, changes: member };
 const ids = (type: string) => operation(type, { id: identity }, ["id"]);
 export const MODEL_EDIT_TOOL_DEFINITIONS = [
+  operation("set_node_mass", { id: identity, massKg: { type: "number", minimum: 0, description: "Node isotropic translational point mass kg; no rotary inertia or static gravity load. Zero removes it." } }, ["id", "massKg"]),
   { type: "function", function: { name: "merge_nodes", description: "Prepare a reviewed atomic node merge. Inspect near nodes and merge impact first. All nodes must be within tolerance of the explicit target; retain its position and identity. Explicitly list retained support (at most one), nodal loads and members, and every removed member's uniform loads. Keeping multiple loads means deliberate superposition; keeping duplicate members means parallel elements. Accept changes to lengths/local load axes. No implicit condition accumulation or deletion. Read replacement identities after confirmation.",
     parameters: { type: "object", additionalProperties: false, required: Object.keys(mergeProperties), properties: mergeProperties } } },
   ...["split_member", "connect_members"].map((name) => ({ type: "function", function: { name,

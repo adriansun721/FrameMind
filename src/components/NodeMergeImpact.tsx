@@ -8,6 +8,7 @@ export function NodeMergeImpact({ impact }: { impact: Impact | NodeMergeReceipt 
   return <section className="topology-impact" aria-label="节点合并影响">
     <p>目标 {impact.targetNodeId} · 坐标 ({vector(impact.targetPosition, "m")})；容差 {u.number(impact.tolerance, "m")} {u.unit("m")}</p>
     <p>到目标距离：{impact.distances.map((d) => `${d.nodeId}: ${u.number(d.distance, "m")} ${u.unit("m")}`).join("；")}</p>
+    {!!impact.pointMasses?.length && <p>附加点质量明确相加至目标节点：{impact.pointMasses.map((p) => `${p.nodeId}: ${u.quantity(p.massKg, "kg")}`).join("；")}。线质量随保留杆件，移除杆件时一同移除，杆长变化时总量随长度变化。</p>}
     <ul>{impact.members.map((m) => <li key={m.before.id}>{m.before.id}: {m.before.startNodeId} → {m.before.endNodeId} ⇒ {m.after.startNodeId} → {m.after.endNodeId} · 材料 {m.before.materialId} · 截面 {m.before.sectionId} · 转角 {m.before.rotationDegrees}° · 杆长 {u.number(m.geometryBefore.length, "m")} → {m.geometryAfter ? u.number(m.geometryAfter.length, "m") : "0（须移除）"} {u.unit("m")}</li>)}</ul>
     <p>零长杆：{impact.zeroLengthMemberIds.join("、") || "无"}；重复杆件：{impact.duplicateMemberGroups.map((ids) => ids.join(" / ")).join("；") || "无"}。重复杆保留多个表示并联构件，荷载随各自杆件保留。</p>
     <details><summary>局部朝向核对（方向余弦，无量纲）</summary>{impact.members.map((m) => <p key={m.before.id}>{m.before.id}: {(["localX", "localY", "localZ"] as const).map((axis) => `${axis}: (${direction(m.geometryBefore[axis])}) → ${m.geometryAfter ? `(${direction(m.geometryAfter[axis])})` : "零长"}`).join("；")}</p>)}</details>

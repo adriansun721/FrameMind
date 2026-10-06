@@ -3,6 +3,7 @@ import { calculateMemberGeometry } from "./member-geometry";
 import { NATIVE_MODAL_SOLVER, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "./analysis";
 import { decodeAnalysisRun } from "./analysis-service-contract";
 import { validateModalShapeMapping } from "./modal-shape";
+import { additionalMassSources } from "./additional-mass";
 
 export interface ModalSettings { modeCount: number; maxDivisions: number; maxEquations: number; frequencyTolerance: number }
 export const DEFAULT_MODAL_SETTINGS: Readonly<ModalSettings> = Object.freeze({ modeCount: 6, maxDivisions: 16, maxEquations: 600, frequencyTolerance: 2e-3 });
@@ -28,6 +29,9 @@ export interface ModalShape {
 export interface ModalRecord {
   massModel: "consistent-eb-with-torsional-inertia"; normalization: "unit-generalized-mass"; massUnit: "kN·s²/m";
   totalMassKg: number;
+  structuralMassKg?: number;
+  additionalMassKg?: number;
+  additionalSources?: ReturnType<typeof additionalMassSources>["sources"];
   sources: Array<{ memberId: string; materialId: string; sectionId: string; densityKgM3: number; lengthM: number; massKg: number }>;
   modes: ModalShape[]; orthogonalityError: number; selectedDivisions: number;
   convergence: { status: "converged" | "budget-exhausted"; reason: "frequency-tolerance" | "max-divisions" | "equation-budget"; runs: Array<{ divisions: number; equations: number; frequenciesHz: number[]; error?: number }> };
@@ -69,9 +73,15 @@ export function decodeModalResult(value: Record<string, unknown>, input: Analysi
     return { memberId: m.id, materialId: m.materialId, sectionId: m.sectionId, densityKgM3: material.densityKgM3, lengthM, massKg: material.densityKgM3 * section.areaM2 * lengthM };
   });
   const near = (a: number, b: number) => Number.isFinite(a) && Math.abs(a - b) <= 1e-10 * Math.max(1, Math.abs(b));
+  const additional = additionalMassSources(input), structuralMassKg = expectedSources.reduce((sum, s) => sum + s.massKg, 0);
+  if (!Number.isFinite(structuralMassKg) || !Number.isFinite(structuralMassKg + additional.totalMassKg)) fail();
+  if (modal.structuralMassKg !== undefined || modal.additionalMassKg !== undefined || modal.additionalSources !== undefined || additional.sources.length) {
+    if (!near(modal.structuralMassKg!, structuralMassKg) || !near(modal.additionalMassKg!, additional.totalMassKg)
+      || !sameInputValue(modal.additionalSources, additional.sources)) fail();
+  }
   if (modal.sources.length !== expectedSources.length || modal.sources.some((s, i) => Object.keys(expectedSources[i]).some((key) => {
     const k = key as keyof typeof s, expected = expectedSources[i][k]; return typeof expected === "number" ? !near(s[k] as number, expected) : s[k] !== expected;
-  })) || !near(modal.totalMassKg, expectedSources.reduce((sum, s) => sum + s.massKg, 0))) fail();
+  })) || !near(modal.totalMassKg, structuralMassKg + additional.totalMassKg)) fail();
   const finite3 = (v: { x: number; y: number; z: number }) => v && [v.x, v.y, v.z].every(Number.isFinite);
   for (const [i, m] of modal.modes.entries()) {
     if (m.number !== i + 1 || !Number.isFinite(m.eigenvalue) || m.eigenvalue < 0 || !near(m.frequencyHz, Math.sqrt(m.eigenvalue) / (2 * Math.PI))

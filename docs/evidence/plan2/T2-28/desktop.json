@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "massKg": 631.0000000000001,
+  "additionalMassKg": 160,
+  "structuralMassKg": 471.0000000000001,
+  "reopened": true,
+  "undoRestoresCurrent": true,
+  "redoRestoresStale": true,
+  "sources": [
+    {
+      "kind": "point",
+      "massKg": 100,
+      "nodeId": "node_0002"
+    },
+    {
+      "kind": "line",
+      "lengthM": 3,
+      "massKg": 60,
+      "massPerLengthKgM": 20,
+      "memberId": "member_0001"
+    }
+  ],
+  "staticLoadsUnchanged": true,
+  "presets": [
+    "m-kN",
+    "mm-N"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ]
+}

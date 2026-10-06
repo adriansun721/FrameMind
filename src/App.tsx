@@ -1,5 +1,6 @@
 import { ModalResultPanel } from "./components/ModalResultPanel";
 import { modalDisplayResult } from "./domain/modal";
+import { AdditionalMassEditor } from "./components/AdditionalMassEditor";
 import { indeterminateRotationComponents } from "./domain/member-releases";
 import { MemberReleaseFields } from "./components/MemberReleaseFields";
 import { ParametricSectionEditor } from "./components/ParametricSectionEditor";
@@ -465,7 +466,7 @@ export function App() {
         if (!execution || !isProjectCheckpointCurrent(execution.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
         const unchecked = analysisResult.discretization?.status === "budget-exhausted" || analysisResult.modal?.convergence.status === "budget-exhausted";
         if (analysisResult.modal) setModeNumber(1);
-        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: unchecked ? "neutral" : "success", text: unchecked ? "计算完成 · 预算内未满足细分精度，结果未收敛，仅供核查" : analysisResult.modal ? `分析完成 · ${analysisResult.modal.modes.length} 阶模态 · 结构质量 ${analysisResult.modal.totalMassKg.toPrecision(6)} kg` : `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
+        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: unchecked ? "neutral" : "success", text: unchecked ? "计算完成 · 预算内未满足细分精度，结果未收敛，仅供核查" : analysisResult.modal ? `分析完成 · ${analysisResult.modal.modes.length} 阶模态 · 总质量 ${analysisResult.modal.totalMassKg.toPrecision(6)} kg` : `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
         setResultReference(null); setResultFocus(null);
         if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
         return { status: "completed", message: unchecked ? "本地计算完成，但预算内未满足细分精度，结果未收敛，仅供核查" : `本地分析完成 · ${analysisResult.nodes.length} 个节点、${analysisResult.members.length} 根杆件，已展示结果`, context,
@@ -762,10 +763,18 @@ export function App() {
             exists={(resultReference.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === resultReference.object.id)}
             onClose={() => { setResultReference(null); setResultFocus(null); }} />}
           {selectedNode && <Inspector title="空间节点" label={selectedNode.label} icon={<CircleDot size={15} />} id={selectedNode.id}>
+            <AdditionalMassEditor key={`${selectedNode.id}:${selectedNode.additionalMassKg ?? 0}`} kind="point" value={selectedNode.additionalMassKg ?? 0} onCommit={(massKg) => {
+              const next = applyProjectEdits(project, [{ type: "set_node_mass", id: selectedNode.id, massKg }]).project;
+              activateProject(next, false); setStatus({ tone: "success", text: "附加点质量已保存，相关模态结果需重算" });
+            }} />
             <section className="property-section"><h3>当前全局坐标</h3><dl className="coordinates-list">{(["x", "y", "z"] as const).map((axis) => <div key={axis}><dt>{axis.toUpperCase()}</dt><dd>{u.quantity(selectedNode.position[axis], "m")}</dd></div>)}</dl></section>
             <form className="property-form" onSubmit={saveNodeEdit}><h3>全局坐标</h3>{(["x", "y", "z"] as const).map((axis) => <NumberField key={axis} label={`${axis.toUpperCase()} 坐标`} value={nodeDraft[axis]} onChange={(value) => setNodeDraft({ ...nodeDraft, [axis]: value })} unit="m" />)}<FormFeedback error={formError} /><button className="button primary" type="submit">保存节点属性</button></form>
           </Inspector>}
           {selectedMember && memberGeometry && <Inspector title="空间刚架杆件" label={selectedMember.label} icon={<Link2 size={15} />} id={selectedMember.id}>
+            <AdditionalMassEditor key={`${selectedMember.id}:${selectedMember.additionalLineMassKgM ?? 0}`} kind="line" value={selectedMember.additionalLineMassKgM ?? 0} onCommit={(additionalLineMassKgM) => {
+              const next = applyProjectEdits(project, [{ type: "update_member", id: selectedMember.id, changes: { additionalLineMassKgM } }]).project;
+              activateProject(next, false); setStatus({ tone: "success", text: "附加线质量已保存，相关模态结果需重算" });
+            }} />
             <section className="property-section"><h3>几何</h3><dl><div><dt>长度</dt><dd>{u.quantity(memberGeometry.length, "m")}</dd></div></dl><details><summary>局部坐标与参考轴</summary><dl><div><dt>局部 x</dt><dd>{vectorText(memberGeometry.localX)}</dd></div><div><dt>局部 y</dt><dd>{vectorText(memberGeometry.localY)}</dd></div><div><dt>局部 z</dt><dd>{vectorText(memberGeometry.localZ)}</dd></div><div><dt>参考轴</dt><dd>{memberGeometry.referenceAxis === "global-z" ? "全局 Z" : "全局 Y（竖杆回退）"}</dd></div></dl></details></section>
 
             <form className="property-form" onSubmit={saveMemberEdit}><h3>连接与朝向</h3><SelectField label="起点节点" value={memberDraft.startNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={memberDraft.endNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={memberDraft.materialId} onChange={(value) => setMemberDraft({ ...memberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={memberDraft.sectionId} onChange={(value) => setMemberDraft({ ...memberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={memberDraft.rotationDegrees} onChange={(value) => setMemberDraft({ ...memberDraft, rotationDegrees: value })} unit="°" /><MemberReleaseFields value={memberDraft.endReleases} onChange={(endReleases) => setMemberDraft({ ...memberDraft, endReleases })} /><div className="assignment-summary"><span>{project.materials.find((item) => item.id === selectedMember.materialId)?.name}</span><span>{project.sections.find((item) => item.id === selectedMember.sectionId)?.name}</span></div><FormFeedback error={formError} /><button className="button primary" type="submit">保存杆件属性</button></form>

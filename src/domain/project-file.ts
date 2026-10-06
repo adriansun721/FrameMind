@@ -1,4 +1,5 @@
 import { decodeModalResult } from "./modal";
+import { validateAdditionalMass } from "./additional-mass";
 import { decodeNativeReleaseRecovery, decodeReleaseGauges } from "./native-release-record";
 import { validateMemberEndReleases, hasMemberReleases } from "./member-releases";
 import { requireUnitPreset } from "./units";
@@ -109,7 +110,7 @@ function decodeNode(value: unknown, internal = false): FrameNode {
   if (!isRecord(position) || ![position.x, position.y, position.z].every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))) {
     throw new Error(`节点 ${id} 的坐标无效`);
   }
-  return { id: id as NodeId, label, position: { x: position.x as number, y: position.y as number, z: position.z as number } };
+  return { id: id as NodeId, label, position: { x: position.x as number, y: position.y as number, z: position.z as number }, ...(value.additionalMassKg !== undefined ? { additionalMassKg: validateAdditionalMass(value.additionalMassKg) } : {}) };
 }
 
 function decodeMaterial(value: unknown): FrameMaterial {
@@ -164,6 +165,7 @@ function decodeMember(value: unknown, internal = false): FrameMember {
     materialId: requireString(value.materialId, `杆件 ${label} 缺少材料`) as MaterialId,
     sectionId: requireString(value.sectionId, `杆件 ${label} 缺少截面`) as SectionId,
     rotationDegrees: requireFinite(value.rotationDegrees, `杆件 ${label} 的截面转角必须是有限数值`),
+    ...(value.additionalLineMassKgM !== undefined ? { additionalLineMassKgM: validateAdditionalMass(value.additionalLineMassKgM) } : {}),
     ...(value.endReleases !== undefined ? { endReleases: validateMemberEndReleases(value.endReleases) } : {}),
   };
 }

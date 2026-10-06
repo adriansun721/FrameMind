@@ -653,7 +653,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
           {modelEdits.preview.affectedMemberIds.length > 0 && <div><dt>关联杆件</dt><dd>{modelEdits.preview.affectedMemberIds.join("、")}</dd></div>}
         </dl>
         <p className="frame-draft-notice">草案仅来自当前项目修订 R{modelEdits.baseRevision}；确认后形成一个可撤销的整体历史项。节点删除会级联其支座、节点荷载、关联杆件及均布荷载。</p>
-        <details className="proposal-details"><summary>查看逐项变化</summary><p>坐标 {units.unit("m")} · 截面转角 {units.unit("°")}</p><ol>{modelEdits.preview.changes.map((change) => <li key={`${change.kind}:${change.id}`}><span>{change.kind} · {change.id}</span><code>{editPreviewText(change.before ?? null)} -&gt; {editPreviewText(change.after ?? null)}</code></li>)}</ol></details>
+        <details className="proposal-details"><summary>查看逐项变化</summary><p>坐标 {units.unit("m")} · 截面转角 {units.unit("°")} · 点质量 {units.unit("kg")} · 线质量 {units.unit("kg/m")}</p><ol>{modelEdits.preview.changes.map((change) => <li key={`${change.kind}:${change.id}`}><span>{change.kind} · {change.id}</span><code>{editPreviewText(change.before ?? null)} -&gt; {editPreviewText(change.after ?? null)}</code></li>)}</ol></details>
         {(modelEdits.preview.changes.some((c) => c.kind === "section") || modelEdits.operations.some((o) => o.type === "assign_section")) && <SectionEditImpact project={modelEditsSource} receipt={modelEdits.preview} />}
         {modelEdits.preview.topology && <TopologyImpact receipts={modelEdits.preview.topology} />}
         {modelEdits.preview.nodeMerges?.map((impact, index) => <NodeMergeImpact key={index} impact={impact} />)}

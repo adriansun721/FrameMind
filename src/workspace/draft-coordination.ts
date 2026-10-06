@@ -5,9 +5,11 @@ import { buildFramePreview, type FrameProposal } from "./frame-proposal";
 import { proposeModelEdits, type ModelEditProposal } from "./model-edits";
 import { selectedColumns, type SectionChangeProposal } from "./section-stage";
 import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
+import type { ProjectEditOperation } from "../domain/project-operations";
 
 export interface DraftCoordination<T> { draft: T; conflicts: string[]; }
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const isNodeEdit = (type: ProjectEditOperation["type"]) => type.endsWith("node") || type === "set_node_mass";
 export function engineeringContent(project: FrameProject): unknown[] {
   return [project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysisCases"] as const).map((key) => project[key])];
 }
@@ -65,7 +67,7 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
       ? item.nodeIds.map((id) => ({ kind: "node" as const, id })) : "memberIds" in item
       ? [...item.memberIds.map((id) => ({ kind: "member" as const, id })), ...("nodeId" in item && item.nodeId ? [{ kind: "node" as const, id: item.nodeId }] : [])]
       : "id" in item && !item.type.endsWith("analysis_case") && !item.type.endsWith("section")
-      ? [{ kind: item.type.endsWith("node") ? "node" as const : "member" as const, id: item.id }] : []),
+      ? [{ kind: isNodeEdit(item.type) ? "node" as const : "member" as const, id: item.id }] : []),
   ];
 }
 
@@ -139,9 +141,12 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
       return operation;
     }
     if (!("id" in operation)) return operation;
-    const before = (operation.type.endsWith("analysis_case") ? base.analysisCases : operation.type.endsWith("node") ? base.nodes : base.members).find((item) => item.id === operation.id);
-    const actual = (operation.type.endsWith("analysis_case") ? current.analysisCases : operation.type.endsWith("node") ? current.nodes : current.members).find((item) => item.id === operation.id);
+    const before = (operation.type.endsWith("analysis_case") ? base.analysisCases : isNodeEdit(operation.type) ? base.nodes : base.members).find((item) => item.id === operation.id);
+    const actual = (operation.type.endsWith("analysis_case") ? current.analysisCases : isNodeEdit(operation.type) ? current.nodes : current.members).find((item) => item.id === operation.id);
     if (!before || !actual) { conflicts.push(`${operation.id}：任务目标已删除`); return operation; }
+    if (operation.type === "set_node_mass" && "position" in before && "position" in actual) {
+      return { ...operation, massKg: merge(before.additionalMassKg ?? 0, operation.massKg, actual.additionalMassKg ?? 0, `${operation.id}.additionalMassKg`, conflicts) };
+    }
     if (operation.type === "update_node" && "position" in before && "position" in actual) {
       return { ...operation, position: merge(before.position, operation.position, actual.position, `${operation.id}.position`, conflicts) };
     }

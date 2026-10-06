@@ -1,6 +1,7 @@
 import { validateMember, validateUniformLoad, type FrameProject, type NodeId, type MemberId } from "./project";
 import { GEOMETRY_CONTRACT } from "./geometry-policy";
 import { calculateMemberGeometry } from "./member-geometry";
+import { validateAdditionalMass } from "./additional-mass";
 
 export interface NodeMergeSelection { nodeIds: NodeId[]; targetNodeId: NodeId; tolerance: number; }
 export interface NodeMergeResolution {
@@ -71,6 +72,7 @@ export function inspectNodeMerge(project: FrameProject, input: NodeMergeSelectio
     for (const member of task.input.members.filter((member) => reviewIds.has(member.id))) taskReferences.push({ taskId: task.taskId, kind: "member", id: member.id });
   }
   return { projectId: project.id, baseRevision: project.revision, targetNodeId: target.id, targetPosition: target.position,
+    pointMasses: nodes.filter((n) => (n.additionalMassKg ?? 0) > 0).map((n) => ({ nodeId: n.id, massKg: n.additionalMassKg! })),
     nodeIds: input.nodeIds, tolerance: input.tolerance, unit: "m", distances, members, zeroLengthMemberIds, duplicateMemberGroups,
     supports: project.supports.filter((support) => selected.has(support.nodeId)),
     nodalLoads: project.nodalLoads.filter((load) => selected.has(load.nodeId)),
@@ -101,15 +103,16 @@ export function mergeNodes(project: FrameProject, input: NodeMergeInput): { proj
   checkIds(resolution.removeUniformLoadIds, removedLoads, "随杆移除均布荷载");
   if (removedLoads.length !== resolution.removeUniformLoadIds.length) throw new Error("必须明确确认每个随杆移除的均布荷载，不能转移或静默丢弃");
   const knownFields = (value: object, fields: string[], label: string) => { if (Object.keys(value).some((key) => !fields.includes(key))) throw new Error(`${label}含未登记工程字段，不能安全合并`); };
-  for (const node of project.nodes.filter((node) => input.nodeIds.includes(node.id))) knownFields(node, ["id", "label", "position"], "节点");
-  for (const m of impact.members) knownFields(m.before, ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"], "杆件");
+  for (const node of project.nodes.filter((node) => input.nodeIds.includes(node.id))) knownFields(node, ["id", "label", "position", "additionalMassKg"], "节点");
+  for (const m of impact.members) knownFields(m.before, ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases", "additionalLineMassKgM"], "杆件");
   for (const s of impact.supports) knownFields(s, ["id", "label", "nodeId", "restraints"], "支座");
   for (const l of impact.nodalLoads) knownFields(l, ["id", "label", "nodeId", "loadCaseId", "force", "moment"], "节点荷载");
   impact.uniformLoads.forEach(validateUniformLoad);
   const selected = new Set(input.nodeIds);
+  const mergedMass = validateAdditionalMass(project.nodes.filter((n) => selected.has(n.id)).reduce((sum, n) => sum + validateAdditionalMass(n.additionalMassKg ?? 0), 0));
   const reviewedMembers = new Map(impact.members.map((m) => [m.before.id, m.after]));
   const next: FrameProject = { ...project,
-    nodes: project.nodes.filter((node) => !selected.has(node.id) || node.id === input.targetNodeId),
+    nodes: project.nodes.filter((node) => !selected.has(node.id) || node.id === input.targetNodeId).map((node) => node.id === input.targetNodeId && mergedMass > 0 ? { ...node, additionalMassKg: mergedMass } : node),
     members: project.members.filter((member) => !removedMembers.has(member.id)).map((member) => reviewedMembers.get(member.id) ?? member),
     supports: project.supports.filter((support) => !selected.has(support.nodeId) || resolution.keepSupportIds.includes(support.id)).map((support) => selected.has(support.nodeId) ? { ...support, nodeId: input.targetNodeId } : support),
     nodalLoads: project.nodalLoads.filter((load) => !selected.has(load.nodeId) || resolution.keepNodalLoadIds.includes(load.id)).map((load) => selected.has(load.nodeId) ? { ...load, nodeId: input.targetNodeId } : load),

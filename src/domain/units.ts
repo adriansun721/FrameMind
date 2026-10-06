@@ -2,15 +2,15 @@
 export const CANONICAL_UNITS = {
   length: "m", force: "kN", moment: "kN·m", distributedForce: "kN/m",
   modulus: "GPa", density: "kg/m³", area: "m²", inertia: "m⁴",
-  orientation: "°", rotation: "rad", acceleration: "m/s²", mass: "kg",
+  orientation: "°", rotation: "rad", acceleration: "m/s²", mass: "kg", lineMass: "kg/m",
   frequency: "Hz", displacementPSD: "m²/Hz", accelerationPSD: "(m/s²)²/Hz",
   forcePSD: "kN²/Hz", dimensionless: "无",
 } as const;
 export type QuantityDimension = keyof typeof CANONICAL_UNITS;
 export const UNIT_PRESETS = {
   "m-kN": { label: "m · kN · GPa", units: { ...CANONICAL_UNITS } },
-  "mm-N": { label: "mm · N · MPa", units: { ...CANONICAL_UNITS, length: "mm", force: "N", moment: "N·mm", distributedForce: "N/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz", forcePSD: "N²/Hz" } },
-  "mm-kN": { label: "mm · kN · MPa", units: { ...CANONICAL_UNITS, length: "mm", moment: "kN·mm", distributedForce: "kN/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz" } },
+  "mm-N": { label: "mm · N · MPa", units: { ...CANONICAL_UNITS, length: "mm", lineMass: "kg/mm", force: "N", moment: "N·mm", distributedForce: "N/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz", forcePSD: "N²/Hz" } },
+  "mm-kN": { label: "mm · kN · MPa", units: { ...CANONICAL_UNITS, length: "mm", lineMass: "kg/mm", moment: "kN·mm", distributedForce: "kN/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz" } },
 } as const;
 export type UnitPresetId = keyof typeof UNIT_PRESETS;
 // Factors multiply a value to obtain that dimension's canonical numeric value.
@@ -24,6 +24,7 @@ const UNIT_FACTORS: Record<QuantityDimension, Readonly<Record<string, number>>> 
   inertia: { "m⁴": 1, "mm⁴": 1e-12, "cm⁴": 1e-8 },
   orientation: { "°": 1, rad: 180 / Math.PI }, rotation: { rad: 1, "°": Math.PI / 180 },
   acceleration: { "m/s²": 1, "mm/s²": 1e-3 }, mass: { kg: 1, t: 1e3 },
+  lineMass: { "kg/m": 1, "kg/mm": 1e3, "t/m": 1e3, "t/mm": 1e6 },
   frequency: { Hz: 1, "rad/s": 1 / (2 * Math.PI) },
   displacementPSD: { "m²/Hz": 1, "mm²/Hz": 1e-6 },
   accelerationPSD: { "(m/s²)²/Hz": 1, "(mm/s²)²/Hz": 1e-6 },

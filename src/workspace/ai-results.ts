@@ -83,8 +83,8 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
     if (input.fields !== undefined || input.query !== undefined) throw new Error("模态仅支持完整条目的分页读取");
     if (["nodes", "members"].includes(collection)) throw new Error("模态振型不是静力位移或内力；请读取 modes");
     const modal = result.modal;
-    if (collection === "summary") return { ...provenance, method: "modal", totalMassKg: modal.totalMassKg, modes: modal.modes.map(({ number, frequencyHz, kind, residual }) => ({ number, frequencyHz, kind, residual })), convergence: modal.convergence, counts: modal.counts, normalization: modal.normalization, amplitudeMeaning: "振型幅值仅表示归一化形态，显示缩放不代表受载实际位移", zeroEnergyModes: modal.zeroEnergyModes };
-    const items = collection === "modes" ? modal.modes : collection === "mass" ? modal.sources : result.input.meshPlan!.levels.find((l) => l.divisions === modal.selectedDivisions)!.elements;
+    if (collection === "summary") return { ...provenance, method: "modal", totalMassKg: modal.totalMassKg, structuralMassKg: modal.structuralMassKg ?? modal.totalMassKg, additionalMassKg: modal.additionalMassKg ?? 0, modes: modal.modes.map(({ number, frequencyHz, kind, residual }) => ({ number, frequencyHz, kind, residual })), convergence: modal.convergence, counts: modal.counts, normalization: modal.normalization, amplitudeMeaning: "振型幅值仅表示归一化形态，显示缩放不代表受载实际位移", zeroEnergyModes: modal.zeroEnergyModes };
+    const items = collection === "modes" ? modal.modes : collection === "mass" ? [...modal.sources.map((s) => ({ kind: "structural", ...s })), ...modal.additionalSources ?? []] : result.input.meshPlan!.levels.find((l) => l.divisions === modal.selectedDivisions)!.elements;
     const pageItems = items.slice(offset, offset + limit);
     return { ...provenance, collection, total: items.length, offset, limit, items: pageItems, page: { empty: !pageItems.length, hasMore: offset + pageItems.length < items.length, nextOffset: offset + pageItems.length } };
   }

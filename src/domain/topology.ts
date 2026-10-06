@@ -64,7 +64,7 @@ export function changeTopology(project: FrameProject, input: TopologyInput, mode
   const mappings: TopologyMapping[] = [];
   for (const { member, fraction, endpoint } of members) {
     if (endpoint) continue;
-    if (Object.keys(member).some((key) => !["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"].includes(key))) throw new Error(`杆件 ${member.label} 含未登记端部属性，不能安全分割`);
+    if (Object.keys(member).some((key) => !["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases", "additionalLineMassKgM"].includes(key))) throw new Error(`杆件 ${member.label} 含未登记端部属性，不能安全分割`);
     const loads = project.uniformLoads.filter((load) => load.memberId === member.id);
     loads.forEach(validateUniformLoad);
     next = deleteMember(next, member.id);
@@ -73,6 +73,7 @@ export function changeTopology(project: FrameProject, input: TopologyInput, mode
       [member.startNodeId, sharedNodeId, [0, fraction]], [sharedNodeId, member.endNodeId, [fraction, 1]],
     ] as const) {
       next = addMember(next, { startNodeId, endNodeId, materialId: member.materialId, sectionId: member.sectionId, rotationDegrees: member.rotationDegrees,
+        ...(member.additionalLineMassKgM !== undefined ? { additionalLineMassKgM: member.additionalLineMassKgM } : {}),
         ...(member.endReleases ? { endReleases: {
           start: range[0] === 0 ? member.endReleases.start : { my: false, mz: false },
           end: range[1] === 1 ? member.endReleases.end : { my: false, mz: false },

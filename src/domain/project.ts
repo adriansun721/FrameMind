@@ -1,3 +1,4 @@
+import { validateAdditionalMass } from "./additional-mass";
 import { validateModalSettings, type ModalSettings } from "./modal";
 import { validateMeshPolicy, type MeshPolicy } from "./analysis-mesh";
 import { validateMemberEndReleases, type MemberEndReleases } from "./member-releases";
@@ -28,7 +29,7 @@ export type SupportId = string & { readonly [supportIdBrand]: true };
 export type LoadId = string & { readonly [loadIdBrand]: true };
 
 export interface Vector3 { x: number; y: number; z: number; }
-export interface FrameNode { id: NodeId; label: string; position: Vector3; }
+export interface FrameNode { id: NodeId; label: string; position: Vector3; additionalMassKg?: number; }
 export interface MaterialProperties { name: string; elasticModulusGPa: number; poissonRatio: number; densityKgM3: number; }
 export interface CatalogSource { publisher: string; title: string; edition: string; url: string; accessedOn: string; units: string; }
 export interface ResourceProvenance { kind: "catalog" | "custom"; catalogId?: string; source?: CatalogSource; derivedFrom?: { catalogId: string; source: CatalogSource; } }
@@ -36,7 +37,7 @@ export interface FrameMaterial extends MaterialProperties { id: MaterialId; labe
 export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; geometry?: SectionGeometry; parameterBasis?: ReturnType<typeof sectionParameterBasis>; catalogBasis?: CatalogSectionBasis; }
 export type SectionInput = SectionProperties | { name: string; geometry: SectionGeometry };
 export interface FrameSection extends SectionProperties { id: SectionId; label: string; provenance: ResourceProvenance; }
-export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; endReleases?: MemberEndReleases; }
+export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; endReleases?: MemberEndReleases; additionalLineMassKgM?: number; }
 export interface FrameMember extends MemberProperties { id: MemberId; label: string; }
 export type DofRestraints = [boolean, boolean, boolean, boolean, boolean, boolean];
 export interface FrameSupport { id: SupportId; label: string; nodeId: NodeId; restraints: DofRestraints; }
@@ -182,6 +183,7 @@ function requireNode(project: FrameProject, id: NodeId, label: string, role: "�
 }
 
 export function validateMember(project: FrameProject, label: string, member: MemberProperties): MemberProperties {
+  if (member.additionalLineMassKgM !== undefined) validateAdditionalMass(member.additionalLineMassKgM);
   const start = requireNode(project, member.startNodeId, label, "起点");
   const end = requireNode(project, member.endNodeId, label, "终点");
   if (!project.materials.some((item) => item.id === member.materialId)) throw new Error(`杆件 ${label} 引用了不存在的材料 ${member.materialId}`);
@@ -219,6 +221,12 @@ export function addNode(project: FrameProject, position: Vector3): FrameProject 
 
 export function updateNode(project: FrameProject, id: NodeId, position: Vector3): FrameProject {
   return updateNodes(project, [{ id, position }]);
+}
+
+export function setNodeMass(project: FrameProject, id: NodeId, massKg: number): FrameProject {
+  const value = validateAdditionalMass(massKg);
+  if (!project.nodes.some((n) => n.id === id)) throw new Error(`节点 ${id} 不存在`);
+  return { ...project, nodes: project.nodes.map((n) => n.id === id ? { ...n, additionalMassKg: value } : n), ...nextRevision(project) };
 }
 
 /** Validate the final geometry together, allowing endpoint swaps and rigid translations. */
@@ -296,6 +304,7 @@ export function updateMember(project: FrameProject, id: MemberId, changes: Parti
     startNodeId: changes.startNodeId ?? current.startNodeId, endNodeId: changes.endNodeId ?? current.endNodeId,
     materialId: changes.materialId ?? current.materialId, sectionId: changes.sectionId ?? current.sectionId,
     rotationDegrees: changes.rotationDegrees ?? current.rotationDegrees,
+    ...(changes.additionalLineMassKgM !== undefined || current.additionalLineMassKgM !== undefined ? { additionalLineMassKgM: changes.additionalLineMassKgM ?? current.additionalLineMassKgM } : {}),
     ...(changes.endReleases !== undefined || current.endReleases !== undefined ? { endReleases: changes.endReleases ?? current.endReleases } : {}),
   });
   return { ...project, members: project.members.map((item) => item.id === id ? { ...item, ...input } : item), ...nextRevision(project) };

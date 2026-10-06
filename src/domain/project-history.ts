@@ -40,7 +40,8 @@ function preserveResults(restored: FrameProject, current: FrameProject): FramePr
   if (restored.confirmedOperations !== current.confirmedOperations || restored.taskState !== current.taskState) restored = { ...restored, confirmedOperations: current.confirmedOperations, taskState: current.taskState };
   const known = new Set(restored.analysisResults.map((result) => result.id));
   const extra = current.analysisResults.filter((result) => !known.has(result.id)
-    && (result.input.combination ? restored.loadCombinations.some((item) => item.id === getAnalysisSourceId(result.input))
+    && (result.input.analysisCase ? restored.analysisCases.some((item) => item.id === result.input.analysisCase!.id)
+      : result.input.combination ? restored.loadCombinations.some((item) => item.id === getAnalysisSourceId(result.input))
       && result.input.combination.definition.terms.every((term) => restored.loadCases.some((item) => item.id === term.loadCaseId))
       : restored.loadCases.some((item) => item.id === getAnalysisSourceId(result.input))));
   if (!extra.length) return restored;

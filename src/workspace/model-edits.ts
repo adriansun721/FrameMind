@@ -1,4 +1,5 @@
 import { validateMemberEndReleases } from "../domain/member-releases";
+import { validateAdditionalMass } from "../domain/additional-mass";
 import { validateSection, type SectionInput } from "../domain/project";
 import { getSectionCatalogEntry } from "../domain/resource-library";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
@@ -40,19 +41,20 @@ function vector(value: unknown, partial: boolean): Partial<Vector3> {
   return { ...input };
 }
 function memberProperties(value: unknown, partial: boolean) {
-  const fields = ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"];
+  const fields = ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases", "additionalLineMassKgM"];
   const input = object(value, fields);
   if (!Object.keys(input).length || (!partial && fields.slice(0, 5).some((key) => input[key] === undefined))) throw new Error("杆件参数不完整");
   for (const key of fields.slice(0, 4)) if (input[key] !== undefined) identity(input[key]);
   if (input.rotationDegrees !== undefined && (typeof input.rotationDegrees !== "number" || !Number.isFinite(input.rotationDegrees))) throw new Error("截面转角必须是有限数值（度）");
   if (input.endReleases !== undefined) validateMemberEndReleases(input.endReleases);
+  if (input.additionalLineMassKgM !== undefined) validateAdditionalMass(input.additionalLineMassKgM);
   return input as Partial<{ startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; endReleases: import("../domain/member-releases").MemberEndReleases }>;
 }
 
 export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 100) throw new Error("operations 必须包含 1 至 100 项基础编辑");
   return value.map((value) => {
-    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution"]);
+    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution", "massKg"]);
     switch (input.type) {
       case "create_section": case "update_section": {
         object(input, input.type === "create_section" ? ["type", "properties"] : ["type", "id", "properties"]);
@@ -89,6 +91,7 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
           ...(input.nodeId !== undefined ? { nodeId: identity(input.nodeId) as NodeId } : {}) };
       }
       case "create_node": object(input, ["type", "position"]); return { type: input.type, position: vector(input.position, false) as Vector3 };
+      case "set_node_mass": object(input, ["type", "id", "massKg"]); return { type: input.type, id: identity(input.id) as NodeId, massKg: validateAdditionalMass(input.massKg) };
       case "update_node": object(input, ["type", "id", "position"]); return { type: input.type, id: identity(input.id) as NodeId, position: vector(input.position, true) };
       case "create_member": object(input, ["type", "properties"]); return { type: input.type, properties: memberProperties(input.properties, false) as Extract<ProjectEditOperation, { type: "create_member" }>["properties"] };
       case "update_member": object(input, ["type", "id", "changes"]); return { type: input.type, id: identity(input.id) as MemberId, changes: memberProperties(input.changes, true) };
@@ -114,11 +117,15 @@ export function proposeModelEdits(project: FrameProject, input: unknown, previou
     projectId: project.id, baseRevision: project.revision, operations, preview: receipt };
 }
 
-export const MODEL_EDIT_TOOLS = new Set(["merge_nodes", "split_member", "connect_members", "draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
+export const MODEL_EDIT_TOOLS = new Set(["set_node_mass", "merge_nodes", "split_member", "connect_members", "draw_member", "create_node", "create_nodes", "update_node", "update_nodes", "duplicate_node", "duplicate_nodes", "delete_node", "delete_nodes",
   "create_member", "create_members", "update_member", "update_members", "duplicate_member", "duplicate_members", "delete_member", "delete_members"]);
 
 /** Legacy singular/plural calls become the same reviewed draft as the canonical batch tool. */
 export function modelEditToolInput(name: string, input: Record<string, unknown>, project?: FrameProject): unknown {
+  if (name === "set_node_mass") {
+    object(input, ["id", "massKg"]);
+    return { operations: [{ type: name, ...input }] };
+  }
   if (name === "merge_nodes") {
     object(input, ["nodeIds", "targetNodeId", "tolerance", "resolution"]);
     return { operations: [{ type: name, ...input }] };
@@ -145,12 +152,12 @@ export function modelEditToolInput(name: string, input: Record<string, unknown>,
     object(input, [field]);
     if (!Array.isArray(input[field])) throw new Error(`${field} 必须是数组`);
     return { operations: input[field].map((entry) => (field === "ids" ? { type: singular, id: entry }
-      : (modelEditToolInput(singular, object(entry, singular === "create_node" ? ["position", "x", "y", "z"] : singular === "update_node" ? ["id", "position", "x", "y", "z"] : singular === "create_member" ? ["properties", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"] : ["id", "changes"])) as { operations: unknown[] }).operations[0])) };
+      : (modelEditToolInput(singular, object(entry, singular === "create_node" ? ["position", "x", "y", "z"] : singular === "update_node" ? ["id", "position", "x", "y", "z"] : singular === "create_member" ? ["properties", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases", "additionalLineMassKgM"] : ["id", "changes"])) as { operations: unknown[] }).operations[0])) };
   }
   const node = name.endsWith("node");
   if (name.startsWith("create_") || name.startsWith("update_")) {
     const property = node ? "position" : name.startsWith("create_") ? "properties" : "changes";
-    const flatFields = node ? ["x", "y", "z"] : name.startsWith("create_") ? ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"] : [];
+    const flatFields = node ? ["x", "y", "z"] : name.startsWith("create_") ? ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases", "additionalLineMassKgM"] : [];
     object(input, [...(name.startsWith("update_") ? ["id"] : []), property, ...flatFields]);
     if (input[property] !== undefined && flatFields.some((key) => input[key] !== undefined)) throw new Error("不能混用嵌套和直接参数");
     const properties = input[property] ?? Object.fromEntries(flatFields.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));

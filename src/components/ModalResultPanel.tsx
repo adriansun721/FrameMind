@@ -1,16 +1,19 @@
 import type { AnalysisResult } from "../domain/analysis";
+import { useUnits } from "./UnitPresentation";
 
 export function ModalResultPanel({ result, current, modeNumber, onModeChange, scale, onScaleChange, onShowShape }: {
   result: AnalysisResult; current: boolean; modeNumber: number; onModeChange(n: number): void;
   scale: number; onScaleChange(n: number): void; onShowShape(): void;
 }) {
-  const modal = result.modal!, mode = modal.modes.find((m) => m.number === modeNumber) ?? modal.modes[0];
+  const u = useUnits(), modal = result.modal!, mode = modal.modes.find((m) => m.number === modeNumber) ?? modal.modes[0];
   return <div className="analysis-result-panel modal-result-panel" data-testid="modal-results">
     <div className="selection-title"><strong>结构质量与模态分析</strong></div>
     <section className="property-section"><h3>冻结来源</h3><dl>
       <div><dt>分析工况</dt><dd>{result.input.analysisCase!.id} · {result.input.analysisCase!.name}</dd></div>
       <div><dt>结果状态</dt><dd>R{result.projectRevision} · {current ? "当前" : "已过期"}</dd></div>
-      <div><dt>结构质量</dt><dd>{modal.totalMassKg.toPrecision(7)} kg</dd></div>
+      <div><dt>结构质量</dt><dd>{u.quantity(modal.structuralMassKg ?? modal.totalMassKg, "kg")}</dd></div>
+      <div><dt>附加质量</dt><dd>{u.quantity(modal.additionalMassKg ?? 0, "kg")}</dd></div>
+      <div><dt>总质量</dt><dd>{u.quantity(modal.totalMassKg, "kg")}</dd></div>
       <div><dt>工程节点 / 杆件</dt><dd>{modal.counts.engineeringNodes} / {modal.counts.engineeringMembers}</dd></div>
       <div><dt>计算节点 / 单元 / 方程</dt><dd>{modal.counts.calculationNodes} / {modal.counts.calculationElements} / {modal.counts.equations}</dd></div>
       <div><dt>释放端独立转角</dt><dd>{modal.counts.releaseCoordinates}</dd></div>
@@ -27,6 +30,8 @@ export function ModalResultPanel({ result, current, modeNumber, onModeChange, sc
       <details><summary>当前振型的节点分量 · 归一化幅值</summary><p>平移与转角使用原求解归一化，不是实际位移或转角。纯扭转模态可通过转角分量核查。</p><div className="load-case-table-scroll"><table aria-label="振型节点分量"><thead><tr><th>节点</th><th>平移 X / Y / Z</th><th>转角 X / Y / Z</th></tr></thead><tbody>{mode.nodes.map((n) => <tr key={n.nodeId}><td>{n.nodeId}</td><td>{Object.values(n.translation).map((v) => v.toPrecision(5)).join(" / ")}</td><td>{Object.values(n.rotation).map((v) => v.toPrecision(5)).join(" / ")}</td></tr>)}</tbody></table></div></details>
     </section>
     <details className="property-section"><summary>质量来源与方法</summary><p>Euler-Bernoulli 一致质量，忽略剪切和弯曲转动惯性，保留扭转极惯性。广义对称特征值法 · {result.input.solver!.implementation}。质量正交误差 {modal.orthogonalityError.toExponential(3)}。</p>
+      <p>附加点质量作用于工程节点三个平移方向；线质量沿参考轴均布，细分保持总量。附加质量不含转动惯性，不随自重开关再次添加。</p>
+      <div className="load-case-table-scroll"><table aria-label="附加质量来源"><thead><tr><th>类型 / 对象</th><th>线密度</th><th>质量</th></tr></thead><tbody>{(modal.additionalSources ?? []).map((s) => <tr key={s.kind === "point" ? s.nodeId : s.memberId}><td>{s.kind === "point" ? `点质量 · ${s.nodeId}` : `线质量 · ${s.memberId}`}</td><td>{s.kind === "line" ? u.quantity(s.massPerLengthKgM, "kg/m") : "—"}</td><td>{u.quantity(s.massKg, "kg")}</td></tr>)}</tbody></table></div>
       <div className="load-case-table-scroll"><table aria-label="结构质量来源"><thead><tr><th>杆件</th><th>材料 / 截面</th><th>密度 (kg/m³)</th><th>质量 (kg)</th></tr></thead><tbody>{modal.sources.map((s) => <tr key={s.memberId}><td>{s.memberId}</td><td>{s.materialId} / {s.sectionId}</td><td>{s.densityKgM3}</td><td>{s.massKg.toPrecision(7)}</td></tr>)}</tbody></table></div>
       <p>频率加密稳定不等于形态或后续随机响应已收敛。当前模态结果保留全部已提取振型与沿杆样本。</p>
     </details>

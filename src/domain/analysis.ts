@@ -496,8 +496,8 @@ export function analysisInputDependencies(input: AnalysisInputSnapshot): unknown
   return {
     projectId: input.projectId, dofOrder: input.dofOrder, assumptions: input.assumptions, solver: input.solver,
     analysisCase: input.analysisCase ? { id: input.analysisCase.id, method: input.analysisCase.method, loadSourceId: input.analysisCase.loadSourceId, settings: input.analysisCase.settings } : undefined,
-    nodes: sorted(input.nodes).map(({ id, position }) => ({ id, position })),
-    members: sorted(input.members), supports: sorted(input.supports),
+    nodes: sorted(input.nodes).map(({ id, position, additionalMassKg }) => ({ id, position, ...(input.analysisCase?.method === "modal" ? { additionalMassKg: additionalMassKg ?? 0 } : {}) })),
+    members: sorted(input.members).map(({ additionalLineMassKgM, ...m }) => ({ ...m, ...(input.analysisCase?.method === "modal" ? { additionalLineMassKgM: additionalLineMassKgM ?? 0 } : {}) })), supports: sorted(input.supports),
     materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight || input.analysisCase?.method === "modal" ? { densityKgM3 } : {}) })),
     sections: sorted(input.sections.filter((s) => sectionIds.has(s.id))).map(({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 }) => ({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 })),
     conditions: input.analysisCase?.method === "modal" ? undefined : input.combination ? {

@@ -1,7 +1,9 @@
 // Euler-Bernoulli consistent translational mass; torsion has polar inertia.
 // Bending rotary inertia and shear deformation are deliberately neglected.
 static Matrix modalMass(const StaticElement& e, double polarArea) {
-    Matrix mass=Matrix::Zero(12,12); const double l=e.length, total=e.density*e.area*l/1000;
+    // Added line mass is located on the reference axis, with no rotary inertia.
+    const double line=e.member.contains("additionalLineMassKgM") ? number(e.member.at("additionalLineMassKgM")) : 0;
+    Matrix mass=Matrix::Zero(12,12); const double l=e.length, total=(e.density*e.area+line)*l/1000;
     for (const auto& entry:std::vector<std::pair<int,double>>{{0,total},{3,e.density*polarArea*l/1000}}) {
         const int i=entry.first; const double m=entry.second/6;
         mass(i,i)=mass(i+6,i+6)=2*m; mass(i,i+6)=mass(i+6,i)=m;
@@ -39,6 +41,11 @@ static ModalLevelResult solveModalLevel(const Json& request, const Json& level, 
     std::map<std::string,Json> sections; for (const auto& s:input.at("sections")) sections[id(s["id"])]=s;
     std::vector<int> reducedIndex(assembly.size,-1); for (int i=0;i<nodal;++i) reducedIndex[assembly.free[i]]=i;
     int extra=nodal;
+    for (size_t i=0;i<input.at("nodes").size();++i) {
+        const auto& node=input["nodes"][i];
+        const double point=node.contains("additionalMassKg") ? number(node.at("additionalMassKg"))/1000 : 0;
+        for (int axis=0;axis<3;++axis) { const int r=reducedIndex[i*6+axis]; if (r>=0) mass(r,r)+=point; }
+    }
     for (const auto& e:assembly.elements) {
         Matrix b=Matrix::Zero(12,count);
         for (int local=0;local<12;++local) for (int global=0;global<12;++global) {
@@ -113,6 +120,15 @@ static ModalLevelResult solveModalLevel(const Json& request, const Json& level, 
 static Json calculateModal(const Json& request, Json& stages, std::string& stage) {
     auto phase=[&](const std::string& name) { stage=name; Json record={{"stage",name},{"startedAt",now()}}; stages.push_back(record); emit({{"kind","phase"},{"requestId",request.at("requestId")},{"record",record}}); };
     phase("model-check"); const auto& input=request.at("input"); const auto& definition=input.at("analysisCase");
+    for (const auto& collection:{"nodes","members"}) for (const auto& object:input.at(collection)) {
+        const std::string field=std::string(collection)=="nodes" ? "additionalMassKg" : "additionalLineMassKgM";
+        if (object.contains(field)) {
+            const Json target={{"kind",std::string(collection)=="nodes" ? "node" : "member"},{"id",object.at("id")}};
+            require(object.at(field).is_number(),"Added mass must be a nonnegative finite scalar",target,field);
+            const double value=number(object.at(field));
+            require(std::isfinite(value) && value>=0,"Added mass must be a nonnegative finite scalar",target,field);
+        }
+    }
     const Json modalSolver={{"implementation","framemind-native/5"},{"algorithm","generalized-self-adjoint"},{"constraints","free-dof-elimination"},{"relativePivotTolerance",1e-12}};
     require(input.at("solver")==modalSolver && definition.at("method")=="modal" && definition.at("loadSourceId")=="structure"
         && definition.at("settings").is_object() && definition.at("settings").size()==2 && definition.at("settings").at("solver")=="native-modal", "Unsupported modal contract");
@@ -159,7 +175,19 @@ static Json calculateModal(const Json& request, Json& stages, std::string& stage
         const double length=number(plan.at("frames").at(id(m["id"])).at("length")), density=number(material.at("densityKgM3")), mass=density*number(section.at("areaM2"))*length; total+=mass;
         sources.push_back({{"memberId",m["id"]},{"materialId",m["materialId"]},{"sectionId",m["sectionId"]},{"densityKgM3",density},{"lengthM",length},{"massKg",mass}});
     }
-    Json modal={{"massModel","consistent-eb-with-torsional-inertia"},{"normalization","unit-generalized-mass"},{"massUnit","kN·s²/m"},{"totalMassKg",total},{"sources",sources},
+    Json additionalSources=Json::array(); double additional=0;
+    for (const auto& node:input.at("nodes")) {
+        const double point=node.contains("additionalMassKg") ? number(node.at("additionalMassKg")) : 0;
+        if (point>0) { additional+=point; additionalSources.push_back({{"kind","point"},{"nodeId",node["id"]},{"massKg",point}}); }
+    }
+    for (const auto& member:input.at("members")) {
+        const double line=member.contains("additionalLineMassKgM") ? number(member.at("additionalLineMassKgM")) : 0;
+        const double length=number(plan.at("frames").at(id(member["id"])).at("length")), amount=line*length;
+        if (line>0) { additional+=amount; additionalSources.push_back({{"kind","line"},{"memberId",member["id"]},{"massPerLengthKgM",line},{"lengthM",length},{"massKg",amount}}); }
+    }
+    require(std::isfinite(total) && std::isfinite(additional) && std::isfinite(total+additional),"Nonfinite total mass",nullptr,"mass");
+    Json modal={{"massModel","consistent-eb-with-torsional-inertia"},{"normalization","unit-generalized-mass"},{"massUnit","kN·s²/m"},{"totalMassKg",total+additional},{"sources",sources},
+        {"structuralMassKg",total},{"additionalMassKg",additional},{"additionalSources",additionalSources},
         {"modes",finalResult.modes},{"orthogonalityError",finalResult.orthogonalityError},{"zeroEnergyModes",finalResult.zeroEnergyModes},{"zeroEigenvalueTolerance",finalResult.zeroEigenvalueTolerance},{"eigenproblem",finalResult.eigenproblem},{"selectedDivisions",selectedLevel["divisions"]},
         {"convergence",{{"status",status},{"reason",reason},{"runs",runs}}},
         {"counts",{{"engineeringNodes",input.at("nodes").size()},{"engineeringMembers",input.at("members").size()},{"calculationNodes",input.at("nodes").size()+selectedLevel.at("nodes").size()},
