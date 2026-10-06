@@ -32,6 +32,11 @@ it("solves a uniformly loaded fixed-hinged beam from independent equilibrium and
   expect(r.members[0].localEndForces.start[4]).toBeCloseTo(-4, 9);
   expect(r.members[0].localEndForces.end[4]).toBeCloseTo(0, 9);
   expect(getMemberAnalysisRecord(r, r.members[0].memberId).origin).toBe("captured-from-run");
+  for (const field of ["globalStiffness", "recoveryTransformation", "transformation", "originalLocalStiffness", "localStiffness"] as const) {
+    const modified = structuredClone(r);
+    modified.members[0].nativeReleaseRecovery![field][0][0] += 123456;
+    expect(() => decodeAnalysisResult(modified), field).toThrow();
+  }
 });
 
 it("recovers the actual released beam-end slopes and exact simply-supported UDL deflection", () => {

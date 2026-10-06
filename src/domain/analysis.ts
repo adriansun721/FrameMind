@@ -136,6 +136,10 @@ interface MemberMatrices {
   selfWeightIntensity: Vector3;
   equivalentLocalForces: number[];
   equivalentGlobalForces: number[];
+  originalLocalStiffness: Matrix;
+  originalEquivalentLocalForces: number[];
+  recoveryTransformation: Matrix;
+  releaseOffset: number[];
 }
 
 export interface MemberAnalysisRecord {
@@ -509,18 +513,44 @@ function memberMatrices(input: AnalysisInputSnapshot, member: FrameMember): Memb
   const selfWeightIntensity = getMemberSelfWeightIntensity(input, member, geometry);
   const intensity = { x: uniformIntensity.x + selfWeightIntensity.x, y: uniformIntensity.y + selfWeightIntensity.y, z: uniformIntensity.z + selfWeightIntensity.z };
   const equivalentLocalForces = uniformEquivalentForces(intensity, geometry.length);
+  const originalLocalStiffness = local.map((row) => [...row]);
+  const originalEquivalentLocalForces = [...equivalentLocalForces];
+  const elimination: Array<{ index: number; row: number[]; pivot: number; load: number }> = [];
   // Reconstruct the Schur complement for coefficient/report validation only.
   // Production numerical assembly, solving and beam-end recovery remain in C++.
   for (const [offset, end] of [[0, member.endReleases?.start], [6, member.endReleases?.end]] as const) {
     for (const [component, released] of [[4, end?.my], [5, end?.mz]] as const) if (released) {
       const index = offset + component, pivot = local[index][index];
       const column = local.map((row) => row[index]), row = [...local[index]], load = equivalentLocalForces[index];
+      elimination.push({ index, row, pivot, load });
       local = local.map((values, r) => values.map((value, c) => r === index || c === index ? 0 : value - column[r] * row[c] / pivot));
       for (let r = 0; r < 12; r++) equivalentLocalForces[r] = r === index ? 0 : equivalentLocalForces[r] - column[r] * load / pivot;
     }
   }
+  const recoveryTransformation: Matrix = Array.from({ length: 12 }, (_, i) => Array.from({ length: 12 }, (_, j) => i === j ? 1 : 0));
+  const releaseOffset = zeros(12);
+  for (const step of [...elimination].reverse()) {
+    recoveryTransformation[step.index] = zeros(12);
+    releaseOffset[step.index] = step.load / step.pivot;
+    for (let c = 0; c < 12; c++) if (c !== step.index) {
+      const coefficient = -step.row[c] / step.pivot;
+      for (let j = 0; j < 12; j++) recoveryTransformation[step.index][j] += coefficient * recoveryTransformation[c][j];
+      releaseOffset[step.index] += coefficient * releaseOffset[c];
+    }
+  }
   const equivalentGlobalForces = transpose(transform).map((row) => row.reduce((sum, value, index) => sum + value * equivalentLocalForces[index], 0));
-  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform), uniformIntensity, intensity, selfWeightIntensity, equivalentLocalForces, equivalentGlobalForces };
+  return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform), uniformIntensity, intensity, selfWeightIntensity, equivalentLocalForces, equivalentGlobalForces,
+    originalLocalStiffness, originalEquivalentLocalForces, recoveryTransformation, releaseOffset };
+}
+
+/** Coefficient reconstruction for validating captured process data; never solves a structure. */
+export function getFrozenMemberCoefficients(input: AnalysisInputSnapshot, memberId: string) {
+  const member = input.members.find((m) => m.id === memberId);
+  if (!member) throw new Error("冻结输入不存在该杆件");
+  const data = memberMatrices(input, member);
+  return { originalLocalStiffness: data.originalLocalStiffness, localStiffness: data.local, transformation: data.transform,
+    recoveryTransformation: data.recoveryTransformation, releaseOffset: data.releaseOffset, globalStiffness: data.global,
+    originalEquivalentLocalForces: data.originalEquivalentLocalForces, equivalentLocalForces: data.equivalentLocalForces, equivalentGlobalForces: data.equivalentGlobalForces };
 }
 
 function getMemberSelfWeightIntensity(input: AnalysisInputSnapshot, member: FrameMember, geometry: MemberGeometry): Vector3 {

@@ -337,7 +337,7 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
     }
     const sourceMember = inputMembers.find((m) => m.id === member.memberId);
     const nativeReleaseRecovery = sourceMember && hasMemberReleases(sourceMember)
-      ? decodeNativeReleaseRecovery(member.nativeReleaseRecovery, sourceMember, [...forceVector(endForces.start, "end forces"), ...forceVector(endForces.end, "end forces")]) : undefined;
+      ? decodeNativeReleaseRecovery(member.nativeReleaseRecovery, sourceMember, [...forceVector(endForces.start, "end forces"), ...forceVector(endForces.end, "end forces")], input, nodes) : undefined;
     if (nativeReleaseRecovery && !sameInputValue(input.solver, NATIVE_RELEASE_STATIC_SOLVER)) throw new Error("Unsupported release result solver");
     return { memberId: requireString(member.memberId, "分析结果杆件缺少标识"), length, localAxes: { x: finiteVector(localAxes.x, "局部轴"), y: finiteVector(localAxes.y, "局部轴"), z: finiteVector(localAxes.z, "局部轴") }, localEndForces: { start: forceVector(endForces.start, "杆端内力"), end: forceVector(endForces.end, "杆端内力") }, ...(nativeResponses ? { nativeResponses } : {}), ...(nativeReleaseRecovery ? { nativeReleaseRecovery } : {}) };
   });
@@ -365,6 +365,9 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
       const expectedIndices = [member.startNodeId, member.endNodeId].flatMap((nodeId) => ANALYSIS_DOF_ORDER.map((_, dof) => inputNodes.findIndex((node) => node.id === nodeId) * 6 + dof));
       if (contribution.memberId !== member.id || !sameInputValue(contribution.globalDofIndices, expectedIndices)
         || !sameInputValue(contribution.dofs, expectedIndices.map((dof) => expectedDofs[dof]))) throw new Error("原生分析自由度分区或对象映射不完整");
+      const recovery = members[index].nativeReleaseRecovery;
+      if (recovery && (!sameInputValue(contribution.globalStiffness, recovery.globalStiffness)
+        || !sameInputValue(contribution.equivalentGlobalForces, recovery.equivalentGlobalForces))) throw new Error("原生释放恢复与实际组装贡献不一致");
     }
   }
   return { id, projectId, projectRevision, createdAt, status: "complete", input, nodes, members, process, service };

@@ -1,9 +1,9 @@
 import { calculateMemberGeometry } from "./member-geometry";
 import type { FrameMember } from "./project";
-import { NATIVE_RELEASE_STATIC_SOLVER, sameInputValue, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type NativeReleaseRecovery } from "./analysis";
+import { NATIVE_RELEASE_STATIC_SOLVER, getFrozenMemberCoefficients, sameInputValue, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type NativeReleaseRecovery, type NodeAnalysisResult } from "./analysis";
 
 /** Validate captured numerical work before it enters persistence, process views or reports. */
-export function decodeNativeReleaseRecovery(value: unknown, member: FrameMember, ends: number[]): NativeReleaseRecovery {
+export function decodeNativeReleaseRecovery(value: unknown, member: FrameMember, ends: number[], inputSnapshot: AnalysisInputSnapshot, nodes: NodeAnalysisResult[]): NativeReleaseRecovery {
   if (!value || typeof value !== "object") throw new Error("释放杆件缺少原生恢复记录");
   const input = value as Record<string, unknown>;
   const vector = (key: string): number[] => {
@@ -20,6 +20,23 @@ export function decodeNativeReleaseRecovery(value: unknown, member: FrameMember,
     transformation: matrix("transformation"), recoveryTransformation: matrix("recoveryTransformation"), globalStiffness: matrix("globalStiffness"),
     localDisplacement: vector("localDisplacement"), originalEquivalentLocalForces: vector("originalEquivalentLocalForces"),
     equivalentLocalForces: vector("equivalentLocalForces"), equivalentGlobalForces: vector("equivalentGlobalForces") };
+  const expected = getFrozenMemberCoefficients(inputSnapshot, member.id);
+  const matches = (actual: number[], reference: number[]) => actual.length === reference.length
+    && actual.every((value, index) => Math.abs(value - reference[index]) <= 1e-9 * Math.max(1, Math.abs(reference[index])));
+  for (const key of ["originalLocalStiffness", "localStiffness", "transformation", "recoveryTransformation", "globalStiffness"] as const) {
+    if (!matches(r[key].flat(), expected[key].flat())) throw new Error(`原生释放 ${key} 与冻结系数不一致`);
+  }
+  for (const key of ["originalEquivalentLocalForces", "equivalentLocalForces", "equivalentGlobalForces"] as const) {
+    if (!matches(r[key], expected[key])) throw new Error(`原生释放 ${key} 与冻结荷载不一致`);
+  }
+  const globalU = [member.startNodeId, member.endNodeId].flatMap((id) => {
+    const node = nodes.find((n) => n.nodeId === id);
+    if (!node) throw new Error("原生释放恢复缺少端部节点结果");
+    return [node.displacement.x, node.displacement.y, node.displacement.z, node.rotation.x, node.rotation.y, node.rotation.z];
+  });
+  const transformed = expected.transformation.map((row) => row.reduce((sum, k, j) => sum + k * globalU[j], 0));
+  const recovered = expected.recoveryTransformation.map((row, i) => row.reduce((sum, k, j) => sum + k * transformed[j], expected.releaseOffset[i]));
+  if (r.localDisplacement.some((value, i) => Math.abs(value - recovered[i]) > Math.max(1e-12, Math.abs(recovered[i]) * 1e-9))) throw new Error("原生梁端恢复位移与节点位移不一致");
   const tolerance = Math.max(1e-9, ...ends.map((v) => Math.abs(v) * 1e-10));
   for (let i = 0; i < 12; i++) {
     const recovered = r.originalLocalStiffness[i].reduce((sum, k, j) => sum + k * r.localDisplacement[j], 0) - r.originalEquivalentLocalForces[i];
