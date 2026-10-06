@@ -3,6 +3,7 @@ import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
 import { selectedMeshLevel } from "../domain/analysis-mesh";
 import type { FrameProject, Vector3 } from "../domain/project";
+import { BUCKLING_MEANING } from "../domain/buckling";
 import { modalDampingStatus, modalTruncationCheck } from "../domain/modal-damping";
 
 export interface ResultReference {
@@ -80,6 +81,14 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
   const provenance = { ...analysisProvenance(result, current), ...(result.modal ? { damping: project ? modalDampingStatus(project, result) : { status: "missing", message: "需读取项目阻尼配置", truncation: modalTruncationCheck(result) } } : {}) };
+  if (result.buckling) {
+    if (input.fields !== undefined || input.query !== undefined || !["summary", "modes", "mesh"].includes(collection)) throw new Error("屈曲仅支持 summary、modes、mesh；屈曲形态不是静力位移、内力或质量");
+    const b = result.buckling;
+    if (collection === "summary") return { ...provenance, method: "buckling", meaning: BUCKLING_MEANING, loads: result.input.bucklingLoads, modes: b.modes.map(({ number, factor, residual }) => ({ number, factor, residual })), convergence: b.convergence, counts: b.counts, prestress: b.prestress, normalization: b.normalization };
+    const items = collection === "modes" ? b.modes : result.input.meshPlan!.levels.find((l) => l.divisions === b.selectedDivisions)!.elements;
+    const pageItems = items.slice(offset, offset + limit);
+    return { ...provenance, meaning: BUCKLING_MEANING, collection, total: items.length, offset, limit, items: pageItems, page: { empty: !pageItems.length, hasMore: offset + pageItems.length < items.length, nextOffset: offset + pageItems.length } };
+  }
   if (result.modal) {
     if (input.fields !== undefined || input.query !== undefined) throw new Error("模态仅支持完整条目的分页读取");
     if (["nodes", "members"].includes(collection)) throw new Error("模态振型不是静力位移或内力；请读取 modes");

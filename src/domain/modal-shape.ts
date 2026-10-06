@@ -4,7 +4,7 @@ import type { ModalRecord, ModalShape } from "./modal";
 
 /** Check captured engineering shapes against the actual calculation coordinates.
  * No eigensolver or static response reconstruction runs in the renderer. */
-export function validateModalShapeMapping(input: AnalysisInputSnapshot, level: MeshLevel, problem: ModalRecord["eigenproblem"], modes: ModalShape[]): void {
+export function validateModalShapeMapping(input: AnalysisInputSnapshot, level: MeshLevel, problem: Pick<ModalRecord["eigenproblem"], "coordinates" | "releaseNullRotations" | "vectors">, modes: Array<Pick<ModalShape, "nodes" | "members">>): void {
   const fail = () => { throw new Error("振型分量与冻结计算坐标不一致"); };
   const near = (a: number, b: number) => Number.isFinite(a) && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
   const restrained = new Set(input.supports.flatMap((s) => input.dofOrder.filter((_, i) => s.restraints[i]).map((d) => `node:${s.nodeId}:${d}`)));

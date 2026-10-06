@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "native": "framemind-native/6",
+  "modes": 3,
+  "counts": {
+    "calculationElements": 16,
+    "calculationNodes": 17,
+    "engineeringMembers": 1,
+    "engineeringNodes": 2,
+    "equations": 96,
+    "releaseCoordinates": 0
+  },
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ],
+  "reopened": true,
+  "located": "node_0002",
+  "amplitudeDoesNotChangeStoredShapes": true
+}

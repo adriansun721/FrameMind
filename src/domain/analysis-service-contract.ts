@@ -23,13 +23,14 @@ export interface AnalysisRunRecord {
   projectRevision: number;
   origin: AnalysisOrigin;
   sourceId: string;
-  dependencies: Array<{ loadCaseId: string; factor: number }>;
+  dependencies: Array<{ loadCaseId: string; factor: number; role?: "fixed" | "reference" }>;
   solver: AnalysisSolverConfig;
   status: "complete" | "failed" | "cancelled";
   stages: AnalysisStageRecord[];
 }
 
 export function analysisDependencies(input: AnalysisInputSnapshot): AnalysisRunRecord["dependencies"] {
+  if (input.analysisCase?.method === "buckling") return (["fixed", "reference"] as const).flatMap((role) => input.analysisCase!.settings.buckling![role].map((t) => ({ ...t, role })));
   return input.analysisCase?.method === "modal" ? [] : input.combination ? input.combination.definition.terms.map((term) => ({ ...term }))
     : [{ loadCaseId: input.loadCase?.id ?? "LC1", factor: 1 }];
 }

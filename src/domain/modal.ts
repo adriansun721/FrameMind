@@ -45,6 +45,10 @@ export interface ModalRecord {
 export function modalDisplayResult(result: AnalysisResult, modeNumber: number): AnalysisResult {
   const mode = result.modal?.modes.find((m) => m.number === modeNumber) ?? result.modal?.modes[0];
   if (!mode) return result;
+  return eigenShapeDisplayResult(result, mode);
+}
+
+export function eigenShapeDisplayResult(result: AnalysisResult, mode: Pick<ModalShape, "nodes" | "members">): AnalysisResult {
   const peak = Math.max(1e-30, ...mode.members.flatMap((m) => m.samples.map((s) => Math.hypot(s.translation.x, s.translation.y, s.translation.z))));
   const factor = 0.001 / peak;
   const scale = (v: { x: number; y: number; z: number }) => ({ x: v.x * factor, y: v.y * factor, z: v.z * factor });

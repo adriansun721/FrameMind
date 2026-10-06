@@ -1,3 +1,5 @@
+import { DEFAULT_BUCKLING_SETTINGS } from "../domain/buckling";
+import { BucklingSettingsEditor } from "./BucklingSettingsEditor";
 import { DEFAULT_MODAL_SETTINGS } from "../domain/modal";
 import { useState, type FormEvent } from "react";
 import { DEFAULT_MESH_POLICY } from "../domain/analysis-mesh";
@@ -15,19 +17,21 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   const [name, setName] = useState(initial?.name ?? "");
   const [sourceId, setSourceId] = useState(initial?.loadSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
   const [method, setMethod] = useState<AnalysisMethod>(initial?.method ?? "static");
+  const [buckling, setBuckling] = useState(initial?.settings.buckling ?? structuredClone({ ...DEFAULT_BUCKLING_SETTINGS, reference: [{ loadCaseId: project.activeLoadCaseId, factor: 1 }] }));
   const [modal, setModal] = useState(initial?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
   const [error, setError] = useState<string>();
   const [mesh, setMesh] = useState(initial?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   const edit = (id: string) => {
     const item = project.analysisCases.find((c) => c.id === id);
     setEditingId(id); setName(item?.name ?? ""); setSourceId(item?.loadSourceId ?? project.activeLoadCaseId); setError(undefined);
+    setBuckling(item?.settings.buckling ?? structuredClone({ ...DEFAULT_BUCKLING_SETTINGS, reference: [{ loadCaseId: project.activeLoadCaseId, factor: 1 }] }));
     setMethod(item?.method ?? "static"); setModal(item?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
     setMesh(item?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   };
   const save = (event: FormEvent) => {
     event.preventDefault();
     try {
-      const properties = method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
+      const properties = method === "buckling" ? { name, method, loadSourceId: "buckling", settings: { solver: "native-buckling" as const, buckling } } : method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
       const next = editingId ? updateAnalysisCase(project, editingId, properties) : addAnalysisCase(project, properties);
       const id = editingId || next.analysisCases.at(-1)!.id;
       onChange(selectAnalysisCase(next, id)); setEditingId(id); setError(undefined);
@@ -57,6 +61,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
           <label className="field"><span>每杆最大计算单元</span><select value={mesh.maxDivisions} onChange={(e) => setMesh({ ...mesh, maxDivisions: Number(e.target.value) })}>{[1, 2, 4, 8, 16].map((n) => <option key={n}>{n}</option>)}</select></label>
           {([['maxEquations', '最大计算方程数'], ['relativeTolerance', '细分相对误差'], ['displacementTolerance', '位移绝对误差（m / rad）'], ['forceTolerance', '内力绝对误差（kN / kN·m）']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input type="number" step="any" value={mesh[key]} onChange={(e) => setMesh({ ...mesh, [key]: Number(e.target.value) })} /></label>)}
         </details></>}
+        {method === "buckling" && <BucklingSettingsEditor project={project} value={buckling} onChange={setBuckling} />}
         {method === "modal" && <>
           <p>密度 × 截面积 × 杆长形成结构质量，静力荷载和自重开关不参与质量。Euler-Bernoulli 一致质量，忽略剪切及弯曲转动惯性，保留扭转惯性。</p>
           {([['modeCount', '提取模态数'], ['maxEquations', '模态最大方程数'], ['frequencyTolerance', '频率细分相对误差']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input aria-label={label} type="number" step="any" value={modal[key]} onChange={(e) => setModal({ ...modal, [key]: Number(e.target.value) })} /></label>)}

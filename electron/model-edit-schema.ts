@@ -29,8 +29,13 @@ const mergeProperties = { ...NODE_MERGE_SELECTION_SCHEMA, resolution: { type: "o
   } } };
 
 const analysisCase = { type: "object", additionalProperties: false, required: ["name", "method", "loadSourceId", "settings"], properties: {
-  name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static", "modal"] }, loadSourceId: identity,
-  settings: { type: "object", additionalProperties: false, required: ["solver"], properties: { solver: { enum: ["native-static", "native-modal"] },
+  name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static", "modal", "buckling"] }, loadSourceId: identity,
+  settings: { type: "object", additionalProperties: false, required: ["solver"], properties: { solver: { enum: ["native-static", "native-modal", "native-buckling"] },
+    buckling: { type: "object", additionalProperties: false, required: ["fixed", "reference", "modeCount", "maxDivisions", "maxEquations", "factorTolerance"], properties: {
+      fixed: { type: "array", items: { type: "object", additionalProperties: false, required: ["loadCaseId", "factor"], properties: { loadCaseId: identity, factor: { type: "number" } } } },
+      reference: { type: "array", minItems: 1, items: { type: "object", additionalProperties: false, required: ["loadCaseId", "factor"], properties: { loadCaseId: identity, factor: { type: "number" } } } },
+      modeCount: { type: "integer", minimum: 1, maximum: 20 }, maxDivisions: { enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 1200 }, factorTolerance: { type: "number", exclusiveMinimum: 0, maximum: .01 }
+    } },
     modal: { type: "object", additionalProperties: false, required: ["modeCount", "maxDivisions", "maxEquations", "frequencyTolerance"], properties: {
       modeCount: { type: "integer", minimum: 1, maximum: 50 }, maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 1200 }, frequencyTolerance: { type: "number", exclusiveMinimum: 0, maximum: 0.01 },
     }, description: "Modal: loadSourceId=structure, solver=native-modal, no mesh. Density forms mass independently of static loads/self-weight." },

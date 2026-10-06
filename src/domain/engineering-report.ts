@@ -24,6 +24,7 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
   const selected = project.analysisResults.find((result) => result.id === analysisId);
   if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
   const result = decodeAnalysisResult(structuredClone(selected));
+  if (result.buckling) throw new Error("屈曲计算书由 T2-37 接入；请在屈曲因子与形态面板核查");
   if (result.modal) throw new Error("模态结果请在频率与振型面板核查；模态计算书由 T2-37 接入");
   if (!result.input.nodes.length || !result.input.members.length) throw new Error("分析输入缺少节点或杆件，不能导出成功报告");
   for (const member of result.input.members) {

@@ -1,3 +1,4 @@
+import { decodeBucklingResult } from "./buckling";
 import { decodeModalResult } from "./modal";
 import { dampingMatchesResult } from "./modal-damping";
 import { validateAdditionalMass } from "./additional-mass";
@@ -255,8 +256,13 @@ function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, 
     });
     combination = { definition: decodeLoadCombination(input.combination.definition, cases.map((source) => source.loadCase)), cases };
   }
-  const analysisCase = input.analysisCase === undefined ? undefined : decodeAnalysisCase(input.analysisCase, { loadCases: loadCase ? [loadCase] : [], loadCombinations: combination ? [combination.definition] : [] });
-  if (analysisCase && analysisCase.method !== "modal" && analysisCase.loadSourceId !== (combination?.definition.id ?? loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
+  const bucklingLoads = input.bucklingLoads as AnalysisInputSnapshot["bucklingLoads"];
+  if (bucklingLoads) for (const pattern of [bucklingLoads.fixed, bucklingLoads.reference]) {
+    if (pattern) decodeAnalysisInput({ ...input, ...pattern, bucklingLoads: undefined, analysisCase: undefined, meshPlan: undefined }, projectId, projectRevision, internal);
+  }
+  const bucklingCases = [...bucklingLoads?.fixed?.combination?.cases ?? [], ...bucklingLoads?.reference?.combination?.cases ?? []];
+  const analysisCase = input.analysisCase === undefined ? undefined : decodeAnalysisCase(input.analysisCase, { loadCases: bucklingLoads ? bucklingCases.map((c) => c.loadCase) : loadCase ? [loadCase] : [], loadCombinations: combination ? [combination.definition] : [] });
+  if (analysisCase && !["modal", "buckling"].includes(analysisCase.method) && analysisCase.loadSourceId !== (combination?.definition.id ?? loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
   const decoded = { ...input, analysisCase, loadCase, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight, combination } as AnalysisInputSnapshot;
   validateCombinationInput(decoded);
   return freezeAnalysisInput(decoded);
@@ -324,6 +330,7 @@ function decodeResult(value: unknown, internal: boolean): AnalysisResult {
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
   const input = decodeAnalysisInput(value.input, projectId, projectRevision, internal);
+  if (input.solver?.implementation === "framemind-native/6" || input.analysisCase?.method === "buckling") return decodeBucklingResult(value, input, (packet) => decodeResult(packet, true));
   if (input.solver?.implementation === "framemind-native/5" || input.analysisCase?.method === "modal") return decodeModalResult(value, input);
   if (input.solver?.implementation === "framemind-native/4") return decodeMeshResult(value, input, (packet) => decodeResult(packet, true));
   const inputNodes = input.nodes; const inputMembers = input.members;

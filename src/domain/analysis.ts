@@ -1,3 +1,4 @@
+import { bucklingPattern, type BucklingRecord, type BucklingLoadPattern } from "./buckling";
 import type { ModalRecord } from "./modal";
 import { hasMemberReleases } from "./member-releases";
 import { selectedMeshLevel, type MeshPlan, type DiscretizationRecord } from "./analysis-mesh";
@@ -45,8 +46,10 @@ export const NATIVE_MESH_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.
 
 export const NATIVE_MODAL_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/5", algorithm: "generalized-self-adjoint" });
 
+export const NATIVE_BUCKLING_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_MODAL_SOLVER, implementation: "framemind-native/6" });
+
 export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
-  return sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
+  return sameInputValue(solver, NATIVE_BUCKLING_SOLVER) || sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
 }
 
 export interface AnalysisAssumptions {
@@ -60,6 +63,7 @@ export interface AnalysisAssumptions {
 export interface AnalysisInputSnapshot {
   /** Private inherited frames for validated internal calculation runs only. */
   calculationFrames?: Record<string, MemberGeometry>;
+  bucklingLoads?: { fixed: BucklingLoadPattern | null; reference: BucklingLoadPattern };
   meshPlan?: MeshPlan;
   projectId: string;
   projectRevision: number;
@@ -117,6 +121,7 @@ export interface NativeReleaseRecovery {
 }
 
 export interface AnalysisResult {
+  buckling?: BucklingRecord;
   modal?: ModalRecord;
   discretization?: DiscretizationRecord;
   id: string;
@@ -370,6 +375,14 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
 export function captureAnalysisInput(project: FrameProject, loadCaseId?: string): AnalysisInputSnapshot {
   if (loadCaseId === undefined && project.activeAnalysisCaseId) {
     const { damping: _damping, ...analysisCase } = validateAnalysisCase(project, requireAnalysisCase(project, project.activeAnalysisCaseId));
+    if (analysisCase.method === "buckling") {
+      const base = captureAnalysisInput({ ...project, activeAnalysisCaseId: undefined, activeLoadCombinationId: undefined }, project.activeLoadCaseId);
+      const pattern = (terms: import("./project").LoadCombinationTerm[]) => bucklingPattern(base, terms, terms.map((term) => {
+        const i = captureAnalysisInput(project, term.loadCaseId); return { loadCase: i.loadCase!, nodalLoads: i.nodalLoads, uniformLoads: i.uniformLoads!, selfWeight: i.selfWeight! };
+      }));
+      const settings = analysisCase.settings.buckling!;
+      return freezeAnalysisInput({ ...base, analysisCase, solver: { ...NATIVE_BUCKLING_SOLVER }, nodalLoads: [], uniformLoads: [], selfWeight: { ...base.selfWeight!, enabled: false }, bucklingLoads: { fixed: pattern(settings.fixed), reference: pattern(settings.reference)! } });
+    }
     if (analysisCase.method === "modal") {
       const base = captureAnalysisInput({ ...project, activeAnalysisCaseId: undefined, activeLoadCombinationId: undefined }, project.activeLoadCaseId);
       return freezeAnalysisInput({ ...base, analysisCase, solver: { ...NATIVE_MODAL_SOLVER }, nodalLoads: [], uniformLoads: [], selfWeight: { ...base.selfWeight!, enabled: false } });
@@ -489,7 +502,7 @@ export function analysisInputDependencies(input: AnalysisInputSnapshot): unknown
   const materialIds = new Set(input.members.map((m) => m.materialId));
   const sectionIds = new Set(input.members.map((m) => m.sectionId));
   const selfWeight = (value: FrameSelfWeight | undefined) => value?.enabled ? value : { enabled: false };
-  const hasSelfWeight = input.selfWeight?.enabled || input.combination?.cases.some((c) => c.selfWeight.enabled && input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0));
+  const hasSelfWeight = input.bucklingLoads?.fixed?.selfWeight?.enabled || input.bucklingLoads?.reference.selfWeight?.enabled || input.selfWeight?.enabled || input.combination?.cases.some((c) => c.selfWeight.enabled && input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0));
   const conditions = (value: Pick<AnalysisInputSnapshot, "loadCase" | "nodalLoads" | "uniformLoads" | "selfWeight">) => ({
     loadCase: value.loadCase, nodalLoads: sorted(value.nodalLoads), uniformLoads: sorted(value.uniformLoads ?? []), selfWeight: selfWeight(value.selfWeight),
   });
@@ -500,7 +513,7 @@ export function analysisInputDependencies(input: AnalysisInputSnapshot): unknown
     members: sorted(input.members).map(({ additionalLineMassKgM, ...m }) => ({ ...m, ...(input.analysisCase?.method === "modal" ? { additionalLineMassKgM: additionalLineMassKgM ?? 0 } : {}) })), supports: sorted(input.supports),
     materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight || input.analysisCase?.method === "modal" ? { densityKgM3 } : {}) })),
     sections: sorted(input.sections.filter((s) => sectionIds.has(s.id))).map(({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 }) => ({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 })),
-    conditions: input.analysisCase?.method === "modal" ? undefined : input.combination ? {
+    conditions: input.bucklingLoads ? Object.fromEntries((["fixed", "reference"] as const).map((role) => [role, input.bucklingLoads![role]?.combination?.cases.filter((c) => input.analysisCase!.settings.buckling![role].some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions) ?? []])) : input.analysisCase?.method === "modal" ? undefined : input.combination ? {
       id: input.combination.definition.id,
       terms: [...input.combination.definition.terms].sort((a, b) => a.loadCaseId.localeCompare(b.loadCaseId)),
       cases: input.combination.cases.filter((c) => input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions),

@@ -1,3 +1,4 @@
+import { validateBucklingSettings, type BucklingSettings } from "./buckling";
 import { validateAdditionalMass } from "./additional-mass";
 import { validateModalDampingBinding, type ModalDampingBinding } from "./modal-damping";
 import { validateModalSettings, type ModalSettings } from "./modal";
@@ -52,7 +53,7 @@ export interface FrameAnalysisCase {
   name: string;
   method: AnalysisMethod;
   loadSourceId: string;
-  settings: { solver: "native-static" | "native-modal"; mesh?: MeshPolicy; modal?: ModalSettings };
+  settings: { solver: "native-static" | "native-modal" | "native-buckling"; mesh?: MeshPolicy; modal?: ModalSettings; buckling?: BucklingSettings };
   legacySourceId?: string;
   damping?: ModalDampingBinding;
 }
@@ -508,10 +509,15 @@ export function selectLoadCase(project: FrameProject, id: string): FrameProject 
   return { ...project, activeLoadCaseId: id, activeLoadCombinationId: undefined, activeAnalysisCaseId: undefined };
 }
 
+function analysisCaseUsesLoadCase(project: FrameProject, item: FrameAnalysisCase, id: string): boolean {
+  if (item.method === "buckling") return [...item.settings.buckling!.fixed, ...item.settings.buckling!.reference].some((t) => t.loadCaseId === id);
+  return item.loadSourceId === id || project.loadCombinations.some((c) => c.id === item.loadSourceId && c.terms.some((t) => t.loadCaseId === id));
+}
+
 export function getLoadCaseReferences(project: FrameProject, id: string): { loads: number; results: number; combinations: number; analyses: number } {
-  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => !result.input.combination && getAnalysisLoadCaseId(result.input) === id || result.input.combination?.definition.terms.some((term) => term.loadCaseId === id)).length,
+  return { loads: project.nodalLoads.filter((load) => load.loadCaseId === id).length + project.uniformLoads.filter((load) => load.loadCaseId === id).length + Number(project.selfWeight.enabled && project.selfWeight.loadCaseId === id), results: project.analysisResults.filter((result) => result.input.bucklingLoads ? [...result.input.analysisCase!.settings.buckling!.fixed, ...result.input.analysisCase!.settings.buckling!.reference].some((t) => t.loadCaseId === id) : !result.input.combination && getAnalysisLoadCaseId(result.input) === id || result.input.combination?.definition.terms.some((term) => term.loadCaseId === id)).length,
     combinations: project.loadCombinations.filter((item) => item.terms.some((term) => term.loadCaseId === id)).length,
-    analyses: project.analysisCases.filter((item) => item.loadSourceId === id || project.loadCombinations.some((c) => c.id === item.loadSourceId && c.terms.some((t) => t.loadCaseId === id))).length };
+    analyses: project.analysisCases.filter((item) => analysisCaseUsesLoadCase(project, item, id)).length };
 }
 
 export function deleteLoadCase(project: FrameProject, id: string, removeReferences = false): FrameProject {
@@ -524,9 +530,10 @@ export function deleteLoadCase(project: FrameProject, id: string, removeReferenc
   const selfWeight = project.selfWeight.loadCaseId === id ? { ...project.selfWeight, enabled: false, loadCaseId: loadCases[0].id } : project.selfWeight;
   const removedIds = new Set(project.loadCombinations.filter((item) => item.terms.some((term) => term.loadCaseId === id)).map((item) => item.id));
   removedIds.add(id);
+  const analysisCases = project.analysisCases.filter((item) => !analysisCaseUsesLoadCase(project, item, id));
   return { ...project, loadCases, activeLoadCaseId, selfWeight,
-    analysisCases: project.analysisCases.filter((item) => !removedIds.has(item.loadSourceId)),
-    activeAnalysisCaseId: removedIds.has(project.analysisCases.find((item) => item.id === project.activeAnalysisCaseId)?.loadSourceId ?? "") ? undefined : project.activeAnalysisCaseId,
+    analysisCases,
+    activeAnalysisCaseId: analysisCases.some((item) => item.id === project.activeAnalysisCaseId) ? project.activeAnalysisCaseId : undefined,
     loadCombinations: project.loadCombinations.filter((item) => !removedIds.has(item.id)), activeLoadCombinationId: project.activeLoadCombinationId && removedIds.has(project.activeLoadCombinationId) ? undefined : project.activeLoadCombinationId,
     nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId !== id), uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId !== id), ...nextRevision(project) };
 }
@@ -535,6 +542,10 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
   if (!value || typeof value.id !== "string" || !/^AC[1-9]\d*$/.test(value.id) || !Number.isSafeInteger(Number(value.id.slice(2)))) throw new Error("分析工况标识无效");
   requireAnalysisCapability(value.method);
   if (typeof value.name !== "string" || !value.name.trim()) throw new Error("分析工况名称不能为空");
+  if (value.method === "buckling") {
+    if (value.loadSourceId !== "buckling" || value.legacySourceId !== undefined || value.damping !== undefined || !value.settings || value.settings.solver !== "native-buckling" || Object.keys(value.settings).sort().join() !== "buckling,solver") throw new Error("屈曲须独立指定固定／参考荷载与求解设置");
+    return { id: value.id, name: value.name.trim(), method: "buckling", loadSourceId: "buckling", settings: { solver: "native-buckling", buckling: validateBucklingSettings(project, value.settings.buckling) } };
+  }
   if (value.method === "modal") {
     if (value.loadSourceId !== "structure" || value.legacySourceId !== undefined || !value.settings || value.settings.solver !== "native-modal" || Object.keys(value.settings).some((key) => !["solver", "modal"].includes(key))) throw new Error("模态仅使用结构质量，不接受荷载来源或静力设置");
     return { id: value.id, name: value.name.trim(), method: "modal", loadSourceId: "structure", settings: { solver: "native-modal", modal: validateModalSettings(value.settings.modal) }, ...(value.damping === undefined ? {} : { damping: validateModalDampingBinding(value.damping) }) };
@@ -569,7 +580,7 @@ export function requireAnalysisCase(project: Pick<FrameProject, "analysisCases">
 
 export function selectAnalysisCase(project: FrameProject, id: string): FrameProject {
   const item = requireAnalysisCase(project, id);
-  if (item.method === "modal") return { ...project, activeAnalysisCaseId: id, activeLoadCombinationId: undefined };
+  if (item.method === "modal" || item.method === "buckling") return { ...project, activeAnalysisCaseId: id, activeLoadCombinationId: undefined };
   const selected = project.loadCombinations.some((c) => c.id === item.loadSourceId) ? selectLoadCombination(project, item.loadSourceId) : selectLoadCase(project, item.loadSourceId);
   return { ...selected, activeAnalysisCaseId: id };
 }
