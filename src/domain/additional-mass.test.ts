@@ -68,7 +68,7 @@ it("confirms unit-declared mass drafts once and exposes frozen source queries", 
   const r = solve(applied.project), saved = decodeProject(encodeProject(attachAnalysisResult(applied.project, r)));
   expect(r.modal).toMatchObject({ structuralMassKg: expect.closeTo(471, 10), additionalMassKg: 160, totalMassKg: expect.closeTo(631, 10) });
   const read = executeAiTool(captureAiSnapshot(saved, []), { id: "source", type: "function", function: { name: "read_results", arguments: '{"collection":"mass","offset":1,"limit":2,"outputUnitPreset":"mm-N"}' } });
-  expect(read.data).toMatchObject({ items: [{ kind: "point", nodeId: p.nodes[1].id, massKg: 100 }, { kind: "line", memberId: p.members[0].id, massPerLengthKgM: .02, massKg: 60 }] });
+  expect(read.data).toMatchObject({ items: [{ kind: "point", nodeId: p.nodes[1].id, massKg: 100 }, { kind: "line", memberId: p.members[0].id, massPerLengthKgM: .02, lengthM: 3000, massKg: 60 }] });
   expect(unitPresentation("mm-N").quantity(20, "kg/m")).toBe("0.02 kg/mm");
   expect(convertQuantity(.02, "lineMass", "kg/mm", "kg/m")).toBe(20);
   expect(() => convertQuantity(1, "lineMass", "kN/m", "kg/m")).toThrow();
