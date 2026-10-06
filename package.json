@@ -46,7 +46,8 @@
     "evidence:t34:online": "node scripts/verify-t34-install.cjs --online",
     "delivery:t34": "node scripts/create-t34-delivery.cjs",
     "evidence:plan2:t222": "npm run build:native && npm run build && node scripts/verify-plan2-t222.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-22-sections.spec.ts",
-    "evidence:plan2:t223": "npm run build:native && npm run build && node scripts/verify-plan2-t223.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-23-catalog.spec.ts e2e/t13-resource-library.spec.ts"
+    "evidence:plan2:t223": "npm run build:native && npm run build && node scripts/verify-plan2-t223.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-23-catalog.spec.ts e2e/t13-resource-library.spec.ts",
+    "evidence:plan2:t224": "npm run build:native && npm run build && npx vitest run src/components/engineering-scene-model.test.ts src/components/scene-labels.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-24-rendering.spec.ts e2e/ui04-engineering-viewport.spec.ts e2e/t14-results.spec.ts"
   },
   "dependencies": {
     "docx": "^9.7.1",

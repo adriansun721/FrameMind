@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "widths": [
+    1440,
+    1080
+  ],
+  "modes": [
+    "solid",
+    "line"
+  ],
+  "members": 7,
+  "nodes": 14,
+  "mousePicking": true,
+  "canvasPreserved": true,
+  "immutableModelAndAnalysis": true,
+  "analysisId": "analysis_ab7ae7af-f12a-4d06-8799-c361cef77b74"
+}

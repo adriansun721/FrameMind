@@ -91,7 +91,7 @@ test("UI04 preserves the rotated and zoomed camera across consecutive tree selec
   }
 });
 
-test("UI04 presents members as an analysis-line model without rebuilding the viewport", async () => {
+test("UI04 can switch members to analysis lines without rebuilding the viewport", async () => {
   const { app, page } = await launchFrameMind();
 
   await createNode(page, ["0", "0", "0"]);
@@ -105,6 +105,7 @@ test("UI04 presents members as an analysis-line model without rebuilding the vie
   await page.getByRole("dialog", { name: "连接空间杆件" }).getByRole("button", { name: "添加杆件" }).click();
 
   await expect(page.getByTestId("viewport-member-count")).toHaveText("1 根杆件");
+  await page.getByRole("group", { name: "构件显示" }).getByRole("button", { name: "分析线", exact: true }).click();
   await expect(page.locator(".view-chip")).toHaveText("分析线 · 透视");
   await expect(page.getByTestId("viewport-member-details")).toContainText("分析线模型");
   await expect(page.getByTestId("viewport-member-details")).not.toContainText("等效面积轮廓");

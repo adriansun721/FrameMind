@@ -1,5 +1,5 @@
 import { useUnits } from "./UnitPresentation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Scan, Weight } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -12,7 +12,9 @@ import { useWorkPlaneDrawing, WorkPlaneDrawingPanel } from "./WorkPlaneDrawing";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { uniformLoadVector } from "../domain/uniform-loads";
 import { getMemberResponseSamples, type AnalysisResult } from "../domain/analysis";
-import { EngineeringSceneModel, type EngineeringScenePalette, type EngineeringSceneSelection } from "./engineering-scene-model";
+import { EngineeringSceneModel, type EngineeringScenePalette, type EngineeringSceneSelection, type MemberDisplayMode } from "./engineering-scene-model";
+import { layoutSceneLabels } from "./scene-labels";
+import { sectionOuterRadius } from "./member-solid";
 import { calculateSceneFrame } from "./scene-camera";
 import { disposeObjectTree } from "./three-resources";
 import type { AppTheme } from "../../electron/contracts";
@@ -115,14 +117,17 @@ function readScenePalette(): ScenePalette {
 }
 
 function makeLabel(text: string, palette: ScenePalette): THREE.Sprite {
-  const canvas = document.createElement("canvas"); canvas.width = 128; canvas.height = 48;
+  const canvas = document.createElement("canvas");
+  const measure = canvas.getContext("2d")!; measure.font = "600 18px Segoe UI, sans-serif";
+  canvas.width = Math.max(128, Math.ceil(measure.measureText(text).width + 36)); canvas.height = 48;
   const context = canvas.getContext("2d")!;
-  context.fillStyle = palette.labelSurface; context.beginPath(); context.roundRect(18, 7, 92, 32, 5); context.fill();
+  context.fillStyle = palette.labelSurface; context.beginPath(); context.roundRect(8, 7, canvas.width - 16, 32, 5); context.fill();
   context.strokeStyle = palette.labelBorder; context.lineWidth = 1; context.stroke();
   context.font = "600 18px Segoe UI, sans-serif"; context.textAlign = "center"; context.textBaseline = "middle";
-  context.fillStyle = palette.labelText; context.fillText(text, 64, 23);
+  context.fillStyle = palette.labelText; context.fillText(text, canvas.width / 2, 23);
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, sizeAttenuation: false }));
+  sprite.userData = { sceneLabel: true, labelWidth: canvas.width * 68 / 128, labelPriority: 0 };
   const height = document.querySelector(".viewport")?.clientHeight ?? 600;
   sizeLabel(sprite, height); sprite.center.set(0, 0.5); sprite.renderOrder = 3;
   return sprite;
@@ -130,13 +135,24 @@ function makeLabel(text: string, palette: ScenePalette): THREE.Sprite {
 
 function sizeLabel(sprite: THREE.Sprite, viewportHeight: number): void {
   const scale = 2 * Math.tan(21 * Math.PI / 180) / Math.max(1, viewportHeight);
-  sprite.scale.set(68 * scale, 25.5 * scale, 1);
+  sprite.scale.set((sprite.userData.labelWidth ?? 68) * scale, 25.5 * scale, 1);
 }
 
 function makeArrow(direction: THREE.Vector3, origin: THREE.Vector3, length: number, color: string): THREE.ArrowHelper {
   const arrow = new THREE.ArrowHelper(direction, origin, length, color, length * 0.25, length * 0.14);
   arrow.line.geometry = arrow.line.geometry.clone(); arrow.cone.geometry = arrow.cone.geometry.clone();
   return arrow;
+}
+
+function prepareConditionOverlay(layer: THREE.Group, identity: { kind: string; id: string }): void {
+  layer.traverse((object) => {
+    Object.assign(object.userData, identity);
+    object.renderOrder = object instanceof THREE.Sprite ? 6 : 5;
+    if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      for (const material of materials) { material.depthTest = false; material.depthWrite = false; }
+    }
+  });
 }
 
 function applySceneFrame(camera: THREE.PerspectiveCamera, controls: OrbitControls, nodes: FrameNode[]): void {
@@ -185,8 +201,8 @@ function renderConditions(group: THREE.Group, nodes: FrameNode[], supports: Fram
     const base = [[-0.22, -0.22], [0.22, -0.22], [0.22, 0.22], [-0.22, 0.22]].map(([x, y]) => point.clone().add(new THREE.Vector3(x, y, -0.3)));
     addLine(layer, [...base, base[0]], color);
     for (const corner of base) addLine(layer, [point, corner], color);
-    if (showLabel) { const label = makeLabel(support.label, palette); label.position.copy(point).add(new THREE.Vector3(0.38, 0, -0.3)); layer.add(label); }
-    layer.traverse((object) => { object.userData = { kind: "support", id: support.id }; }); group.add(layer);
+    if (showLabel) { const label = makeLabel(support.label, palette); label.userData.labelPriority = conditionSelection?.id === support.id ? 110 : 30; label.position.copy(point).add(new THREE.Vector3(0.38, 0, -0.3)); layer.add(label); }
+    prepareConditionOverlay(layer, { kind: "support", id: support.id }); group.add(layer);
     layer.userData.fingerprint = fingerprint;
   }
   for (const load of nodalLoads ?? []) {
@@ -217,15 +233,15 @@ function renderConditions(group: THREE.Group, nodes: FrameNode[], supports: Fram
       layer.add(makeArrow(tangent, arc[32].clone().addScaledVector(tangent, -0.16), 0.16, color));
     }
     if (layer.children.length > 0) {
-      if (showLabel) { const label = makeLabel(load.label, palette); label.position.copy(point).add(new THREE.Vector3(0.4, 0, 0.55)); layer.add(label); }
-      layer.traverse((object) => { object.userData = { kind: "load", id: load.id }; }); group.add(layer);
+      if (showLabel) { const label = makeLabel(load.label, palette); label.userData.labelPriority = selected ? 110 : 20; label.position.copy(point).add(new THREE.Vector3(0.4, 0, 0.55)); layer.add(label); }
+      prepareConditionOverlay(layer, { kind: "load", id: load.id }); group.add(layer);
       layer.userData.fingerprint = fingerprint;
     }
   }
   for (const child of previous.values()) disposeObjectTree(child);
 }
 
-function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: FrameMember[], uniformLoads: FrameUniformLoad[] | undefined, palette: ScenePalette, selectedUniformLoadId?: LoadId) {
+function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: FrameMember[], uniformLoads: FrameUniformLoad[] | undefined, palette: ScenePalette, selectedUniformLoadId?: LoadId, sections: FrameSection[] = []) {
     const previous = new Map(group.children.map((child) => [child.userData.id, child]));
     const offsets = new Map<string, number>();
     for (const load of uniformLoads ?? []) {
@@ -243,8 +259,9 @@ function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: Fra
       const offset = offsets.get(load.memberId) ?? 0;
       offsets.set(load.memberId, offset + 1);
       const color = selectedUniformLoadId === load.id ? palette.loadSelected : palette.load;
+      const clearance = sectionOuterRadius(sections.find((section) => section.id === member.sectionId)?.geometry);
       const showLabel = (uniformLoads?.length ?? 0) <= 100 || selectedUniformLoadId === load.id;
-      const fingerprint = JSON.stringify([start.position, end.position, member.rotationDegrees, direction.toArray(), offset, load.label, showLabel, color, palette.labelSurface, palette.labelText, palette.labelBorder]);
+      const fingerprint = JSON.stringify([start.position, end.position, member.rotationDegrees, direction.toArray(), offset, clearance, load.label, showLabel, color, palette.labelSurface, palette.labelText, palette.labelBorder]);
       const old = previous.get(load.id); previous.delete(load.id);
       if (old?.userData.fingerprint === fingerprint) continue;
       if (old) disposeObjectTree(old);
@@ -254,6 +271,7 @@ function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: Fra
       const cones: THREE.BufferGeometry[] = [];
       for (let station = 0; station < 5; station += 1) {
         const head = new THREE.Vector3(start.position.x, start.position.y, start.position.z).lerp(new THREE.Vector3(end.position.x, end.position.y, end.position.z), (station + 0.5) / 5);
+        head.addScaledVector(direction, -clearance);
         head.addScaledVector(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), offset * arrowLength * 0.3);
         const tail = head.clone().addScaledVector(direction, -arrowLength); tails.push(tail);
         shafts.push(tail, head);
@@ -266,8 +284,8 @@ function renderUniformLoads(group: THREE.Group, nodes: FrameNode[], members: Fra
       const merged = mergeGeometries(cones);
       cones.forEach((cone) => cone.dispose());
       if (merged) layer.add(new THREE.Mesh(merged, new THREE.MeshBasicMaterial({ color })));
-      if (load.label && showLabel) { const label = makeLabel(load.label, palette); label.position.copy(tails[2]).addScaledVector(direction, -arrowLength * 0.3); layer.add(label); }
-      layer.traverse((object) => { object.userData = { kind: "uniform-load", id: load.id }; }); group.add(layer);
+      if (load.label && showLabel) { const label = makeLabel(load.label, palette); label.userData.labelPriority = selectedUniformLoadId === load.id ? 110 : 10; label.position.copy(tails[2]).addScaledVector(direction, -arrowLength * 0.3); layer.add(label); }
+      prepareConditionOverlay(layer, { kind: "uniform-load", id: load.id }); group.add(layer);
       layer.userData.fingerprint = fingerprint;
     }
     for (const child of previous.values()) disposeObjectTree(child);
@@ -285,6 +303,7 @@ export function SceneViewport(props: SceneViewportProps) {
 
 function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin, drawingEnabled = false, drawingReset = 0, onExitDrawing, onDrawSegment }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
   const u = useUnits();
+  const [displayMode, setDisplayMode] = useState<MemberDisplayMode>("solid");
   const drawing = useWorkPlaneDrawing(worldNodes, materials, sections, (input) => onDrawSegment?.(input) ?? null);
   const drawingRef = useRef({ enabled: drawingEnabled, state: drawing, origin, nodes: worldNodes, materialId: "", sectionId: "" });
   drawingRef.current = { enabled: drawingEnabled, state: drawing, origin, nodes: worldNodes,
@@ -310,10 +329,12 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     const host = hostRef.current; if (!host) return;
     const palette = readScenePalette();
     const scene = new THREE.Scene(); scene.background = new THREE.Color(palette.canvas);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+    const light = new THREE.DirectionalLight(0xffffff, 2); light.position.set(4, -6, 9); scene.add(light);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200); camera.up.set(0, 0, 1);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; host.appendChild(renderer.domElement);
-    const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.minDistance = 2; controls.maxDistance = 70;
+    const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.minDistance = .2; controls.maxDistance = 70;
     applySceneFrame(camera, controls, []);
     const updateCameraState = () => { host.dataset.cameraState = cameraState(camera, controls); };
     controls.addEventListener("change", updateCameraState); updateCameraState();
@@ -339,7 +360,9 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       const bounds = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      return [...raycaster.intersectObjects(model.getHitTargets(), false), ...raycaster.intersectObjects(loads.children, true), ...raycaster.intersectObjects(conditions.children, true)].sort((a, b) => a.distance - b.distance)[0];
+      // Pick visible overlay symbols first, then the model's invisible interaction hulls.
+      const overlays = [...raycaster.intersectObjects(loads.children, true), ...raycaster.intersectObjects(conditions.children, true)].filter((hit) => !(hit.object instanceof THREE.Sprite) || hit.object.visible);
+      return overlays.sort((a, b) => a.distance - b.distance)[0] ?? raycaster.intersectObjects(model.getHitTargets(), false)[0];
     };
     const beginPointer = (event: PointerEvent) => { if (event.button === 0) pointerStart = new THREE.Vector2(event.clientX, event.clientY); };
     const drawingPointAt = (event: PointerEvent) => {
@@ -392,7 +415,11 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     };
     const observer = new ResizeObserver(resize); observer.observe(host); resize();
     let animationFrame = 0;
-    const render = () => { controls.update(); renderer.render(scene, camera); animationFrame = requestAnimationFrame(render); };
+    const render = () => {
+      controls.update();
+      host.dataset.visibleLabels = String(layoutSceneLabels(scene, camera, host.clientWidth, host.clientHeight));
+      renderer.render(scene, camera); animationFrame = requestAnimationFrame(render);
+    };
     render();
 
     return () => {
@@ -460,13 +487,13 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       runtime.hasFramedModel = false;
       runtime.model.setHover(null);
     }
-    runtime.model.sync(nodes, members);
+    runtime.model.sync(nodes, members, sections, displayMode);
     if (nodes.length === 0) runtime.hasFramedModel = false;
     if (!runtime.hasFramedModel && nodes.length > 0) {
       applySceneFrame(runtime.camera, runtime.controls, nodes);
       runtime.hasFramedModel = true;
     }
-  }, [projectId, nodes, members]);
+  }, [projectId, nodes, members, sections, displayMode]);
 
   useEffect(() => {
     const runtime = runtimeRef.current; if (!runtime) return;
@@ -500,6 +527,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
   }, [preview, nodes, members, theme]);
 
   useEffect(() => { runtimeRef.current?.model.setSelection(selection); }, [selection, nodes, members]);
+  useEffect(() => { runtimeRef.current?.model.setResultTarget(resultFocus?.memberId); }, [resultFocus]);
   useEffect(() => {
     const group = runtimeRef.current?.conditions; if (!group) return;
     renderConditions(group, nodes, supports, nodalLoads, readScenePalette(), conditionSelection);
@@ -507,8 +535,8 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
   useEffect(() => {
     const group = runtimeRef.current?.loads;
     if (!group) return;
-    renderUniformLoads(group, nodes, members, uniformLoads, readScenePalette(), selectedUniformLoadId);
-  }, [uniformLoads, nodes, members, selectedUniformLoadId, theme]);
+    renderUniformLoads(group, nodes, members, uniformLoads, readScenePalette(), selectedUniformLoadId, sections);
+  }, [uniformLoads, nodes, members, selectedUniformLoadId, sections, theme]);
   useEffect(() => {
     const group = runtimeRef.current?.results;
     if (!group) return;
@@ -591,7 +619,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
   const fitModel = () => {
     const runtime = runtimeRef.current;
     if (!runtime || nodes.length + (preview?.nodes.length ?? 0) === 0) return;
-    const bounds = new THREE.Box3();
+    const bounds = runtime.model.getBounds();
     for (const node of [...nodes, ...(preview?.nodes ?? [])]) bounds.expandByPoint(new THREE.Vector3(node.position.x, node.position.y, node.position.z));
     for (const group of [runtime.loads, runtime.conditions, runtime.results, runtime.preview]) bounds.expandByObject(group);
     const corners = [bounds.min, bounds.max].map((point) => ({ ...(nodes[0] ?? preview!.nodes[0]), position: { x: point.x, y: point.y, z: point.z } }));
@@ -602,7 +630,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
 
   return (
     <div className="viewport" ref={hostRef} aria-label="三维模型视图">
-      <div className="viewport-topline"><span className="view-chip">分析线 · 透视</span><div className="viewport-tools"><span className="view-hint">{drawingEnabled ? "左键绘杆 · 右键平移 · 滚轮缩放" : "单击选择 · 拖动旋转 · 滚轮缩放"}</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
+      <div className="viewport-topline"><div className="viewport-display-controls"><span className="view-chip">{displayMode === "solid" ? "真实截面" : "分析线"} · 透视</span><div className="viewport-display-switch" role="group" aria-label="构件显示"><button aria-pressed={displayMode === "solid"} onClick={() => setDisplayMode("solid")}>实体</button><button aria-pressed={displayMode === "line"} onClick={() => setDisplayMode("line")}>分析线</button></div></div><div className="viewport-tools"><span className="view-hint">{drawingEnabled ? "左键绘杆 · 右键平移 · 滚轮缩放" : "单击选择 · 拖动旋转 · 滚轮缩放"}</span><button className="icon-button" aria-label="适合模型" title="适合模型" onClick={fitModel}><Scan size={15} /></button></div></div>
       {drawingEnabled && <WorkPlaneDrawingPanel drawing={drawing} nodes={worldNodes} materials={materials} sections={sections} onExit={() => onExitDrawing?.()} onAlign={() => {
         const runtime = runtimeRef.current; if (!runtime || !Number.isFinite(drawing.offset)) return;
         const target = runtime.controls.target.clone(); const axis = PLANE_NORMAL_AXIS[drawing.plane];
@@ -620,9 +648,9 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
           <small>全局 g {u.vector(displayedWeight.gravity, "m/s²")}</small></div>
       </div>}
       {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${u.unit(["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m")}`}</div>}
-      {((supports?.length ?? 0) + (nodalLoads?.length ?? 0) > 100 || (uniformLoads?.length ?? 0) > 100) && <div className="viewport-label-policy">密集条件仅标注选中对象；完整编号见项目树</div>}
+      <div className="viewport-label-policy">{displayMode === "solid" ? "真实尺寸 · 梁单元分析" : "中心分析线 · 梁单元分析"}{members.some((member) => !sections.find((section) => section.id === member.sectionId)?.geometry) && " · 几何未定义构件用分析线"}<br />标签随缩放避让 · 优先选中与结果对象 · 完整数值见属性</div>
       {!drawingEnabled && selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ {u.vector(selectedNode.position, "m")}</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F {u.vector(selectedNodalLoad.force, "kN")}</span><span>M {u.vector(selectedNodalLoad.moment, "kN·m")}</span></>}</div>}
-      {!drawingEnabled && (selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q {u.vector(selectedLoad.intensity, "kN/m")}</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {u.quantity(selectedMaterial.elasticModulusGPa, "GPa")}</span><span>{selectedSection.name} · A {u.quantity(selectedSection.areaM2, "m²")}</span><small>{!selectedSection.geometry && "几何未定义 · "}分析线模型 · 截面转角 {u.quantity(selectedMember.rotationDegrees, "°")}</small></div>)}
+      {!drawingEnabled && (selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q {u.vector(selectedLoad.intensity, "kN/m")}</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {u.quantity(selectedMaterial.elasticModulusGPa, "GPa")}</span><span>{selectedSection.name} · A {u.quantity(selectedSection.areaM2, "m²")}</span><small>{!selectedSection.geometry ? "几何未定义 · 分析线模型" : displayMode === "solid" ? "真实截面 · 梁单元分析" : "分析线模型 · 梁单元分析"} · 截面转角 {u.quantity(selectedMember.rotationDegrees, "°")}{selectedSection.catalogBasis && " · 目录几何忽略圆角"}</small></div>)}
       {!drawingEnabled && nodes.length === 0 && !preview?.nodes.length && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}
     </div>
   );
