@@ -11,6 +11,35 @@ import { bandLimitedWhiteNoise, psdSpectrumInput } from "../domain/psd";
 
 const call = (name: string, input: unknown) => ({ id: "psd-call", type: "function", function: { name, arguments: JSON.stringify(input) } });
 
+it.each(["-1e-400", "1e-400"])("rejects raw tool density %s before JSON parsing can hide underflow", (density) => {
+  const request = call("prepare_psd_input", { format: "white-noise", metadata: { name: "underflow", ...canonicalPsdConvention("force"), band: [0, 1] }, density: 2 });
+  request.function.arguments = request.function.arguments.replace('"density":2', `"density":${density}`);
+  const project = createProject();
+  const result = executeAiTool(captureAiSnapshot(project, []), request);
+  expect(result.status).toBe("failed");
+  expect(result.message).toContain("下溢");
+  expect(project.psdSpectra).toHaveLength(0);
+});
+
+it.each(["-1e-400", "1e-400"])("rejects JSON density %s before preparing a confirmable PSD edit", (density) => {
+  const properties = bandLimitedWhiteNoise("underflow", canonicalPsdConvention("force"), [0, 1], 2);
+  const request = call("propose_model_edits", { operations: [{ type: "create_psd_spectrum", properties }] });
+  request.function.arguments = request.function.arguments.replaceAll('"density":2', `"density":${density}`);
+  const result = executeAiTool(captureAiSnapshot(createProject(), []), request);
+  expect(result.status).toBe("failed");
+  expect(result.message).toContain("下溢");
+  expect(result.modelEdits).toBeUndefined();
+});
+
+it.each(["prepare_psd_input", "propose_model_edits"])("allows genuine zero spectra and numeric-looking quoted names through %s", (name) => {
+  const properties = bandLimitedWhiteNoise('quoted "-1e-400" \\ 1e-400', canonicalPsdConvention("force"), [0, 1], 0);
+  const { points, ...metadata } = properties;
+  const args = name === "prepare_psd_input" ? { format: "table", metadata, points }
+    : { operations: [{ type: "create_psd_spectrum", properties }] };
+  const result = executeAiTool(captureAiSnapshot(createProject(), []), call(name, args));
+  expect(result.status).toBe(name === "prepare_psd_input" ? "completed" : "awaiting-confirmation");
+});
+
 it("prepares the same band-limited input through the tool without mutating formal spectra", () => {
   const project = createProject();
   const result = executeAiTool(captureAiSnapshot(project, []), call("prepare_psd_input", { format: "white-noise", metadata: { name: "rectangle", ...canonicalPsdConvention("force"), band: [10, 20] }, density: 2 }));

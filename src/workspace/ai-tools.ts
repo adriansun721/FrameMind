@@ -1,6 +1,6 @@
 import { CANONICAL_UNITS, convertQuantity, UNIT_CONTRACT, type QuantityDimension } from "../domain/units";
 import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
-import { preparePsdInput } from "./psd-input";
+import { preparePsdInput, validatePsdJsonNumbers } from "./psd-input";
 import { SECTION_SHAPES, SECTION_SHAPE_FIELDS, sectionParameterBasis } from "../domain/section-geometry";
 import { SECTION_CATALOG } from "../domain/resource-library";
 import { describeSection } from "../domain/catalog-section";
@@ -273,6 +273,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
     if (call.function.name === "prepare_psd_input") {
+      validatePsdJsonNumbers(call.function.arguments);
       const { inputUnits, outputUnitPreset, ...psdArgs } = input;
       // Common preferences are valid, but the spectrum's own explicit units govern its data.
       normalizeToolUnits({ inputUnits, outputUnitPreset }, call.function.name);
@@ -359,6 +360,10 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       return { status: "completed", message: "基础编辑草案已拒绝，正式模型保留", context: snapshot.context, modelEdits: null };
     }
     if (call.function.name === "propose_model_edits" || MODEL_EDIT_TOOLS.has(call.function.name) || call.function.name === "apply_model_changes") {
+      if (Array.isArray(input.operations) && input.operations.some((operation) =>
+        operation?.type === "create_psd_spectrum" || operation?.type === "update_psd_spectrum")) {
+        validatePsdJsonNumbers(call.function.arguments);
+      }
       try {
         const args = MODEL_EDIT_TOOLS.has(call.function.name) ? modelEditToolInput(call.function.name, input, snapshot.editProject) : input;
         const modelEdits = proposeModelEdits(snapshot.editProject, args, previousModelEdits);

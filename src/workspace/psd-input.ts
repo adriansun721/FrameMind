@@ -1,4 +1,12 @@
-import { bandLimitedWhiteNoise, importPsdCsv, integratePsd, normalizePsd, validatePsdInput, type PsdInput } from "../domain/psd";
+import { bandLimitedWhiteNoise, importPsdCsv, integratePsd, normalizePsd, parsePsdNumber, validatePsdInput, type PsdInput } from "../domain/psd";
+
+/** JSON.parse loses nonzero decimals that underflow to zero. Skip quoted text,
+ * then apply the same decimal precision check used by manual and CSV input. */
+export function validatePsdJsonNumbers(json: string): void {
+  for (const token of json.matchAll(/"(?:[^"\\]|\\.)*"|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g)) {
+    if (token[1] !== undefined) parsePsdNumber(token[1]);
+  }
+}
 
 /** Preparation never mutates the project; reviewed model edits own application. */
 export function preparePsdInput(value: Record<string, unknown>) {
