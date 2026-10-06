@@ -5,7 +5,7 @@
   "nativeRuns": 4,
   "checks": [
     {
-      "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+      "analysisId": "analysis_a9cbfa19-3549-4a63-a0de-3d3bd5b2f9d4",
       "firstFrequencyHz": 9.059804487956193,
       "referenceHz": 9.05977724,
       "relativeTolerance": 0.0005,
@@ -14,7 +14,7 @@
       "convergence": "converged"
     },
     {
-      "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+      "analysisId": "analysis_186e3961-1bd3-4239-ad8f-961467b199f5",
       "firstFrequencyHz": 9.059786800902424,
       "referenceHz": 9.05977724,
       "relativeTolerance": 0.0005,
@@ -23,7 +23,7 @@
       "convergence": "converged"
     },
     {
-      "analysisId": "analysis_651d4658-53f0-4039-b181-8f5225c6c359",
+      "analysisId": "analysis_2014d959-7eb9-4c6d-90b4-6f6fc4e4556e",
       "firstFrequencyHz": 9.059786800902424,
       "referenceHz": 9.05977724,
       "relativeTolerance": 0.0005,
@@ -32,7 +32,7 @@
       "convergence": "converged"
     },
     {
-      "analysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+      "analysisId": "analysis_576f4e0d-02d4-44b2-9b2b-6b0c956c5de9",
       "firstFrequencyHz": 9.102858768790748,
       "referenceHz": 9.05977724,
       "relativeTolerance": 0.0005,
@@ -46,8 +46,8 @@
       "name": "three-modes-insufficient-band",
       "status": {
         "status": "valid",
-        "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
-        "boundAnalysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+        "analysisId": "analysis_a9cbfa19-3549-4a63-a0de-3d3bd5b2f9d4",
+        "boundAnalysisId": "analysis_a9cbfa19-3549-4a63-a0de-3d3bd5b2f9d4",
         "message": "阻尼已核对至该模态结果",
         "modes": [
           {
@@ -97,7 +97,7 @@
           "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
           "frequencyChecks": [
             {
-              "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+              "analysisId": "analysis_a9cbfa19-3549-4a63-a0de-3d3bd5b2f9d4",
               "requestedModeCount": 3,
               "returnedModeCount": 3,
               "frequencyConverged": true,
@@ -114,8 +114,8 @@
       "name": "five-modes-band-covered-response-unverified",
       "status": {
         "status": "valid",
-        "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
-        "boundAnalysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+        "analysisId": "analysis_186e3961-1bd3-4239-ad8f-961467b199f5",
+        "boundAnalysisId": "analysis_186e3961-1bd3-4239-ad8f-961467b199f5",
         "message": "阻尼已核对至该模态结果",
         "modes": [
           {
@@ -185,7 +185,7 @@
           "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
           "frequencyChecks": [
             {
-              "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+              "analysisId": "analysis_a9cbfa19-3549-4a63-a0de-3d3bd5b2f9d4",
               "requestedModeCount": 3,
               "returnedModeCount": 3,
               "frequencyConverged": true,
@@ -195,7 +195,7 @@
               "responseAccuracy": "not-verified"
             },
             {
-              "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+              "analysisId": "analysis_186e3961-1bd3-4239-ad8f-961467b199f5",
               "requestedModeCount": 5,
               "returnedModeCount": 5,
               "frequencyConverged": true,
@@ -212,8 +212,8 @@
       "name": "identical-recompute-requires-review",
       "status": {
         "status": "needs-review",
-        "analysisId": "analysis_651d4658-53f0-4039-b181-8f5225c6c359",
-        "boundAnalysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+        "analysisId": "analysis_2014d959-7eb9-4c6d-90b4-6f6fc4e4556e",
+        "boundAnalysisId": "analysis_186e3961-1bd3-4239-ad8f-961467b199f5",
         "message": "模态重算、过期或身份变化，请重读频率与振型并重新设置；旧覆盖未应用",
         "modes": [
           {
@@ -263,7 +263,7 @@
           "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
           "frequencyChecks": [
             {
-              "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+              "analysisId": "analysis_a9cbfa19-3549-4a63-a0de-3d3bd5b2f9d4",
               "requestedModeCount": 3,
               "returnedModeCount": 3,
               "frequencyConverged": true,
@@ -273,7 +273,7 @@
               "responseAccuracy": "not-verified"
             },
             {
-              "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+              "analysisId": "analysis_186e3961-1bd3-4239-ad8f-961467b199f5",
               "requestedModeCount": 5,
               "returnedModeCount": 5,
               "frequencyConverged": true,
@@ -283,7 +283,7 @@
               "responseAccuracy": "not-verified"
             },
             {
-              "analysisId": "analysis_651d4658-53f0-4039-b181-8f5225c6c359",
+              "analysisId": "analysis_2014d959-7eb9-4c6d-90b4-6f6fc4e4556e",
               "requestedModeCount": 5,
               "returnedModeCount": 5,
               "frequencyConverged": true,
@@ -301,8 +301,8 @@
       "name": "mesh-budget-not-converged",
       "status": {
         "status": "valid",
-        "analysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
-        "boundAnalysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+        "analysisId": "analysis_576f4e0d-02d4-44b2-9b2b-6b0c956c5de9",
+        "boundAnalysisId": "analysis_576f4e0d-02d4-44b2-9b2b-6b0c956c5de9",
         "message": "阻尼已核对至该模态结果",
         "modes": [
           {
@@ -352,7 +352,7 @@
           "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
           "frequencyChecks": [
             {
-              "analysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+              "analysisId": "analysis_576f4e0d-02d4-44b2-9b2b-6b0c956c5de9",
               "requestedModeCount": 3,
               "returnedModeCount": 3,
               "frequencyConverged": false,

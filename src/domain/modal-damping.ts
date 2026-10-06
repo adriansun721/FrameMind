@@ -18,7 +18,7 @@ function dampingValue(value: unknown): DampingValue {
   exact(value, ["ratio", "source", "basis"]);
   if (typeof value.ratio !== "number" || !Number.isFinite(value.ratio) || value.ratio <= 0 || value.ratio >= 1)
     throw new Error("阻尼比须为 0 与 1 之间的有限数值（不含端点），例如 0.02 表示 2%；请核对阻尼条件");
-  if (!["user", "suggestion"].includes(String(value.source)) || typeof value.basis !== "string" || !value.basis.trim() || value.basis.length > 500)
+  if (typeof value.source !== "string" || !["user", "suggestion"].includes(value.source) || typeof value.basis !== "string" || !value.basis.trim() || value.basis.length > 500)
     throw new Error("请注明用户输入或建议及其依据");
   return { ratio: value.ratio, source: value.source as DampingValue["source"], basis: value.basis.trim() };
 }
@@ -51,6 +51,7 @@ export function validateModalDampingBinding(value: unknown): ModalDampingBinding
 }
 export function dampingMatchesResult(binding: ModalDampingBinding, result: AnalysisResult): boolean {
   return binding.analysisId === result.id && binding.createdAt === result.createdAt && Boolean(result.modal)
+    && binding.truncation.maxModeCount >= result.input.analysisCase!.settings.modal!.modeCount
     && sameInputValue(binding.frequenciesHz, result.modal!.modes.map((m) => m.frequencyHz));
 }
 export function setModalDamping(project: FrameProject, caseId: string, analysisId: string, input: ModalDampingInput): FrameProject {

@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { modalCantilever } from "../src/validation/modal-fixtures";
 import { DEFAULT_MODAL_SETTINGS } from "../src/domain/modal";
 import { enterWorkbenchWithoutRecovery } from "./electron-app";
-import { save } from "./frame-proposal-actions";
+import { desktop, replay, save, send } from "./frame-proposal-actions";
+import { decodeProject } from "../src/domain/project-file";
 
 test("T2-29 manual damping, provenance, incremental budget, invalidation and reopening", async () => {
   test.setTimeout(150000);
@@ -65,4 +66,28 @@ test("T2-29 manual damping, provenance, incremental budget, invalidation and reo
     await expect(editor.getByLabel("统一阻尼比", { exact: true })).toHaveValue("0.02");
     await writeFile(join(evidence, "desktop.json"), JSON.stringify({ passed: true, priorAnalysisId: oldId, boundAnalysisId: saved.latestAnalysis!.id, returnedModes: saved.latestAnalysis!.modal!.modes.length, damping: saved.analysisCases[0].damping, reopened: true, responseAccuracy: "not-verified", themes: ["light", "dark"], widths: [1080, 1440] }, null, 2));
   } finally { await app.close(); }
+});
+
+test("T2-29 agent damping draft stays confirmable and persists its bound modal source", async () => {
+  await desktop(async (app, page, path) => {
+    await writeFile(path, JSON.stringify(modalCantilever({ ...DEFAULT_MODAL_SETTINGS, modeCount: 3 })));
+    await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
+    await page.getByRole("button", { name: "运行分析", exact: true }).click();
+    await expect(page.getByTestId("modal-results")).toContainText("满足频率精度", { timeout: 30000 });
+    const analyzed = await save(page, path);
+    const properties = { uniform: { ratio: .02, source: "suggestion", basis: "AI 测试建议，须用户核对" }, overrides: [{ modeNumber: 2, value: { ratio: .04, source: "user", basis: "用户给定第二阶" } }], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 5 } };
+    await replay(app, { operations: [{ type: "set_modal_damping", id: "AC1", analysisId: analyzed.latestAnalysis!.id, properties }] }, "propose_model_edits");
+    await send(page, "准备统一及第二阶阻尼草案，先等我确认");
+    const card = page.getByRole("region", { name: "基础编辑草案", exact: true });
+    await card.getByText("查看逐项变化", { exact: true }).click();
+    await expect(card).toContainText("suggestion"); await expect(card).toContainText(analyzed.latestAnalysis!.id);
+    await expect(card.getByRole("button", { name: "确认编辑", exact: true })).toBeEnabled();
+    const before = decodeProject(JSON.stringify(await save(page, path)));
+    expect(before.analysisCases[0].damping).toBeUndefined();
+    expect(before.taskState!.conversations.some((c) => c.modelEdits?.operations.some((o) => o.type === "set_modal_damping"))).toBe(true);
+    await card.getByRole("button", { name: "确认编辑", exact: true }).click();
+    const after = decodeProject(JSON.stringify(await save(page, path)));
+    expect(after.analysisCases[0].damping).toMatchObject({ analysisId: analyzed.latestAnalysis!.id, ...properties });
+    expect(after.confirmedOperations).toHaveLength(1);
+  });
 });

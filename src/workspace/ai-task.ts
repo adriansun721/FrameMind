@@ -206,7 +206,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
       const refresh = () => {
         const live = options.getCurrentSnapshot();
         const current = captureAiSnapshot({ ...live.editProject, activeAnalysisCaseId: snapshot.model.activeAnalysisCaseId, activeLoadCaseId: snapshot.model.activeLoadCaseId, activeLoadCombinationId: snapshot.model.activeLoadCombinationId,
-          analysisResults: snapshot.comparison ? [snapshot.comparison.before, snapshot.comparison.after] : [] }, targets, snapshot.analysis, snapshot.context.comparison);
+          analysisResults: [...new Map([...live.editProject.analysisResults, ...(snapshot.comparison ? [snapshot.comparison.before, snapshot.comparison.after] : [])].map((r) => [r.id, r])).values()] }, targets, snapshot.analysis, snapshot.context.comparison);
         if (current.snapshotKey === taskSnapshot.snapshotKey) return false;
         const base = draftBaseProject;
         const coordinatedTask = taskDraft ? coordinateTaskDraft(base, current.editProject, taskDraft) : undefined;

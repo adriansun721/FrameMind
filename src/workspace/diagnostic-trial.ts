@@ -145,7 +145,8 @@ function sourceFor(project: FrameProject, kind: DiagnosticSourceKind, analysisId
 
 export function createDiagnosticCopy(project: FrameProject, source?: Partial<DiagnosticCopySource>): DiagnosticCopy {
   const id = copyId();
-  const model = clone({ ...project, id: id as ProjectId, name: `${project.name} · 诊断副本`, analysisResults: [], latestAnalysis: undefined });
+  const model = clone({ ...project, id: id as ProjectId, name: `${project.name} · 诊断副本`, analysisResults: [], latestAnalysis: undefined,
+    analysisCases: project.analysisCases.map(({ damping: _damping, ...definition }) => definition) });
   const base = sourceFor(project, source?.kind ?? "formal-model", source?.analysisId);
   return { id, source: { ...base, ...clone(source), projectId: project.id, projectRevision: project.revision, snapshotKey: source?.snapshotKey ?? base.snapshotKey }, model, trials: [] };
 }

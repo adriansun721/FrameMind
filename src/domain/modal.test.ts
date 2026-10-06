@@ -12,6 +12,9 @@ import { captureAiSnapshot, executeAiTool } from "../workspace/ai-tools";
 import { ModelEditConfirmation, prepareModelEditConfirmation } from "../workspace/model-edits";
 import { readResults } from "../workspace/ai-results";
 import { startAnalysisTask } from "../workspace/analysis-task";
+import { startAiTask } from "../workspace/ai-task";
+import type { DeepSeekChatResult } from "../../electron/contracts";
+import { createDiagnosticCopy } from "../workspace/diagnostic-trial";
 import { captureEngineeringReport } from "./engineering-report";
 import { modalDampingStatus, setModalDamping, validateModalDampingInput, type ModalDampingInput } from "./modal-damping";
 import { ProjectHistory } from "./project-history";
@@ -34,6 +37,9 @@ it("binds effective uniform and override damping to a saved modal identity witho
   const input: ModalDampingInput = { uniform: { ratio: .02, source: "user", basis: "试验输入" }, overrides: [{ modeNumber: 2, value: { ratio: .04, source: "suggestion", basis: "待核对试验建议" } }], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 10 } };
   expect(modalDampingStatus(analyzed, r).status).toBe("missing");
   const configured = setModalDamping(analyzed, "AC1", r.id, input);
+  const copy = createDiagnosticCopy(configured);
+  expect(copy.model.analysisCases[0].damping).toBeUndefined();
+  expect(decodeProject(encodeProject(copy.model)).analysisCases[0].damping).toBeUndefined();
   expect(isAnalysisResultCurrent(configured, r)).toBe(true);
   const read = modalDampingStatus(decodeProject(encodeProject(configured)), r);
   expect(read.status).toBe("valid");
@@ -84,6 +90,46 @@ it("rejects ambiguous damping and invalid bindings and stops incremental checks 
   expect(() => decodeProject(JSON.stringify(forged))).toThrow(/阻尼绑定/);
   forged.analysisCases[0].damping.analysisId = "foreign";
   expect(() => decodeProject(JSON.stringify(forged))).toThrow(/阻尼绑定/);
+  for (const source of [["user"], ["suggestion"], null, true, 1]) {
+    expect(() => validateModalDampingInput({ ...input, uniform: { ...input.uniform, source } })).toThrow(/依据/);
+    const invalid = JSON.parse(encodeProject(configured)); invalid.analysisCases[0].damping.uniform.source = source;
+    expect(() => decodeProject(JSON.stringify(invalid))).toThrow(/依据/);
+  }
+  const lowBudget = JSON.parse(encodeProject(configured)); lowBudget.analysisCases[0].damping.truncation.maxModeCount = 1;
+  expect(() => decodeProject(JSON.stringify(lowBudget))).toThrow(/阻尼绑定/);
+});
+
+it("keeps a damping draft available through the agent task loop without treating its case as a deleted member", async () => {
+  const p = modalCantilever(), r = nativeResult(p), analyzed = attachAnalysisResult(p, r), snapshot = captureAiSnapshot(analyzed, []);
+  const properties: ModalDampingInput = { uniform: { ratio: .02, source: "suggestion", basis: "待核对建议" }, overrides: [], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 8 } };
+  const responses: DeepSeekChatResult[] = [
+    { status: "success", message: "草案", assistant: { role: "assistant", content: null, tool_calls: [{ id: "damping", type: "function", function: { name: "propose_model_edits", arguments: JSON.stringify({ operations: [{ type: "set_modal_damping", id: "AC1", analysisId: r.id, properties }] }) } }] } },
+    { status: "success", message: "完成", assistant: { role: "assistant", content: "请核对阻尼草案。" } },
+  ];
+  const result = await startAiTask(snapshot, "准备阻尼", { isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+    transport: { chatDeepSeek: async () => responses.shift()!, cancelDeepSeekChat: async () => undefined } }).promise;
+  expect(result.status).toBe("awaiting-confirmation");
+  expect(result.modelEdits?.operations[0].type).toBe("set_modal_damping");
+  expect(result.records.find((record) => record.call.function.name === "propose_model_edits")?.result.status).toBe("awaiting-confirmation");
+  const continued = await startAiTask(snapshot, "继续核对", { modelEdits: result.modelEdits!, isCurrent: () => true, getCurrentSnapshot: () => snapshot,
+    transport: { chatDeepSeek: async () => responses.shift()!, cancelDeepSeekChat: async () => undefined } }).promise;
+  expect(continued.status).toBe("completed");
+});
+
+it("preserves bound modal evidence across agent refresh after an unrelated static load edit", async () => {
+  const p = modalCantilever(), r = nativeResult(p), analyzed = attachAnalysisResult(p, r);
+  const properties: ModalDampingInput = { uniform: { ratio: .02, source: "user", basis: "试验" }, overrides: [], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 8 } };
+  const configured = setModalDamping(analyzed, "AC1", r.id, properties), initial = captureAiSnapshot(configured, []);
+  const current = updateNodalLoad(configured, configured.nodalLoads[0].id, configured.nodes[1].id, { x: 100, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  const responses: DeepSeekChatResult[] = [
+    { status: "success", message: "查询", assistant: { role: "assistant", content: null, tool_calls: [{ id: "read", type: "function", function: { name: "read_results", arguments: '{"collection":"summary"}' } }] } },
+    { status: "success", message: "草案", assistant: { role: "assistant", content: null, tool_calls: [{ id: "edit", type: "function", function: { name: "propose_model_edits", arguments: JSON.stringify({ operations: [{ type: "set_modal_damping", id: "AC1", analysisId: r.id, properties }] }) } }] } },
+  ];
+  const result = await startAiTask(initial, "核对阻尼", { isCurrent: () => true, getCurrentSnapshot: () => captureAiSnapshot(current, []),
+    transport: { chatDeepSeek: async () => responses.shift()!, cancelDeepSeekChat: async () => undefined } }).promise;
+  expect(result.status).toBe("awaiting-confirmation");
+  expect(result.records.find((record) => record.call.function.name === "read_results")?.result.data).toMatchObject({ damping: { status: "valid" } });
+  expect(decodeProject(encodeProject(result.draftBaseProject!)).analysisCases[0].damping!.analysisId).toBe(r.id);
 });
 
 it("forms structural mass without consuming loads and persists modal sources and shapes", () => {

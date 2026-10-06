@@ -1,7 +1,7 @@
 {
   "passed": true,
-  "priorAnalysisId": "analysis_ebe3f935-fa5f-421d-8ba2-b74d7af07c6a",
-  "boundAnalysisId": "analysis_10b42d94-a1d5-4a74-9af6-78f932595546",
+  "priorAnalysisId": "analysis_a6fbdbc2-d517-4388-b758-43273fc0ebca",
+  "boundAnalysisId": "analysis_59e25f9a-00db-4180-a01c-ff9496fbe604",
   "returnedModes": 5,
   "damping": {
     "uniform": {
@@ -15,8 +15,8 @@
       "modeIncrement": 2,
       "maxModeCount": 5
     },
-    "analysisId": "analysis_10b42d94-a1d5-4a74-9af6-78f932595546",
-    "createdAt": "2026-10-06T12:20:26Z",
+    "analysisId": "analysis_59e25f9a-00db-4180-a01c-ff9496fbe604",
+    "createdAt": "2026-10-06T12:39:04Z",
     "frequenciesHz": [
       9.059786800902424,
       18.119573602760184,
