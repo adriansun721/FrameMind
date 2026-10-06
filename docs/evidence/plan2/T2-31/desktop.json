@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "native": "framemind-native/7",
+  "selectedDivisions": 8,
+  "sameInputLinearRun": true,
+  "trueIterations": true,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ],
+  "reopened": true
+}

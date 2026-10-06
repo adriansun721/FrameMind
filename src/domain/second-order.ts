@@ -48,7 +48,8 @@ export function secondOrderLinearInput(input: AnalysisInputSnapshot) {
   return { ...base, solver: { implementation: "framemind-native/3", algorithm: "sparse-ldlt" as const, constraints: "free-dof-elimination" as const, relativePivotTolerance: 1e-12 } };
 }
 export function secondOrderBaseMatches(a: AnalysisInputSnapshot, b: AnalysisInputSnapshot): boolean {
-  return sameInputValue(secondOrderLinearInput(a), secondOrderLinearInput(b));
+  const base = (input: AnalysisInputSnapshot) => { const { projectRevision: _revision, ...conditions } = secondOrderLinearInput(input); return conditions; };
+  return sameInputValue(base(a), base(b));
 }
 export function decodeSecondOrderService(value: Record<string, unknown>, input: AnalysisInputSnapshot) {
   if (!sameInputValue(input.solver, NATIVE_SECOND_ORDER_SOLVER) || !sameInputValue(input.meshPlan, createSecondOrderMesh(input))) throw new Error("二阶冻结求解器或细分映射不一致");

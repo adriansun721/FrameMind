@@ -18,6 +18,7 @@ export function readComparison(pair: AiAnalysisPair, input: Record<string, unkno
   const offset = input.offset ?? 0; const limit = input.limit ?? 50;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0 || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("对比分页须为非负 offset 与 1 至 100 的 limit");
   const comparison = compareAnalysisResults(pair.before, pair.after);
+  const sameInputMethodComparison = comparison.compatible && (pair.before.input.analysisCase?.method ?? "static") !== (pair.after.input.analysisCase?.method ?? "static") && Boolean(pair.before.secondOrder || pair.after.secondOrder);
   const sectionAndSelfWeightOnly = comparison.compatible && comparison.changes.length > 0 && comparison.changes.every((change) => change.kind === "section"
     || change.kind === "member" && change.changes.every((field) => field === "截面引用"))
     && sameInputValue(pair.before.input.combination?.cases, pair.after.input.combination?.cases);
@@ -25,7 +26,7 @@ export function readComparison(pair: AiAnalysisPair, input: Record<string, unkno
     after: { ...analysisProvenance(pair.after, pair.afterCurrent), status: pair.afterCurrent ? "当前模型结果" : "后份历史输入，保留冻结来源" },
     pairMatchesCurrentInput: pair.beforeCurrent || pair.afterCurrent,
     compatible: comparison.compatible, issues: comparison.issues, sectionAndSelfWeightOnly,
-    attribution: sectionAndSelfWeightOnly ? "仅截面相关输入变化；启用自重时同时包含面积变化引起的自重影响，不能归因于刚度单独作用。" : "存在其他变化或来源不兼容，不能解释为单纯截面影响。",
+    attribution: sameInputMethodComparison ? "冻结基础输入和内部网格相同；差值反映初应力弹性二阶近似与线性静力的方法差异，不代表通用非线性或材料效应。" : sectionAndSelfWeightOnly ? "仅截面相关输入变化；启用自重时同时包含面积变化引起的自重影响，不能归因于刚度单独作用。" : "存在其他变化或来源不兼容，不能解释为单纯截面影响。",
     convention: "差值 = 后一份 - 前一份；共用前后结果对比表的计算入口。" };
   if (input.collection === "summary" || !comparison.compatible) return { ...provenance, changes: comparison.changes.slice(offset, offset + limit), total: comparison.changes.length, offset, limit,
     objects: { nodes: pair.after.input.nodes.slice(offset, offset + limit).map((node) => ({ id: node.id, label: node.label, position: node.position })),

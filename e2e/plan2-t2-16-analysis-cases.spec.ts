@@ -37,7 +37,8 @@ test("T2-16 migrates, reuses loads in native analyses, tracks dependencies and r
     await manager.getByLabel("分析工况名称").fill("共享轴向荷载复核");
     await manager.getByLabel("复用荷载定义").selectOption("LC1");
     await expect(manager.getByLabel("分析方法").locator('option[value="modal"]')).not.toHaveAttribute("disabled", "");
-    await expect(manager.getByLabel("分析方法").locator('option[value="buckling"]')).toHaveAttribute("disabled", "");
+    await expect(manager.getByLabel("分析方法").locator('option[value="buckling"]')).not.toHaveAttribute("disabled", "");
+    await expect(manager.getByLabel("分析方法").locator('option[value="second-order"]')).not.toHaveAttribute("disabled", "");
     await manager.getByRole("button", { name: "创建分析工况", exact: true }).click();
     await manager.getByRole("button", { name: "计算此分析工况", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成");

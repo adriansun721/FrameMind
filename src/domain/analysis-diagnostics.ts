@@ -1,4 +1,6 @@
 import { calculateMemberGeometry } from "./member-geometry";
+import type { SecondOrderIteration } from "./second-order";
+import type { MeshError } from "./analysis-mesh";
 import type { AnalysisDof } from "./analysis";
 import type { FrameProject, LoadId, MaterialId, MemberId, NodeId, ProjectId, SectionId, SupportId } from "./project";
 import { DEFAULT_LOAD_CASE, validateSelfWeight, validateUniformLoad } from "./project";
@@ -29,6 +31,8 @@ export type AnalysisTarget =
   | { kind: "self-weight"; id: ProjectId | string };
 
 export interface AnalysisDiagnostic {
+  iterations?: SecondOrderIteration[];
+  convergence?: Array<{ divisions: number; iterations: SecondOrderIteration[]; error?: MeshError }>;
   position?: number;
   code: string;
   message: string;

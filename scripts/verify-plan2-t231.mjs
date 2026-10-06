@@ -14,9 +14,13 @@ try {
   const { captureAiSnapshot } = await server.ssrLoadModule("/src/workspace/ai-tools.ts");
   const { proposeModelEdits, prepareModelEditConfirmation, ModelEditConfirmation } = await server.ssrLoadModule("/src/workspace/model-edits.ts");
   const { compareAnalysisResults } = await server.ssrLoadModule("/src/domain/analysis-comparison.ts");
+  const { readComparison } = await server.ssrLoadModule("/src/workspace/ai-comparison.ts");
+  const { secondOrderSystem } = await server.ssrLoadModule("/src/domain/second-order-process.ts");
+  const { mapMeshEngineeringResult, meshError } = await server.ssrLoadModule("/src/domain/mesh-result.ts");
   const cases = [], checks = [], failures = [];
   const packet = (project, mutate) => {
-    const request = structuredClone(createAnalysisRequest(a.captureAnalysisInput(project))); mutate?.(request);
+    const input = a.captureAnalysisInput(project);
+    const request = structuredClone(createAnalysisRequest(input.analysisCase?.method === "static" ? { ...input, solver: { ...a.NATIVE_MESH_STATIC_SOLVER } } : input)); mutate?.(request);
     const child = spawnSync(resolve("native/bin/framemind-core.exe"), [], { input: JSON.stringify(request), encoding: "utf8", windowsHide: true, timeout: 30000, maxBuffer: 64 * 1024 * 1024 });
     if (child.error) throw child.error;
     const messages = child.stdout.trim().split("\n").map((s) => JSON.parse(s));
@@ -105,9 +109,55 @@ try {
   const read = readResult(original,true,{kind:"member",id:base.members[0].id,quantity:"sectionForces",component:"Mz",position:1.25},"check"); assert.ok(Number.isFinite(read.value));
   const different=p.selectAnalysisCase(p.addAnalysisCase(base,{name:"Linear",method:"static",loadSourceId:"LC1",settings:{solver:"native-static"}}),"AC2");
   assert.equal(compareAnalysisResults(a.solveFrame({...a.captureAnalysisInput(different),solver:{...a.ANALYSIS_SOLVER}}),original).compatible,false);
+  const zeroProject = secondOrderColumn(0), zeroResult = solve("same-input-comparison-zero-prestress", zeroProject);
+  const linearProject = p.selectAnalysisCase(p.addAnalysisCase(zeroProject, { name: "Corresponding linear", method: "static", loadSourceId: "LC1", settings: { solver: "native-static" } }), "AC2");
+  const linearPacket = packet(linearProject); assert.equal(linearPacket.kind, "result"); const linearResult = decodeAnalysisResult(linearPacket.result);
+  assert.equal(compareAnalysisResults(linearResult,zeroResult).compatible,true);
+  assert.match(readComparison({before:linearResult,after:zeroResult,beforeCurrent:true,afterCurrent:true},{collection:"summary"}).attribution,/方法差异/);
+  near("same-input-zero-prestress-comparison",linearResult.nodes[1].displacement.y,zeroResult.nodes[1].displacement.y,1e-8);
+  const changedLoad = structuredClone(linearResult); changedLoad.input.nodalLoads[0].force.y *= 2;
+  assert.equal(compareAnalysisResults(changedLoad,zeroResult).compatible,false);
+  let weightProject = p.updateNode(secondOrderColumn(200),base.nodes[1].id,{x:0,y:0,z:3});
+  weightProject = p.updateNodalLoad(weightProject,weightProject.nodalLoads[0].id,weightProject.nodes[1].id,{x:.1,y:0,z:-200},{x:0,y:0,z:0});
+  weightProject = p.updateSelfWeight(weightProject,{enabled:true,loadCaseId:"LC1",gravity:{x:0,y:0,z:-9.81}});
+  const weightResult = solve("actual-self-weight",weightProject), weightReference = continuous(200,7850*.02*9.81/1000,0,.1);
+  near("self-weight-tip",weightResult.nodes[1].displacement.x,weightReference.tip);
   const { id: _caseId, ...properties } = base.analysisCases[0];
   const draft=proposeModelEdits(base,{operations:[{type:"update_analysis_case",id:"AC1",properties:{...properties,name:"Tool-controlled",settings:{...properties.settings,secondOrder:{...properties.settings.secondOrder,loadSteps:2}}}}]});
   const applied=new ModelEditConfirmation().confirm(base,prepareModelEditConfirmation(base,draft)); assert.equal(applied.result.status,"applied"); solve("confirmed-tool-controls",applied.project);
+  const forgeOvercriticalAxial = (result) => {
+    const r = structuredClone(result), scaleV = (v) => v.map((x) => x * 5), scale3 = (v) => Object.fromEntries(Object.entries(v).map(([k,x]) => [k,x*5]));
+    const scaleResponses = (value) => {
+      for (const n of value.nodes) for (const k of ["displacement","rotation","reaction","reactionMoment"]) n[k]=scale3(n[k]);
+      for (const m of value.members) { m.localEndForces.start=scaleV(m.localEndForces.start); m.localEndForces.end=scaleV(m.localEndForces.end);
+        for (const s of m.nativeResponses) { s.forces=scaleV(s.forces); s.localDisplacement=scale3(s.localDisplacement); s.globalDisplacement=scale3(s.globalDisplacement); }
+      }
+    };
+    for (const n of r.input.nodalLoads) n.force=scale3(n.force); scaleResponses(r);
+    let previous;
+    for (const [i,run] of r.secondOrder.runs.entries()) {
+      const c=run.calculation; for (const n of c.linearRun.input.nodalLoads) n.force=scale3(n.force);
+      c.linearRun.process.loadVector=scaleV(c.linearRun.process.loadVector); scaleResponses(c.linearRun);
+      c.vector=scaleV(c.vector); c.force=scaleV(c.force); c.geometric=c.geometric?.map(scaleV)??null; c.localDisplacements=c.localDisplacements.map(scaleV); scaleResponses(c);
+      const system=secondOrderSystem(c), norm=(v,force=false)=>Math.hypot(...v.map((x,i)=>force?x/Math.sqrt(system.diagonal[i]):x*Math.sqrt(system.diagonal[i])));
+      const residual=(v,a)=>{const rhs=system.force.map((x)=>a*x), product=system.multiply(v,a);return norm(rhs.map((x,i)=>x-product[i]),true)/Math.max(1,norm(rhs,true));};
+      let before=c.vector.map(()=>0);
+      for (const it of c.iterations) {it.displacement=scaleV(it.displacement);it.correction=scaleV(it.correction);it.residualBefore=residual(before,it.factor);it.residual=residual(it.displacement,it.factor);it.increment=norm(it.correction)/Math.max(1e-12,norm(it.displacement));before=it.displacement;}
+      const mapped=mapMeshEngineeringResult(r.input,{...c.linearRun,nodes:c.nodes,members:c.members},r.input.meshPlan.levels[i]); if(previous)run.error=meshError(previous,mapped,r.input.meshPlan.policy);previous=mapped;
+    }
+    return r;
+  };
+  const axial = solve("pure-axial-stable",secondOrderColumn(200,0));
+  assert.throws(()=>decodeAnalysisResult(forgeOvercriticalAxial(axial)),/非正定/); failures.push({name:"unexcited-overcritical-saved-column",rejected:true});
+  let large = p.createProject("25 independent axial columns"); large=p.addMaterial(large,base.materials[0]);large=p.addSection(large,base.sections[0]);
+  for(let i=0;i<25;i++) {
+    large=p.addNode(large,{x:0,y:i,z:0});large=p.addNode(large,{x:3,y:i,z:0});const start=large.nodes.at(-2).id,end=large.nodes.at(-1).id;
+    large=p.addMember(large,{startNodeId:start,endNodeId:end,materialId:large.materials[0].id,sectionId:large.sections[0].id,rotationDegrees:0});
+    large=p.addSupport(large,start,[true,true,true,true,true,true]);large=p.addNodalLoad(large,end,{x:-200,y:0,z:0},{x:0,y:0,z:0});
+  }
+  large=p.selectAnalysisCase(p.addAnalysisCase(large,{...properties,name:"Large axial matrix boundary"}),"AC1");
+  const largeResult=solve("over-matrix-limit-stable",large);assert.ok(largeResult.secondOrder.runs.every((r)=>r.calculation.vector.length>144&&r.calculation.geometric===null));
+  assert.throws(()=>decodeAnalysisResult(forgeOvercriticalAxial(largeResult)),/非正定/); failures.push({name:"over-matrix-limit-overcritical-saved-columns",rejected:true});
   for (const [name, project, expected] of [
     ["iteration-limit",secondOrderColumn(500,.1,{maxIterations:1}),"second-order-not-converged"],
     ["over-critical",secondOrderColumn(1000),"second-order-unstable-tangent"],
@@ -116,6 +166,7 @@ try {
     ["equation-limit",secondOrderColumn(500,.1,{maxEquations:1}),"second-order-budget-exhausted"],
   ]) { const output=packet(project); assert.equal(output.kind,"error"); assert.equal(output.error.diagnostics[0].code,expected); failures.push({name,code:expected}); }
   for (const [name, mutate] of [
+    ["fabricated-zero-correction",(r)=>{const c=r.secondOrder.runs[0].calculation, first=c.iterations[0]; c.iterations.filter((v)=>v.step===1).forEach((v)=>v.iteration++); c.iterations.unshift({...first,iteration:1,displacement:first.displacement.map(()=>0),correction:first.correction.map(()=>0),residual:first.residualBefore,increment:0});}],
     ["forged-iteration",(r)=>{r.secondOrder.runs.at(-1).calculation.iterations.at(-1).residual=0.5;}],
     ["forged-linear-load",(r)=>{r.secondOrder.runs.at(-1).calculation.linearRun.input.nodalLoads[0].force.x+=1;}],
     ["forged-geometric",(r)=>{r.secondOrder.runs[0].calculation.geometric[0][0]+=1;}],

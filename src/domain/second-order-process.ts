@@ -54,7 +54,33 @@ export function secondOrderSystem(calculation: SecondOrderCalculation) {
     }
     return result;
   };
-  return { input, force, diagonal, elements, multiply, matrices };
+  const requireStableTangents = () => {
+    // Ordered Schur-complement pivots are concave on positive definite matrices.
+    // Verifying both endpoints of K+alpha*G bounds every proportional load step.
+    // Sparse coefficient validation does not solve or replace captured responses.
+    for (const alpha of [0, 1]) {
+      const lower = Array.from({ length: coordinates.length }, () => new Map<number, number>());
+      for (const e of elements) for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) for (const [row, a] of e.map[r]) for (const [column, b] of e.map[c]) if (row >= column) {
+        const value = a * (e.k[r][c] + alpha * e.g[r][c]) * b / Math.sqrt(diagonal[row]) / Math.sqrt(diagonal[column]);
+        lower[row].set(column, (lower[row].get(column) ?? 0) + value);
+      }
+      for (let i = 0; i < coordinates.length; i++) {
+        const pivot = lower[i].get(i) ?? 0;
+        if (!Number.isFinite(pivot) || pivot <= 1e-12) throw new Error("二阶冻结切线非正定或主元低于 1e-12，不能读取为已收敛结果");
+        const connected: Array<[number, number]> = [];
+        for (let j = i + 1; j < coordinates.length; j++) {
+          const entry = lower[j].get(i) ?? 0;
+          if (entry !== 0) connected.push([j, entry / Math.sqrt(pivot)]);
+          lower[j].delete(i);
+        }
+        for (let a = 0; a < connected.length; a++) for (let b = 0; b <= a; b++) {
+          const [row, x] = connected[a], [column, y] = connected[b];
+          lower[row].set(column, (lower[row].get(column) ?? 0) - x * y);
+        }
+      }
+    }
+  };
+  return { input, force, diagonal, elements, multiply, matrices, requireStableTangents };
 }
 export function secondOrderElementSample(e: ReturnType<typeof secondOrderSystem>["elements"][number], v: number[], ends: number[], position: number): Omit<MemberResponseSample, "analysisId" | "memberId"> {
   const l = e.geometry.length, t = position / l;

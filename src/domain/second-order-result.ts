@@ -8,6 +8,7 @@ import { hermiteSlope } from "./initial-stress";
 export function decodeSecondOrderResult(value: Record<string, unknown>, input: AnalysisInputSnapshot, decode: (value: unknown) => AnalysisResult): AnalysisResult {
   const fail = () => { throw new Error("二阶实际加载／平衡、响应或冻结输入不一致"); };
   const service = decodeSecondOrderService(value, input), s = validateSecondOrderSettings(input.analysisCase?.settings.secondOrder), r = value.secondOrder as SecondOrderRecord;
+  if (typeof value.createdAt !== "string" || !Number.isFinite(Date.parse(value.createdAt))) fail();
   if (!r || r.method !== "initial-stress-small-displacement" || r.equation !== "(K+alpha*G[Nlinear])u=alpha*F" || r.status !== "converged" || !Array.isArray(r.runs) || r.runs.length < 2 || r.runs.length > input.meshPlan!.levels.length || value.process !== undefined || value.discretization !== undefined || value.modal !== undefined || value.buckling !== undefined) fail();
   let previous: ReturnType<typeof mapMeshEngineeringResult> | undefined, mapped: typeof previous, converged = false;
   const runs = r.runs.map((run, index) => {
@@ -36,6 +37,7 @@ export function decodeSecondOrderResult(value: Record<string, unknown>, input: A
     if (!sameInputValue(c.coordinates, expectedCoordinates) || !sameInputValue(c.releaseNullRotations, p.releaseNullRotations ?? []) || c.matrixLimit !== 144) fail();
     const decoded = { ...c, linearRun: linear }, system = secondOrderSystem(decoded);
     if (!secondOrderNear(c.force, system.force) || system.diagonal.some((x) => !Number.isFinite(x) || x <= 0)) fail();
+    system.requireStableTangents();
     if (c.vector.length <= 144) { const [k, g] = system.matrices(); if (!secondOrderNear(c.stiffness, k) || !secondOrderNear(c.geometric, g)) fail(); }
     else if (c.stiffness !== null || c.geometric !== null) fail();
     const validVector = (v: number[]) => Array.isArray(v) && v.length === c.vector.length && v.every(Number.isFinite);
@@ -50,6 +52,10 @@ export function decodeSecondOrderResult(value: Record<string, unknown>, input: A
       const alpha = step / s.loadSteps;
       if (record.step !== step || record.factor !== alpha || record.iteration !== iteration || !validVector(record.displacement) || !validVector(record.correction) || !secondOrderNear(record.displacement, before.map((x, j) => x + record.correction[j]))) fail();
       const afterResidual = residual(record.displacement, alpha), beforeResidual = residual(before, alpha), increment = scaledNorm(record.correction) / Math.max(1e-12, scaledNorm(record.displacement));
+      const priorInternal = system.multiply(before, alpha), correctionInternal = system.multiply(record.correction, alpha);
+      const correctionRhs = system.force.map((x, j) => alpha * x - priorInternal[j]);
+      const correctionResidual = scaledNorm(correctionInternal.map((x, j) => x - correctionRhs[j]), true) / Math.max(1, scaledNorm(correctionRhs, true));
+      if (!Number.isFinite(correctionResidual) || correctionResidual > s.residualTolerance) fail();
       if (![afterResidual, beforeResidual, increment].every(Number.isFinite) || !secondOrderNear(record.residual, afterResidual) || !secondOrderNear(record.residualBefore, beforeResidual) || !secondOrderNear(record.increment, increment)) fail();
       const done = afterResidual <= s.residualTolerance && increment <= s.incrementTolerance;
       if (!done && iteration >= s.maxIterations || i === c.iterations.length - 1 && (!done || step !== s.loadSteps)) fail();

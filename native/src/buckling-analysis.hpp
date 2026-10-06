@@ -1,5 +1,8 @@
 // Dead loads on the undeformed elastic frame. Initial stress enters only through
 // axial-force transverse Hermite slope energy; no follower or torsional stress terms.
+static Eigen::Vector4d initialStressSlope(double length, double t) {
+    return Eigen::Vector4d((-6*t+6*t*t)/length,1-4*t+3*t*t,(6*t-6*t*t)/length,-2*t+3*t*t);
+}
 static Matrix initialStressGeometric(const StaticElement& e, double start, double end) {
     Matrix result=Matrix::Zero(12,12);
     const double points[3]={.5-std::sqrt(15.0)/10,.5,.5+std::sqrt(15.0)/10};
@@ -8,7 +11,7 @@ static Matrix initialStressGeometric(const StaticElement& e, double start, doubl
     const double signs[2][4]={{1,1,1,1},{1,-1,1,-1}};
     for (int point=0;point<3;++point) {
         const double t=points[point], n=start*(1-t)+end*t, l=e.length;
-        const double slope[4]={(-6*t+6*t*t)/l,1-4*t+3*t*t,(6*t-6*t*t)/l,-2*t+3*t*t};
+        const auto slope=initialStressSlope(l,t);
         for (int plane=0;plane<2;++plane) for (int r=0;r<4;++r) for (int c=0;c<4;++c)
             result(indices[plane][r],indices[plane][c])+=n*l*weights[point]*slope[r]*slope[c]*signs[plane][r]*signs[plane][c];
     }

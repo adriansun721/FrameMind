@@ -75,6 +75,7 @@ test("T2-31 iteration and mesh nonconvergence fail without replacing converged h
       await manager.getByLabel("二阶每杆最大单元").selectOption(limit === "iteration" ? "16" : "1");
       await manager.getByRole("button", { name: "保存分析工况", exact: true }).click(); await manager.getByRole("button", { name: "计算此分析工况", exact: true }).click();
       await expect(page.getByRole("region", { name: "分析诊断", exact: true })).toContainText(limit === "iteration" ? "iteration limit" : "did not converge", { timeout: 30000 });
+      await expect(page.getByRole("region", { name: "分析诊断", exact: true })).toContainText("失败前真实加载记录");
       const failed = await save(page, path); expect(failed.latestAnalysis!.id).toBe(oldId); expect(failed.analysisResults).toHaveLength(1);
       await page.getByRole("button", { name: "关闭分析诊断", exact: true }).click();
     }

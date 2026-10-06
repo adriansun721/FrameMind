@@ -77,8 +77,8 @@ static Json secondOrderLevel(const Json& request, const Json& level, std::string
         for (int r=0;r<12;++r) reaction[e.indices[r]]+=globalEnds[r];
         localDisplacements.push_back(jsonVector(v)); Json samples=Json::array();
         const Vec3 intensity(equivalents[i][0]*2/e.length,equivalents[i][1]*2/e.length,equivalents[i][2]*2/e.length);
-        auto slopeAt=[&](double t) { const double l=e.length,a=(-6*t+6*t*t)/l,b=1-4*t+3*t*t,c=(6*t-6*t*t)/l,d=-2*t+3*t*t;
-            return Vec3(0,a*v[1]+b*v[5]+c*v[7]+d*v[11],a*v[2]-b*v[4]+c*v[8]-d*v[10]); };
+        auto slopeAt=[&](double t) { const auto s=initialStressSlope(e.length,t);
+            return Vec3(0,s[0]*v[1]+s[1]*v[5]+s[2]*v[7]+s[3]*v[11],s[0]*v[2]-s[1]*v[4]+s[2]*v[8]-s[3]*v[10]); };
         const Vec3 slopeStart=slopeAt(0),slopeEnd=slopeAt(1),slopeControl=2*slopeAt(.5)-(slopeStart+slopeEnd)/2;
         const double axialMean=(v[6]-v[0])/e.length,axialOffset=intensity.x()/(2*e.original(0,0));
         // The quadratic slope curve lies inside its Bernstein control-point hull.
@@ -89,13 +89,10 @@ static Json secondOrderLevel(const Json& request, const Json& level, std::string
             const double t=double(station)/16, x=e.length*t, l=e.length;
             const double h0=1-3*t*t+2*t*t*t,h1=l*(t-2*t*t+t*t*t),h2=3*t*t-2*t*t*t,h3=l*(-t*t+t*t*t);
             const Vec3 local((1-t)*v[0]+t*v[6]+intensity.x()*x*(l-x)/(2*e.original(0,0)*l),h0*v[1]+h1*v[5]+h2*v[7]+h3*v[11],h0*v[2]-h1*v[4]+h2*v[8]-h3*v[10]);
-            const double slope[4]={(-6*t+6*t*t)/l,1-4*t+3*t*t,(6*t-6*t*t)/l,-2*t+3*t*t};
-            const double sy=slope[0]*v[1]+slope[1]*v[5]+slope[2]*v[7]+slope[3]*v[11], sz=slope[0]*v[2]-slope[1]*v[4]+slope[2]*v[8]-slope[3]*v[10];
-            if (std::hypot(sy,sz)>.05 || std::abs((v[6]-v[0])/l)>.01) throw Failure("second-order-scope-exceeded","Small-displacement slope/axial-strain boundary exceeded; reduce loads",{{"kind","member"},{"id",e.member["id"]}},"secondOrder");
             // Integrate N(s) w'(s) exactly on [0,x]. N is linear and slope quadratic.
             const double points[2]={.5-std::sqrt(3.0)/6,.5+std::sqrt(3.0)/6}; double iy=0,iz=0;
-            for (double point:points) { const double r=t*point, n=ns*(1-r)+ne*r, a=(-6*r+6*r*r)/l,b=1-4*r+3*r*r,c=(6*r-6*r*r)/l,d=-2*r+3*r*r;
-                iy+=x*.5*n*(a*v[1]+b*v[5]+c*v[7]+d*v[11]); iz+=x*.5*n*(a*v[2]-b*v[4]+c*v[8]-d*v[10]); }
+            for (double point:points) { const double r=t*point, n=ns*(1-r)+ne*r; const auto slope=slopeAt(r);
+                iy+=x*.5*n*slope.y(); iz+=x*.5*n*slope.z(); }
             Vector forces=-ends.head(6); forces[0]-=intensity.x()*x; forces[1]-=intensity.y()*x; forces[2]-=intensity.z()*x;
             forces[4]+=-ends[2]*x-intensity.z()*x*x/2-iz; forces[5]+=ends[1]*x+intensity.y()*x*x/2+iy;
             samples.push_back({{"position",x},{"forces",jsonVector(forces)},{"localDisplacement",json3(local)},{"globalDisplacement",json3(e.x*local.x()+e.y*local.y()+e.z*local.z())}});

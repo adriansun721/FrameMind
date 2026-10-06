@@ -32,6 +32,11 @@ export interface AnalysisTask {
 }
 
 function validDiagnostic(value: AnalysisDiagnostic): boolean {
+  const validIterations = (records: NonNullable<AnalysisDiagnostic["iterations"]>) => Array.isArray(records) && records.length <= 10000 && records.every((r) => r && Number.isSafeInteger(r.step) && r.step >= 1 && r.step <= 100 && Number.isSafeInteger(r.iteration) && r.iteration >= 1 && r.iteration <= 100
+    && Number.isFinite(r.factor) && r.factor > 0 && r.factor <= 1 && [r.residualBefore, r.residual, r.increment].every((x) => Number.isFinite(x) && x >= 0)
+    && Array.isArray(r.displacement) && Array.isArray(r.correction) && r.displacement.length === r.correction.length && r.displacement.length <= 1200 && [...r.displacement, ...r.correction].every(Number.isFinite));
+  if (value?.iterations !== undefined && !validIterations(value.iterations)) return false;
+  if (value?.convergence !== undefined && (!Array.isArray(value.convergence) || value.convergence.length > 5 || value.convergence.some((r) => ![1, 2, 4, 8, 16].includes(r.divisions) || !validIterations(r.iterations) || r.error && Object.values(r.error).some((x) => !Number.isFinite(x) || x < 0)))) return false;
   if (value?.position !== undefined && (!Number.isFinite(value.position) || value.position < 0)) return false;
   if (!value || typeof value !== "object" || typeof value.code !== "string" || !value.code.trim()
     || typeof value.message !== "string" || !value.message.trim()
