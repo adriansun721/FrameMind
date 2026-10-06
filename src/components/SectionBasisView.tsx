@@ -1,12 +1,12 @@
 import type { SectionProperties } from "../domain/project";
-import { idealizedCatalogComparison, SECTION_PROPERTY_KEYS } from "../domain/catalog-section";
+import { SECTION_PROPERTY_KEYS } from "../domain/catalog-section";
 import { SECTION_DIMENSIONS } from "../domain/section-geometry";
 import { useUnits } from "./UnitPresentation";
 
 export function SectionBasisView({ section }: { section: SectionProperties }) {
   const u = useUnits(), basis = section.catalogBasis;
   if (!basis || !section.geometry) return null;
-  const comparison = idealizedCatalogComparison(section.geometry);
+  const comparison = basis.idealizedComparison;
   const labels = { areaM2: "A", secondMomentYM4: "Iy", secondMomentZM4: "Iz", torsionalConstantM4: "J" };
   return <section aria-label="目录与理想化参数依据" className="catalog-source">
     <strong>正式分析采用目录参数 · {basis.designation}</strong>

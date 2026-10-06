@@ -14,6 +14,8 @@ export interface CatalogSectionBasis {
   rootRadiusM: number;
   referenceGeometry: SectionGeometry;
   referenceProperties: SectionMechanicalValues;
+  /** Frozen comparison uses canonical m/m²/m⁴ and never enters the solver. */
+  idealizedComparison: ReturnType<typeof idealizedCatalogComparison>;
 }
 
 export function validateCatalogSectionBasis(value: unknown, geometry: SectionGeometry | undefined, properties: Partial<SectionMechanicalValues>): CatalogSectionBasis {
@@ -32,7 +34,12 @@ export function validateCatalogSectionBasis(value: unknown, geometry: SectionGeo
     if (typeof ref !== "number" || !Number.isFinite(ref) || ref <= 0 || properties[key] !== ref) throw new Error("目录力学参数已修改，请明确转换为自定义截面并重新确认");
     referenceProperties[key] = ref;
   }
-  return { method: b.method, catalogId: b.catalogId, designation: b.designation, source: { ...b.source }, location: b.location, rootRadiusM: b.rootRadiusM, referenceGeometry, referenceProperties };
+  const comparison = b.idealizedComparison;
+  if (!comparison || comparison.basis?.method !== "idealized-section-v1" || typeof comparison.withinApproximationLimits !== "boolean"
+    || [comparison.notes, comparison.basis.source, comparison.basis.url, comparison.basis.notes].some((text) => typeof text !== "string" || !text.trim())
+    || SECTION_PROPERTY_KEYS.some((key) => typeof comparison.properties?.[key] !== "number" || !Number.isFinite(comparison.properties[key]) || comparison.properties[key] <= 0)) throw new Error("目录截面缺少归档理想化对照依据");
+  return { method: b.method, catalogId: b.catalogId, designation: b.designation, source: { ...b.source }, location: b.location, rootRadiusM: b.rootRadiusM, referenceGeometry, referenceProperties,
+    idealizedComparison: structuredClone(comparison) };
 }
 
 export function idealizedCatalogComparison(geometry: SectionGeometry) {
@@ -44,5 +51,5 @@ export function idealizedCatalogComparison(geometry: SectionGeometry) {
 
 export function describeSection<T extends SectionProperties>(section: T) {
   return { ...section, geometryStatus: section.geometry ? "几何已定义" : "几何未定义", ...(!section.geometry ? { displayMode: "analysis-line" } : {}),
-    ...(section.catalogBasis && section.geometry ? { idealizedComparison: idealizedCatalogComparison(section.geometry) } : {}) };
+    ...(section.catalogBasis && section.geometry ? { idealizedComparison: section.catalogBasis.idealizedComparison } : {}) };
 }

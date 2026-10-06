@@ -27,6 +27,9 @@ describe("confirmed AI stage through public project, tool and history boundaries
     expect(outcome.project.nodes.at(-1)?.position).toEqual({ x: 6, y: 4, z: 6 });
     expect(outcome.project.nodes[0]).toEqual(project.nodes[0]);
     expect(outcome.project.nodes.some((node) => node.id.startsWith(proposal.id))).toBe(false);
+    expect(outcome.project.sections.map((s) => s.geometry)).toEqual(confirmation.preview.sections.map((s) => s.geometry));
+    expect(outcome.project.sections.map((s) => s.catalogBasis)).toEqual(confirmation.preview.sections.map((s) => s.catalogBasis));
+    expect(outcome.project.sections[0].catalogBasis?.designation).toBe("HE 200 A");
     expect(decodeProject(encodeProject(outcome.project))).toEqual(outcome.project);
     const summary = executeAiTool(captureAiSnapshot(outcome.project, []), { id: "read", type: "function",
       function: { name: "read_model", arguments: '{"collection":"summary"}' } });

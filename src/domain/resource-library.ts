@@ -1,6 +1,6 @@
 import type { CatalogSource, MaterialProperties, SectionProperties } from "./project";
 import type { SectionGeometry } from "./section-geometry";
-import type { SectionMechanicalValues } from "./catalog-section";
+import { idealizedCatalogComparison, type SectionMechanicalValues } from "./catalog-section";
 export type { CatalogSource } from "./project";
 
 export interface MaterialCatalogEntry extends MaterialProperties {
@@ -59,7 +59,7 @@ function catalogSection(catalogId: string, name: string, designation: string, ro
   const geometry: SectionGeometry = { shape: "i-section", height: h / 1000, width: b / 1000, webThickness: tw / 1000, flangeThickness: tf / 1000 };
   return { catalogId, displayName: `${name} · I/H 形截面`, name, ...properties, geometry, source: SECTION_SOURCE, fieldNotes: SECTION_NOTES,
     catalogBasis: { method: "catalog-section-v1", catalogId, designation, source: { ...SECTION_SOURCE }, location: `EN sections!C${row}:AN${row}; h/G, b/H, tw/I, tf/J, r/K, A/N, Iy/AD, Iz/AI, It/AN`,
-      rootRadiusM: r / 1000, referenceGeometry: { ...geometry }, referenceProperties: { ...properties } } };
+      rootRadiusM: r / 1000, referenceGeometry: { ...geometry }, referenceProperties: { ...properties }, idealizedComparison: idealizedCatalogComparison(geometry) } };
 }
 
 export const SECTION_CATALOG: readonly SectionCatalogEntry[] = Object.freeze([

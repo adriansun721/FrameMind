@@ -1,5 +1,4 @@
-import { validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
-import { validateSectionDimensions } from "./section-geometry";
+import { validateSectionDimensions, validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
 import { validateCatalogSectionBasis, type CatalogSectionBasis } from "./catalog-section";
 import type { UnitPresetId } from "./units";
 import { calculateMemberGeometry } from "./member-geometry";

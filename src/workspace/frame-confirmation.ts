@@ -1,4 +1,4 @@
-import { addMaterial, addMember, addNode, addSection, type FrameProject, type MaterialId, type NodeId, type SectionId } from "../domain/project";
+import { addMaterial, addMember, addNode, addSection, validateSection, type FrameProject, type MaterialId, type NodeId, type SectionId } from "../domain/project";
 import { applyProjectTransaction } from "../domain/project-operations";
 import { captureAiSnapshot, type AiContext, type AiToolResult } from "./ai-tools";
 import { buildFramePreview, type FramePreview, type FrameProposal } from "./frame-proposal";
@@ -40,8 +40,7 @@ function applyPreview(project: FrameProject, preview: FramePreview): FrameProjec
       materials.set(material.id, next.materials.at(-1)!.id);
     }
     for (const section of preview.sections) {
-      next = addSection(next, { name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4,
-        secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4 }, structuredClone(section.provenance));
+      next = addSection(next, validateSection(section.label, section), structuredClone(section.provenance));
       sections.set(section.id, next.sections.at(-1)!.id);
     }
     for (const node of preview.nodes) {

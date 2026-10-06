@@ -29,6 +29,7 @@ export function ParametricSectionEditor({ project, initialSectionId, initialInpu
   const [preview, setPreview] = useState<ReturnType<typeof prepareModelEditConfirmation> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const edit = () => { setPreview(null); setError(null); };
+  const draftCatalogSection = () => project.sections.find((s) => s.id === id && s.catalogBasis?.catalogId === catalogId) ?? getSectionCatalogEntry(catalogId)!;
   const load = (sectionId: string) => {
     setId(sectionId); const s = project.sections.find((s) => s.id === sectionId); if (!s) return;
     setName(s.name); setShape(s.catalogBasis ? "catalog" : s.geometry?.shape ?? "properties"); setCatalogId(s.catalogBasis?.catalogId ?? SECTION_CATALOG[0].catalogId);
@@ -39,12 +40,10 @@ export function ParametricSectionEditor({ project, initialSectionId, initialInpu
     edit();
     try {
       if (next === "catalog") {
-        const saved = project.sections.find((s) => s.id === id);
-        setValues(sectionDraft(saved?.catalogBasis?.catalogId === catalogId ? saved : getSectionCatalogEntry(catalogId)));
+        setValues(sectionDraft(draftCatalogSection()));
       }
       if (next === "properties" && shape === "catalog") {
-        const s = project.sections.find((s) => s.id === id);
-        setValues(sectionDraft(s?.catalogBasis?.catalogId === catalogId ? s : getSectionCatalogEntry(catalogId)));
+        setValues(sectionDraft(draftCatalogSection()));
       } else if (next === "properties" && shape !== "properties" && shape !== "catalog") {
         const geometry = { shape, ...Object.fromEntries(SECTION_SHAPE_FIELDS[shape].map((key) => [key, numeric(key)])) };
         setValues({ ...values, ...numericDraft(sectionMechanicalProperties(geometry)) });
@@ -56,8 +55,7 @@ export function ParametricSectionEditor({ project, initialSectionId, initialInpu
     try {
       const operations: ProjectEditOperation[] = [];
       if (mode === "create" || mode === "update") {
-        const saved = project.sections.find((s) => s.id === id);
-        const properties = shape === "catalog" ? validateSection("草案", { ...(saved?.catalogBasis?.catalogId === catalogId ? saved : getSectionCatalogEntry(catalogId)!), name })
+        const properties = shape === "catalog" ? validateSection("草案", { ...draftCatalogSection(), name })
           : shape === "properties" ? { name, ...Object.fromEntries(Object.keys(propertyFields).map((k) => [k, numeric(k)])) } as SectionInput
           : { name, geometry: { shape, ...Object.fromEntries(SECTION_SHAPE_FIELDS[shape].map((k) => [k, numeric(k)])) } as SectionGeometry };
         operations.push(mode === "create" ? { type: "create_section", properties } : { type: "update_section", id: id as SectionId, properties });
@@ -81,7 +79,7 @@ export function ParametricSectionEditor({ project, initialSectionId, initialInpu
       {(mode === "create" || mode === "update") && <>
         <label className="field"><span>截面名称</span><input aria-label="截面名称" value={name} onChange={(e) => { edit(); setName(e.target.value); }} /></label>
         <label className="field"><span>截面形状</span><select aria-label="截面形状" value={shape} onChange={(e) => changeShape(e.target.value as typeof shape)}><option value="properties">仅力学属性（几何未定义）</option><option value="catalog">标准目录（保留目录参数）</option>{Object.entries(SECTION_SHAPES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-        {shape === "catalog" && <><label className="field"><span>标准截面</span><select aria-label="标准截面" value={catalogId} onChange={(e) => { edit(); setCatalogId(e.target.value); const s = getSectionCatalogEntry(e.target.value)!; setValues(sectionDraft(s)); setName(s.name); }}>{SECTION_CATALOG.map((s) => <option key={s.catalogId} value={s.catalogId}>{s.name}</option>)}</select></label><SectionBasisView section={project.sections.find((s) => s.id === id && s.catalogBasis?.catalogId === catalogId) ?? getSectionCatalogEntry(catalogId)!} /><p>选择尺寸形状会改用理想化公式；选择仅力学属性可修改参数并移除几何。均需重新预览确认。</p></>}
+        {shape === "catalog" && <><label className="field"><span>标准截面</span><select aria-label="标准截面" value={catalogId} onChange={(e) => { edit(); setCatalogId(e.target.value); const s = getSectionCatalogEntry(e.target.value)!; setValues(sectionDraft(s)); setName(s.name); }}>{SECTION_CATALOG.map((s) => <option key={s.catalogId} value={s.catalogId}>{s.name}</option>)}</select></label><SectionBasisView section={draftCatalogSection()} /><p>选择尺寸形状会改用理想化公式；选择仅力学属性可修改参数并移除几何。均需重新预览确认。</p></>}
         {(shape === "catalog" ? [] : shape === "properties" ? Object.entries(propertyFields) : SECTION_SHAPE_FIELDS[shape].map((k) => [k, SECTION_DIMENSIONS[k]])).map(([key, label]) => {
           const unit = shape === "properties" ? key === "areaM2" ? "m²" : "m⁴" : "m";
           return <label className="field" key={key}><span>{label}</span><div><UnitInput aria-label={label} value={values[key]} unit={unit} onValueChange={(v) => { edit(); setValues({ ...values, [key]: v }); }} /><em>{u.unit(unit)}</em></div></label>;

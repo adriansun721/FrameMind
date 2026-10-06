@@ -49,6 +49,19 @@ it("retains a frozen catalog row on reopen and blocks inconsistent edits or corr
   expect(idealizedCatalogComparison(SECTION_CATALOG[1].geometry!).withinApproximationLimits).toBe(true);
 });
 
+it("uses archived idealized comparison values and basis when querying or reopening historical catalogs", () => {
+  const entry = structuredClone(SECTION_CATALOG[1]);
+  const comparison = entry.catalogBasis!.idealizedComparison;
+  comparison.properties.torsionalConstantM4 = 4.9e-8;
+  comparison.notes = "Archived idealized comparison from the project creator";
+  comparison.basis.url += "?archived=1";
+  const project = addSection(createProject(), entry);
+  const reopened = decodeProject(encodeProject(project));
+  expect(reopened.sections[0].catalogBasis?.idealizedComparison).toEqual(comparison);
+  expect(describeSection(reopened.sections[0]).idealizedComparison).toEqual(comparison);
+  expect(reopened.sections[0].torsionalConstantM4).toBe(6.915e-8);
+});
+
 it("reads a catalog with millimetre output and restores an unconfirmed catalog draft without applying it", () => {
   const p = sectionCantilever();
   const result = executeAiTool(captureAiSnapshot(p, []), call("propose_model_edits", { operations: [

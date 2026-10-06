@@ -1,6 +1,6 @@
 import { unitPresentation } from "../domain/units";
 import { SECTION_DIMENSIONS, SECTION_SHAPES } from "../domain/section-geometry";
-import { idealizedCatalogComparison, SECTION_PROPERTY_KEYS } from "../domain/catalog-section";
+import { SECTION_PROPERTY_KEYS } from "../domain/catalog-section";
 import { getSelfWeightSummary } from "../domain/analysis";
 import { ANALYSIS_STAGE_LABELS } from "../domain/analysis-diagnostics";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
@@ -54,7 +54,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
       ? `${item.label} · ${SECTION_SHAPES[item.geometry.shape]}；${Object.entries(item.geometry).filter(([key]) => key !== "shape").map(([key, value]) => `${SECTION_DIMENSIONS[key as keyof typeof SECTION_DIMENSIONS]} = ${q(Number(value), "m")} ${u.unit("m")}`).join("；")}。${item.catalogBasis ? `正式分析采用目录参数；${item.catalogBasis.designation}；${item.catalogBasis.source.title}；${item.catalogBasis.source.edition}；${item.catalogBasis.source.url}；核对日期 ${item.catalogBasis.source.accessedOn}；${item.catalogBasis.location}；原表圆角 r = ${u.quantity(item.catalogBasis.rootRadiusM, "m")}，几何示意忽略圆角。` : `${item.parameterBasis?.method}；${item.parameterBasis?.source}；${item.parameterBasis?.url}。${item.parameterBasis?.notes}`}`
       : `${item.label}：几何未定义，仅保存力学属性。`)),
     ...input.sections.filter((item) => item.catalogBasis && item.geometry).flatMap((item) => {
-      const comparison = idealizedCatalogComparison(item.geometry!);
+      const comparison = item.catalogBasis!.idealizedComparison;
       return [paragraph(`${item.label}：${comparison.notes} ${comparison.withinApproximationLimits ? "尺寸满足理想化近似门槛。" : "超出理想化薄壁分析阈值，J 仅作公式对照。"} ${comparison.basis.source}；${comparison.basis.url}；${comparison.basis.notes}`),
         table(["参数", "目录（正式分析）", "理想化（仅对照）", "单位"], SECTION_PROPERTY_KEYS.map((key) => { const unit = key === "areaM2" ? "m²" : "m⁴"; return [key, q(item[key], unit), q(comparison.properties[key], unit), u.unit(unit)]; }))];
     }),
