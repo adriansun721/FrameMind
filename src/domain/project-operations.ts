@@ -21,6 +21,8 @@ import {
   type Vector3,
 } from "./project";
 import { setModalDamping, type ModalDampingInput } from "./modal-damping";
+import { addPsdSpectrum, updatePsdSpectrum, deletePsdSpectrum } from "./psd-project";
+import type { PsdInput, PsdSpectrum } from "./psd";
 import { changeTopology, type TopologyInput, type TopologyReceipt } from "./topology";
 import { mergeNodes, type NodeMergeInput, type NodeMergeReceipt } from "./node-merge";
 
@@ -106,6 +108,9 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
+  | { type: "create_psd_spectrum"; properties: PsdInput }
+  | { type: "update_psd_spectrum"; id: string; properties: PsdInput }
+  | { type: "delete_psd_spectrum"; id: string }
   | { type: "set_modal_damping"; id: string; analysisId: string; properties: ModalDampingInput }
   | { type: "create_section"; properties: SectionInput }
   | { type: "update_section"; id: SectionId; properties: SectionInput }
@@ -125,10 +130,10 @@ export type ProjectEditOperation =
   | { type: "delete_analysis_case"; id: string };
 
 export interface ProjectEditChange {
-  kind: "section" | "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case";
+  kind: "section" | "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case" | "psd-spectrum";
   id: string;
-  before?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
-  after?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
+  before?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase | PsdSpectrum;
+  after?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase | PsdSpectrum;
 }
 export interface ProjectEditReceipt {
   projectId: string;
@@ -162,6 +167,9 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
+      case "create_psd_spectrum": changed = addPsdSpectrum(current, operation.properties); break;
+      case "update_psd_spectrum": changed = updatePsdSpectrum(current, operation.id, operation.properties); break;
+      case "delete_psd_spectrum": changed = deletePsdSpectrum(current, operation.id); break;
       case "set_modal_damping": changed = setModalDamping(current, operation.id, operation.analysisId, operation.properties); break;
       case "create_section": changed = addSection(current, operation.properties); created.push({ operationIndex, kind: "section", id: changed.sections.at(-1)!.id }); break;
       case "update_section": changed = updateSection(current, operation.id, operation.properties); break;
@@ -208,7 +216,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     return changed;
   }));
   const changes: ProjectEditChange[] = [];
-  const collections = [["section", "sections"], ["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"]] as const;
+  const collections = [["section", "sections"], ["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"], ["psd-spectrum", "psdSpectra"]] as const;
   for (const [kind, collection] of collections) {
     const before = new Map(project[collection].map((object) => [object.id as string, object]));
     const after = new Map(next[collection].map((object) => [object.id as string, object]));

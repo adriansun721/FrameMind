@@ -27,8 +27,8 @@ const UNIT_FACTORS: Record<QuantityDimension, Readonly<Record<string, number>>> 
   lineMass: { "kg/m": 1, "kg/mm": 1e3, "t/m": 1e3, "t/mm": 1e6 },
   frequency: { Hz: 1, "rad/s": 1 / (2 * Math.PI) },
   displacementPSD: { "m²/Hz": 1, "mm²/Hz": 1e-6 },
-  accelerationPSD: { "(m/s²)²/Hz": 1, "(mm/s²)²/Hz": 1e-6 },
-  forcePSD: { "kN²/Hz": 1, "N²/Hz": 1e-6 }, dimensionless: { "无": 1, "1": 1 },
+  accelerationPSD: { "(m/s²)²/Hz": 1, "(mm/s²)²/Hz": 1e-6, "(m/s²)²/(rad/s)": 2 * Math.PI, "(mm/s²)²/(rad/s)": 2 * Math.PI * 1e-6 },
+  forcePSD: { "kN²/Hz": 1, "N²/Hz": 1e-6, "kN²/(rad/s)": 2 * Math.PI, "N²/(rad/s)": 2 * Math.PI * 1e-6 }, dimensionless: { "无": 1, "1": 1 },
 };
 export function requireUnitPreset(value: unknown): UnitPresetId {
   if (typeof value !== "string" || !Object.hasOwn(UNIT_PRESETS, value)) throw new Error("单位预设无效；请选择 m-kN、mm-N 或 mm-kN");

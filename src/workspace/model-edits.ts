@@ -1,4 +1,5 @@
 import { validateMemberEndReleases } from "../domain/member-releases";
+import { validatePsdInput } from "../domain/psd";
 import { validateAdditionalMass } from "../domain/additional-mass";
 import { validateModalDampingInput } from "../domain/modal-damping";
 import { validateSection, type SectionInput } from "../domain/project";
@@ -57,6 +58,11 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
   return value.map((value) => {
     const input = object(value, ["type", "id", "analysisId", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution", "massKg"]);
     switch (input.type) {
+      case "create_psd_spectrum": case "update_psd_spectrum": {
+        object(input, input.type === "create_psd_spectrum" ? ["type", "properties"] : ["type", "id", "properties"]);
+        return { type: input.type, ...(input.type === "update_psd_spectrum" ? { id: identity(input.id) } : {}), properties: validatePsdInput(input.properties) } as ProjectEditOperation;
+      }
+      case "delete_psd_spectrum": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) };
       case "set_modal_damping": {
         object(input, ["type", "id", "analysisId", "properties"]);
         return { type: input.type, id: identity(input.id), analysisId: identity(input.analysisId), properties: validateModalDampingInput(input.properties) };
@@ -211,6 +217,7 @@ export class ModelEditConfirmation {
         "nodal-load": outcome.project.nodalLoads,
         "uniform-load": outcome.project.uniformLoads,
         "analysis-case": outcome.project.analysisCases,
+        "psd-spectrum": outcome.project.psdSpectra,
       } as const;
       const readback: ModelEditReadback = {
         projectId: snapshot.context.projectId,

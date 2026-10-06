@@ -1,5 +1,6 @@
 import { CANONICAL_UNITS, convertQuantity, UNIT_CONTRACT, type QuantityDimension } from "../domain/units";
 import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
+import { preparePsdInput } from "./psd-input";
 import { SECTION_SHAPES, SECTION_SHAPE_FIELDS, sectionParameterBasis } from "../domain/section-geometry";
 import { SECTION_CATALOG } from "../domain/resource-library";
 import { describeSection } from "../domain/catalog-section";
@@ -62,7 +63,7 @@ type ReadonlyTree<T> = T extends string | number | boolean | null | undefined ? 
   : T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
 type AiModel = Pick<FrameProject, "units" | "nodes" | "members" | "materials" | "sections" | "supports"
   | "nodalLoads" | "uniformLoads" | "selfWeight" | "loadCases" | "loadCombinations"
-  | "activeLoadCaseId" | "activeLoadCombinationId" | "analysisCases" | "activeAnalysisCaseId">;
+  | "activeLoadCaseId" | "activeLoadCombinationId" | "analysisCases" | "activeAnalysisCaseId" | "psdSpectra">;
 export interface AiSnapshot { readonly context: AiContext; readonly snapshotKey: string; readonly model: ReadonlyTree<AiModel>; readonly editProject: FrameProject; readonly analysis?: AnalysisResult; readonly analysisCurrent: boolean; readonly comparison?: AiAnalysisPair; }
 
 function freeze<T>(value: T): T {
@@ -81,6 +82,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
     uniformLoads: project.uniformLoads, selfWeight: project.selfWeight, loadCases: project.loadCases,
     loadCombinations: project.loadCombinations, activeLoadCaseId: project.activeLoadCaseId,
     activeLoadCombinationId: project.activeLoadCombinationId, analysisCases: project.analysisCases, activeAnalysisCaseId: project.activeAnalysisCaseId,
+    psdSpectra: project.psdSpectra,
   };
   const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
@@ -136,7 +138,7 @@ function exactFields(input: Record<string, unknown>, allowed: readonly string[])
   if (unknown) throw new Error(`工具参数含未定义字段 ${unknown}`);
 }
 
-const collections = ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases", "analysis-cases"];
+const collections = ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases", "analysis-cases", "psd-spectra"];
 const queryFields: Record<string, readonly string[]> = {
   nodes: ["id", "label", "position.x", "position.y", "position.z", "additionalMassKg"],
   members: ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases", "additionalLineMassKgM"],
@@ -145,6 +147,7 @@ const queryFields: Record<string, readonly string[]> = {
   supports: ["id", "label", "nodeId"],
   loads: ["id", "label", "kind", "nodeId", "memberId", "loadCaseId"],
   "load-cases": ["id", "name", "description"],
+  "psd-spectra": ["id", "name", "quantity", "excitationUnit", "frequencyUnit", "densityUnit", "sidedness", "band", "points", "interpolation", "outsideBand"],
   "analysis-cases": ["id", "name", "method", "loadSourceId", "settings.solver", "settings.mesh", "settings.modal", "settings.buckling", "settings.secondOrder"],
 };
 interface CollectionQuery { field: string; equals?: string | number | boolean; min?: number; max?: number; }
@@ -269,6 +272,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
+    if (call.function.name === "prepare_psd_input") return { status: "completed", message: "已验证并预览随机输入谱，正式工程未修改", context: snapshot.context, data: preparePsdInput(input) };
     if (call.function.name === "read_unit_contract") { exactFields(input, []); return { status: "completed", message: "已读取单位契约", context: snapshot.context, data: UNIT_CONTRACT }; }
     if (call.function.name === "read_geometry_contract") { exactFields(input, []); return { status: "completed", message: "已读取几何与交互容差契约（规范单位 m）", context: snapshot.context, data: GEOMETRY_CONTRACT }; }
     if (call.function.name === "read_section_contract") {
@@ -454,14 +458,14 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
   const modelCollections: Record<string, readonly unknown[]> = {
     nodes: model.nodes, members: model.members, materials: model.materials, sections: model.sections.map(describeSection),
     supports: model.supports, loads: [...model.nodalLoads.map((load) => ({ kind: "nodal", ...load })), ...model.uniformLoads],
-    "load-cases": model.loadCases, "analysis-cases": model.analysisCases,
+    "load-cases": model.loadCases, "analysis-cases": model.analysisCases, "psd-spectra": model.psdSpectra,
   };
   if (input.collection === "summary") {
     return { status: "completed", message: "已读取已应用模型摘要", context: snapshot.context,
       data: { project: { id: snapshot.context.projectId, name: snapshot.context.projectName, revision: snapshot.context.modelRevision }, goal: snapshot.context.goal,
         analysis: snapshot.context.analysis ?? { status: "absent", current: false }, counts: { nodes: model.nodes.length, members: model.members.length, materials: model.materials.length,
         sections: model.sections.length, supports: model.supports.length, loads: model.nodalLoads.length + model.uniformLoads.length,
-        loadCases: model.loadCases.length, loadCombinations: model.loadCombinations.length, analysisCases: model.analysisCases.length },
+        loadCases: model.loadCases.length, loadCombinations: model.loadCombinations.length, analysisCases: model.analysisCases.length, psdSpectra: model.psdSpectra.length },
         units: model.units, activeLoadCaseId: model.activeLoadCaseId, activeLoadCombinationId: model.activeLoadCombinationId,
         selfWeight: model.selfWeight, activeAnalysisCaseId: model.activeAnalysisCaseId, capabilities: ANALYSIS_CAPABILITIES } };
   }

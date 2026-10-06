@@ -1,4 +1,5 @@
 import { MODEL_SECTION_INPUT_SCHEMA as SECTION_INPUT_SCHEMA } from "./section-schema";
+import { PSD_INPUT_SCHEMA } from "./psd-schema";
 const identity = { type: "string", minLength: 1, maxLength: 200 };
 const position = { type: "object", additionalProperties: false, minProperties: 1,
   properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } };
@@ -54,6 +55,9 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
+      { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_psd_spectrum" }, properties: PSD_INPUT_SCHEMA } },
+      { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_psd_spectrum" }, id: identity, properties: PSD_INPUT_SCHEMA } },
+      { type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: "delete_psd_spectrum" }, id: identity } },
       { type: "object", additionalProperties: false, required: ["type", "id", "analysisId", "properties"], properties: { type: { const: "set_modal_damping" }, id: identity, analysisId: identity, properties: modalDamping } },
       { type: "object", additionalProperties: false, required: ["type", "id", "massKg"], properties: { type: { const: "set_node_mass" }, id: identity, massKg: { type: "number", minimum: 0 } } },
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_section" }, properties: SECTION_INPUT_SCHEMA } },

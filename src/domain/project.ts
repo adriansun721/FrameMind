@@ -1,4 +1,5 @@
 import { validateSecondOrderSettings, type SecondOrderSettings } from "./second-order";
+import type { PsdSpectrum } from "./psd";
 import { validateBucklingSettings, type BucklingSettings } from "./buckling";
 import { validateAdditionalMass } from "./additional-mass";
 import { validateModalDampingBinding, type ModalDampingBinding } from "./modal-damping";
@@ -103,6 +104,8 @@ export interface FrameProject {
   activeLoadCombinationId?: string;
   nextLoadCombinationNumber: number;
   analysisCases: FrameAnalysisCase[];
+  psdSpectra: PsdSpectrum[];
+  nextPsdNumber: number;
   activeAnalysisCaseId?: string;
   nextAnalysisCaseNumber: number;
   analysisResults: AnalysisResult[];
@@ -211,7 +214,7 @@ export function createProject(name = "未命名项目"): FrameProject {
     nodes: [], materials: [], sections: [], members: [], supports: [], nodalLoads: [], uniformLoads: [], selfWeight: { ...DEFAULT_SELF_WEIGHT, gravity: { ...DEFAULT_SELF_WEIGHT.gravity } },
     loadCases: DEFAULT_LOAD_CASES.map((item) => ({ ...item })), activeLoadCaseId: DEFAULT_LOAD_CASE, nextLoadCaseNumber: 2, analysisResults: [],
     loadCombinations: [], nextLoadCombinationNumber: 1,
-    analysisCases: [], nextAnalysisCaseNumber: 1,
+    analysisCases: [], nextAnalysisCaseNumber: 1, psdSpectra: [], nextPsdNumber: 1,
     nextNodeNumber: 1, nextMaterialNumber: 1, nextSectionNumber: 1, nextMemberNumber: 1, nextSupportNumber: 1, nextLoadNumber: 1, nextUniformLoadNumber: 1,
   };
 }

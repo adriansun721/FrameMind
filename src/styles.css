@@ -847,3 +847,18 @@ button { color: inherit; }
 .modal-result-panel th, .modal-result-panel td { padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: left; white-space: nowrap; }
 .modal-result-panel > details { grid-column: 1 / -1; }
 .modal-result-panel > details summary, .modal-result-panel .property-section > details summary { cursor: pointer; font-size: var(--text-caption); }
+
+.psd-dialog { display: flex; flex-direction: column; overflow: hidden; }
+.psd-dialog > header { flex: none; }
+.psd-dialog > .dialog-form { min-height: 0; overflow: auto; }
+.psd-dialog .psd-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.psd-dialog .load-case-actions { flex-wrap: wrap; align-items: center; }
+.psd-dialog table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.psd-dialog th, .psd-dialog td { padding: 6px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+.psd-dialog td input { width: 100%; min-width: 100px; }
+.psd-dialog textarea { width: 100%; resize: vertical; color: var(--text-primary); background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 8px; }
+.psd-dialog details { padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+.psd-dialog summary { cursor: pointer; margin-bottom: 8px; }
+.psd-preview svg { display: block; width: 100%; color: var(--text-secondary); }
+.psd-preview svg text { fill: currentColor; font-size: 12px; }
+.psd-preview p { overflow-wrap: anywhere; }

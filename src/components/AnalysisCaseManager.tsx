@@ -10,9 +10,9 @@ import { ANALYSIS_CAPABILITIES, type AnalysisMethod } from "../domain/analysis-c
 import { addAnalysisCase, updateAnalysisCase, deleteAnalysisCase, selectAnalysisCase, type FrameProject } from "../domain/project";
 import { getAnalysisResultForSource, isAnalysisResultCurrent } from "../domain/analysis";
 
-export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistory, onLoads, onCombinations, onClose }: {
+export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistory, onLoads, onCombinations, onPsd, onClose }: {
   project: FrameProject; onChange(project: FrameProject): void; onAnalyze(id: string): void;
-  onViewHistory(id: string): void; onLoads(): void; onCombinations(): void; onClose(): void;
+  onViewHistory(id: string): void; onLoads(): void; onCombinations(): void; onPsd(): void; onClose(): void;
 }) {
   const initial = project.analysisCases.find((c) => c.id === project.activeAnalysisCaseId);
   const [editingId, setEditingId] = useState(initial?.id ?? "");
@@ -49,7 +49,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
     <header><h2 id="analysis-case-title">分析工况管理</h2><button className="icon-button" aria-label="关闭分析工况管理" onClick={onClose}><X size={17} /></button></header>
     <div className="dialog-form">
       <p>荷载定义可供多个分析工况复用。计算结果保留各自的冻结输入。</p>
-      <div className="load-case-actions"><button className="button ghost" onClick={onLoads}>编辑荷载定义</button><button className="button ghost" onClick={onCombinations}>编辑荷载组合</button></div>
+      <div className="load-case-actions"><button className="button ghost" onClick={onLoads}>编辑荷载定义</button><button className="button ghost" onClick={onCombinations}>编辑荷载组合</button><button className="button ghost" onClick={onPsd}>管理随机输入谱</button></div>
       <div className="load-case-list" role="list" aria-label="分析工况列表">{project.analysisCases.map((item) => {
         const result = getAnalysisResultForSource(project, item.id);
         return <button role="listitem" key={item.id} className={`load-case-row ${item.id === editingId ? "active" : ""}`} onClick={() => edit(item.id)}><span>{item.id} · {item.name}</span><small>{ANALYSIS_CAPABILITIES[item.method].name} · {item.loadSourceId} · {result ? isAnalysisResultCurrent(project, result) ? "结果当前" : "结果已过期" : "未计算"}</small></button>;

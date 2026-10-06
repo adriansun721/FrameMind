@@ -12,7 +12,7 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 const isNodeEdit = (type: ProjectEditOperation["type"]) => type.endsWith("node") || type === "set_node_mass";
 const isAnalysisCaseEdit = (type: ProjectEditOperation["type"]) => type.endsWith("analysis_case") || type === "set_modal_damping";
 export function engineeringContent(project: FrameProject): unknown[] {
-  return [project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysisCases"] as const).map((key) => project[key])];
+  return [project.id, ...(["units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysisCases", "psdSpectra"] as const).map((key) => project[key])];
 }
 export function sameEngineeringState(base: FrameProject, current: FrameProject): boolean {
   return base.revision === current.revision && same(engineeringContent(base), engineeringContent(current));
@@ -142,6 +142,12 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
       return operation;
     }
     if (!("id" in operation)) return operation;
+    if (operation.type === "update_psd_spectrum" || operation.type === "delete_psd_spectrum") {
+      const before = base.psdSpectra.find((s) => s.id === operation.id), actual = current.psdSpectra.find((s) => s.id === operation.id);
+      if (!before || !actual) conflicts.push(`${operation.id}：输入谱已删除`);
+      else if (!same(before, actual)) conflicts.push(`${operation.id}：输入谱已人工修改，请重新核对单位、频段与数据`);
+      return operation;
+    }
     const before = (isAnalysisCaseEdit(operation.type) ? base.analysisCases : isNodeEdit(operation.type) ? base.nodes : base.members).find((item) => item.id === operation.id);
     const actual = (isAnalysisCaseEdit(operation.type) ? current.analysisCases : isNodeEdit(operation.type) ? current.nodes : current.members).find((item) => item.id === operation.id);
     if (!before || !actual) { conflicts.push(`${operation.id}：任务目标已删除`); return operation; }
@@ -158,7 +164,7 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   });
   // Deleting a node or member also removes its conditions and connected members.
   for (const change of draft.preview.changes.filter((item) => item.before && !item.after)) {
-    const collection = { section: current.sections, node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases }[change.kind];
+    const collection = { section: current.sections, node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases, "psd-spectrum": current.psdSpectra }[change.kind];
     if (!same(change.before, collection.find((item) => item.id === change.id))) conflicts.push(`${change.id}：级联删除对象已变化`);
   }
   try {

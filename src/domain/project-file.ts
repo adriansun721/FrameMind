@@ -1,4 +1,5 @@
 import { decodeSecondOrderResult } from "./second-order-result";
+import { decodePsdSpectrum } from "./psd";
 import { decodeBucklingResult } from "./buckling";
 import { decodeModalResult } from "./modal";
 import { dampingMatchesResult } from "./modal-damping";
@@ -466,6 +467,10 @@ export function decodeProject(source: string): FrameProject {
   const highestAnalysisNumber = analysisCases.reduce((n, c) => Math.max(n, Number(c.id.slice(2))), 0);
   const nextAnalysisCaseNumber = decodeCounter(value.nextAnalysisCaseNumber, highestAnalysisNumber + 1, "分析工况", highestAnalysisNumber, true);
   const activeAnalysisCaseId = value.activeAnalysisCaseId === undefined ? undefined : requireString(value.activeAnalysisCaseId, "当前分析工况无效");
+  const psdSpectra = decodeOptionalArray(value.psdSpectra, "输入谱", decodePsdSpectrum);
+  assertUnique(psdSpectra, "输入谱");
+  const highestPsdNumber = psdSpectra.reduce((n, s) => Math.max(n, Number(s.id.slice(3))), 0);
+  const nextPsdNumber = decodeCounter(value.nextPsdNumber, highestPsdNumber + 1, "输入谱", highestPsdNumber, true);
   assertUnique(uniformLoads, "均布荷载"); assertUniqueLabels(uniformLoads, "均布荷载");
   assertUnique(nodes, "节点"); assertUnique(materials, "材料"); assertUnique(sections, "截面"); assertUnique(members, "杆件"); assertUnique(supports, "支座"); assertUnique(nodalLoads, "节点荷载");
   assertUniqueLabels(nodes, "节点"); assertUniqueLabels(materials, "材料"); assertUniqueLabels(sections, "截面"); assertUniqueLabels(members, "杆件"); assertUniqueLabels(supports, "支座"); assertUniqueLabels(nodalLoads, "节点荷载");
@@ -491,7 +496,7 @@ export function decodeProject(source: string): FrameProject {
     revision: value.revision, units: { length: "m", force: "kN", moment: "kN·m" },
     ...(value.displayUnitPreset === undefined ? {} : { displayUnitPreset: requireUnitPreset(value.displayUnitPreset) }),
     nodes, materials, sections, members, supports, nodalLoads, uniformLoads, selfWeight, loadCases, activeLoadCaseId, nextLoadCaseNumber, analysisResults,
-    loadCombinations, nextLoadCombinationNumber, activeLoadCombinationId, analysisCases, nextAnalysisCaseNumber, activeAnalysisCaseId,
+    loadCombinations, nextLoadCombinationNumber, activeLoadCombinationId, analysisCases, nextAnalysisCaseNumber, activeAnalysisCaseId, psdSpectra, nextPsdNumber,
     latestAnalysis,
     nextNodeNumber, nextMaterialNumber, nextSectionNumber, nextMemberNumber, nextSupportNumber, nextLoadNumber, nextUniformLoadNumber,
   };
