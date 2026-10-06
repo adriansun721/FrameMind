@@ -29,6 +29,18 @@ static Json meshLevel(const Json& input, int divisions) {
     return {{"divisions",divisions},{"nodes",nodes},{"elements",elements}};
 }
 
+static Json meshFrames(const Json& input) {
+    Json frames=Json::object(); std::map<std::string,Vec3> positions;
+    for (const auto& n:input.at("nodes")) positions[id(n["id"])]=vector3(n["position"],nullptr,"position");
+    for (const auto& m:input.at("members")) {
+        const Vec3 delta=positions.at(id(m["endNodeId"]))-positions.at(id(m["startNodeId"])); const double length=delta.norm();
+        const Vec3 x=delta/length, ref=std::abs(x.z())<0.9-1e-12 ? Vec3(0,0,1) : Vec3(0,1,0), baseY=ref.cross(x).normalized(), baseZ=x.cross(baseY);
+        const double angle=staticParameter(m,"member","rotationDegrees",false)*std::acos(-1.0)/180;
+        frames[id(m["id"]) ]={{"length",length},{"localX",json3(x)},{"localY",json3(baseY*std::cos(angle)+baseZ*std::sin(angle))},{"localZ",json3(-baseY*std::sin(angle)+baseZ*std::cos(angle))},{"referenceAxis",std::abs(x.z())<0.9-1e-12 ? "global-z" : "global-y"}};
+    }
+    return frames;
+}
+
 static Json meshInput(const Json& input, const Json& level) {
     Json result=input; result.erase("meshPlan"); result["solver"]=legacyStaticSolver; result["solver"]["implementation"]="framemind-native/3";
     std::map<std::string,Json> members, nodes; for (const auto& m:input.at("members")) members[id(m["id"])]=m; for (const auto& n:input.at("nodes")) nodes[id(n["id"])]=n;
@@ -36,9 +48,11 @@ static Json meshInput(const Json& input, const Json& level) {
         const auto& m=members.at(id(entry["memberId"])); const Vec3 a=vector3(nodes.at(id(m["startNodeId"]))["position"],nullptr,"position"), b=vector3(nodes.at(id(m["endNodeId"]))["position"],nullptr,"position");
         result["nodes"].push_back({{"id",entry["nodeId"]},{"label",entry["nodeId"]},{"position",json3(a+(b-a)*number(entry["fraction"]))}});
     }
-    result["members"]=Json::array(); const Json rigid={{"my",false},{"mz",false}};
+    result["members"]=Json::array(); result["calculationFrames"]=Json::object(); const Json rigid={{"my",false},{"mz",false}};
     for (const auto& e:level.at("elements")) {
         Json m=members.at(id(e["memberId"])); const auto original=m;
+        auto frame=input.at("meshPlan").at("frames").at(id(m["id"])); frame["length"]=number(e["end"])-number(e["start"]);
+        result["calculationFrames"][id(e["elementId"])]=frame;
         m["id"]=e["elementId"]; m["label"]=e["elementId"]; m["startNodeId"]=e["startNodeId"]; m["endNodeId"]=e["endNodeId"];
         if (original.contains("endReleases")) {
             m["endReleases"]["start"]=e["startNodeId"]==original["startNodeId"] ? original["endReleases"]["start"] : rigid;
@@ -104,6 +118,7 @@ static Json calculateMeshStatic(const Json& request, Json& stages, std::string& 
     require(plan.at("levels").is_array(),"Missing frozen mesh mappings",nullptr,"meshPlan");
     int count=0; for (int divisions=1;divisions<=maxDivisions;divisions*=2) { require(count<static_cast<int>(plan["levels"].size()) && meshNumbersMatch(plan["levels"][count],meshLevel(input,divisions)),"Frozen mesh mapping mismatch",nullptr,"meshPlan"); ++count; }
     require(count==static_cast<int>(plan["levels"].size()),"Unexpected mesh levels",nullptr,"meshPlan");
+    require(meshNumbersMatch(plan.at("frames"),meshFrames(input)),"Frozen engineering frames mismatch",nullptr,"meshPlan");
     Json runs=Json::array(), previous, mapped, finalResult; std::string status="budget-exhausted",reason="max-divisions"; int selected=0;
     for (const auto& level:plan.at("levels")) {
         Json calculation=meshInput(input,level);
@@ -112,7 +127,7 @@ static Json calculateMeshStatic(const Json& request, Json& stages, std::string& 
         const size_t equations=calculation.at("nodes").size()*6-constrained.size();
         if (equations>static_cast<size_t>(maxEquations)) { reason="equation-budget"; break; }
         Json packet=request; packet["input"]=calculation; Json runStages=Json::array();
-        try { finalResult=calculateStatic(packet,runStages,stage,runs.empty()); }
+        try { finalResult=calculateStatic(packet,runStages,stage,runs.empty(),true); }
         catch (Failure& failure) {
             if (failure.diagnostic.contains("target")) {
                 auto& target=failure.diagnostic["target"]; const auto key=target.value("id",std::string());

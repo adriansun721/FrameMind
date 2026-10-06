@@ -85,6 +85,20 @@ try {
   const rotated = solve("oblique", oblique, DEFAULT_MESH_POLICY, true);
   near("oblique:Rstart", rotated.nodes[0].reaction.z, 5 * Math.cos(37 * Math.PI / 180));
   assert.equal(rotated.discretization.counts.releaseGaugeDofs, 1);
+  // Analytic fixed-fixed beam at both sides of the reference-axis switch.
+  for (const origin of [1, 10, 100, 1000]) for (const dz of [3.6 - 1e-8, 3.6, 3.6 + 1e-8]) {
+    const base = releasedBeam(), dx = Math.sqrt(.19) * 4;
+    const beam = { ...base, nodes: base.nodes.map((n, i) => ({ ...n, position: i ? { x: origin + dx, y: origin, z: origin + dz } : { x: origin, y: origin, z: origin } })), members: base.members.map((m) => ({ ...m, endReleases: { start: { my: false, mz: false }, end: { my: false, mz: false } } })), uniformLoads: base.uniformLoads.map((q) => ({ ...q, intensity: { x: 0, y: -2, z: 0 } })) };
+    const id = `axis-boundary-${origin}-${dz}`;
+    const r = solve(id, beam, { ...DEFAULT_MESH_POLICY, relativeTolerance: 1e-24, forceTolerance: 1e-24, displacementTolerance: 1e-24 }, origin === 100 && dz === 3.6);
+    const frame = r.input.meshPlan.frames[beam.members[0].id];
+    assert.equal(frame.referenceAxis, dz < 3.6 ? "global-z" : "global-y");
+    for (const run of r.discretization.runs) {
+      for (const member of run.result.members) assert.deepEqual(member.localAxes, { x: frame.localX, y: frame.localY, z: frame.localZ });
+      for (const axis of ["x", "y", "z"]) near(`${id}:${run.divisions}:engineering-load:${axis}`, run.result.nodes.reduce((sum, n) => sum + n.reaction[axis], 0), 2 * frame.length * frame.localY[axis]);
+    }
+    near(`${id}:midpoint`, a.getMemberResponseSamples(r, beam.members[0].id, 33)[16].localDisplacement.y, -2 * frame.length ** 4 / (384 * 200e6 * beam.sections[0].secondMomentZM4), "m");
+  }
   let combination = p.updateSelfWeight(releasedBeam(), { enabled: true, loadCaseId: "LC1", gravity: { x: 0, y: 0, z: -9.81 } });
   combination = p.addLoadCase(combination, "second");
   combination = p.addNodalLoad(combination, combination.nodes[0].id, { x: 0, y: 0, z: -3 }, { x: 0, y: 0, z: 0 }, "LC2");

@@ -222,6 +222,10 @@ function isSolverAlgorithm(value: unknown): value is "partial-pivot-gaussian" | 
 }
 
 function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number, internal = false): AnalysisInputSnapshot {
+  if (input.calculationFrames !== undefined) {
+    const frames = input.calculationFrames;
+    if (!internal || !isRecord(frames) || Object.values(frames).some((frame) => !isRecord(frame) || typeof frame.length !== "number" || !Number.isFinite(frame.length) || frame.length <= 1e-12 || !["global-y", "global-z"].includes(frame.referenceAxis as string) || [frame.localX, frame.localY, frame.localZ].some((v) => !isRecord(v) || [v.x, v.y, v.z].some((n) => typeof n !== "number" || !Number.isFinite(n))))) throw new Error("内部继承局部轴记录无效");
+  }
   if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || !isSolverAlgorithm(input.solver.algorithm) || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
   if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== !input.members.some((member) => hasMemberReleases(member as FrameMember)) || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
   const inputNodes = input.nodes.map((item) => decodeNode(item, internal)); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map((item) => decodeMember(item, internal)); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
@@ -382,7 +386,7 @@ function decodeResult(value: unknown, internal: boolean): AnalysisResult {
 function decodeOptionalArray<T>(value: unknown, name: string, decoder: (item: unknown) => T): T[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) throw new Error(`项目${name}列表无效`);
-  return value.map(decoder);
+  return value.map((item) => decoder(item));
 }
 
 function assertUnique<T extends { id: string }>(items: T[], name: string): void {

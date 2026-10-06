@@ -25,13 +25,14 @@ struct StaticLoads {
     std::vector<Vec3> intensity;
 };
 
-static Json calculateStatic(const Json& request, Json& stages, std::string& stage, bool publishPhases=true) {
+static Json calculateStatic(const Json& request, Json& stages, std::string& stage, bool publishPhases=true, bool inheritedFrames=false) {
     auto phase=[&](const std::string& name) {
         stage=name; Json record={{"stage",name},{"startedAt",now()}}; stages.push_back(record);
         if (publishPhases) emit({{"kind","phase"},{"requestId",request.at("requestId")},{"record",record}});
     };
     phase("model-check"); id(request.at("requestId")); id(request.at("analysisId"));
     const auto& input=request.at("input");
+    require(inheritedFrames || !input.contains("calculationFrames"),"Inherited frames are private to mesh runs");
     Json staticSolver=legacyStaticSolver;
     if (input.at("solver").at("implementation")=="framemind-native/3") staticSolver["implementation"]="framemind-native/3";
     require(request.at("version")=="framemind-analysis/1" && input.at("solver")==staticSolver && input.at("dofOrder")==dofOrder,"Unsupported static contract");
@@ -89,13 +90,20 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
         };
         const int start=reference(nodeIndex,"startNodeId"), end=reference(nodeIndex,"endNodeId");
         const auto material=reference(materials,"materialId"), section=reference(sections,"sectionId");
-        const Vec3 delta=positions[end]-positions[start]; const double length=delta.norm();
+        const Vec3 delta=positions[end]-positions[start]; double length=delta.norm();
         check(std::isfinite(length) && length>1e-12,"invalid-geometry","Invalid member length",target,"endNodeId");
         adjacency[start].push_back(end); adjacency[end].push_back(start);
         const double angle=staticParameter(member,"member","rotationDegrees",false)*std::acos(-1.0)/180;
-        const Vec3 x=delta/length, ref=std::abs(x.z())<0.9 ? Vec3(0,0,1) : Vec3(0,1,0);
+        Vec3 x=delta/length; const Vec3 ref=std::abs(x.z())<0.9-1e-12 ? Vec3(0,0,1) : Vec3(0,1,0);
         const Vec3 baseY=ref.cross(x).normalized(), baseZ=x.cross(baseY);
-        const Vec3 y=baseY*std::cos(angle)+baseZ*std::sin(angle), z=-baseY*std::sin(angle)+baseZ*std::cos(angle);
+        Vec3 y=baseY*std::cos(angle)+baseZ*std::sin(angle), z=-baseY*std::sin(angle)+baseZ*std::cos(angle);
+        if (inheritedFrames) {
+            const auto& frame=input.at("calculationFrames").at(id(member["id"]));
+            const double inheritedLength=number(frame.at("length"));
+            check(inheritedLength>1e-12 && std::abs(inheritedLength-length)<=1e-9*std::max(1.0,length),"invalid-geometry","Inherited element length mismatch",target,"calculationFrames");
+            x=vector3(frame.at("localX"),target,"calculationFrames"); y=vector3(frame.at("localY"),target,"calculationFrames"); z=vector3(frame.at("localZ"),target,"calculationFrames"); length=inheritedLength;
+            check(std::abs(x.norm()-1)<1e-12 && std::abs(y.norm()-1)<1e-12 && std::abs(z.norm()-1)<1e-12 && (x.cross(y)-z).norm()<1e-12,"invalid-geometry","Invalid inherited local frame",target,"calculationFrames");
+        }
         Matrix transform=Matrix::Zero(12,12);
         for (int block=0;block<4;++block) {
             transform.block<1,3>(block*3,block*3)=x.transpose(); transform.block<1,3>(block*3+1,block*3)=y.transpose(); transform.block<1,3>(block*3+2,block*3)=z.transpose();

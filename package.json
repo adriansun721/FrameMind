@@ -49,7 +49,7 @@
     "evidence:plan2:t223": "npm run build:native && npm run build && node scripts/verify-plan2-t223.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-23-catalog.spec.ts e2e/t13-resource-library.spec.ts",
     "evidence:plan2:t224": "npm run build:native && npm run build && npx vitest run src/components/engineering-scene-model.test.ts src/components/scene-labels.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-24-rendering.spec.ts e2e/ui04-engineering-viewport.spec.ts e2e/t14-results.spec.ts",
     "evidence:plan2:t225": "npm run build:native && npm run build && npx vitest run src/domain/member-releases.test.ts src/domain/member-releases-native.test.ts && node scripts/verify-plan2-t225.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-25-releases.spec.ts",
-    "evidence:plan2:t226": "npm run build:native && npm run build && npx vitest run src/domain/analysis-mesh.test.ts src/workspace/native-analysis-task.test.ts && node scripts/verify-plan2-t226.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-26-mesh.spec.ts e2e/plan2-t2-25-releases.spec.ts"
+    "evidence:plan2:t226": "npm run build:native && npm run build && node scripts/verify-plan2-t226.mjs && npx vitest run src/domain/analysis-mesh.test.ts src/workspace/native-analysis-task.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-26-mesh.spec.ts e2e/plan2-t2-25-releases.spec.ts"
   },
   "dependencies": {
     "docx": "^9.7.1",

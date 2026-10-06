@@ -1,4 +1,4 @@
-import { calculateMemberGeometry } from "./member-geometry";
+import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import type { AnalysisInputSnapshot, AnalysisResult } from "./analysis";
 import type { FrameNode, FrameMember, FrameUniformLoad } from "./project";
 
@@ -18,7 +18,7 @@ export interface MeshLevel {
   nodes: Array<{ nodeId: string; memberId: string; position: number; fraction: number }>;
   elements: Array<{ elementId: string; memberId: string; startNodeId: string; endNodeId: string; start: number; end: number }>;
 }
-export interface MeshPlan { policy: MeshPolicy; levels: MeshLevel[] }
+export interface MeshPlan { policy: MeshPolicy; frames: Record<string, MemberGeometry>; levels: MeshLevel[] }
 export interface MeshError { displacement: number; reaction: number; sectionForce: number }
 export interface MeshRun { divisions: number; result: AnalysisResult; error?: MeshError }
 export interface DiscretizationRecord {
@@ -40,7 +40,7 @@ export function validateMeshPolicy(value: unknown): MeshPolicy {
 
 /** Every candidate mapping is frozen before dispatch; no new engineering identities are allocated. */
 export function createMeshPlan(input: AnalysisInputSnapshot, policy: MeshPolicy = { ...DEFAULT_MESH_POLICY }): MeshPlan {
-  const p = validateMeshPolicy(policy), levels: MeshLevel[] = [];
+  const p = validateMeshPolicy(policy), levels: MeshLevel[] = [], frames: MeshPlan["frames"] = {};
   const ids = new Set([...input.nodes, ...input.members, ...(input.uniformLoads ?? []), ...(input.combination?.cases.flatMap((c) => c.uniformLoads) ?? [])].map((o) => o.id as string));
   const reserve = (id: string) => { if (ids.has(id)) throw new Error("内部计算身份与工程对象冲突"); ids.add(id); return id; };
   for (let divisions = 1; divisions <= p.maxDivisions; divisions *= 2) {
@@ -48,7 +48,8 @@ export function createMeshPlan(input: AnalysisInputSnapshot, policy: MeshPolicy 
     for (const [memberIndex, member] of input.members.entries()) {
       const a = input.nodes.find((n) => n.id === member.startNodeId), b = input.nodes.find((n) => n.id === member.endNodeId);
       if (!a || !b) throw new Error("细分杆件缺少工程端点");
-      const length = calculateMemberGeometry(a.position, b.position, member.rotationDegrees).length;
+      const geometry = calculateMemberGeometry(a.position, b.position, member.rotationDegrees), length = geometry.length;
+      frames[member.id] = geometry;
       const endpoints = [member.startNodeId as string];
       for (let i = 1; i < divisions; i++) {
         const nodeId = reserve(`__mesh_${divisions}_n_${memberIndex}_${i}`);
@@ -59,11 +60,13 @@ export function createMeshPlan(input: AnalysisInputSnapshot, policy: MeshPolicy 
     }
     levels.push({ divisions, nodes, elements });
   }
-  return { policy: p, levels };
+  return { policy: p, frames, levels };
 }
 
 /** Material, section, orientation and distributed-load coordinates are inherited unchanged. */
 export function meshCalculationInput(input: AnalysisInputSnapshot, level: MeshLevel): AnalysisInputSnapshot {
+  const frames = input.meshPlan!.frames;
+  const calculationFrames = Object.fromEntries(level.elements.map((entry) => [entry.elementId, { ...structuredClone(frames[entry.memberId]), length: entry.end - entry.start }]));
   const nodes = [...structuredClone(input.nodes), ...level.nodes.map((entry): FrameNode => {
     const member = input.members.find((m) => m.id === entry.memberId)!;
     const a = input.nodes.find((n) => n.id === member.startNodeId)!.position, b = input.nodes.find((n) => n.id === member.endNodeId)!.position;
@@ -78,7 +81,7 @@ export function meshCalculationInput(input: AnalysisInputSnapshot, level: MeshLe
   const loads = (originals: FrameUniformLoad[]) => originals.flatMap((load, index) => level.elements.filter((e) => e.memberId === load.memberId).map((e, i) => ({ ...structuredClone(load), id: `__mesh_${level.divisions}_q_${index}_${i}` as FrameUniformLoad["id"], label: `__mesh_q_${index}_${i}`, memberId: e.elementId as FrameMember["id"] })));
   const { meshPlan: _plan, ...base } = structuredClone(input);
   const effective = loads(input.uniformLoads ?? []).map((load, i) => input.combination ? { ...load, id: `uniform_load_${String(i + 1).padStart(4, "0")}` as FrameUniformLoad["id"], label: `Q${i + 1}` } : load);
-  return { ...base, solver: { implementation: "framemind-native/3", algorithm: "sparse-ldlt", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12 }, nodes, members, uniformLoads: effective,
+  return { ...base, calculationFrames, solver: { implementation: "framemind-native/3", algorithm: "sparse-ldlt", constraints: "free-dof-elimination", relativePivotTolerance: 1e-12 }, nodes, members, uniformLoads: effective,
     ...(input.combination ? { combination: { definition: structuredClone(input.combination.definition), cases: input.combination.cases.map((c) => ({ ...structuredClone(c), uniformLoads: loads(c.uniformLoads) })) } } : {}) };
 }
 

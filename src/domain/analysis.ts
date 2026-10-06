@@ -55,6 +55,8 @@ export interface AnalysisAssumptions {
 }
 
 export interface AnalysisInputSnapshot {
+  /** Private inherited frames for validated internal calculation runs only. */
+  calculationFrames?: Record<string, MemberGeometry>;
   meshPlan?: MeshPlan;
   projectId: string;
   projectRevision: number;
@@ -511,7 +513,7 @@ function requireAnalysisInput(project: FrameProject | AnalysisInputSnapshot): vo
 function memberMatrices(input: AnalysisInputSnapshot, member: FrameMember): MemberMatrices {
   const start = input.nodes.find((node) => node.id === member.startNodeId)!; const end = input.nodes.find((node) => node.id === member.endNodeId)!;
   const material = input.materials.find((item) => item.id === member.materialId)!; const section = input.sections.find((item) => item.id === member.sectionId)!;
-  const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+  const geometry = input.calculationFrames?.[member.id] ?? calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
   let local = localStiffness(geometry.length, material, section); const transform = transformation(geometry);
   const uniformIntensity = memberUniformIntensity(input.uniformLoads ?? [], member.id, geometry);
   const selfWeightIntensity = getMemberSelfWeightIntensity(input, member, geometry);
@@ -596,7 +598,7 @@ export function getSelfWeightSummary(source: FrameProject | AnalysisInputSnapsho
     const end = source.nodes.find((node) => node.id === member.endNodeId)!;
     const material = source.materials.find((item) => item.id === member.materialId)!;
     const section = source.sections.find((item) => item.id === member.sectionId)!;
-    const length = calculateMemberGeometry(start.position, end.position, member.rotationDegrees).length;
+    const length = ("calculationFrames" in source ? source.calculationFrames?.[member.id] : undefined)?.length ?? calculateMemberGeometry(start.position, end.position, member.rotationDegrees).length;
     const massKg = material.densityKgM3 * section.areaM2 * length;
     const gravityMagnitude = Math.hypot(selfWeight.gravity.x, selfWeight.gravity.y, selfWeight.gravity.z);
     members.push({ memberId: member.id, length, massKg, weightKN: massKg * gravityMagnitude / 1000, globalForce: { x: massKg * selfWeight.gravity.x / 1000, y: massKg * selfWeight.gravity.y / 1000, z: massKg * selfWeight.gravity.z / 1000 } });
@@ -718,7 +720,7 @@ export function getMemberSectionForces(result: AnalysisResult, memberId: string,
   if (!member || !stored) throw new Error(`本次分析没有杆件 ${memberId}`);
   const start = result.input.nodes.find((node) => node.id === member.startNodeId)!;
   const end = result.input.nodes.find((node) => node.id === member.endNodeId)!;
-  const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
+  const geometry = result.input.calculationFrames?.[member.id] ?? calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
   const uniform = memberUniformIntensity(result.input.uniformLoads ?? [], member.id, geometry);
   const selfWeight = getMemberSelfWeightIntensity(result.input, member, geometry);
   const q = { x: uniform.x + selfWeight.x, y: uniform.y + selfWeight.y, z: uniform.z + selfWeight.z };

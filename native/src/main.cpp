@@ -258,7 +258,7 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
     require(nu>-1 && nu<0.5, "Poisson ratio must be between -1 and 0.5", {{"kind","material"},{"id",material.at("id")}}, "poissonRatio");
     parameter(material,"material","densityKgM3",true);
     const double angle=parameter(member,"member","rotationDegrees",false)*std::acos(-1.0)/180;
-    const Vec3 x=delta/length, reference=std::abs(x.z())<0.9 ? Vec3(0,0,1) : Vec3(0,1,0);
+    const Vec3 x=delta/length, reference=std::abs(x.z())<0.9-1e-12 ? Vec3(0,0,1) : Vec3(0,1,0);
     const Vec3 baseY=reference.cross(x).normalized(), baseZ=x.cross(baseY);
     const Vec3 y=baseY*std::cos(angle)+baseZ*std::sin(angle), z=-baseY*std::sin(angle)+baseZ*std::cos(angle);
     std::vector<int> indices;

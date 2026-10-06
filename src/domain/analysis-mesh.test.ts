@@ -14,6 +14,25 @@ import { captureEngineeringReport } from "./engineering-report";
 import { buildReportPdfHtml } from "../workspace/report-pdf";
 import { readResults, readResult } from "../workspace/ai-results";
 
+it.each([1, 10, 100, 1000])("inherits frozen anisotropic local axes at the reference boundary, origin %s", (origin) => {
+  const base = releasedBeam();
+  const project = { ...base, nodes: base.nodes.map((n, i) => ({ ...n, position: i ? { x: origin + Math.sqrt(.19) * 4, y: origin, z: origin + 3.6 } : { x: origin, y: origin, z: origin } })), members: base.members.map((m) => ({ ...m, endReleases: { start: { my: false, mz: false }, end: { my: false, mz: false } } })), uniformLoads: base.uniformLoads.map((q) => ({ ...q, intensity: { x: 0, y: -2, z: 0 } })) };
+  const { result } = run(project, { ...DEFAULT_MESH_POLICY, relativeTolerance: 1e-24, forceTolerance: 1e-24, displacementTolerance: 1e-24 });
+  const frame = result.input.meshPlan!.frames[project.members[0].id];
+  expect(frame.referenceAxis).toBe("global-y");
+  expect(result.discretization!.runs).toHaveLength(4);
+  for (const { result: inner } of result.discretization!.runs) {
+    for (const m of inner.members) expect(m.localAxes).toEqual({ x: frame.localX, y: frame.localY, z: frame.localZ });
+    for (const axis of ["x", "y", "z"] as const) expect(inner.nodes.reduce((sum, n) => sum + n.reaction[axis], 0)).toBeCloseTo(2 * frame.length * frame.localY[axis], 8);
+  }
+  const deflection = getMemberResponseSamples(result, project.members[0].id, 33)[16].localDisplacement.y;
+  expect(deflection).toBeCloseTo(-2 * frame.length ** 4 / (384 * 200e6 * project.sections[0].secondMomentZM4), 12);
+  const altered = structuredClone(result); altered.discretization!.runs[1].result.input.calculationFrames![altered.discretization!.runs[1].result.members[0].memberId].localY.x += .1;
+  expect(() => decodeAnalysisResult(altered)).toThrow();
+  const publicInput = structuredClone(result); publicInput.input.calculationFrames = structuredClone(result.discretization!.runs[0].result.input.calculationFrames);
+  expect(() => decodeAnalysisResult(publicInput)).toThrow("内部继承局部轴");
+});
+
 function run(project = releasedBeam(), policy = { ...DEFAULT_MESH_POLICY }) {
   const input = { ...captureAnalysisInput(project), solver: NATIVE_MESH_STATIC_SOLVER };
   const request = createAnalysisRequest({ ...input, meshPlan: createMeshPlan(input, policy) });
@@ -104,4 +123,11 @@ it("persists validated precision settings and invalidates only the affected anal
   const changed = updateAnalysisCase(saved, item.id, { ...item, settings: { solver: "native-static", mesh: { ...DEFAULT_MESH_POLICY, maxDivisions: 4 } } });
   expect(isAnalysisResultCurrent(changed, result)).toBe(false);
   expect(() => applyProjectEdits(saved, [{ type: "update_analysis_case", id: item.id, properties: { ...item, settings: { solver: "native-static", mesh: { ...DEFAULT_MESH_POLICY, maxEquations: 0 } } } }])).toThrow();
+});
+
+it.each(["members", "uniformLoads"])("refuses internal calculation identities in every engineering %s row", (collection) => {
+  const raw = JSON.parse(encodeProject(releasedPortal()));
+  if (collection === "uniformLoads") { raw.uniformLoads.push({ ...raw.uniformLoads[0] }); raw.nextUniformLoadNumber = 3; }
+  raw[collection][1].id = "__mesh_2_e_0_1"; raw[collection][1].label = "__mesh_2_e_0_1";
+  expect(() => decodeProject(JSON.stringify(raw))).toThrow("稳定标识格式无效");
 });

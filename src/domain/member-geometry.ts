@@ -18,7 +18,8 @@ export function calculateMemberGeometry(start: Vector3, end: Vector3, rotationDe
   if (!Number.isFinite(length) || length <= GEOMETRY_CONTRACT.memberLength.minimumExclusive) throw new Error("杆件长度必须大于零且超过 1e-12 m，不能超出有限数值范围");
   if (!Number.isFinite(rotationDegrees)) throw new Error("截面转角必须是有限数值");
   const localX = normalize(delta); const globalZ = { x: 0, y: 0, z: 1 }; const globalY = { x: 0, y: 1, z: 0 };
-  const useGlobalZ = Math.abs(dot(localX, globalZ)) < 0.9; const reference = useGlobalZ ? globalZ : globalY;
+  // Stabilize the reference choice across hypot/norm implementations at the boundary.
+  const useGlobalZ = Math.abs(dot(localX, globalZ)) < 0.9 - 1e-12; const reference = useGlobalZ ? globalZ : globalY;
   const baseY = normalize(cross(reference, localX)); const baseZ = cross(localX, baseY); const angle = rotationDegrees * Math.PI / 180;
   const localY = add(scale(baseY, Math.cos(angle)), scale(baseZ, Math.sin(angle)));
   const localZ = add(scale(baseY, -Math.sin(angle)), scale(baseZ, Math.cos(angle)));
