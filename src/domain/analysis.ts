@@ -369,7 +369,7 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
 
 export function captureAnalysisInput(project: FrameProject, loadCaseId?: string): AnalysisInputSnapshot {
   if (loadCaseId === undefined && project.activeAnalysisCaseId) {
-    const analysisCase = validateAnalysisCase(project, requireAnalysisCase(project, project.activeAnalysisCaseId));
+    const { damping: _damping, ...analysisCase } = validateAnalysisCase(project, requireAnalysisCase(project, project.activeAnalysisCaseId));
     if (analysisCase.method === "modal") {
       const base = captureAnalysisInput({ ...project, activeAnalysisCaseId: undefined, activeLoadCombinationId: undefined }, project.activeLoadCaseId);
       return freezeAnalysisInput({ ...base, analysisCase, solver: { ...NATIVE_MODAL_SOLVER }, nodalLoads: [], uniformLoads: [], selfWeight: { ...base.selfWeight!, enabled: false } });

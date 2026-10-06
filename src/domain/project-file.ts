@@ -1,4 +1,5 @@
 import { decodeModalResult } from "./modal";
+import { dampingMatchesResult } from "./modal-damping";
 import { validateAdditionalMass } from "./additional-mass";
 import { decodeNativeReleaseRecovery, decodeReleaseGauges } from "./native-release-record";
 import { validateMemberEndReleases, hasMemberReleases } from "./member-releases";
@@ -262,7 +263,7 @@ function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, 
 }
 
 function decodeAnalysisCase(value: unknown, project: Pick<FrameProject, "loadCases" | "loadCombinations">): FrameAnalysisCase {
-  if (!isRecord(value) || Object.keys(value).some((key) => !["id", "name", "method", "loadSourceId", "settings", "legacySourceId"].includes(key))) throw new Error("分析工况定义无效");
+  if (!isRecord(value) || Object.keys(value).some((key) => !["id", "name", "method", "loadSourceId", "settings", "legacySourceId", "damping"].includes(key))) throw new Error("分析工况定义无效");
   return validateAnalysisCase(project, value as unknown as FrameAnalysisCase);
 }
 
@@ -497,6 +498,10 @@ export function decodeProject(source: string): FrameProject {
     if (result.projectId !== project.id || result.projectRevision >= project.revision) throw new Error("工况结果项目标识或版本无效");
   }
   // Historical definitions are validated against their own frozen inputs;
+  for (const definition of analysisCases) if (definition.damping) {
+    const bound = analysisResults.find((r) => r.id === definition.damping!.analysisId);
+    if (!bound || bound.input.analysisCase?.id !== definition.id || !dampingMatchesResult(definition.damping, bound)) throw new Error("阻尼绑定与保存的模态结果不一致，请核对项目来源");
+  }
   // deleting a live source cannot erase or invalidate the project file history.
   for (const member of members) validateMember(project, member.label, member);
   for (const load of uniformLoads) if (!members.some((member) => member.id === load.memberId)) throw new Error(`均布荷载 ${load.label} 引用了不存在的杆件 ${load.memberId}`);

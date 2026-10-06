@@ -1,7 +1,11 @@
 import type { AnalysisResult } from "../domain/analysis";
+import { ModalDampingEditor } from "./ModalDampingEditor";
+import type { FrameProject } from "../domain/project";
+import type { ModalDampingInput } from "../domain/modal-damping";
 import { useUnits } from "./UnitPresentation";
 
-export function ModalResultPanel({ result, current, modeNumber, onModeChange, scale, onScaleChange, onShowShape }: {
+export function ModalResultPanel({ project, onDampingChange, onIncrease, result, current, modeNumber, onModeChange, scale, onScaleChange, onShowShape }: {
+  project: FrameProject; onDampingChange(input: ModalDampingInput): void; onIncrease(count: number): void;
   result: AnalysisResult; current: boolean; modeNumber: number; onModeChange(n: number): void;
   scale: number; onScaleChange(n: number): void; onShowShape(): void;
 }) {
@@ -29,6 +33,7 @@ export function ModalResultPanel({ result, current, modeNumber, onModeChange, sc
       <div className="load-case-table-scroll"><table aria-label="模态频率表"><thead><tr><th>阶次</th><th>频率 (Hz)</th><th>归一化残差</th><th>类型</th></tr></thead><tbody>{modal.modes.map((m) => <tr key={m.number}><td>{m.number}</td><td>{m.frequencyHz.toPrecision(7)}</td><td>{m.residual.toExponential(2)}</td><td>{m.kind === "zero-energy" ? "零能" : "弹性"}</td></tr>)}</tbody></table></div>
       <details><summary>当前振型的节点分量 · 归一化幅值</summary><p>平移与转角使用原求解归一化，不是实际位移或转角。纯扭转模态可通过转角分量核查。</p><div className="load-case-table-scroll"><table aria-label="振型节点分量"><thead><tr><th>节点</th><th>平移 X / Y / Z</th><th>转角 X / Y / Z</th></tr></thead><tbody>{mode.nodes.map((n) => <tr key={n.nodeId}><td>{n.nodeId}</td><td>{Object.values(n.translation).map((v) => v.toPrecision(5)).join(" / ")}</td><td>{Object.values(n.rotation).map((v) => v.toPrecision(5)).join(" / ")}</td></tr>)}</tbody></table></div></details>
     </section>
+    <ModalDampingEditor key={`${result.id}:${JSON.stringify(project.analysisCases.find((c) => c.id === result.input.analysisCase!.id)?.damping)}`} project={project} result={result} onCommit={onDampingChange} onIncrease={onIncrease} />
     <details className="property-section"><summary>质量来源与方法</summary><p>Euler-Bernoulli 一致质量，忽略剪切和弯曲转动惯性，保留扭转极惯性。广义对称特征值法 · {result.input.solver!.implementation}。质量正交误差 {modal.orthogonalityError.toExponential(3)}。</p>
       <p>附加点质量作用于工程节点三个平移方向；线质量沿参考轴均布，细分保持总量。附加质量不含转动惯性，不随自重开关再次添加。</p>
       <div className="load-case-table-scroll"><table aria-label="附加质量来源"><thead><tr><th>类型 / 对象</th><th>线密度</th><th>质量</th></tr></thead><tbody>{(modal.additionalSources ?? []).map((s) => <tr key={s.kind === "point" ? s.nodeId : s.memberId}><td>{s.kind === "point" ? `点质量 · ${s.nodeId}` : `线质量 · ${s.memberId}`}</td><td>{s.kind === "line" ? u.quantity(s.massPerLengthKgM, "kg/m") : "—"}</td><td>{u.quantity(s.massKg, "kg")}</td></tr>)}</tbody></table></div>

@@ -20,6 +20,7 @@ import {
   type NodeId,
   type Vector3,
 } from "./project";
+import { setModalDamping, type ModalDampingInput } from "./modal-damping";
 import { changeTopology, type TopologyInput, type TopologyReceipt } from "./topology";
 import { mergeNodes, type NodeMergeInput, type NodeMergeReceipt } from "./node-merge";
 
@@ -105,6 +106,7 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
+  | { type: "set_modal_damping"; id: string; analysisId: string; properties: ModalDampingInput }
   | { type: "create_section"; properties: SectionInput }
   | { type: "update_section"; id: SectionId; properties: SectionInput }
   | { type: "duplicate_section"; id: SectionId }
@@ -160,6 +162,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
+      case "set_modal_damping": changed = setModalDamping(current, operation.id, operation.analysisId, operation.properties); break;
       case "create_section": changed = addSection(current, operation.properties); created.push({ operationIndex, kind: "section", id: changed.sections.at(-1)!.id }); break;
       case "update_section": changed = updateSection(current, operation.id, operation.properties); break;
       case "duplicate_section": {

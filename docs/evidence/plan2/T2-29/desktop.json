@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "priorAnalysisId": "analysis_ebe3f935-fa5f-421d-8ba2-b74d7af07c6a",
+  "boundAnalysisId": "analysis_10b42d94-a1d5-4a74-9af6-78f932595546",
+  "returnedModes": 5,
+  "damping": {
+    "uniform": {
+      "ratio": 0.02,
+      "source": "user",
+      "basis": "试验给定值"
+    },
+    "overrides": [],
+    "truncation": {
+      "upperFrequencyHz": 1000000,
+      "modeIncrement": 2,
+      "maxModeCount": 5
+    },
+    "analysisId": "analysis_10b42d94-a1d5-4a74-9af6-78f932595546",
+    "createdAt": "2026-10-06T12:20:26Z",
+    "frequenciesHz": [
+      9.059786800902424,
+      18.119573602760184,
+      56.776997301245046,
+      113.55399460232503,
+      158.9827443667867
+    ]
+  },
+  "reopened": true,
+  "responseAccuracy": "not-verified",
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ]
+}

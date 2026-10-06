@@ -51,7 +51,8 @@
     "evidence:plan2:t225": "npm run build:native && npm run build && npx vitest run src/domain/member-releases.test.ts src/domain/member-releases-native.test.ts && node scripts/verify-plan2-t225.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-25-releases.spec.ts",
     "evidence:plan2:t226": "npm run build:native && npm run build && node scripts/verify-plan2-t226.mjs && npx vitest run src/domain/analysis-mesh.test.ts src/workspace/native-analysis-task.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-26-mesh.spec.ts e2e/plan2-t2-25-releases.spec.ts",
     "evidence:plan2:t228": "npm run build:native && npm run build && npx vitest run src/domain/additional-mass.test.ts && node scripts/verify-plan2-t228.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-28-mass.spec.ts",
-    "evidence:plan2:t227": "npm run build:native && npm run build && node scripts/verify-plan2-t227.mjs && npx vitest run src/domain/modal.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-27-modal.spec.ts"
+    "evidence:plan2:t227": "npm run build:native && npm run build && node scripts/verify-plan2-t227.mjs && npx vitest run src/domain/modal.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-27-modal.spec.ts",
+    "evidence:plan2:t229": "npm run build && node scripts/verify-plan2-t229.mjs && npx vitest run src/domain/modal.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-29-damping.spec.ts"
   },
   "dependencies": {
     "docx": "^9.7.1",

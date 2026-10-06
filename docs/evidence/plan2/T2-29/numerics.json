@@ -1,0 +1,370 @@
+{
+  "task": "T2-29",
+  "passed": true,
+  "solver": "framemind-native/5",
+  "nativeRuns": 4,
+  "checks": [
+    {
+      "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+      "firstFrequencyHz": 9.059804487956193,
+      "referenceHz": 9.05977724,
+      "relativeTolerance": 0.0005,
+      "relativeError": 0.000003007574631341825,
+      "withinReferenceTolerance": true,
+      "convergence": "converged"
+    },
+    {
+      "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+      "firstFrequencyHz": 9.059786800902424,
+      "referenceHz": 9.05977724,
+      "relativeTolerance": 0.0005,
+      "relativeError": 0.0000010553131903900947,
+      "withinReferenceTolerance": true,
+      "convergence": "converged"
+    },
+    {
+      "analysisId": "analysis_651d4658-53f0-4039-b181-8f5225c6c359",
+      "firstFrequencyHz": 9.059786800902424,
+      "referenceHz": 9.05977724,
+      "relativeTolerance": 0.0005,
+      "relativeError": 0.0000010553131903900947,
+      "withinReferenceTolerance": true,
+      "convergence": "converged"
+    },
+    {
+      "analysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+      "firstFrequencyHz": 9.102858768790748,
+      "referenceHz": 9.05977724,
+      "relativeTolerance": 0.0005,
+      "relativeError": 0.004755252546446487,
+      "withinReferenceTolerance": false,
+      "convergence": "budget-exhausted"
+    }
+  ],
+  "cases": [
+    {
+      "name": "three-modes-insufficient-band",
+      "status": {
+        "status": "valid",
+        "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+        "boundAnalysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+        "message": "阻尼已核对至该模态结果",
+        "modes": [
+          {
+            "number": 1,
+            "frequencyHz": 9.059804487956193,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          },
+          {
+            "number": 2,
+            "frequencyHz": 18.119608975820473,
+            "damping": {
+              "ratio": 0.04,
+              "source": "suggestion",
+              "basis": "Registered fixture suggestion; not a user value"
+            },
+            "dampingScope": "override"
+          },
+          {
+            "number": 3,
+            "frequencyHz": 56.78124709675097,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          }
+        ],
+        "truncation": {
+          "requestedModeCount": 3,
+          "returnedModeCount": 3,
+          "maximumFrequencyHz": 56.78124709675097,
+          "upperFrequencyHz": 100,
+          "frequencyCoverage": false,
+          "frequencyConverged": true,
+          "zeroEnergyModes": 0,
+          "participatingMass": "not-evaluated",
+          "responseComponents": "not-selected",
+          "nextModeCount": 5,
+          "modeBudgetReached": false,
+          "responseAccuracy": "not-verified",
+          "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
+          "frequencyChecks": [
+            {
+              "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+              "requestedModeCount": 3,
+              "returnedModeCount": 3,
+              "frequencyConverged": true,
+              "grew": false,
+              "prefixFrequencyChange": null,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "five-modes-band-covered-response-unverified",
+      "status": {
+        "status": "valid",
+        "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+        "boundAnalysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+        "message": "阻尼已核对至该模态结果",
+        "modes": [
+          {
+            "number": 1,
+            "frequencyHz": 9.059786800902424,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          },
+          {
+            "number": 2,
+            "frequencyHz": 18.119573602760184,
+            "damping": {
+              "ratio": 0.04,
+              "source": "suggestion",
+              "basis": "Registered fixture suggestion; not a user value"
+            },
+            "dampingScope": "override"
+          },
+          {
+            "number": 3,
+            "frequencyHz": 56.776997301245046,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          },
+          {
+            "number": 4,
+            "frequencyHz": 113.55399460232503,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          },
+          {
+            "number": 5,
+            "frequencyHz": 158.9827443667867,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          }
+        ],
+        "truncation": {
+          "requestedModeCount": 5,
+          "returnedModeCount": 5,
+          "maximumFrequencyHz": 158.9827443667867,
+          "upperFrequencyHz": 100,
+          "frequencyCoverage": true,
+          "frequencyConverged": true,
+          "zeroEnergyModes": 0,
+          "participatingMass": "not-evaluated",
+          "responseComponents": "not-selected",
+          "nextModeCount": null,
+          "modeBudgetReached": true,
+          "responseAccuracy": "not-verified",
+          "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
+          "frequencyChecks": [
+            {
+              "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+              "requestedModeCount": 3,
+              "returnedModeCount": 3,
+              "frequencyConverged": true,
+              "grew": false,
+              "prefixFrequencyChange": null,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            },
+            {
+              "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+              "requestedModeCount": 5,
+              "returnedModeCount": 5,
+              "frequencyConverged": true,
+              "grew": true,
+              "prefixFrequencyChange": 0.00007484505401367966,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "identical-recompute-requires-review",
+      "status": {
+        "status": "needs-review",
+        "analysisId": "analysis_651d4658-53f0-4039-b181-8f5225c6c359",
+        "boundAnalysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+        "message": "模态重算、过期或身份变化，请重读频率与振型并重新设置；旧覆盖未应用",
+        "modes": [
+          {
+            "number": 1,
+            "frequencyHz": 9.059786800902424,
+            "damping": null,
+            "dampingScope": null
+          },
+          {
+            "number": 2,
+            "frequencyHz": 18.119573602760184,
+            "damping": null,
+            "dampingScope": null
+          },
+          {
+            "number": 3,
+            "frequencyHz": 56.776997301245046,
+            "damping": null,
+            "dampingScope": null
+          },
+          {
+            "number": 4,
+            "frequencyHz": 113.55399460232503,
+            "damping": null,
+            "dampingScope": null
+          },
+          {
+            "number": 5,
+            "frequencyHz": 158.9827443667867,
+            "damping": null,
+            "dampingScope": null
+          }
+        ],
+        "truncation": {
+          "requestedModeCount": 5,
+          "returnedModeCount": 5,
+          "maximumFrequencyHz": 158.9827443667867,
+          "upperFrequencyHz": null,
+          "frequencyCoverage": null,
+          "frequencyConverged": true,
+          "zeroEnergyModes": 0,
+          "participatingMass": "not-evaluated",
+          "responseComponents": "not-selected",
+          "nextModeCount": null,
+          "modeBudgetReached": false,
+          "responseAccuracy": "not-verified",
+          "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
+          "frequencyChecks": [
+            {
+              "analysisId": "analysis_bfa09a10-d6ce-443e-8019-f023bf0c07fc",
+              "requestedModeCount": 3,
+              "returnedModeCount": 3,
+              "frequencyConverged": true,
+              "grew": false,
+              "prefixFrequencyChange": null,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            },
+            {
+              "analysisId": "analysis_9a6e669d-2aac-4cea-ac4f-a3eb4566a345",
+              "requestedModeCount": 5,
+              "returnedModeCount": 5,
+              "frequencyConverged": true,
+              "grew": true,
+              "prefixFrequencyChange": 0.00007484505401367966,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            },
+            {
+              "analysisId": "analysis_651d4658-53f0-4039-b181-8f5225c6c359",
+              "requestedModeCount": 5,
+              "returnedModeCount": 5,
+              "frequencyConverged": true,
+              "grew": false,
+              "prefixFrequencyChange": null,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            }
+          ]
+        }
+      },
+      "identicalFrequenciesAndShapes": true
+    },
+    {
+      "name": "mesh-budget-not-converged",
+      "status": {
+        "status": "valid",
+        "analysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+        "boundAnalysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+        "message": "阻尼已核对至该模态结果",
+        "modes": [
+          {
+            "number": 1,
+            "frequencyHz": 9.102858768790748,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          },
+          {
+            "number": 2,
+            "frequencyHz": 18.205717537581474,
+            "damping": {
+              "ratio": 0.04,
+              "source": "suggestion",
+              "basis": "Registered fixture suggestion; not a user value"
+            },
+            "dampingScope": "override"
+          },
+          {
+            "number": 3,
+            "frequencyHz": 89.68760527158412,
+            "damping": {
+              "ratio": 0.02,
+              "source": "user",
+              "basis": "Registered fixture input"
+            },
+            "dampingScope": "uniform"
+          }
+        ],
+        "truncation": {
+          "requestedModeCount": 3,
+          "returnedModeCount": 3,
+          "maximumFrequencyHz": 89.68760527158412,
+          "upperFrequencyHz": 100,
+          "frequencyCoverage": false,
+          "frequencyConverged": false,
+          "zeroEnergyModes": 0,
+          "participatingMass": "not-evaluated",
+          "responseComponents": "not-selected",
+          "nextModeCount": 5,
+          "modeBudgetReached": false,
+          "responseAccuracy": "not-verified",
+          "message": "频率覆盖仅是筛查；须逐步增阶分别比较所选响应 PSD 与 RMS，并核查参与度／有效质量及频点积分收敛。预算耗尽仍未满足误差则报告不足。T2-33 执行响应数值验证，返回指定阶数不代表充分。",
+          "frequencyChecks": [
+            {
+              "analysisId": "analysis_9c193959-f738-479e-9cb5-beebfbccc6a9",
+              "requestedModeCount": 3,
+              "returnedModeCount": 3,
+              "frequencyConverged": false,
+              "grew": false,
+              "prefixFrequencyChange": null,
+              "responseChange": null,
+              "responseAccuracy": "not-verified"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "scope": "Frequency reference, effective damping and identity/truncation checks only. Damping response effects belong to T2-33."
+}

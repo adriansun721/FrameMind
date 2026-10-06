@@ -11,6 +11,15 @@ const topologyProperties = (type: string) => ({
   position: { ...position, required: ["x", "y", "z"] }, nodeId: identity,
 });
 const identityList = { type: "array", uniqueItems: true, items: identity };
+const dampingValue = { type: "object", additionalProperties: false, required: ["ratio", "source", "basis"], properties: {
+  ratio: { type: "number", exclusiveMinimum: 0, exclusiveMaximum: 1 }, source: { enum: ["user", "suggestion"] }, basis: { type: "string", minLength: 1, maxLength: 500 },
+} };
+const modalDamping = { type: "object", additionalProperties: false, required: ["uniform", "overrides", "truncation"], properties: {
+  uniform: dampingValue, overrides: { type: "array", maxItems: 50, items: { type: "object", additionalProperties: false, required: ["modeNumber", "value"], properties: { modeNumber: { type: "integer", minimum: 1, maximum: 50 }, value: dampingValue } } },
+  truncation: { type: "object", additionalProperties: false, required: ["upperFrequencyHz", "modeIncrement", "maxModeCount"], properties: {
+    upperFrequencyHz: { type: "number", exclusiveMinimum: 0 }, modeIncrement: { type: "integer", minimum: 1, maximum: 50 }, maxModeCount: { type: "integer", minimum: 1, maximum: 50 },
+  } },
+} };
 export const NODE_MERGE_SELECTION_SCHEMA = {
   nodeIds: { ...identityList, minItems: 2, maxItems: 100 }, targetNodeId: identity, tolerance: { type: "number", minimum: 0 },
 };
@@ -35,6 +44,7 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
+      { type: "object", additionalProperties: false, required: ["type", "id", "analysisId", "properties"], properties: { type: { const: "set_modal_damping" }, id: identity, analysisId: identity, properties: modalDamping } },
       { type: "object", additionalProperties: false, required: ["type", "id", "massKg"], properties: { type: { const: "set_node_mass" }, id: identity, massKg: { type: "number", minimum: 0 } } },
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_section" }, properties: SECTION_INPUT_SCHEMA } },
       { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_section" }, id: identity, properties: SECTION_INPUT_SCHEMA } },

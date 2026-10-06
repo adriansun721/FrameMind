@@ -2,7 +2,8 @@ import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis"
 import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
 import { selectedMeshLevel } from "../domain/analysis-mesh";
-import type { Vector3 } from "../domain/project";
+import type { FrameProject, Vector3 } from "../domain/project";
+import { modalDampingStatus, modalTruncationCheck } from "../domain/modal-damping";
 
 export interface ResultReference {
   token: string;
@@ -71,20 +72,21 @@ function fields(input: Record<string, unknown>, allowed: string[]) {
   if (Object.keys(input).some((key) => !allowed.includes(key))) throw new Error("结果工具含未定义字段");
 }
 
-export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>) {
+export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>, project?: FrameProject) {
   fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query"]);
   const collection = input.collection;
   if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh", "modes", "mass"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members、mesh、modes 或 mass");
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
-  const provenance = analysisProvenance(result, current);
+  const provenance = { ...analysisProvenance(result, current), ...(result.modal ? { damping: project ? modalDampingStatus(project, result) : { status: "missing", message: "需读取项目阻尼配置", truncation: modalTruncationCheck(result) } } : {}) };
   if (result.modal) {
     if (input.fields !== undefined || input.query !== undefined) throw new Error("模态仅支持完整条目的分页读取");
     if (["nodes", "members"].includes(collection)) throw new Error("模态振型不是静力位移或内力；请读取 modes");
     const modal = result.modal;
     if (collection === "summary") return { ...provenance, method: "modal", totalMassKg: modal.totalMassKg, structuralMassKg: modal.structuralMassKg ?? modal.totalMassKg, additionalMassKg: modal.additionalMassKg ?? 0, modes: modal.modes.map(({ number, frequencyHz, kind, residual }) => ({ number, frequencyHz, kind, residual })), convergence: modal.convergence, counts: modal.counts, normalization: modal.normalization, amplitudeMeaning: "振型幅值仅表示归一化形态，显示缩放不代表受载实际位移", zeroEnergyModes: modal.zeroEnergyModes };
-    const items = collection === "modes" ? modal.modes : collection === "mass" ? [...modal.sources.map((s) => ({ kind: "structural", ...s })), ...modal.additionalSources ?? []] : result.input.meshPlan!.levels.find((l) => l.divisions === modal.selectedDivisions)!.elements;
+    const effective = project ? modalDampingStatus(project, result) : undefined;
+    const items = collection === "modes" ? modal.modes.map((m) => ({ ...m, effectiveDamping: effective?.modes.find((v) => v.number === m.number)?.damping ?? null })) : collection === "mass" ? [...modal.sources.map((s) => ({ kind: "structural", ...s })), ...modal.additionalSources ?? []] : result.input.meshPlan!.levels.find((l) => l.divisions === modal.selectedDivisions)!.elements;
     const pageItems = items.slice(offset, offset + limit);
     return { ...provenance, collection, total: items.length, offset, limit, items: pageItems, page: { empty: !pageItems.length, hasMore: offset + pageItems.length < items.length, nextOffset: offset + pageItems.length } };
   }

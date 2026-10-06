@@ -1,4 +1,5 @@
 import { validateAdditionalMass } from "./additional-mass";
+import { validateModalDampingBinding, type ModalDampingBinding } from "./modal-damping";
 import { validateModalSettings, type ModalSettings } from "./modal";
 import { validateMeshPolicy, type MeshPolicy } from "./analysis-mesh";
 import { validateMemberEndReleases, type MemberEndReleases } from "./member-releases";
@@ -53,6 +54,7 @@ export interface FrameAnalysisCase {
   loadSourceId: string;
   settings: { solver: "native-static" | "native-modal"; mesh?: MeshPolicy; modal?: ModalSettings };
   legacySourceId?: string;
+  damping?: ModalDampingBinding;
 }
 export const DEFAULT_LOAD_CASES: readonly FrameLoadCase[] = [{ id: DEFAULT_LOAD_CASE, name: "默认工况", description: "" }];
 export function getAnalysisLoadCaseId(input: { loadCase?: FrameLoadCase }): string {
@@ -535,9 +537,10 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
   if (typeof value.name !== "string" || !value.name.trim()) throw new Error("分析工况名称不能为空");
   if (value.method === "modal") {
     if (value.loadSourceId !== "structure" || value.legacySourceId !== undefined || !value.settings || value.settings.solver !== "native-modal" || Object.keys(value.settings).some((key) => !["solver", "modal"].includes(key))) throw new Error("模态仅使用结构质量，不接受荷载来源或静力设置");
-    return { id: value.id, name: value.name.trim(), method: "modal", loadSourceId: "structure", settings: { solver: "native-modal", modal: validateModalSettings(value.settings.modal) } };
+    return { id: value.id, name: value.name.trim(), method: "modal", loadSourceId: "structure", settings: { solver: "native-modal", modal: validateModalSettings(value.settings.modal) }, ...(value.damping === undefined ? {} : { damping: validateModalDampingBinding(value.damping) }) };
   }
   if (!value.settings || value.settings.solver !== "native-static" || Object.keys(value.settings).some((key) => !["solver", "mesh"].includes(key))) throw new Error("分析工况数值设置不受支持");
+  if (value.damping !== undefined) throw new Error("静力工况不接受模态阻尼");
   if (project.loadCombinations.some((item) => item.id === value.loadSourceId)) requireAnalysisCapability(value.method, "loadCombination");
   else requireLoadCase(project, value.loadSourceId);
   if (value.legacySourceId !== undefined && value.legacySourceId !== value.loadSourceId) throw new Error("旧分析工况映射无效");
@@ -553,7 +556,7 @@ export function addAnalysisCase(project: FrameProject, properties: Omit<FrameAna
 
 export function updateAnalysisCase(project: FrameProject, id: string, properties: Omit<FrameAnalysisCase, "id" | "legacySourceId">): FrameProject {
   const previous = requireAnalysisCase(project, id);
-  const item = validateAnalysisCase(project, { ...properties, id, ...(previous.loadSourceId === properties.loadSourceId && previous.legacySourceId ? { legacySourceId: previous.legacySourceId } : {}) });
+  const item = validateAnalysisCase(project, { ...properties, id, ...(properties.method === "modal" && previous.damping && properties.damping === undefined ? { damping: previous.damping } : {}), ...(previous.loadSourceId === properties.loadSourceId && previous.legacySourceId ? { legacySourceId: previous.legacySourceId } : {}) });
   const next = { ...project, analysisCases: project.analysisCases.map((c) => c.id === id ? item : c), ...nextRevision(project) };
   return project.activeAnalysisCaseId === id ? selectAnalysisCase(next, id) : next;
 }

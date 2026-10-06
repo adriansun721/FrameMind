@@ -1,5 +1,6 @@
 import { validateMemberEndReleases } from "../domain/member-releases";
 import { validateAdditionalMass } from "../domain/additional-mass";
+import { validateModalDampingInput } from "../domain/modal-damping";
 import { validateSection, type SectionInput } from "../domain/project";
 import { getSectionCatalogEntry } from "../domain/resource-library";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
@@ -54,8 +55,12 @@ function memberProperties(value: unknown, partial: boolean) {
 export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 100) throw new Error("operations 必须包含 1 至 100 项基础编辑");
   return value.map((value) => {
-    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution", "massKg"]);
+    const input = object(value, ["type", "id", "analysisId", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution", "massKg"]);
     switch (input.type) {
+      case "set_modal_damping": {
+        object(input, ["type", "id", "analysisId", "properties"]);
+        return { type: input.type, id: identity(input.id), analysisId: identity(input.analysisId), properties: validateModalDampingInput(input.properties) };
+      }
       case "create_section": case "update_section": {
         object(input, input.type === "create_section" ? ["type", "properties"] : ["type", "id", "properties"]);
         let properties = object(input.properties, ["name", "catalogId", "geometry", "catalogBasis", "parameterBasis", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"]);

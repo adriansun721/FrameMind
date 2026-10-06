@@ -141,8 +141,8 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
       return operation;
     }
     if (!("id" in operation)) return operation;
-    const before = (operation.type.endsWith("analysis_case") ? base.analysisCases : isNodeEdit(operation.type) ? base.nodes : base.members).find((item) => item.id === operation.id);
-    const actual = (operation.type.endsWith("analysis_case") ? current.analysisCases : isNodeEdit(operation.type) ? current.nodes : current.members).find((item) => item.id === operation.id);
+    const before = (operation.type.endsWith("analysis_case") || operation.type === "set_modal_damping" ? base.analysisCases : isNodeEdit(operation.type) ? base.nodes : base.members).find((item) => item.id === operation.id);
+    const actual = (operation.type.endsWith("analysis_case") || operation.type === "set_modal_damping" ? current.analysisCases : isNodeEdit(operation.type) ? current.nodes : current.members).find((item) => item.id === operation.id);
     if (!before || !actual) { conflicts.push(`${operation.id}：任务目标已删除`); return operation; }
     if (operation.type === "set_node_mass" && "position" in before && "position" in actual) {
       return { ...operation, massKg: merge(before.additionalMassKg ?? 0, operation.massKg, actual.additionalMassKg ?? 0, `${operation.id}.additionalMassKg`, conflicts) };

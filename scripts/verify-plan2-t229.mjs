@@ -1,0 +1,66 @@
+import { createServer } from "vite";
+import { spawnSync } from "node:child_process";
+import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import assert from "node:assert/strict";
+
+const server = await createServer({ server: { middlewareMode: true, watch: null }, appType: "custom" });
+try {
+  const { modalCantilever } = await server.ssrLoadModule("/src/validation/modal-fixtures.ts");
+  const { DEFAULT_MODAL_SETTINGS } = await server.ssrLoadModule("/src/domain/modal.ts");
+  const p = await server.ssrLoadModule("/src/domain/project.ts");
+  const a = await server.ssrLoadModule("/src/domain/analysis.ts");
+  const d = await server.ssrLoadModule("/src/domain/modal-damping.ts");
+  const { createAnalysisRequest } = await server.ssrLoadModule("/src/domain/analysis-service.ts");
+  const { decodeAnalysisResult, encodeProject, decodeProject } = await server.ssrLoadModule("/src/domain/project-file.ts");
+  const cases = [], checks = [];
+  const solve = (project, converged = true) => {
+    const child = spawnSync(resolve("native/bin/framemind-core.exe"), [], { input: JSON.stringify(createAnalysisRequest(a.captureAnalysisInput(project))), encoding: "utf8", windowsHide: true, timeout: 30000, maxBuffer: 16 * 1024 * 1024 });
+    if (child.error) throw child.error;
+    assert.equal(child.status, 0);
+    const terminal = JSON.parse(child.stdout.trim().split("\n").at(-1));
+    assert.equal(terminal.kind, "result", JSON.stringify(terminal));
+    const result = decodeAnalysisResult(terminal.result);
+    // Registered independent continuous cantilever reference: ADR-0060.
+    const relativeError = Math.abs(result.modal.modes[0].frequencyHz / 9.05977724 - 1);
+    assert.equal(result.modal.convergence.status, converged ? "converged" : "budget-exhausted");
+    if (converged) assert.ok(relativeError < 5e-4);
+    checks.push({ analysisId: result.id, firstFrequencyHz: result.modal.modes[0].frequencyHz, referenceHz: 9.05977724, relativeTolerance: 5e-4, relativeError, withinReferenceTolerance: relativeError < 5e-4, convergence: result.modal.convergence.status });
+    return p.attachAnalysisResult(project, result);
+  };
+  const settings = { uniform: { ratio: .02, source: "user", basis: "Registered fixture input" }, overrides: [{ modeNumber: 2, value: { ratio: .04, source: "suggestion", basis: "Registered fixture suggestion; not a user value" } }], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 5 } };
+  let project = solve(modalCantilever({ ...DEFAULT_MODAL_SETTINGS, modeCount: 3 }));
+  const first = project.latestAnalysis;
+  project = d.setModalDamping(project, "AC1", first.id, settings);
+  let status = d.modalDampingStatus(project, first);
+  assert.equal(status.status, "valid"); assert.equal(status.modes[0].damping.ratio, .02); assert.equal(status.modes[1].damping.ratio, .04);
+  assert.equal(status.modes[1].damping.source, "suggestion"); assert.equal(status.truncation.frequencyCoverage, false);
+  cases.push({ name: "three-modes-insufficient-band", status });
+  project = p.updateAnalysisCase(project, "AC1", { ...project.analysisCases[0], settings: { solver: "native-modal", modal: { ...DEFAULT_MODAL_SETTINGS, modeCount: 5 } } });
+  project = solve(project);
+  assert.equal(d.modalDampingStatus(project, project.latestAnalysis).status, "needs-review");
+  assert.ok(d.modalDampingStatus(project, project.latestAnalysis).modes.every((m) => m.damping === null));
+  project = d.setModalDamping(project, "AC1", project.latestAnalysis.id, settings);
+  status = d.modalDampingStatus(project, project.latestAnalysis);
+  assert.equal(status.truncation.frequencyCoverage, true); assert.equal(status.truncation.responseAccuracy, "not-verified");
+  assert.equal(status.truncation.modeBudgetReached, true); assert.equal(status.truncation.nextModeCount, null);
+  assert.equal(status.truncation.frequencyChecks.at(-1).grew, true);
+  assert.equal(status.truncation.participatingMass, "not-evaluated");
+  cases.push({ name: "five-modes-band-covered-response-unverified", status });
+  const previous = project.latestAnalysis;
+  const reopened = decodeProject(encodeProject(project));
+  assert.deepEqual(d.modalDampingStatus(reopened, reopened.latestAnalysis), status);
+  project = solve(reopened);
+  assert.deepEqual(project.latestAnalysis.modal, previous.modal);
+  assert.equal(d.modalDampingStatus(project, project.latestAnalysis).status, "needs-review");
+  cases.push({ name: "identical-recompute-requires-review", status: d.modalDampingStatus(project, project.latestAnalysis), identicalFrequenciesAndShapes: true });
+  let budget = solve(modalCantilever({ ...DEFAULT_MODAL_SETTINGS, modeCount: 3, maxDivisions: 1 }), false);
+  budget = d.setModalDamping(budget, "AC1", budget.latestAnalysis.id, settings);
+  const stopped = d.modalDampingStatus(budget, budget.latestAnalysis);
+  assert.equal(stopped.truncation.frequencyConverged, false); assert.equal(stopped.truncation.responseAccuracy, "not-verified");
+  cases.push({ name: "mesh-budget-not-converged", status: stopped });
+  const directory = "docs/evidence/plan2/T2-29";
+  await mkdir(directory, { recursive: true });
+  await writeFile(`${directory}/numerics.json`, JSON.stringify({ task: "T2-29", passed: true, solver: "framemind-native/5", nativeRuns: checks.length, checks, cases, scope: "Frequency reference, effective damping and identity/truncation checks only. Damping response effects belong to T2-33." }, null, 2));
+  console.log(`T2-29: ${checks.length} native runs, ${cases.length} damping/truncation scenarios passed`);
+} finally { await server.close(); }

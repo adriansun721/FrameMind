@@ -13,6 +13,9 @@ import { ModelEditConfirmation, prepareModelEditConfirmation } from "../workspac
 import { readResults } from "../workspace/ai-results";
 import { startAnalysisTask } from "../workspace/analysis-task";
 import { captureEngineeringReport } from "./engineering-report";
+import { modalDampingStatus, setModalDamping, validateModalDampingInput, type ModalDampingInput } from "./modal-damping";
+import { ProjectHistory } from "./project-history";
+import { updateAnalysisCase } from "./project";
 
 function nativeMessages(request: AnalysisServiceRequest) {
   const child = spawnSync(resolve("native/bin/framemind-core.exe"), [], { input: JSON.stringify(request), encoding: "utf8", windowsHide: true, timeout: 30000 });
@@ -25,6 +28,63 @@ function nativeResult(project = modalCantilever()) {
   return decodeAnalysisResult(terminal.result);
 }
 afterEach(() => vi.unstubAllGlobals());
+
+it("binds effective uniform and override damping to a saved modal identity without changing eigenfrequencies", () => {
+  const p = modalCantilever(), r = nativeResult(p), analyzed = attachAnalysisResult(p, r);
+  const input: ModalDampingInput = { uniform: { ratio: .02, source: "user", basis: "试验输入" }, overrides: [{ modeNumber: 2, value: { ratio: .04, source: "suggestion", basis: "待核对试验建议" } }], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 10 } };
+  expect(modalDampingStatus(analyzed, r).status).toBe("missing");
+  const configured = setModalDamping(analyzed, "AC1", r.id, input);
+  expect(isAnalysisResultCurrent(configured, r)).toBe(true);
+  const read = modalDampingStatus(decodeProject(encodeProject(configured)), r);
+  expect(read.status).toBe("valid");
+  expect(read.modes[0].damping).toEqual(input.uniform); expect(read.modes[1].damping).toEqual(input.overrides[0].value);
+  expect(read.truncation).toMatchObject({ nextModeCount: 8, responseAccuracy: "not-verified" });
+  const recomputed = attachAnalysisResult(configured, nativeResult(configured));
+  expect(modalDampingStatus(recomputed, recomputed.latestAnalysis!).status).toBe("needs-review");
+  expect(modalDampingStatus(recomputed, recomputed.latestAnalysis!).modes.every((m) => m.damping === null)).toBe(true);
+  expect(recomputed.latestAnalysis!.modal).toEqual(r.modal);
+});
+
+it("previews damping as an atomic tool edit and reads the same effective values as manual settings", () => {
+  const p = modalCantilever(), r = nativeResult(p), analyzed = attachAnalysisResult(p, r);
+  const input: ModalDampingInput = { uniform: { ratio: .03, source: "suggestion", basis: "AI 建议，尚需工程核对" }, overrides: [], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 8 } };
+  const tool = executeAiTool(captureAiSnapshot(analyzed, []), { id: "damping", type: "function", function: { name: "propose_model_edits", arguments: JSON.stringify({ operations: [{ type: "set_modal_damping", id: "AC1", analysisId: r.id, properties: input }] }) } });
+  expect(tool.status).toBe("awaiting-confirmation");
+  expect(analyzed.analysisCases[0].damping).toBeUndefined();
+  const confirmation = prepareModelEditConfirmation(analyzed, tool.modelEdits!), stage = new ModelEditConfirmation();
+  const applied = stage.confirm(analyzed, confirmation);
+  expect(applied.result.status).toBe("applied");
+  expect(applied.project.analysisCases).toEqual(setModalDamping(analyzed, "AC1", r.id, input).analysisCases);
+  const read = executeAiTool(captureAiSnapshot(applied.project, []), { id: "read", type: "function", function: { name: "read_results", arguments: '{"collection":"modes","limit":1}' } });
+  expect(read.data).toMatchObject({ items: [{ effectiveDamping: input.uniform }], damping: { status: "valid" } });
+  expect(new ModelEditConfirmation().confirm(attachAnalysisResult(analyzed, nativeResult(analyzed)), confirmation).result.status).toBe("failed");
+});
+
+it("rejects ambiguous damping and invalid bindings and stops incremental checks at the mode budget", () => {
+  const p = modalCantilever({ ...DEFAULT_MODAL_SETTINGS, modeCount: 3 }), r = nativeResult(p), analyzed = attachAnalysisResult(p, r);
+  const input: ModalDampingInput = { uniform: { ratio: .02, source: "user", basis: "输入记录" }, overrides: [], truncation: { upperFrequencyHz: 1e6, modeIncrement: 2, maxModeCount: 5 } };
+  for (const ratio of [0, 1, -.1, NaN, Infinity, "0.02"]) expect(() => validateModalDampingInput({ ...input, uniform: { ...input.uniform, ratio } })).toThrow(/阻尼比/);
+  for (const extra of [{ uniform: { ratio: .02, source: "user", basis: "" } }, { rayleigh: { alpha: 1 } }, { truncation: { ...input.truncation, upperFrequencyHz: 0 } }]) expect(() => validateModalDampingInput({ ...input, ...extra })).toThrow();
+  expect(() => setModalDamping(analyzed, "AC1", r.id, { ...input, overrides: [{ modeNumber: 4, value: input.uniform }] })).toThrow(/覆盖阶次/);
+  expect(() => setModalDamping(analyzed, "AC1", r.id, { ...input, overrides: [{ modeNumber: 1, value: input.uniform }, { modeNumber: 1, value: input.uniform }] })).toThrow(/不重复/);
+  expect(() => setModalDamping(analyzed, "AC1", r.id, { ...input, truncation: { ...input.truncation, maxModeCount: 2 } })).toThrow(/预算/);
+  const configured = setModalDamping(analyzed, "AC1", r.id, input);
+  const history = new ProjectHistory(); history.record(analyzed, configured);
+  expect(modalDampingStatus(history.undo(configured)!, r).status).toBe("missing");
+  expect(modalDampingStatus(history.redo(analyzed)!, r).status).toBe("valid");
+  const moved = updateNode(configured, p.nodes[1].id, { x: 4, y: 0, z: 0 });
+  expect(modalDampingStatus(moved, r).status).toBe("needs-review");
+  expect(() => setModalDamping(moved, "AC1", r.id, input)).toThrow(/重读/);
+  const grown = updateAnalysisCase(configured, "AC1", { ...configured.analysisCases[0], settings: { solver: "native-modal", modal: { ...DEFAULT_MODAL_SETTINGS, modeCount: 5 } } });
+  const newResult = nativeResult(grown), next = attachAnalysisResult(grown, newResult);
+  const reviewed = setModalDamping(next, "AC1", newResult.id, input), status = modalDampingStatus(reviewed, newResult);
+  expect(status.truncation).toMatchObject({ frequencyCoverage: false, modeBudgetReached: true, nextModeCount: null, responseAccuracy: "not-verified" });
+  expect(status.truncation.frequencyChecks.at(-1)).toMatchObject({ grew: true, requestedModeCount: 5, responseAccuracy: "not-verified" });
+  const forged = JSON.parse(encodeProject(configured)); forged.analysisCases[0].damping.frequenciesHz[0] += 1;
+  expect(() => decodeProject(JSON.stringify(forged))).toThrow(/阻尼绑定/);
+  forged.analysisCases[0].damping.analysisId = "foreign";
+  expect(() => decodeProject(JSON.stringify(forged))).toThrow(/阻尼绑定/);
+});
 
 it("forms structural mass without consuming loads and persists modal sources and shapes", () => {
   const p = modalCantilever(), r = nativeResult(p);

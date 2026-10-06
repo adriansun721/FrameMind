@@ -1,4 +1,5 @@
 import { ModalResultPanel } from "./components/ModalResultPanel";
+import { updateAnalysisCase } from "./domain/project";
 import { modalDisplayResult } from "./domain/modal";
 import { AdditionalMassEditor } from "./components/AdditionalMassEditor";
 import { indeterminateRotationComponents } from "./domain/member-releases";
@@ -792,7 +793,15 @@ export function App() {
             <LoadFields draft={loadDraft} onChange={setLoadDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存荷载属性</button>
           </form></Inspector>}
           {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />} id={selectedUniform.id}><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>{selectedUniform.loadCaseId}</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q ({u.unit("kN/m")})</dt><dd>{u.vector(selectedUniform.intensity, "kN/m")}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
-          {caseResult?.modal && !selection && <ModalResultPanel result={caseResult} current={resultIsCurrent(caseResult)} modeNumber={modeNumber} onModeChange={setModeNumber} scale={deformationScale} onScaleChange={setDeformationScale} onShowShape={() => setResultView("deformation")} />}
+          {caseResult?.modal && !selection && <ModalResultPanel project={project} onDampingChange={(properties) => {
+            const next = applyProjectEdits(activeProjectRef.current, [{ type: "set_modal_damping", id: caseResult.input.analysisCase!.id, analysisId: caseResult.id, properties }]).project;
+            activateProject(next, false); setStatus({ tone: "success", text: "模态阻尼与截断设置已保存" });
+          }} onIncrease={(modeCount) => {
+            const current = activeProjectRef.current, definition = current.analysisCases.find((c) => c.id === caseResult.input.analysisCase!.id);
+            if (!definition || definition.method !== "modal") throw new Error("模态工况已变化，请重读");
+            activateProject(updateAnalysisCase(current, definition.id, { ...definition, settings: { ...definition.settings, modal: { ...definition.settings.modal!, modeCount } } }), false);
+            setStatus({ tone: "neutral", text: `已准备 ${modeCount} 阶，请运行分析并重新核对阻尼` });
+          }} result={caseResult} current={resultIsCurrent(caseResult)} modeNumber={modeNumber} onModeChange={setModeNumber} scale={deformationScale} onScaleChange={setDeformationScale} onShowShape={() => setResultView("deformation")} />}
           {caseResult && !caseResult.modal && !selection && <AnalysisResultPanel result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onOpenComparison={() => setComparisonOpen(true)} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
           {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </BottomProperties>

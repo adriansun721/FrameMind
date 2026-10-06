@@ -117,7 +117,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
       comparison: comparisonIds,
     }),
     model: structuredClone(model),
-    editProject: structuredClone({ ...project, analysisResults: [], latestAnalysis: undefined }),
+    editProject: structuredClone({ ...project, analysisResults: project.analysisResults.filter((r) => r.modal), latestAnalysis: undefined }),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
     analysisCurrent,
@@ -384,7 +384,7 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       if (snapshot.context.analysis?.status !== "complete") return { status: "missing-input", message: "分析尚未完成，不能解释未完成的数值；请等待本地计算结束", context: snapshot.context };
       if (input.analysisId !== undefined && input.analysisId !== snapshot.analysis.id) throw new Error("分析身份与当前所选结果不一致，请重新读取结果上下文");
       if (call.function.name === "read_results") return { status: "completed", message: snapshot.analysisCurrent ? "已读取所选分析的真实结果" : "已读取历史输入结果，当前模型需重新计算",
-        context: snapshot.context, data: readResults(snapshot.analysis, snapshot.analysisCurrent, input) };
+        context: snapshot.context, data: readResults(snapshot.analysis, snapshot.analysisCurrent, input, snapshot.editProject) };
       const reference = readResult(snapshot.analysis, snapshot.analysisCurrent, input, call.id);
       return { status: "completed", message: "已核对实际结果项，可用引用标记定位", context: snapshot.context, reference,
         data: { ...reference, assumptions: snapshot.analysis.input.assumptions, solver: snapshot.analysis.input.solver } };
