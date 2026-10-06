@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "rectangleArea": 20,
+  "manualArea": 30,
+  "triangleArea": 20,
+  "csvMissingUnitsRejected": true,
+  "duplicateCsvRejected": true,
+  "spectrumConversionPreservesArea": true,
+  "undoRedo": true,
+  "reopened": true,
+  "responseResultsCreated": false,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ]
+}

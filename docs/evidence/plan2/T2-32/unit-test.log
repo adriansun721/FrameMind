@@ -1,0 +1,85 @@
+
+> framemind@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 D:/FrameMind
+
+ ❯ electron/deepseek-chat.test.ts (44 tests | 1 failed) 1538ms
+   × a selected-object conversation receives read-only tool calls and sends their real results on the next round 120ms
+ ❯ src/workspace/report-word.test.ts (6 tests | 1 failed) 8210ms
+   ❯ editable report Word (6)
+     × retains every large-model row, editable tables, figures and report styles 6831ms
+ ❯ src/workspace/report-pdf.test.ts (4 tests | 1 failed) 8370ms
+   × bounds large print batches while preserving all rows and attaching captions to their tables 7473ms
+node.exe :
+At line:1 char:1
++ & "D:\nodejs/node.exe" "D:\nodejs/node_modules/npm/bin/npm-cli.js" te ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  electron/deepseek-chat.test.ts > a selected-object conversation receives read-only tool calls and sends their re
+al results on the next round
+AssertionError: expected [ 'compare_diagnostic_trials', …(26) ] to deeply equal [ 'compare_diagnostic_trials', …(25) ]
+
+- Expected
++ Received
+
+@@ -7,10 +7,11 @@
+    "discard_frame_proposal",
+    "discard_section_change",
+    "inspect_diagnostics",
+    "inspect_near_nodes",
+    "inspect_node_merge",
++   "prepare_psd_input",
+    "propose_analysis_conditions",
+    "propose_frame",
+    "propose_section_change",
+    "read_comparison",
+    "read_comparison_result",
+
+ ❯ electron/deepseek-chat.test.ts:45:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/workspace/report-pdf.test.ts > bounds large print batches while preserving all rows and attaching captions t
+o their tables
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workspace/report-pdf.test.ts:11:1
+      9| import { createPerformanceModel, PERFORMANCE_MODELS } from "../validat…
+     10|
+     11| it("bounds large print batches while preserving all rows and attaching…
+       | ^
+     12|   const model = createPerformanceModel(PERFORMANCE_MODELS[1]);
+     13|   const project = attachAnalysisResult(model, solveFrame(model));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/workspace/report-word.test.ts > editable report Word > retains every large-model row, editable tables, figur
+es and report styles
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workspace/report-word.test.ts:19:3
+     17| }
+     18| describe("editable report Word", () => {
+     19|   it("retains every large-model row, editable tables, figures and repo…
+       |   ^
+     20|     const model = { ...createPerformanceModel(PERFORMANCE_MODELS[0]), …
+     21|     const project = attachAnalysisResult(model, solveFrame(model));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed | 78 passed (81)
+      Tests  3 failed | 625 passed (628)
+   Start at  22:50:57
+   Duration  19.70s (environment 35%, transform 28%, tests 21%, setup 8%, import 8%)
+
+Environment  jsdom was created 81 times · 140.55s total, 35% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments

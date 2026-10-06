@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "undoCannotBeOverwrittenByOldTable": true,
+  "crossProjectSamePsdIdProtected": true,
+  "sameProjectReopenClosesEditor": true
+}
