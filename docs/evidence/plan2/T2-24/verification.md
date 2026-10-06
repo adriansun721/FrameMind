@@ -3,6 +3,7 @@
 日期：2026-10-06（Asia/Taipei）。基线：`9bc8f1259f59d2f8d68f5c19651afac09ad5b946`。
 
 - 类型检查与生产构建通过；保留既有 Vite 大包提示。
+- 最终一键验收 `npm run evidence:plan2:t224` 通过：原生构建、类型检查、生产构建、2 文件 18 专项单元、6 项 Electron 验收全部通过。
 - 专项单元：`npx vitest run src/components/engineering-scene-model.test.ts src/components/scene-labels.test.ts`，2 文件、18 测试通过，包含审查后宽截面角部与缩小视图拾取修复。
 - Electron T2-24 专项通过；UI04 的四项画布、相机、切换和新项目回归通过。
 - 全量单元：`npm test`，修复后 71 文件、542 测试通过。
