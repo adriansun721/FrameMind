@@ -11,6 +11,7 @@ import { applyProjectEdits } from "./project-operations";
 import { captureEngineeringReport } from "./engineering-report";
 import { buildReportPdfHtml } from "../workspace/report-pdf";
 import { readResult, readResults } from "../workspace/ai-results";
+import { captureReportAppendix } from "./report-appendix";
 
 function nativePacket(p: ReturnType<typeof releasedBeam>) {
   const input = captureAnalysisInput(p);
@@ -70,6 +71,15 @@ it("accepts cancellation roundoff for large-section double hinges while rejectin
     p = updateMember(p, p.members[0].id, { rotationDegrees, endReleases: { start: { my: true, mz: true }, end: { my: true, mz: true } } });
     const packet = nativePacket(p); expect(packet.kind, JSON.stringify(packet)).toBe("result");
     const r = decodeAnalysisResult(packet.result);
+    const appendix = captureReportAppendix(r, { memberIds: [p.members[0].id], steps: ["member-process", "assembly", "constraints", "assembled-stiffness", "reduced-stiffness"] });
+    expect(appendix!.missing).toEqual([]);
+    expect(appendix!.overall).not.toBeNull();
+    for (const target of ["member", "assembled"] as const) {
+      const modified = structuredClone(r);
+      const matrix = target === "member" ? modified.process!.members[0].globalStiffness : modified.process!.assembledStiffness!;
+      matrix[1][1] += .01;
+      expect(captureReportAppendix(modified, appendix!.selection)!.overall, target).toBeNull();
+    }
     const ei = 200e6 * width * .4 ** 3 / 12;
     expect(r.members[0].nativeResponses![8].localDisplacement.z).toBeCloseTo(-5 * 2 * length ** 4 / (384 * ei), 12);
     expect(r.members[0].localEndForces.start[4]).toBe(0);

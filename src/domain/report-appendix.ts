@@ -1,4 +1,6 @@
-import { ANALYSIS_DOF_ORDER, ANALYSIS_PROCESS_BASIS, sameInputValue, getMemberAnalysisRecord, getOverallAnalysisProcessRecord, type AnalysisProcessBasis, type AnalysisResult, type MemberAnalysisRecord, type OverallAnalysisProcessRecord } from "./analysis";
+import { ANALYSIS_DOF_ORDER, ANALYSIS_PROCESS_BASIS, NATIVE_RELEASE_STATIC_SOLVER, sameInputValue, getFrozenMemberCoefficients, getMemberAnalysisRecord, getOverallAnalysisProcessRecord, type AnalysisProcessBasis, type AnalysisResult, type MemberAnalysisRecord, type OverallAnalysisProcessRecord } from "./analysis";
+import { coefficientNumbersMatch as numbersMatch, releaseCoefficientMagnitudes } from "./coefficient-correspondence";
+import { hasMemberReleases } from "./member-releases";
 
 export const REPORT_APPENDIX_STEPS = {
   "member-process": "杆件过程（局部轴、位移荷载与单元矩阵）",
@@ -24,7 +26,8 @@ function requireProcessCorrespondence(result: AnalysisResult): void {
   // Rebuild coefficients for validation only, without solving or replacing the saved snapshot.
   const expected = getOverallAnalysisProcessRecord({ ...result, process: undefined });
   expected.freeDofs = expected.freeDofs.filter((index) => !process.releaseGaugeDofs?.includes(index));
-  const numbersMatch = (actual: number[], reference: number[]) => actual.length === reference.length && actual.every((value, index) => Math.abs(value - reference[index]) <= 1e-9 * Math.max(1, Math.abs(reference[index])));
+  const releaseMagnitudes = new Map<string, number[][]>(input.members.filter((member) => sameInputValue(input.solver, NATIVE_RELEASE_STATIC_SOLVER) && hasMemberReleases(member))
+    .map((member) => [member.id, releaseCoefficientMagnitudes(getFrozenMemberCoefficients(input, member.id)).global]));
   const restraints = new Set(input.supports.flatMap((support) => support.restraints.flatMap((value, index) => value ? [input.nodes.findIndex((node) => node.id === support.nodeId) * 6 + index] : [])));
   const dofsMatch = process.dofs.every((dof, index) => dof.nodeId === input.nodes[Math.floor(index / 6)].id && dof.dof === ANALYSIS_DOF_ORDER[index % 6] && dof.globalIndex === index && dof.restrained === restraints.has(index));
   const constrained = process.dofs.filter((dof) => restraints.has(dof.globalIndex)).map((dof) => dof.globalIndex);
@@ -35,21 +38,25 @@ function requireProcessCorrespondence(result: AnalysisResult): void {
     if (!member) return false;
     const indices = [member.startNodeId, member.endNodeId].flatMap((id) => ANALYSIS_DOF_ORDER.map((_, index) => input.nodes.findIndex((node) => node.id === id) * 6 + index));
     const coefficients = expected.members.find((item) => item.memberId === record.memberId)!;
-    return indices.every((index, position) => record.globalDofIndices[position] === index && JSON.stringify(record.dofs[position]) === JSON.stringify(process.dofs[index])) && numbersMatch(record.globalStiffness.flat(), coefficients.globalStiffness.flat()) && numbersMatch(record.equivalentGlobalForces, coefficients.equivalentGlobalForces);
+    return indices.every((index, position) => record.globalDofIndices[position] === index && JSON.stringify(record.dofs[position]) === JSON.stringify(process.dofs[index])) && numbersMatch(record.globalStiffness.flat(), coefficients.globalStiffness.flat(), releaseMagnitudes.get(member.id)?.flat()) && numbersMatch(record.equivalentGlobalForces, coefficients.equivalentGlobalForces);
   });
   const matrixMatches = (matrix: number[][] | null, indices: number[]): boolean => {
     if (!matrix) return true; // Missing matrices remain missing; validation does not fill them.
     const positions = new Map(indices.map((index, position) => [index, position]));
     const assembled = indices.map(() => indices.map(() => 0));
+    const magnitude = indices.map(() => indices.map(() => 0));
     for (const member of expected.members) for (let row = 0; row < 12; row += 1) {
       const targetRow = positions.get(member.globalDofIndices[row]);
       if (targetRow === undefined) continue;
       for (let column = 0; column < 12; column += 1) {
         const targetColumn = positions.get(member.globalDofIndices[column]);
-        if (targetColumn !== undefined) assembled[targetRow][targetColumn] += member.globalStiffness[row][column];
+        if (targetColumn !== undefined) {
+          assembled[targetRow][targetColumn] += member.globalStiffness[row][column];
+          magnitude[targetRow][targetColumn] += releaseMagnitudes.get(member.memberId)?.[row][column] ?? 0;
+        }
       }
     }
-    return numbersMatch(matrix.flat(), assembled.flat());
+    return numbersMatch(matrix.flat(), assembled.flat(), magnitude.flat());
   };
   if (!dofsMatch || !membersMatch || constrained.join(",") !== process.constrainedDofs.join(",") || free.join(",") !== process.freeDofs.join(",") || !sameInputValue(process.solver, input.solver) || !numbersMatch(process.loadVector, expected.loadVector) || !matrixMatches(process.assembledStiffness, expected.dofs.map((dof) => dof.globalIndex)) || !matrixMatches(process.reducedStiffness, expected.freeDofs)) throw new Error("过程快照的对象、编号、约束、求解配置或矩阵荷载数值与冻结输入不可对应");
 }
