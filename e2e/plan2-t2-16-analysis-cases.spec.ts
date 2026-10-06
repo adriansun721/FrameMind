@@ -36,7 +36,8 @@ test("T2-16 migrates, reuses loads in native analyses, tracks dependencies and r
     await manager.getByRole("button", { name: "新建分析工况", exact: true }).click();
     await manager.getByLabel("分析工况名称").fill("共享轴向荷载复核");
     await manager.getByLabel("复用荷载定义").selectOption("LC1");
-    await expect(manager.getByLabel("分析方法").locator('option[value="modal"]')).toHaveAttribute("disabled", "");
+    await expect(manager.getByLabel("分析方法").locator('option[value="modal"]')).not.toHaveAttribute("disabled", "");
+    await expect(manager.getByLabel("分析方法").locator('option[value="buckling"]')).toHaveAttribute("disabled", "");
     await manager.getByRole("button", { name: "创建分析工况", exact: true }).click();
     await manager.getByRole("button", { name: "计算此分析工况", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成");
@@ -46,7 +47,7 @@ test("T2-16 migrates, reuses loads in native analyses, tracks dependencies and r
     const saved = decodeProject(await readFile(projectPath, "utf8"));
     expect(saved.analysisResults).toHaveLength(2);
     expect(saved.nodalLoads).toHaveLength(1);
-    expect(saved.analysisResults.every((r) => r.input.solver?.implementation === "framemind-native/2" && isAnalysisResultCurrent(saved, r))).toBe(true);
+    expect(saved.analysisResults.every((r) => r.input.solver?.implementation === "framemind-native/4" && isAnalysisResultCurrent(saved, r))).toBe(true);
     expect(saved.analysisResults[0].nodes).toEqual(saved.analysisResults[1].nodes);
 
     await page.getByRole("button", { name: "管理工况" }).click();
@@ -91,6 +92,6 @@ test("T2-16 migrates, reuses loads in native analyses, tracks dependencies and r
     await expect(page.locator(".analysis-result-panel")).toContainText("AC1");
     await expect(page.locator(".analysis-result-panel")).toContainText("过期");
     await page.screenshot({ path: join(evidence, "deleted-source-history.png") });
-    await writeFile(join(evidence, "desktop-verification.json"), JSON.stringify({ passed: true, nativeSolver: "framemind-native/2", sources: saved.analysisResults.map((r) => r.service?.sourceId), historyIds: removed.analysisResults.map((r) => r.id), frozenForceKN: 8, tests: ["old-source-migration", "load-reuse", "unused-definition", "shared-dependency", "delete-and-reopen-history"] }, null, 2));
+    await writeFile(join(evidence, "desktop-verification.json"), JSON.stringify({ passed: true, nativeSolver: "framemind-native/4", sources: saved.analysisResults.map((r) => r.service?.sourceId), historyIds: removed.analysisResults.map((r) => r.id), frozenForceKN: 8, tests: ["old-source-migration", "load-reuse", "unused-definition", "shared-dependency", "delete-and-reopen-history"] }, null, 2));
   } finally { await app.close(); await rm(directory, { recursive: true, force: true }); }
 });

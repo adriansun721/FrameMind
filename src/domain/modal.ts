@@ -34,7 +34,7 @@ export interface ModalRecord {
   counts: { engineeringNodes: number; engineeringMembers: number; calculationNodes: number; calculationElements: number; equations: number; releaseCoordinates: number };
   zeroEnergyModes: number;
   zeroEigenvalueTolerance: number;
-  eigenproblem: { matrixLimit: 144; coordinates: Array<{ kind: "node" | "release"; id: string; dof: string }>; vectors: number[][]; stiffness: number[][] | null; mass: number[][] | null };
+  eigenproblem: { matrixLimit: 144; coordinates: Array<{ kind: "node" | "release"; id: string; dof: string }>; releaseNullRotations: Array<{ nodeId: string; direction: { x: number; y: number; z: number }; gaugeDof: number }>; vectors: number[][]; stiffness: number[][] | null; mass: number[][] | null };
 }
 
 /** Modal shapes never occupy static displacement/force slots in a persisted result. */
@@ -144,12 +144,18 @@ export function decodeModalResult(value: Record<string, unknown>, input: Analysi
     const product = (m: number[][], v: number[]) => m.map((row) => dot(row, v));
     const norm = (v: number[]) => Math.hypot(...v);
     const kNorm = Math.hypot(...problem.stiffness.flat());
+    if (!Number.isFinite(kNorm)) fail();
     const massVectors = problem.vectors.map((v) => product(problem.mass!, v));
     for (const [i, v] of problem.vectors.entries()) {
       const lambda = modal.modes[i].eigenvalue, kv = product(problem.stiffness, v), mv = massVectors[i];
-      const residual = norm(kv.map((x, j) => x - lambda * mv[j])) / Math.max(1e-30, kNorm * norm(v) + Math.abs(lambda) * norm(mv));
-      if (residual > 1e-8 || !near(dot(v, mv), 1)) fail();
-      for (let j = 0; j < i; j++) if (Math.abs(dot(v, massVectors[j])) > 1e-8) fail();
+      const denominator = kNorm * norm(v) + Math.abs(lambda) * norm(mv);
+      if (!Number.isFinite(denominator)) fail();
+      const residual = norm(kv.map((x, j) => x - lambda * mv[j])) / Math.max(1e-30, denominator);
+      if (!Number.isFinite(residual) || residual > 1e-8 || kv.some((x) => !Number.isFinite(x)) || mv.some((x) => !Number.isFinite(x)) || !near(dot(v, mv), 1)) fail();
+      for (let j = 0; j < i; j++) {
+        const inner = dot(v, massVectors[j]);
+        if (!Number.isFinite(inner) || Math.abs(inner) > 1e-8) fail();
+      }
     }
   }
   validateModalShapeMapping(input, level!, problem, modal.modes);

@@ -3,7 +3,7 @@
   "cases": [
     {
       "name": "cantilever",
-      "elapsedMs": 75.07010000000002,
+      "elapsedMs": 63.066400000000044,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -9976,6 +9976,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             21333333.33333334,
@@ -21074,7 +21075,7 @@
     },
     {
       "name": "self-weight-on",
-      "elapsedMs": 53.66629999999998,
+      "elapsedMs": 53.95170000000007,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -31047,6 +31048,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             21333333.33333334,
@@ -42145,7 +42147,7 @@
     },
     {
       "name": "self-weight-off",
-      "elapsedMs": 48.331600000000094,
+      "elapsedMs": 50.6626,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -52118,6 +52120,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             21333333.33333334,
@@ -63216,7 +63219,7 @@
     },
     {
       "name": "double-density",
-      "elapsedMs": 50.26350000000002,
+      "elapsedMs": 50.95749999999998,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -73189,6 +73192,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             21333333.33333334,
@@ -84287,7 +84291,7 @@
     },
     {
       "name": "coarse-unconverged",
-      "elapsedMs": 33.715400000000045,
+      "elapsedMs": 34.86110000000008,
       "convergence": {
         "reason": "max-divisions",
         "runs": [
@@ -84398,6 +84402,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             1333333.3333333337,
@@ -85596,7 +85601,7 @@
     },
     {
       "name": "equation-budget",
-      "elapsedMs": 34.89330000000007,
+      "elapsedMs": 34.09180000000015,
       "convergence": {
         "reason": "equation-budget",
         "runs": [
@@ -85707,6 +85712,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             1333333.3333333337,
@@ -86905,7 +86911,7 @@
     },
     {
       "name": "free-free",
-      "elapsedMs": 38.23309999999992,
+      "elapsedMs": 37.14610000000016,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -87401,6 +87407,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             2666666.6666666674,
@@ -88983,7 +88990,7 @@
     },
     {
       "name": "pinned-released",
-      "elapsedMs": 54.11709999999994,
+      "elapsedMs": 52.29340000000002,
       "convergence": {
         "reason": "max-divisions",
         "runs": [
@@ -98756,6 +98763,44 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [
+          {
+            "direction": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "gaugeDof": 4,
+            "nodeId": "node_0001"
+          },
+          {
+            "direction": {
+              "x": 0,
+              "y": 0,
+              "z": 1
+            },
+            "gaugeDof": 5,
+            "nodeId": "node_0001"
+          },
+          {
+            "direction": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "gaugeDof": 10,
+            "nodeId": "node_0002"
+          },
+          {
+            "direction": {
+              "x": 0,
+              "y": 0,
+              "z": 1
+            },
+            "gaugeDof": 11,
+            "nodeId": "node_0002"
+          }
+        ],
         "stiffness": [
           [
             21333333.33333334,
@@ -109655,7 +109700,7 @@
     },
     {
       "name": "fixed-fixed",
-      "elapsedMs": 49.659400000000005,
+      "elapsedMs": 50.795700000000124,
       "convergence": {
         "reason": "max-divisions",
         "runs": [
@@ -118457,6 +118502,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             42666666.66666668,
@@ -128391,7 +128437,7 @@
     },
     {
       "name": "vertical-rotated-axes",
-      "elapsedMs": 56.69550000000004,
+      "elapsedMs": 52.222299999999905,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -138364,6 +138410,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             11468163.059173757,
@@ -149462,7 +149509,7 @@
     },
     {
       "name": "symmetric-frame-repeated-root",
-      "elapsedMs": 51.03570000000013,
+      "elapsedMs": 56.634399999999914,
       "convergence": {
         "reason": "frequency-tolerance",
         "runs": [
@@ -159422,6 +159469,7 @@
           ]
         ],
         "matrixLimit": 144,
+        "releaseNullRotations": [],
         "stiffness": [
           [
             5333333.333333335,

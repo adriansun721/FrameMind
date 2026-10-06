@@ -17,6 +17,29 @@ export function validateModalShapeMapping(input: AnalysisInputSnapshot, level: M
   });
   const keys = problem.coordinates.map((c) => `${c.kind}:${c.id}:${c.dof}`);
   if (keys.some((k) => restrained.has(k)) || !releaseCoordinates.every((k) => keys.includes(k)) || keys.filter((k) => k.startsWith("release:")).length !== releaseCoordinates.length) fail();
+  // A valid null-rotation record may remove a disconnected rotation only.
+  // All other unconstrained calculation coordinates must occur exactly once.
+  if (!Array.isArray(problem.releaseNullRotations)) fail();
+  const calculationNodeIds = [...input.nodes.map((n) => n.id as string), ...level.nodes.map((n) => n.nodeId)];
+  const gauges = new Set<string>();
+  for (const record of problem.releaseNullRotations) {
+    const node = calculationNodeIds.indexOf(record.nodeId), d = record.direction;
+    if (node < 0 || !Number.isSafeInteger(record.gaugeDof) || record.gaugeDof < node * 6 + 3 || record.gaugeDof > node * 6 + 5
+      || !d || ![d.x, d.y, d.z].every(Number.isFinite) || Math.abs(Math.hypot(d.x, d.y, d.z) - 1) > 1e-9) fail();
+    const direction = [d.x, d.y, d.z], key = `node:${record.nodeId}:${input.dofOrder[record.gaugeDof % 6]}`;
+    if (gauges.has(key) || restrained.has(key) || Math.abs(direction[record.gaugeDof % 6 - 3]) < 1e-9) fail();
+    for (let axis = 0; axis < 3; axis++) if ((restrained.has(`node:${record.nodeId}:${input.dofOrder[3 + axis]}`) || gauges.has(`node:${record.nodeId}:${input.dofOrder[3 + axis]}`)) && Math.abs(direction[axis]) > 1e-9) fail();
+    for (const element of level.elements.filter((e) => e.startNodeId === record.nodeId || e.endNodeId === record.nodeId)) {
+      const member = input.members.find((m) => m.id === element.memberId)!, frame = input.meshPlan!.frames[element.memberId];
+      const end = element.startNodeId === record.nodeId && record.nodeId === member.startNodeId ? member.endReleases?.start
+        : element.endNodeId === record.nodeId && record.nodeId === member.endNodeId ? member.endReleases?.end : undefined;
+      const dot = (axis: typeof d) => axis.x * d.x + axis.y * d.y + axis.z * d.z;
+      if (Math.abs(dot(frame.localX)) > 1e-9 || !end?.my && Math.abs(dot(frame.localY)) > 1e-9 || !end?.mz && Math.abs(dot(frame.localZ)) > 1e-9) fail();
+    }
+    gauges.add(key);
+  }
+  const expectedKeys = calculationNodeIds.flatMap((id) => input.dofOrder.map((dof) => `node:${id}:${dof}`)).filter((key) => !restrained.has(key) && !gauges.has(key)).concat(releaseCoordinates);
+  if (keys.length !== expectedKeys.length || keys.some((key, i) => key !== expectedKeys[i])) fail();
   for (const [modeIndex, mode] of modes.entries()) {
     const coordinates = new Map(keys.map((key, i) => [key, problem.vectors[modeIndex][i]]));
     const nodeValues = (nodeId: string) => input.dofOrder.map((dof) => coordinates.get(`node:${nodeId}:${dof}`) ?? 0);

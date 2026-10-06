@@ -65,6 +65,10 @@ it("creates a modal case through reviewed tools with the same settings as manual
   expect(stage.confirm(applied.project, confirmation).project.analysisCases).toHaveLength(1);
   const r = nativeResult(selectAnalysisCase(applied.project, "AC1"));
   expect(r.modal!.modes).toHaveLength(3);
+  const snapshot = captureAiSnapshot(attachAnalysisResult(selectAnalysisCase(applied.project, "AC1"), r), []);
+  expect(snapshot.context.analysis).toMatchObject({ status: "complete", current: true });
+  const read = executeAiTool(snapshot, { id: "read-modes", type: "function", function: { name: "read_results", arguments: '{"collection":"modes","limit":1}' } });
+  expect(read.status).toBe("completed"); expect(read.data).toMatchObject({ total: 3, items: [{ number: 1 }] });
   // Result reads use the established public paginated tool boundary.
   expect(readResults(r, true, { collection: "mass" })).toMatchObject({ items: [{ massKg: expect.closeTo(471) }] });
   expect(readResults(r, true, { collection: "modes", offset: 1, limit: 1 })).toMatchObject({ total: 3, items: [{ number: 2 }], page: { hasMore: true } });
@@ -99,5 +103,18 @@ it("rejects malformed extraction settings, foreign mappings and forged mass/freq
     (x: typeof r) => { x.input.meshPlan!.levels[0].elements[0].memberId = "foreign"; },
     (x: typeof r) => { x.modal!.modes[0].residual = 1; },
     (x: typeof r) => { x.modal!.convergence.runs[0].divisions = 16; },
+    (x: typeof r) => { x.modal!.eigenproblem.stiffness = x.modal!.eigenproblem.stiffness!.map((row) => row.map(() => 1e308)); },
+    (x: typeof r) => { x.modal!.eigenproblem.stiffness![0][0] = 1e308; },
+    (x: typeof r) => { x.modal!.modes[0].members[0].samples[8].translation.x += 1; },
   ]) { const forged = structuredClone(r); mutate(forged); expect(() => decodeAnalysisResult(forged)).toThrow(); }
+});
+
+it("rejects deletion of an inactive free coordinate even if matching matrix rows and vectors are removed", () => {
+  const forged = structuredClone(nativeResult()), modal = forged.modal!, problem = modal.eigenproblem;
+  const index = problem.coordinates.findIndex((c) => c.kind === "node" && c.id === "node_0002" && c.dof === "ux");
+  expect(index).toBeGreaterThanOrEqual(0);
+  problem.coordinates.splice(index, 1); problem.vectors.forEach((v) => v.splice(index, 1));
+  for (const matrix of [problem.stiffness!, problem.mass!]) { matrix.splice(index, 1); matrix.forEach((row) => row.splice(index, 1)); }
+  modal.counts.equations--; modal.convergence.runs.at(-1)!.equations--;
+  expect(() => decodeAnalysisResult(forged)).toThrow(/计算坐标/);
 });

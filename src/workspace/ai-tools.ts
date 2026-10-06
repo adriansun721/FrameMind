@@ -85,7 +85,9 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
   const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
   const resultSnapshot = (result: AnalysisResult) => structuredClone({ ...result, process: undefined });
-  const analysisComplete = Boolean(analysis && analysis.status === "complete" && analysis.nodes.length === analysis.input.nodes.length && analysis.members.length === analysis.input.members.length);
+  const analysisComplete = Boolean(analysis && analysis.status === "complete" && (analysis.modal
+    ? analysis.input.analysisCase?.method === "modal" && analysis.modal.modes.length > 0 && analysis.modal.modes.every((mode) => mode.nodes.length === analysis.input.nodes.length && mode.members.length === analysis.input.members.length)
+    : analysis.nodes.length === analysis.input.nodes.length && analysis.members.length === analysis.input.members.length));
   const analysisCurrent = analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false;
   const analysisContext: AiAnalysisContext = analysis ? {
     id: analysis.id, inputRevision: analysis.input.projectRevision, createdAt: analysis.createdAt, status: analysisComplete ? "complete" : "incomplete",

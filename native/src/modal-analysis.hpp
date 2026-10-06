@@ -59,12 +59,14 @@ static ModalLevelResult solveModalLevel(const Json& request, const Json& level, 
         scale[i]=1/std::sqrt(mass(i,i));
     }
     Matrix scaledK=scale.asDiagonal()*k*scale.asDiagonal(), scaledM=scale.asDiagonal()*mass*scale.asDiagonal();
+    if (!scaledK.allFinite() || !scaledM.allFinite()) throw Failure("modal-nonfinite-matrices","Equilibrated stiffness or mass exceeds finite numeric range",nullptr,"modal");
     Eigen::LLT<Matrix> factor(scaledM);
     if (factor.info()!=Eigen::Success || factor.matrixL().toDenseMatrix().diagonal().array().square().minCoeff()<=1e-12) throw Failure("modal-singular-mass","Mass matrix is not positive definite above the registered scaled pivot tolerance",nullptr,"densityKgM3");
     stage="solve"; if (onPhase) onPhase(stage);
     Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> eig(scaledK,scaledM);
     if (eig.info()!=Eigen::Success) throw Failure("modal-eigensolver-failed","Generalized self-adjoint eigensolver did not converge",nullptr,"modal");
     const Matrix vectors=scale.asDiagonal()*eig.eigenvectors(); const Vector eigenvalues=eig.eigenvalues();
+    if (!vectors.allFinite() || !eigenvalues.allFinite()) throw Failure("modal-eigensolver-failed","Nonfinite generalized eigenpair",nullptr,"modal");
     const double spectralScale=std::max(1.0,eigenvalues.cwiseAbs().maxCoeff()), zeroThreshold=spectralScale*1e-12;
     int zeroCount=0; for (int i=0;i<count;++i) {
         if (eigenvalues[i]<-zeroThreshold) throw Failure("modal-negative-stiffness","Negative eigenvalue exceeds the zero-energy tolerance",nullptr,"restraints");
@@ -73,11 +75,12 @@ static ModalLevelResult solveModalLevel(const Json& request, const Json& level, 
     Json modes=Json::array(); const int extracted=std::min(modeCount,count);
     const Matrix gram=vectors.leftCols(extracted).transpose()*mass*vectors.leftCols(extracted);
     const double orthogonality=(gram-Matrix::Identity(extracted,extracted)).cwiseAbs().maxCoeff();
-    if (orthogonality>1e-8) throw Failure("modal-orthogonality-failed","Mass orthogonality exceeds tolerance",nullptr,"modal");
+    if (!gram.allFinite() || !std::isfinite(orthogonality) || orthogonality>1e-8) throw Failure("modal-orthogonality-failed","Mass orthogonality exceeds tolerance or finite numeric range",nullptr,"modal");
     for (int mode=0;mode<extracted;++mode) {
         const Vector q=vectors.col(mode); const double lambda=std::abs(eigenvalues[mode])<=zeroThreshold ? 0 : eigenvalues[mode];
         const Vector residualVector=k*q-lambda*mass*q;
         const double denominator=k.norm()*q.norm()+std::abs(lambda)*(mass*q).norm();
+        if (!std::isfinite(denominator)) throw Failure("modal-residual-failed","Eigenpair residual scale exceeds finite numeric range",nullptr,"modal");
         const double residual=residualVector.norm()/std::max(1e-30,denominator);
         if (!std::isfinite(residual) || residual>1e-8) throw Failure("modal-residual-failed","Eigenpair residual exceeds tolerance",nullptr,"modal");
         Vector u=Vector::Zero(assembly.size); for (int i=0;i<nodal;++i) u[assembly.free[i]]=q[i];
@@ -102,7 +105,7 @@ static ModalLevelResult solveModalLevel(const Json& request, const Json& level, 
     for (int index:assembly.free) coordinates.push_back({{"kind","node"},{"id",calculation["nodes"][index/6]["id"]},{"dof",dofOrder[index%6]}});
     for (const auto& e:assembly.elements) for (int index:e.released) coordinates.push_back({{"kind","release"},{"id",e.member["id"]},{"dof",std::string(index<6 ? "start." : "end.")+(index%6==4 ? "my" : "mz")}});
     for (int i=0;i<extracted;++i) capturedVectors.push_back(jsonVector(vectors.col(i)));
-    Json eigenproblem={{"matrixLimit",144},{"coordinates",coordinates},{"vectors",capturedVectors},
+    Json eigenproblem={{"matrixLimit",144},{"coordinates",coordinates},{"releaseNullRotations",assembly.releaseNullRotations},{"vectors",capturedVectors},
         {"stiffness",count<=144 ? jsonMatrix(k) : Json(nullptr)},{"mass",count<=144 ? jsonMatrix(mass) : Json(nullptr)}};
     return {modes,count,releases,zeroCount,orthogonality,zeroThreshold,eigenproblem};
 }

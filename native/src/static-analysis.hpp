@@ -27,7 +27,7 @@ struct StaticLoads {
 
 // Public assembly seam shared by static and modal adapters. Modal keeps released
 // beam-end rotations as independent inertial coordinates instead of Guyan reduction.
-struct ModalAssembly { std::vector<StaticElement> elements; std::vector<int> free; int size=0; std::function<void(const std::string&)> onPhase; };
+struct ModalAssembly { std::vector<StaticElement> elements; std::vector<int> free; int size=0; Json releaseNullRotations; std::function<void(const std::string&)> onPhase; };
 
 static Json calculateStatic(const Json& request, Json& stages, std::string& stage, bool publishPhases=true, bool inheritedFrames=false, ModalAssembly* modalAssembly=nullptr) {
     auto phase=[&](const std::string& name) {
@@ -287,7 +287,7 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     std::vector<Triplet> reducedEntries;
     for (int c=0;c<global.outerSize();++c) for (Sparse::InnerIterator it(global,c);it;++it) if (reducedIndex[it.row()]>=0 && reducedIndex[it.col()]>=0) reducedEntries.emplace_back(reducedIndex[it.row()],reducedIndex[it.col()],it.value());
     const int count=static_cast<int>(free.size()); Sparse reduced(count,count); reduced.setFromTriplets(reducedEntries.begin(),reducedEntries.end()); reduced.makeCompressed();
-    if (modalAssembly) { modalAssembly->elements=std::move(elements); modalAssembly->free=std::move(free); modalAssembly->size=size; return nullptr; }
+    if (modalAssembly) { modalAssembly->elements=std::move(elements); modalAssembly->free=std::move(free); modalAssembly->size=size; modalAssembly->releaseNullRotations=releaseNullRotations; return nullptr; }
     Vector rhs(count); for (int i=0;i<count;++i) rhs[i]=force[free[i]];
     phase("solve"); Vector displacement=Vector::Zero(size);
     if (count) {
