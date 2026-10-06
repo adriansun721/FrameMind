@@ -2,8 +2,10 @@ import { MODEL_SECTION_INPUT_SCHEMA as SECTION_INPUT_SCHEMA } from "./section-sc
 const identity = { type: "string", minLength: 1, maxLength: 200 };
 const position = { type: "object", additionalProperties: false, minProperties: 1,
   properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } };
+const bendingRelease = { type: "object", additionalProperties: false, required: ["my", "mz"], properties: { my: { type: "boolean" }, mz: { type: "boolean" } } };
+const endReleases = { type: "object", additionalProperties: false, required: ["start", "end"], properties: { start: bendingRelease, end: bendingRelease }, description: "Local My/Mz only; independent of global supports. Omission means rigid. No torsion/axial/shear releases." };
 const member = { type: "object", additionalProperties: false, minProperties: 1,
-  properties: { startNodeId: identity, endNodeId: identity, materialId: identity, sectionId: identity, rotationDegrees: { type: "number" } } };
+  properties: { startNodeId: identity, endNodeId: identity, materialId: identity, sectionId: identity, rotationDegrees: { type: "number" }, endReleases } };
 const topologyProperties = (type: string) => ({
   memberIds: { type: "array", minItems: type === "split_member" ? 1 : 2, maxItems: type === "split_member" ? 1 : 100, uniqueItems: true, items: identity },
   position: { ...position, required: ["x", "y", "z"] }, nodeId: identity,
@@ -32,7 +34,7 @@ export const MODEL_EDIT_SCHEMA = {
       { type: "object", additionalProperties: false, required: ["type", ...Object.keys(mergeProperties)], properties: { type: { const: "merge_nodes" }, ...mergeProperties } },
       { type: "object", additionalProperties: false, required: ["type", "position"], properties: { type: { const: "create_node" }, position: { ...position, required: ["x", "y", "z"] } } },
       { type: "object", additionalProperties: false, required: ["type", "id", "position"], properties: { type: { const: "update_node" }, id: identity, position } },
-      { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_member" }, properties: { ...member, required: Object.keys(member.properties) } } },
+      { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_member" }, properties: { ...member, required: ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"] } } },
       { type: "object", additionalProperties: false, required: ["type", "id", "changes"], properties: { type: { const: "update_member" }, id: identity, changes: member } },
       ...["split_member", "connect_members"].map((type) => ({ type: "object", additionalProperties: false, required: ["type", "memberIds", "position"], properties: {
         type: { const: type }, ...topologyProperties(type),

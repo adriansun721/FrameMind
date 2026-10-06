@@ -137,7 +137,7 @@ function exactFields(input: Record<string, unknown>, allowed: readonly string[])
 const collections = ["summary", "nodes", "members", "materials", "sections", "supports", "loads", "load-cases", "analysis-cases"];
 const queryFields: Record<string, readonly string[]> = {
   nodes: ["id", "label", "position.x", "position.y", "position.z"],
-  members: ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"],
+  members: ["id", "label", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"],
   materials: ["id", "label", "name", "elasticModulusGPa", "poissonRatio", "densityKgM3"],
   sections: ["id", "label", "name", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4", "geometry", "geometryStatus", "catalogBasis", "parameterBasis", "idealizedComparison"],
   supports: ["id", "label", "nodeId"],

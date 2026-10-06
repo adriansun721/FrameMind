@@ -65,6 +65,7 @@ export function duplicateMember(project: FrameProject, id: MemberId): FrameProje
     materialId: source.materialId,
     sectionId: source.sectionId,
     rotationDegrees: source.rotationDegrees,
+    ...(source.endReleases ? { endReleases: source.endReleases } : {}),
   });
 }
 

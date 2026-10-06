@@ -1,3 +1,4 @@
+import { releaseLabel } from "../domain/member-releases";
 import { unitPresentation } from "../domain/units";
 import { SECTION_DIMENSIONS, SECTION_SHAPES } from "../domain/section-geometry";
 import { SECTION_PROPERTY_KEYS } from "../domain/catalog-section";
@@ -38,7 +39,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     image(figures.model, `冻结输入模型 ${source}`),
     paragraph("图 1 冻结输入模型。全局 +X、+Y、+Z 方向见图，杆件连接和支座自由度以正文表为准。大模型省略对象标签，稳定 ID 见表。"),
     heading("2 理论假设与适用边界"),
-    paragraph("空间 Euler–Bernoulli 直杆单元，每节点 ux、uy、uz、rx、ry、rz 六个自由度。线弹性、小变形、刚性节点，忽略剪切变形；支座采用零位移自由度约束。"),
+    paragraph("空间 Euler–Bernoulli 直杆单元，每节点 ux、uy、uz、rx、ry、rz 六个自由度。线弹性、小变形，未释放分量为刚接，忽略剪切变形；支座采用零位移自由度约束。"),
     paragraph("分析不包含几何非线性、材料非线性、屈曲、动力响应、截面强度或规范符合性验算。本报告给出分析响应，不据此判定结构满足设计规范。用户定义组合系数为输入值。"),
     paragraph("整体方程 K · u = F；约束处理消除受限自由度，求解 Kff · uf = Ff；反力 R = K · u − F。局部转换 ul = T · ug，Kg = Tᵀ · Kl · T；G = E / [2(1 + ν)]。"),
     paragraph("总体位移、转角、支座反力及反力矩按全局 XYZ。局部 x 由杆件起点指向终点，y、z 随截面转角；局部轴向量见表。杆端 N、Vy、Vz、T、My、Mz 为局部轴端部作用分量，两个端点分别记录，不能直接当作截面内力包络。"),
@@ -62,6 +63,8 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     table(["节点", "ID", `X (${u.unit("m")})`, `Y (${u.unit("m")})`, `Z (${u.unit("m")})`], input.nodes.map((item) => [item.label, item.id, ...vector(item.position, "m")])),
     tableCaption("杆件连接、分配与截面朝向"),
     table(["杆件及 ID", "起点 → 终点", "材料 / 截面", `长度 (${u.unit("m")})`, `转角 (${u.unit("°")})`], input.members.map((item) => [item.label + "\n" + item.id, `${nodeLabel(item.startNodeId)} → ${nodeLabel(item.endNodeId)}`, `${input.materials.find((m) => m.id === item.materialId)!.label} / ${input.sections.find((s) => s.id === item.sectionId)!.label}`, q(result.members.find((m) => m.memberId === item.id)!.length, "m"), q(item.rotationDegrees, "°")])),
+    table(["Member / ID", "起点局部释放", "终点局部释放"], input.members.map((m) => [m.label + " / " + m.id, releaseLabel(m.endReleases?.start), releaseLabel(m.endReleases?.end)])),
+    ...(input.members.some((m) => m.endReleases) ? [paragraph("杆端 My/Mz 释放按杆件局部轴解释，与全局节点支座独立。已释放杆端的梁转角由原生恢复记录提供。")] : []),
     tableCaption("局部单位轴向量按全局 XYZ 分量表示"),
     table(["杆件", "局部 x", "局部 y", "局部 z"], result.members.map((item) => [memberLabel(item.memberId), vector(item.localAxes.x).join(", "), vector(item.localAxes.y).join(", "), vector(item.localAxes.z).join(", ")])),
     heading("4 支座与边界条件"),

@@ -1,3 +1,4 @@
+import { hasMemberReleases } from "./member-releases";
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
@@ -37,14 +38,16 @@ export const ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({
 export const NATIVE_ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...ANALYSIS_SOLVER, implementation: "framemind-native/1" });
 export const NATIVE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...ANALYSIS_SOLVER, implementation: "framemind-native/2", algorithm: "sparse-ldlt" });
 
+export const NATIVE_RELEASE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/3" });
+
 export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
-  return sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER);
+  return sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER);
 }
 
 export interface AnalysisAssumptions {
   theory: "3d-euler-bernoulli-frame";
   shearDeformation: "neglected";
-  rigidJoints: true;
+  rigidJoints: boolean;
   units: "m-kN-kN·m";
   localAxis: "member-geometry";
 }
@@ -89,7 +92,20 @@ export interface MemberAnalysisResult {
   localAxes: { x: Vector3; y: Vector3; z: Vector3 };
   localEndForces: { start: [number, number, number, number, number, number]; end: [number, number, number, number, number, number] };
   /** Actual native recovery at 17 stations, retained with the result. */
+  nativeReleaseRecovery?: NativeReleaseRecovery;
   nativeResponses?: Array<Omit<MemberResponseSample, "analysisId" | "memberId">>;
+}
+
+export interface NativeReleaseRecovery {
+  originalLocalStiffness: Matrix;
+  localStiffness: Matrix;
+  transformation: Matrix;
+  recoveryTransformation: Matrix;
+  globalStiffness: Matrix;
+  localDisplacement: number[];
+  originalEquivalentLocalForces: number[];
+  equivalentLocalForces: number[];
+  equivalentGlobalForces: number[];
 }
 
 export interface AnalysisResult {
@@ -126,7 +142,7 @@ export interface MemberAnalysisRecord {
   analysisId: string;
   sourceAnalysisId: string;
   projectRevision: number;
-  origin: "reconstructed-from-frozen-input" | "supplemental-reconstruction";
+  origin: "captured-from-run" | "reconstructed-from-frozen-input" | "supplemental-reconstruction";
   solver: AnalysisSolverConfig;
   memberId: string;
   dofs: Array<{ nodeId: string; dof: AnalysisDof; globalIndex: number }>;
@@ -142,6 +158,7 @@ export interface MemberAnalysisRecord {
   uniformIntensity: Vector3;
   selfWeightIntensity: Vector3;
   totalIntensity: Vector3;
+  releaseRecovery?: NativeReleaseRecovery;
 }
 
 export interface AnalysisProcessDof {
@@ -195,6 +212,8 @@ export interface AnalysisProcessSnapshot {
   assembledStiffness: Matrix | null;
   reducedStiffness: Matrix | null;
   matrixLimit: number;
+  releaseGaugeDofs?: number[];
+  releaseNullRotations?: Array<{ nodeId: string; direction: Vector3; gaugeDof: number }>;
 }
 
 export interface OverallAnalysisProcessRecord extends AnalysisProcessSnapshot {
@@ -352,9 +371,9 @@ export function captureAnalysisInput(project: FrameProject, loadCaseId?: string)
     projectId: project.id, projectRevision: project.revision, dofOrder: [...ANALYSIS_DOF_ORDER],
     solver: { ...ANALYSIS_SOLVER },
     loadCase: { ...loadCase },
-    assumptions: { theory: "3d-euler-bernoulli-frame", shearDeformation: "neglected", rigidJoints: true, units: "m-kN-kN·m", localAxis: "member-geometry" },
+    assumptions: { theory: "3d-euler-bernoulli-frame", shearDeformation: "neglected", rigidJoints: !project.members.some(hasMemberReleases), units: "m-kN-kN·m", localAxis: "member-geometry" },
     nodes: project.nodes.map((node) => ({ ...node, position: { ...node.position } })),
-    members: project.members.map((member) => ({ ...member })), materials: project.materials.map((material) => ({ ...material })), sections: project.sections.map((section) => ({ ...section })),
+    members: project.members.map((member) => structuredClone(member)), materials: project.materials.map((material) => ({ ...material })), sections: project.sections.map((section) => ({ ...section })),
     supports: project.supports.map((support) => ({ ...support, restraints: [...support.restraints] as DofRestraints })),
     nodalLoads: project.nodalLoads.filter((load) => load.loadCaseId === loadCaseId).map((load) => ({ ...load, force: { ...load.force }, moment: { ...load.moment } })),
     uniformLoads: project.uniformLoads.filter((load) => load.loadCaseId === loadCaseId).map((load) => ({ ...load, intensity: { ...load.intensity } })),
@@ -399,7 +418,7 @@ export function buildCombinationInput(base: AnalysisInputSnapshot, definition: F
 export function validateCombinationInput(input: AnalysisInputSnapshot): void {
   if (!input.combination) return;
   if (!Array.isArray(input.combination.cases) || input.combination.cases.some((source) => Object.keys(source).some((key) => !["loadCase", "nodalLoads", "uniformLoads", "selfWeight"].includes(key)))) throw new Error("组合工况必须共享同一结构基础");
-  if (input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry" || input.dofOrder.join(",") !== ANALYSIS_DOF_ORDER.join(",")) throw new Error("组合仅支持已验证的线弹性假设与单位约定");
+  if (input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== !input.members.some(hasMemberReleases) || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry" || input.dofOrder.join(",") !== ANALYSIS_DOF_ORDER.join(",")) throw new Error("组合仅支持已验证的线弹性假设与单位约定");
   const rebuilt = buildCombinationInput(input, input.combination.definition, input.combination.cases);
   if (!sameInputValue(input, rebuilt)) throw new Error("组合有效荷载与工况、系数或单位依据不一致");
   for (const source of input.combination.cases) {
@@ -485,11 +504,21 @@ function memberMatrices(input: AnalysisInputSnapshot, member: FrameMember): Memb
   const start = input.nodes.find((node) => node.id === member.startNodeId)!; const end = input.nodes.find((node) => node.id === member.endNodeId)!;
   const material = input.materials.find((item) => item.id === member.materialId)!; const section = input.sections.find((item) => item.id === member.sectionId)!;
   const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
-  const local = localStiffness(geometry.length, material, section); const transform = transformation(geometry);
+  let local = localStiffness(geometry.length, material, section); const transform = transformation(geometry);
   const uniformIntensity = memberUniformIntensity(input.uniformLoads ?? [], member.id, geometry);
   const selfWeightIntensity = getMemberSelfWeightIntensity(input, member, geometry);
   const intensity = { x: uniformIntensity.x + selfWeightIntensity.x, y: uniformIntensity.y + selfWeightIntensity.y, z: uniformIntensity.z + selfWeightIntensity.z };
   const equivalentLocalForces = uniformEquivalentForces(intensity, geometry.length);
+  // Reconstruct the Schur complement for coefficient/report validation only.
+  // Production numerical assembly, solving and beam-end recovery remain in C++.
+  for (const [offset, end] of [[0, member.endReleases?.start], [6, member.endReleases?.end]] as const) {
+    for (const [component, released] of [[4, end?.my], [5, end?.mz]] as const) if (released) {
+      const index = offset + component, pivot = local[index][index];
+      const column = local.map((row) => row[index]), row = [...local[index]], load = equivalentLocalForces[index];
+      local = local.map((values, r) => values.map((value, c) => r === index || c === index ? 0 : value - column[r] * row[c] / pivot));
+      for (let r = 0; r < 12; r++) equivalentLocalForces[r] = r === index ? 0 : equivalentLocalForces[r] - column[r] * load / pivot;
+    }
+  }
   const equivalentGlobalForces = transpose(transform).map((row) => row.reduce((sum, value, index) => sum + value * equivalentLocalForces[index], 0));
   return { member, geometry, local, transform, global: matrixMultiply(matrixMultiply(transpose(transform), local), transform), uniformIntensity, intensity, selfWeightIntensity, equivalentLocalForces, equivalentGlobalForces };
 }
@@ -545,13 +574,13 @@ export function getSelfWeightSummary(source: FrameProject | AnalysisInputSnapsho
 }
 
 function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
-  if (sameInputValue(solver, NATIVE_STATIC_SOLVER)) return;
+  if (sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER)) return;
   if (!solver || ![ANALYSIS_SOLVER.implementation, NATIVE_ANALYSIS_SOLVER.implementation, "framemind-frame/2"].includes(solver.implementation) || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
 }
 
 function requireLoadRecoveryVersion(input: AnalysisInputSnapshot): void {
   requireCurrentSolver(input.solver);
-  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation && !sameInputValue(input.solver, NATIVE_STATIC_SOLVER)) throw new Error("该分析的求解器版本不支持分布荷载恢复");
+  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation && !sameInputValue(input.solver, NATIVE_STATIC_SOLVER) && !sameInputValue(input.solver, NATIVE_RELEASE_STATIC_SOLVER)) throw new Error("该分析的求解器版本不支持分布荷载恢复");
 }
 
 export interface MemberSectionForces {
@@ -597,12 +626,21 @@ export function getMemberResponseSamples(result: AnalysisResult, memberId: strin
     y: geometry.localX.y * localX + geometry.localY.y * localY + geometry.localZ.y * localZ,
     z: geometry.localX.z * localX + geometry.localY.z * localY + geometry.localZ.z * localZ,
   });
+  const original = record.releaseRecovery?.originalLocalStiffness ?? localStiffness(geometry.length,
+        result.input.materials.find((m) => m.id === result.input.members.find((m) => m.id === memberId)!.materialId)!,
+        result.input.sections.find((s) => s.id === result.input.members.find((m) => m.id === memberId)!.sectionId)!);
   return Array.from({ length: stationCount }, (_, index) => {
     const position = geometry.length * index / (stationCount - 1);
     const shape = hermite(position, geometry.length);
-    const localY = shape.valueStart * start[1] + shape.slopeStart * start[5] + shape.valueEnd * end[1] + shape.slopeEnd * end[5];
-    const localZ = shape.valueStart * start[2] - shape.slopeStart * start[4] + shape.valueEnd * end[2] - shape.slopeEnd * end[4];
-    const localX = start[0] + (end[0] - start[0]) * index / (stationCount - 1);
+    let localY = shape.valueStart * start[1] + shape.slopeStart * start[5] + shape.valueEnd * end[1] + shape.slopeEnd * end[5];
+    let localZ = shape.valueStart * start[2] - shape.slopeStart * start[4] + shape.valueEnd * end[2] - shape.slopeEnd * end[4];
+    let localX = start[0] + (end[0] - start[0]) * index / (stationCount - 1);
+    if (sameInputValue(result.input.solver, NATIVE_RELEASE_STATIC_SOLVER)) {
+      const bubble = position ** 2 * (geometry.length - position) ** 2 / 24;
+      localX += record.totalIntensity.x * position * (geometry.length - position) / (2 * original[0][0] * geometry.length);
+      localY += record.totalIntensity.y * bubble / (original[5][5] * geometry.length / 4);
+      localZ += record.totalIntensity.z * bubble / (original[4][4] * geometry.length / 4);
+    }
     const globalDisplacement = axis(localX, localY, localZ);
     return {
       analysisId: result.id,
@@ -656,14 +694,17 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   });
   const stored = result.members.find((item) => item.memberId === memberId);
   if (!stored) throw new Error(`分析结果缺少杆件 ${memberId}`);
-  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
-    localStiffness: local, transformation: transform, globalStiffness: global, globalDisplacement,
-    localDisplacement: transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
-    equivalentLocalForces,
-    equivalentGlobalForces,
+  const captured = stored.nativeReleaseRecovery;
+  if (hasMemberReleases(member) && !captured) throw new Error("Released member is missing its actual native recovery record");
+  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: captured ? "captured-from-run" : "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
+    localStiffness: captured?.localStiffness ?? local, transformation: transform, globalStiffness: captured?.globalStiffness ?? global, globalDisplacement,
+    localDisplacement: captured?.localDisplacement ?? transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
+    equivalentLocalForces: captured?.equivalentLocalForces ?? equivalentLocalForces,
+    equivalentGlobalForces: captured?.equivalentGlobalForces ?? equivalentGlobalForces,
     uniformIntensity,
     selfWeightIntensity,
     totalIntensity: intensity,
+    ...(captured ? { releaseRecovery: structuredClone(captured) } : {}),
     localEndForces: { start: [...stored.localEndForces.start], end: [...stored.localEndForces.end] },
   };
 }
@@ -754,6 +795,7 @@ export function supplementMemberAnalysisRecord(result: AnalysisResult, memberId:
 
 /** Synchronous TypeScript reference for tests/independent regression. Desktop solves use startAnalysisTask's native default. */
 export function solveFrame(source: FrameProject | AnalysisInputSnapshot, onStage?: (stage: AnalysisStage) => void): AnalysisResult {
+  if (source.members.some(hasMemberReleases)) throw new AnalysisFailure("model-check", [{ code: "unsupported-release-backend", message: "Local end releases require the C++ static solver", field: "endReleases" }]);
   onStage?.("model-check");
   if ("projectId" in source && source.solver) {
     try { requireLoadRecoveryVersion(source); }

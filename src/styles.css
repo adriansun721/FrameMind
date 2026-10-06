@@ -828,3 +828,9 @@ button { color: inherit; }
 .viewport-legend-stack > .viewport-result-legend, .viewport-legend-stack > .viewport-weight-marker, .viewport-legend-stack > .viewport-label-policy { position: static; max-width: 100%; }
 
 .unit-preset-selector { max-width: 150px; height: 28px; padding: 2px 6px; color: var(--text-primary); background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 11px; }
+
+.member-release-fields { display: grid; gap: 8px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 10px; min-width: 0; }
+.member-release-fields legend { font-size: 12px; padding: 0 4px; }
+.member-release-fields .field { display: grid; gap: 4px; }
+.member-release-fields select { width: 100%; min-width: 0; }
+.member-release-fields .field-help { margin: 0; font-size: 11px; line-height: 1.5; }

@@ -45,17 +45,19 @@ export function reportAppendixContent(report: EngineeringReport): Content {
       paragraph(`求解器 ${record.solver.implementation}；算法 ${record.solver.algorithm}；约束 ${record.solver.constraints}；主元阈值 ${n(record.solver.relativePivotTolerance)}。`),
       paragraph(`杆长 ${u.quantity(record.geometry.length, "m", 7)}；局部轴按全局 XYZ：x (${Object.values(record.geometry.localX).map(n).join(", ")})，y (${Object.values(record.geometry.localY).map(n).join(", ")})，z (${Object.values(record.geometry.localZ).map(n).join(", ")})。`),
       tableCaption("单元自由度映射"), table(["单元位置", "节点 / ID", "自由度", "整体索引"], record.dofs.map((dof, index) => [String(index), `${nodeLabel(dof.nodeId)} / ${dof.nodeId}`, dof.dof, String(dof.globalIndex)])),
-      paragraph("u_local = T · u_global；K_global = Tᵀ · K_local · T；f_local = Kl · u_local − F_equivalent_local。"),
+      paragraph(record.releaseRecovery ? "u_beam = H T u_node + Krr^-1 fr; K_condensed = H^T K_original H; f_condensed = H^T f_original. 梁端转角由释放恢复计算，与节点支座转角独立。" : "u_local = T u_global; K_global = T^T K_local T; f_local = K_local u_local - F_local."),
       tableCaption("单元位移与等效荷载"), table(["位置 / 自由度", `整体 u (${u.unit("m")}/${u.unit("rad")})`, `局部 u (${u.unit("m")}/${u.unit("rad")})`, `局部 F (${u.unit("kN")}/${u.unit("kN·m")})`, `整体 F (${u.unit("kN")}/${u.unit("kN·m")})`], record.dofs.map((dof, index) => [`${index} / ${dof.dof}`, mixed(record.globalDisplacement[index], index), mixed(record.localDisplacement[index], index), mixed(record.equivalentLocalForces[index], index, true), mixed(record.equivalentGlobalForces[index], index, true)])),
       tableCaption(`局部均布力 xyz (${u.unit("kN/m")})`), table(["来源", "qx", "qy", "qz"], [["显式荷载", ...Object.values(record.uniformIntensity).map((v) => u.number(v, "kN/m", 7))], ["自重", ...Object.values(record.selfWeightIntensity).map((v) => u.number(v, "kN/m", 7))], ["合计", ...Object.values(record.totalIntensity).map((v) => u.number(v, "kN/m", 7))]]),
       tableCaption("局部端部作用分量"), table(["端点", `N (${u.unit("kN")})`, `Vy (${u.unit("kN")})`, `Vz (${u.unit("kN")})`, `T (${u.unit("kN·m")})`, `My (${u.unit("kN·m")})`, `Mz (${u.unit("kN·m")})`], [["起点", ...record.localEndForces.start.map((v, i) => mixed(v, i, true))], ["终点", ...record.localEndForces.end.map((v, i) => mixed(v, i, true))]]),
+      ...(record.releaseRecovery ? matrixTables("释放前原始刚度 K_original", record.releaseRecovery.originalLocalStiffness, record.dofs.map((_, index) => index)) : []),
       ...matrixTables("局部单元刚度 Kl", record.localStiffness, record.dofs.map((_, index) => index)),
       ...matrixTables("坐标转换矩阵 T", record.transformation, record.dofs.map((_, index) => index)),
       ...matrixTables("整体单元刚度 Kg", record.globalStiffness, record.dofs.map((_, index) => index)));
   }
   if (overall) {
     content.push(heading("整体过程来源"), origin(overall), paragraph(`求解器 ${overall.solver.implementation}；${overall.solver.algorithm}；${overall.solver.constraints}；主元阈值 ${n(overall.solver.relativePivotTolerance)}。`));
-    if (selection.steps.includes("dof-mapping")) content.push(tableCaption("整体自由度映射表"), table(["整体索引", "节点 / ID", "自由度", "状态"], overall.dofs.map((dof) => [String(dof.globalIndex), `${nodeLabel(dof.nodeId)} / ${dof.nodeId}`, dof.dof, dof.restrained ? "约束" : "自由"])));
+    if (overall.releaseGaugeDofs?.length) content.push(paragraph(`完全脱开转动的参考索引 [${overall.releaseGaugeDofs.join(", ")}]；节点该方向转角不可确定，取参考值 0，不是额外支座。梁端转角见实际杆件恢复记录。`));
+    if (selection.steps.includes("dof-mapping")) content.push(tableCaption("整体自由度映射表"), table(["整体索引", "节点 / ID", "自由度", "状态"], overall.dofs.map((dof) => [String(dof.globalIndex), `${nodeLabel(dof.nodeId)} / ${dof.nodeId}`, dof.dof, dof.restrained ? "约束" : overall.releaseGaugeDofs?.includes(dof.globalIndex) ? "脱开转动" : "自由"])));
     if (selection.steps.includes("assembly")) {
       content.push(heading("所选杆件组装贡献"), paragraph("K = Σ kᵢ；将单元行列对号到整体索引后相加。以下只列所选贡献，不能当作完整 K。"));
       for (const member of overall.members.filter((member) => selection.memberIds.includes(member.memberId))) content.push(
@@ -66,7 +68,7 @@ export function reportAppendixContent(report: EngineeringReport): Content {
     if (selection.steps.includes("constraints")) content.push(heading("约束处理与整体荷载"),
       paragraph("K · u = F；零位移约束 u_c = 0；消去约束行列得到 Kff · uf = Ff；R = K · u − F。"),
       paragraph(`约束索引 [${overall.constrainedDofs.join(", ")}]；自由索引 [${overall.freeDofs.join(", ")}]。`),
-      table(["整体索引", "节点 / 自由度", "状态", `F (${u.unit("kN")}/${u.unit("kN·m")})`, "Ff 位置"], overall.dofs.map((dof) => [String(dof.globalIndex), `${dof.nodeId}.${dof.dof}`, dof.restrained ? "约束 / u=0" : "自由", mixed(overall.loadVector[dof.globalIndex], dof.globalIndex, true), dof.restrained ? "已消去" : String(overall.freeDofs.indexOf(dof.globalIndex))])));
+      table(["整体索引", "节点 / 自由度", "状态", `F (${u.unit("kN")}/${u.unit("kN·m")})`, "Ff 位置"], overall.dofs.map((dof) => [String(dof.globalIndex), `${dof.nodeId}.${dof.dof}`, dof.restrained ? "约束 / u=0" : overall.releaseGaugeDofs?.includes(dof.globalIndex) ? "脱开转动 / 参考值 0" : "自由", mixed(overall.loadVector[dof.globalIndex], dof.globalIndex, true), dof.restrained || overall.releaseGaugeDofs?.includes(dof.globalIndex) ? "已消去" : String(overall.freeDofs.indexOf(dof.globalIndex))])));
     if (selection.steps.includes("assembled-stiffness") && overall.assembledStiffness) content.push(...matrixTables("整体刚度矩阵 K", overall.assembledStiffness, overall.dofs.map((dof) => dof.globalIndex)));
     if (selection.steps.includes("reduced-stiffness") && overall.reducedStiffness) content.push(...matrixTables("约束后刚度矩阵 Kff", overall.reducedStiffness, overall.freeDofs));
   }

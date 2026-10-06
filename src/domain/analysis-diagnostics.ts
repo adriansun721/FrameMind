@@ -13,7 +13,7 @@ export const ANALYSIS_FIELD_LABELS: Record<string, string> = {
   elasticModulusGPa: "弹性模量 E", densityKgM3: "密度", poissonRatio: "泊松比",
   areaM2: "面积 A", secondMomentYM4: "惯性矩 Iy", secondMomentZM4: "惯性矩 Iz", torsionalConstantM4: "扭转常数 J",
   startNodeId: "起点节点", endNodeId: "终点节点", nodeId: "所属节点", materialId: "材料", sectionId: "截面", rotationDegrees: "截面转角",
-  restraints: "约束自由度", connectivity: "连接关系", stiffness: "刚度", reaction: "反力", localEndForces: "杆端内力", "force/moment": "力与力矩", intensity: "均布力（kN/m）", memberId: "加载杆件", selfWeight: "自重设置",
+  endReleases: "局部杆端弯矩释放", restraints: "约束自由度", connectivity: "连接关系", stiffness: "刚度", reaction: "反力", localEndForces: "杆端内力", "force/moment": "力与力矩", intensity: "均布力（kN/m）", memberId: "加载杆件", selfWeight: "自重设置",
   "force.x": "FX", "force.y": "FY", "force.z": "FZ", "moment.x": "MX", "moment.y": "MY", "moment.z": "MZ",
 };
 

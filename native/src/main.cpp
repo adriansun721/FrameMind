@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <set>
 #include <cstdlib>
@@ -220,7 +221,8 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
         {"rigidJoints",true},{"units","m-kN-kN·m"},{"localAxis","member-geometry"}}), "Unsupported units or theory");
     const auto& nodes=input.at("nodes"); const auto& members=input.at("members");
     require(nodes.is_array() && nodes.size()==2 && members.is_array() && members.size()==1, "T2-13 supports exactly two nodes and one member");
-    const auto& member=members[0]; id(member.at("id"));
+    const auto& member=members[0];
+    require(!member.contains("endReleases"),"Legacy single-member core does not support end releases",{{"kind","member"},{"id",member["id"]}},"endReleases"); id(member.at("id"));
     const Json memberTarget={{"kind","member"},{"id",member.at("id")}};
     const std::string n0=id(nodes[0].at("id")), n1=id(nodes[1].at("id"));
     require(n0!=n1, "Duplicate node identity");
@@ -360,7 +362,7 @@ int main() {
         std::string bytes; char c;
         while (std::cin.get(c)) { if (bytes.size()>=16*1024*1024) throw Failure("native-resource-limit", "Input exceeds 16 MiB"); bytes.push_back(c); }
         request=Json::parse(bytes);
-        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/2"
+        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         emit({{"kind","result"},{"requestId",request.at("requestId")},{"result",result}});
         std::cerr << "{\"kind\":\"native-resources\",\"peakCommittedBytes\":" << budget.peakCommittedBytes()

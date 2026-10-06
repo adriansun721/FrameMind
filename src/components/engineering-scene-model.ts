@@ -5,6 +5,7 @@ import type { FrameMember, FrameNode, FrameSection, MemberId, NodeId } from "../
 import type { SectionGeometry } from "../domain/section-geometry";
 import { createSectionExtrusion, memberSolidTransform, sectionOuterRadius } from "./member-solid";
 import { disposeObjectTree } from "./three-resources";
+import { releaseLabel } from "../domain/member-releases";
 
 const PICKING_CYLINDER_SEGMENTS = 6;
 // CylinderGeometry's radius is circumscribed; make the inscribed circle contain the section.
@@ -54,6 +55,7 @@ function placeCylinderBetween(mesh: THREE.Mesh, start: THREE.Vector3, end: THREE
 
 export class EngineeringSceneModel {
   private readonly annotationGroup = new THREE.Group();
+  private readonly releaseGroup = new THREE.Group();
   private readonly memberRecords = new Map<MemberId, MemberRecord>();
   private readonly nodeRecords = new Map<NodeId, NodeRecord>();
   private selection: EngineeringSceneSelection = null;
@@ -71,6 +73,8 @@ export class EngineeringSceneModel {
   ) {
     this.annotationGroup.name = "selection-annotations";
     this.parent.add(this.annotationGroup);
+    this.releaseGroup.name = "member-end-releases";
+    this.parent.add(this.releaseGroup);
     this.parent.add(this.batchGroup);
   }
 
@@ -106,7 +110,7 @@ export class EngineeringSceneModel {
       const start = nodesById.get(member.startNodeId); const end = nodesById.get(member.endNodeId);
       if (!start || !end) continue;
       const sectionGeometry = sectionsById.get(member.sectionId)?.geometry;
-      const fingerprint = JSON.stringify([member.startNodeId, member.endNodeId, start.position, end.position, member.rotationDegrees, sectionGeometry, displayMode]);
+      const fingerprint = JSON.stringify([member.startNodeId, member.endNodeId, start.position, end.position, member.rotationDegrees, member.endReleases, sectionGeometry, displayMode]);
       const current = this.memberRecords.get(member.id);
       if (current?.fingerprint === fingerprint) {
         current.member = member; current.start = start; current.end = end;
@@ -120,6 +124,7 @@ export class EngineeringSceneModel {
     for (const record of this.nodeRecords.values()) record.display.visible = !this.batched;
     for (const record of this.memberRecords.values()) record.display.visible = !this.batched;
     this.rebuildBatch();
+    this.renderReleaseMarkers();
     this.applyInteractionState();
   }
 
@@ -146,6 +151,7 @@ export class EngineeringSceneModel {
   setPalette(palette: EngineeringScenePalette): void {
     this.palette = palette;
     this.renderedAnnotationFingerprint = "";
+    this.renderReleaseMarkers();
     this.applyInteractionState();
   }
 
@@ -181,6 +187,8 @@ export class EngineeringSceneModel {
     for (const [id, record] of this.memberRecords) this.removeMember(id, record);
     for (const [id, record] of this.nodeRecords) this.removeNode(id, record);
     this.clearAnnotations();
+    this.clearReleaseMarkers();
+    this.releaseGroup.removeFromParent();
     for (const child of [...this.batchGroup.children]) disposeObjectTree(child);
     this.batchGroup.removeFromParent();
     this.annotationGroup.removeFromParent();
@@ -326,6 +334,39 @@ export class EngineeringSceneModel {
     this.renderedAnnotationFingerprint = fingerprint;
   }
 
+  private renderReleaseMarkers(): void {
+    this.clearReleaseMarkers();
+    const points: THREE.Vector3[] = [];
+    for (const record of this.memberRecords.values()) {
+      const start = new THREE.Vector3(record.start.position.x, record.start.position.y, record.start.position.z);
+      const end = new THREE.Vector3(record.end.position.x, record.end.position.y, record.end.position.z);
+      for (const [key, fraction] of [["start", .06], ["end", .94]] as const) {
+        const release = record.member.endReleases?.[key];
+        if (release?.my || release?.mz) points.push(start.clone().lerp(end, fraction));
+      }
+    }
+    if (!points.length) return;
+    // Screen-sized hollow ring, visible through the real section. Offset along
+    // the member separates connection markers from external support glyphs.
+    const pixels = new Uint8Array(24 * 24 * 4);
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) {
+      const offset = (y * 24 + x) * 4, r = Math.hypot(x - 11.5, y - 11.5);
+      pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = 255;
+      pixels[offset + 3] = r >= 7 && r <= 11 ? 255 : 0;
+    }
+    const texture = new THREE.DataTexture(pixels, 24, 24); texture.needsUpdate = true;
+    const material = new THREE.PointsMaterial({ map: texture, color: this.palette.selected, size: 13, sizeAttenuation: false, transparent: true, alphaTest: .1, depthTest: false, depthWrite: false });
+    const markers = new THREE.Points(new THREE.BufferGeometry().setFromPoints(points), material);
+    markers.renderOrder = 6; this.releaseGroup.add(markers);
+  }
+
+  private clearReleaseMarkers(): void {
+    for (const child of [...this.releaseGroup.children]) {
+      if (child instanceof THREE.Points) (child.material as THREE.PointsMaterial).map?.dispose();
+      disposeObjectTree(child);
+    }
+  }
+
   private annotationFingerprint(role: string, selection: EngineeringSceneSelection): string {
     if (!selection) return `${role}:none`;
     if (selection.kind === "node") {
@@ -362,6 +403,13 @@ export class EngineeringSceneModel {
     ]), new THREE.LineBasicMaterial({ color: showLocalAxes || resultTarget ? this.palette.selected : this.palette.hovered, depthTest: false }));
     highlight.renderOrder = 4; this.annotationGroup.add(highlight);
     if (!showLocalAxes) return;
+    for (const [key, position] of [["start", record.start.position], ["end", record.end.position]] as const) {
+      const release = record.member.endReleases?.[key];
+      if (!release?.my && !release?.mz) continue;
+      const endLabel = this.makeLabel(`${key === "start" ? "起点" : "终点"} · ${releaseLabel(release)}`);
+      endLabel.position.set(position.x, position.y, position.z).addScaledVector(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), radius + .28);
+      endLabel.userData.labelPriority = 95; this.annotationGroup.add(endLabel);
+    }
     const size = Math.min(0.85, Math.max(0.38, geometry.length * 0.16));
     origin.addScaledVector(new THREE.Vector3(geometry.localZ.x, geometry.localZ.y, geometry.localZ.z), radius + 0.12);
     for (const [axis, color] of [[geometry.localY, this.palette.axisY], [geometry.localZ, this.palette.axisZ]] as const) {

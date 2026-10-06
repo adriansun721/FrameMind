@@ -89,7 +89,7 @@ export function compareAnalysisResults(before: AnalysisResult, after: AnalysisRe
 
   const changes: AnalysisComparisonChange[] = [
     ...compareCollection(before.input.nodes, after.input.nodes, [["position", "坐标"]], "node"),
-    ...compareCollection(before.input.members, after.input.members, [["startNodeId", "起点"], ["endNodeId", "终点"], ["materialId", "材料引用"], ["sectionId", "截面引用"], ["rotationDegrees", "截面转角"]], "member"),
+    ...compareCollection(before.input.members, after.input.members, [["startNodeId", "起点"], ["endNodeId", "终点"], ["materialId", "材料引用"], ["sectionId", "截面引用"], ["rotationDegrees", "截面转角"], ["endReleases", "局部杆端释放"]], "member"),
     ...compareCollection(before.input.materials, after.input.materials, [["name", "名称"], ["elasticModulusGPa", "弹性模量 E"], ["poissonRatio", "泊松比 ν"], ["densityKgM3", "密度 ρ"]], "material"),
     ...compareCollection(before.input.sections, after.input.sections, [["name", "名称"], ["geometry", "几何尺寸"], ["parameterBasis", "计算依据"], ["areaM2", "面积 A"], ["secondMomentYM4", "惯性矩 Iy"], ["secondMomentZM4", "惯性矩 Iz"], ["torsionalConstantM4", "扭转常数 J"]], "section"),
     ...compareCollection(before.input.supports, after.input.supports, [["nodeId", "约束节点"], ["restraints", "六自由度约束"]], "support"),

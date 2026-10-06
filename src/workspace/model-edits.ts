@@ -1,3 +1,4 @@
+import { validateMemberEndReleases } from "../domain/member-releases";
 import { validateSection, type SectionInput } from "../domain/project";
 import { getSectionCatalogEntry } from "../domain/resource-library";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
@@ -39,12 +40,13 @@ function vector(value: unknown, partial: boolean): Partial<Vector3> {
   return { ...input };
 }
 function memberProperties(value: unknown, partial: boolean) {
-  const fields = ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"];
+  const fields = ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"];
   const input = object(value, fields);
-  if (!Object.keys(input).length || (!partial && fields.some((key) => input[key] === undefined))) throw new Error("杆件参数不完整");
+  if (!Object.keys(input).length || (!partial && fields.slice(0, 5).some((key) => input[key] === undefined))) throw new Error("杆件参数不完整");
   for (const key of fields.slice(0, 4)) if (input[key] !== undefined) identity(input[key]);
   if (input.rotationDegrees !== undefined && (typeof input.rotationDegrees !== "number" || !Number.isFinite(input.rotationDegrees))) throw new Error("截面转角必须是有限数值（度）");
-  return input as Partial<{ startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number }>;
+  if (input.endReleases !== undefined) validateMemberEndReleases(input.endReleases);
+  return input as Partial<{ startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; endReleases: import("../domain/member-releases").MemberEndReleases }>;
 }
 
 export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
@@ -143,12 +145,12 @@ export function modelEditToolInput(name: string, input: Record<string, unknown>,
     object(input, [field]);
     if (!Array.isArray(input[field])) throw new Error(`${field} 必须是数组`);
     return { operations: input[field].map((entry) => (field === "ids" ? { type: singular, id: entry }
-      : (modelEditToolInput(singular, object(entry, singular === "create_node" ? ["position", "x", "y", "z"] : singular === "update_node" ? ["id", "position", "x", "y", "z"] : singular === "create_member" ? ["properties", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"] : ["id", "changes"])) as { operations: unknown[] }).operations[0])) };
+      : (modelEditToolInput(singular, object(entry, singular === "create_node" ? ["position", "x", "y", "z"] : singular === "update_node" ? ["id", "position", "x", "y", "z"] : singular === "create_member" ? ["properties", "startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"] : ["id", "changes"])) as { operations: unknown[] }).operations[0])) };
   }
   const node = name.endsWith("node");
   if (name.startsWith("create_") || name.startsWith("update_")) {
     const property = node ? "position" : name.startsWith("create_") ? "properties" : "changes";
-    const flatFields = node ? ["x", "y", "z"] : name.startsWith("create_") ? ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees"] : [];
+    const flatFields = node ? ["x", "y", "z"] : name.startsWith("create_") ? ["startNodeId", "endNodeId", "materialId", "sectionId", "rotationDegrees", "endReleases"] : [];
     object(input, [...(name.startsWith("update_") ? ["id"] : []), property, ...flatFields]);
     if (input[property] !== undefined && flatFields.some((key) => input[key] !== undefined)) throw new Error("不能混用嵌套和直接参数");
     const properties = input[property] ?? Object.fromEntries(flatFields.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));

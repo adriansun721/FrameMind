@@ -1,3 +1,5 @@
+import { decodeNativeReleaseRecovery, decodeReleaseGauges } from "./native-release-record";
+import { validateMemberEndReleases, hasMemberReleases } from "./member-releases";
 import { requireUnitPreset } from "./units";
 import { decodeAnalysisRun } from "./analysis-service-contract";
 import {
@@ -40,7 +42,7 @@ import {
   type ResourceProvenance,
   type CatalogSource,
 } from "./project";
-import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_STATIC_SOLVER, isNativeSolver, sameInputValue, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_STATIC_SOLVER, NATIVE_RELEASE_STATIC_SOLVER, isNativeSolver, sameInputValue, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
 import { decodeTaskState, decodeConfirmedOperations } from "../workspace/task-persistence";
 import { redactPersistence } from "../../electron/persistence-redaction";
 
@@ -160,6 +162,7 @@ function decodeMember(value: unknown): FrameMember {
     materialId: requireString(value.materialId, `杆件 ${label} 缺少材料`) as MaterialId,
     sectionId: requireString(value.sectionId, `杆件 ${label} 缺少截面`) as SectionId,
     rotationDegrees: requireFinite(value.rotationDegrees, `杆件 ${label} 的截面转角必须是有限数值`),
+    ...(value.endReleases !== undefined ? { endReleases: validateMemberEndReleases(value.endReleases) } : {}),
   };
 }
 
@@ -219,7 +222,7 @@ function isSolverAlgorithm(value: unknown): value is "partial-pivot-gaussian" | 
 
 function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number): AnalysisInputSnapshot {
   if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || !isSolverAlgorithm(input.solver.algorithm) || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
-  if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== true || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
+  if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== !input.members.some((member) => hasMemberReleases(member as FrameMember)) || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
   const inputNodes = input.nodes.map(decodeNode); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map(decodeMember); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
   assertUnique(inputNodes, "分析输入节点"); assertUnique(inputMaterials, "分析输入材料"); assertUnique(inputSections, "分析输入截面"); assertUnique(inputMembers, "分析输入杆件"); assertUnique(inputSupports, "分析输入支座"); assertUnique(inputLoads, "分析输入节点荷载");
   assertUniqueLabels(inputNodes, "分析输入节点"); assertUniqueLabels(inputMaterials, "分析输入材料"); assertUniqueLabels(inputSections, "分析输入截面"); assertUniqueLabels(inputMembers, "分析输入杆件"); assertUniqueLabels(inputSupports, "分析输入支座"); assertUniqueLabels(inputLoads, "分析输入节点荷载");
@@ -298,7 +301,8 @@ function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): An
   });
   const indices = (items: unknown[], label: string) => { if (!items.every((index) => Number.isSafeInteger(index) && (index as number) >= 0 && (index as number) < input.nodes.length * 6)) throw new Error(`${label}索引无效`); return [...items] as number[]; };
   const constrainedDofs = indices(value.constrainedDofs, "分析整体过程约束自由度"); const freeDofs = indices(value.freeDofs, "分析整体过程自由自由度");
-  return { solver: { implementation: solver.implementation, algorithm: solver.algorithm as "partial-pivot-gaussian" | "sparse-ldlt", constraints: "free-dof-elimination", relativePivotTolerance: solver.relativePivotTolerance }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs, members, loadVector: [...loadVector], constrainedDofs, freeDofs, assembledStiffness: matrix(value.assembledStiffness, "分析整体过程整体刚度", input.nodes.length * 6), reducedStiffness: matrix(value.reducedStiffness, "分析整体过程约束后刚度", freeDofs.length), matrixLimit };
+  const { releaseGaugeDofs, releaseNullRotations } = decodeReleaseGauges(value, input, loadVector);
+  return { solver: { implementation: solver.implementation, algorithm: solver.algorithm as "partial-pivot-gaussian" | "sparse-ldlt", constraints: "free-dof-elimination", relativePivotTolerance: solver.relativePivotTolerance }, dofOrder: [...ANALYSIS_DOF_ORDER], dofs, members, loadVector: [...loadVector], constrainedDofs, freeDofs, assembledStiffness: matrix(value.assembledStiffness, "分析整体过程整体刚度", input.nodes.length * 6), reducedStiffness: matrix(value.reducedStiffness, "分析整体过程约束后刚度", freeDofs.length), matrixLimit, ...(releaseGaugeDofs.length ? { releaseGaugeDofs, releaseNullRotations } : {}) };
 }
 
 export function decodeAnalysisResult(value: unknown): AnalysisResult {
@@ -331,13 +335,17 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
         return { position: sample.position, forces: forceVector(sample.forces, "沿杆内力"), localDisplacement: finiteVector(sample.localDisplacement, "沿杆局部位移"), globalDisplacement: finiteVector(sample.globalDisplacement, "沿杆总体位移") };
       });
     }
-    return { memberId: requireString(member.memberId, "分析结果杆件缺少标识"), length, localAxes: { x: finiteVector(localAxes.x, "局部轴"), y: finiteVector(localAxes.y, "局部轴"), z: finiteVector(localAxes.z, "局部轴") }, localEndForces: { start: forceVector(endForces.start, "杆端内力"), end: forceVector(endForces.end, "杆端内力") }, ...(nativeResponses ? { nativeResponses } : {}) };
+    const sourceMember = inputMembers.find((m) => m.id === member.memberId);
+    const nativeReleaseRecovery = sourceMember && hasMemberReleases(sourceMember)
+      ? decodeNativeReleaseRecovery(member.nativeReleaseRecovery, sourceMember, [...forceVector(endForces.start, "end forces"), ...forceVector(endForces.end, "end forces")]) : undefined;
+    if (nativeReleaseRecovery && !sameInputValue(input.solver, NATIVE_RELEASE_STATIC_SOLVER)) throw new Error("Unsupported release result solver");
+    return { memberId: requireString(member.memberId, "分析结果杆件缺少标识"), length, localAxes: { x: finiteVector(localAxes.x, "局部轴"), y: finiteVector(localAxes.y, "局部轴"), z: finiteVector(localAxes.z, "局部轴") }, localEndForces: { start: forceVector(endForces.start, "杆端内力"), end: forceVector(endForces.end, "杆端内力") }, ...(nativeResponses ? { nativeResponses } : {}), ...(nativeReleaseRecovery ? { nativeReleaseRecovery } : {}) };
   });
   const nodeResultIds = new Set(inputNodes.map((node) => String(node.id))); const memberResultIds = new Set(inputMembers.map((member) => String(member.id)));
   const resultNodeIds = new Set(nodes.map((node) => node.nodeId)); const resultMemberIds = new Set(members.map((member) => member.memberId));
   if (nodes.length !== inputNodes.length || members.length !== inputMembers.length || resultNodeIds.size !== nodes.length || resultMemberIds.size !== members.length || nodes.some((node) => !nodeResultIds.has(node.nodeId)) || members.some((member) => !memberResultIds.has(member.memberId))) throw new Error("分析结果对象引用无效");
   const process = decodeAnalysisProcess(value.process, input), service = decodeAnalysisRun(value.service, input, id);
-  if (input.solver?.implementation === NATIVE_ANALYSIS_SOLVER.implementation || input.solver?.implementation === NATIVE_STATIC_SOLVER.implementation) {
+  if (input.solver?.implementation === NATIVE_ANALYSIS_SOLVER.implementation || input.solver?.implementation === NATIVE_STATIC_SOLVER.implementation || input.solver?.implementation === NATIVE_RELEASE_STATIC_SOLVER.implementation) {
     const legacy = input.solver.implementation === NATIVE_ANALYSIS_SOLVER.implementation;
     if (!isNativeSolver(input.solver) || legacy && (inputNodes.length !== 2 || inputMembers.length !== 1 || input.uniformLoads?.length || input.selfWeight?.enabled)
       || !service || !process || !sameInputValue(process.solver, input.solver)
@@ -348,7 +356,7 @@ export function decodeAnalysisResult(value: unknown): AnalysisResult {
       nodeId: node.id, dof, globalIndex: nodeIndex * 6 + index,
       restrained: input.supports.some((support) => support.nodeId === node.id && support.restraints[index]),
     })));
-    const expectedFree = expectedDofs.filter((dof) => !dof.restrained).map((dof) => dof.globalIndex);
+    const expectedFree = expectedDofs.filter((dof) => !dof.restrained && !process.releaseGaugeDofs?.includes(dof.globalIndex)).map((dof) => dof.globalIndex);
     const expectedConstrained = expectedDofs.filter((dof) => dof.restrained).map((dof) => dof.globalIndex);
     if (legacy && !expectedFree.length || !sameInputValue(process.dofs, expectedDofs) || !sameInputValue(process.freeDofs, expectedFree)
       || !sameInputValue(process.constrainedDofs, expectedConstrained)) throw new Error("原生分析自由度分区或对象映射不完整");

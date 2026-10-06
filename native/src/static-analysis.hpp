@@ -1,7 +1,7 @@
 // Full static adapter. Shared protocol, geometry and element helpers live in main.cpp.
 using Sparse = Eigen::SparseMatrix<double>;
 using Triplet = Eigen::Triplet<double>;
-static const Json staticSolver={{"implementation","framemind-native/2"},{"algorithm","sparse-ldlt"},
+static const Json legacyStaticSolver={{"implementation","framemind-native/2"},{"algorithm","sparse-ldlt"},
     {"constraints","free-dof-elimination"},{"relativePivotTolerance",1e-12}};
 
 static void check(bool condition, const std::string& code, const std::string& message, Json target, const std::string& field) {
@@ -15,7 +15,9 @@ struct StaticElement {
     Json member;
     double length, density, area;
     Vec3 x,y,z;
-    Matrix local, transform, global;
+    Matrix local, transform, global, original, recovery;
+    std::vector<int> released;
+    Matrix releaseInverse;
     std::vector<int> indices;
 };
 struct StaticLoads {
@@ -30,10 +32,15 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     };
     phase("model-check"); id(request.at("requestId")); id(request.at("analysisId"));
     const auto& input=request.at("input");
+    Json staticSolver=legacyStaticSolver;
+    if (input.at("solver").at("implementation")=="framemind-native/3") staticSolver["implementation"]="framemind-native/3";
     require(request.at("version")=="framemind-analysis/1" && input.at("solver")==staticSolver && input.at("dofOrder")==dofOrder,"Unsupported static contract");
     id(input.at("projectId")); const double revision=number(input.at("projectRevision"));
     require(revision>=0 && revision<=9007199254740991.0 && std::floor(revision)==revision,"Invalid project revision");
-    require(input.at("assumptions")==Json({{"theory","3d-euler-bernoulli-frame"},{"shearDeformation","neglected"},
+    Json assumptions=input.at("assumptions");
+    require(assumptions.at("rigidJoints").is_boolean(),"Invalid joint assumption");
+    const bool rigidJoints=assumptions.at("rigidJoints").get<bool>(); assumptions["rigidJoints"]=true;
+    require(assumptions==Json({{"theory","3d-euler-bernoulli-frame"},{"shearDeformation","neglected"},
         {"rigidJoints",true},{"units","m-kN-kN·m"},{"localAxis","member-geometry"}}),"Unsupported units or theory");
     const auto& origin=request.at("origin");
     const auto kind=origin.at("kind");
@@ -72,6 +79,7 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
         for (const auto& field:{"areaM2","secondMomentYM4","secondMomentZM4","torsionalConstantM4"}) staticParameter(section,"section",field,true);
         sections[id(section.at("id"))]=section;
     }
+    std::vector<Matrix> rotationConnectivity(nodes.size(),Matrix::Zero(3,3));
     std::vector<StaticElement> elements; std::vector<std::vector<int>> adjacency(nodes.size());
     for (const auto& member:members) {
         const Json target={{"kind","member"},{"id",member["id"]}};
@@ -94,10 +102,51 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
         }
         Matrix local=stiffness(length,number(material["elasticModulusGPa"])*1e6,number(material["poissonRatio"]),
             number(section["areaM2"]),number(section["secondMomentYM4"]),number(section["secondMomentZM4"]),number(section["torsionalConstantM4"]));
+        std::vector<int> released;
+        bool releaseMy[2]={false,false}, releaseMz[2]={false,false};
+        if (member.contains("endReleases")) {
+            const auto& ends=member.at("endReleases");
+            check(ends.is_object() && ends.size()==2 && ends.contains("start") && ends.contains("end"),"invalid-release","End releases require start and end",target,"endReleases");
+            int endpoint=0;
+            for (const auto& key:{"start","end"}) {
+                const auto& r=ends.at(key);
+                check(r.is_object() && r.size()==2 && r.contains("my") && r.contains("mz") && r.at("my").is_boolean() && r.at("mz").is_boolean(),"invalid-release","Only boolean local My/Mz releases are supported",target,"endReleases");
+                releaseMy[endpoint]=r.at("my").get<bool>(); releaseMz[endpoint]=r.at("mz").get<bool>();
+                if (releaseMy[endpoint]) released.push_back(endpoint*6+4);
+                if (releaseMz[endpoint]) released.push_back(endpoint*6+5);
+                ++endpoint;
+            }
+        }
+        check(released.empty() || staticSolver.at("implementation")=="framemind-native/3","unsupported-release","Releases require the /3 numerical implementation",target,"endReleases");
+        Matrix original=local, recovery=Matrix::Identity(12,12), releaseInverse;
+        if (!released.empty()) {
+            const int n=static_cast<int>(released.size()); Matrix rr(n,n);
+            for (int r=0;r<n;++r) for (int c=0;c<n;++c) rr(r,c)=original(released[r],released[c]);
+            Eigen::LDLT<Matrix> decomposition(rr);
+            check(decomposition.info()==Eigen::Success && decomposition.isPositive(),"invalid-release","Release block is singular",target,"endReleases");
+            releaseInverse=decomposition.solve(Matrix::Identity(n,n));
+            for (int index:released) recovery.row(index).setZero();
+            for (int c=0;c<12;++c) if (std::find(released.begin(),released.end(),c)==released.end()) {
+                Vector coupling(n); for (int r=0;r<n;++r) coupling[r]=original(released[r],c);
+                const Vector coefficients=-releaseInverse*coupling;
+                for (int r=0;r<n;++r) recovery(released[r],c)=coefficients[r];
+            }
+            local=recovery.transpose()*original*recovery;
+            local=(local+local.transpose()).eval()/2;
+            for (int index:released) { local.row(index).setZero(); local.col(index).setZero(); }
+        }
+        for (int endpoint=0;endpoint<2;++endpoint) {
+            auto& connectivity=rotationConnectivity[endpoint==0 ? start : end];
+            connectivity+=x*x.transpose();
+            if (!releaseMy[endpoint]) connectivity+=y*y.transpose();
+            if (!releaseMz[endpoint]) connectivity+=z*z.transpose();
+        }
         std::vector<int> indices; for (int node:{start,end}) for (int d=0;d<6;++d) indices.push_back(node*6+d);
         memberIndex[id(member.at("id"))]=static_cast<int>(elements.size());
-        elements.push_back({member,length,number(material["densityKgM3"]),number(section["areaM2"]),x,y,z,local,transform,transform.transpose()*local*transform,indices});
+        elements.push_back({member,length,number(material["densityKgM3"]),number(section["areaM2"]),x,y,z,local,transform,transform.transpose()*local*transform,original,recovery,released,releaseInverse,indices});
     }
+    const bool hasReleases=std::any_of(elements.begin(),elements.end(),[](const StaticElement& e) { return !e.released.empty(); });
+    require(rigidJoints==!hasReleases,"Joint assumption does not match explicit member releases");
     const int size=static_cast<int>(nodes.size()*6); std::vector<bool> restrained(size,false);
     for (const auto& support:input.at("supports")) {
         const Json target={{"kind","support"},{"id",support["id"]}}; const auto key=id(support.at("nodeId"));
@@ -176,10 +225,19 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     source=analysisCaseSource(input,source);
     require(request.at("sourceId")==source && request.at("dependencies")==dependencies,"Source dependency mismatch");
     phase("assembly");
-    Vector force=loads.nodal; std::vector<Vector> equivalentLocal, equivalentGlobal; std::vector<Triplet> entries;
+    Vector force=loads.nodal; std::vector<Vector> equivalentLocal, equivalentGlobal, originalEquivalent, releaseOffsets; std::vector<Triplet> entries;
     for (size_t i=0;i<elements.size();++i) {
         const auto& e=elements[i]; const Vec3 q=loads.intensity[i]; const double half=e.length/2, moment=e.length*e.length/12;
         Vector eq(12); eq<<q.x()*half,q.y()*half,q.z()*half,0,-q.z()*moment,q.y()*moment,q.x()*half,q.y()*half,q.z()*half,0,q.z()*moment,-q.y()*moment;
+        originalEquivalent.push_back(eq);
+        Vector offset=Vector::Zero(12);
+        if (!e.released.empty()) {
+            Vector fr(e.released.size()); for (size_t r=0;r<e.released.size();++r) fr[r]=eq[e.released[r]];
+            const Vector solved=e.releaseInverse*fr;
+            for (size_t r=0;r<e.released.size();++r) offset[e.released[r]]=solved[r];
+            eq=e.recovery.transpose()*eq;
+        }
+        releaseOffsets.push_back(offset);
         Vector globalEq=e.transform.transpose()*eq;
         if (!e.global.allFinite() || !eq.allFinite() || !globalEq.allFinite()) throw Failure("native-computation-error","Nonfinite element assembly",{{"kind","member"},{"id",e.member["id"]}},"stiffness");
         equivalentLocal.push_back(eq); equivalentGlobal.push_back(globalEq);
@@ -188,8 +246,31 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     Sparse global(size,size); global.setFromTriplets(entries.begin(),entries.end()); global.makeCompressed();
     for (int i=0;i<global.nonZeros();++i) if (!std::isfinite(global.valuePtr()[i])) throw Failure("native-computation-error","Nonfinite assembled stiffness");
     if (!force.allFinite()) throw Failure("native-computation-error","Nonfinite assembled load");
+    // Remove only rotations disconnected by explicit member releases. These are
+    // coordinate gauges, never supports or added stiffness. Geometry (not stiffness
+    // magnitude) determines the null directions, including rotated local axes.
+    std::vector<bool> gauge(size,false); std::vector<int> releaseGaugeDofs;
+    Json releaseNullRotations=Json::array();
+    for (size_t node=0;node<nodes.size();++node) {
+        Matrix connectivity=rotationConnectivity[node];
+        for (int d=0;d<3;++d) if (restrained[node*6+3+d]) connectivity(d,d)+=1;
+        for (int pass=0;pass<3;++pass) {
+            Eigen::SelfAdjointEigenSolver<Matrix> eig(connectivity);
+            check(eig.info()==Eigen::Success,"native-computation-error","Rotation connectivity decomposition failed",{{"kind","node"},{"id",nodes[node]["id"]}},"endReleases");
+            if (eig.eigenvalues()[0]>eig.eigenvalues().maxCoeff()*1e-12) break;
+            const Vec3 direction=eig.eigenvectors().col(0);
+            const double moment=direction.dot(force.segment<3>(node*6+3));
+            check(std::abs(moment)<=1e-9,"unresisted-release-moment","A nodal moment acts in a completely released rotation direction",{{"kind","node"},{"id",nodes[node]["id"]}},"endReleases");
+            int coordinate=0; direction.cwiseAbs().maxCoeff(&coordinate);
+            const int index=static_cast<int>(node*6+3+coordinate);
+            gauge[index]=true; releaseGaugeDofs.push_back(index);
+            releaseNullRotations.push_back({{"nodeId",nodes[node]["id"]},{"direction",json3(direction)},{"gaugeDof",index}});
+            connectivity(coordinate,coordinate)+=1;
+        }
+    }
+    std::sort(releaseGaugeDofs.begin(),releaseGaugeDofs.end());
     std::vector<int> free, constrained, reducedIndex(size,-1);
-    for (int i=0;i<size;++i) if (restrained[i]) constrained.push_back(i); else { reducedIndex[i]=static_cast<int>(free.size()); free.push_back(i); }
+    for (int i=0;i<size;++i) if (restrained[i]) constrained.push_back(i); else if (!gauge[i]) { reducedIndex[i]=static_cast<int>(free.size()); free.push_back(i); }
     std::vector<Triplet> reducedEntries;
     for (int c=0;c<global.outerSize();++c) for (Sparse::InnerIterator it(global,c);it;++it) if (reducedIndex[it.row()]>=0 && reducedIndex[it.col()]>=0) reducedEntries.emplace_back(reducedIndex[it.row()],reducedIndex[it.col()],it.value());
     const int count=static_cast<int>(free.size()); Sparse reduced(count,count); reduced.setFromTriplets(reducedEntries.begin(),reducedEntries.end()); reduced.makeCompressed();
@@ -226,24 +307,43 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     }
     for (size_t i=0;i<elements.size();++i) {
         const auto& e=elements[i]; Vector u(12); for (int d=0;d<12;++d) u[d]=displacement[e.indices[d]];
-        const Vector localU=e.transform*u, ends=e.local*localU-equivalentLocal[i]; const Vec3 q=loads.intensity[i];
+        const Vector localU=e.recovery*e.transform*u+releaseOffsets[i];
+        Vector ends=e.original*localU-originalEquivalent[i];
+        for (int index:e.released) {
+            check(std::abs(ends[index])<=std::max(1e-9,ends.cwiseAbs().maxCoeff()*1e-10),"native-computation-error","Released end moment residual exceeds tolerance",{{"kind","member"},{"id",e.member["id"]}},"endReleases");
+            ends[index]=0;
+        } const Vec3 q=loads.intensity[i];
         if (!localU.allFinite() || !ends.allFinite()) throw Failure("native-computation-error","Nonfinite member recovery",{{"kind","member"},{"id",e.member["id"]}},"localEndForces");
         Json responses=Json::array();
         for (int station=0;station<=16;++station) {
             const double t=station/16.0, x=e.length*t;
             const double h0=1-3*t*t+2*t*t*t, h1=e.length*(t-2*t*t+t*t*t), h2=3*t*t-2*t*t*t, h3=e.length*(-t*t+t*t*t);
-            const Vec3 sample(localU[0]*(1-t)+localU[6]*t,h0*localU[1]+h1*localU[5]+h2*localU[7]+h3*localU[11],h0*localU[2]-h1*localU[4]+h2*localU[8]-h3*localU[10]);
+            Vec3 sample(localU[0]*(1-t)+localU[6]*t,h0*localU[1]+h1*localU[5]+h2*localU[7]+h3*localU[11],h0*localU[2]-h1*localU[4]+h2*localU[8]-h3*localU[10]);
+            if (staticSolver.at("implementation")=="framemind-native/3") {
+                // Exact particular solutions with zero value/slope at the element ends.
+                const double bubble=x*x*(e.length-x)*(e.length-x)/24;
+                sample.x()+=q.x()*x*(e.length-x)/(2*e.original(0,0)*e.length);
+                sample.y()+=q.y()*bubble/(e.original(5,5)*e.length/4);
+                sample.z()+=q.z()*bubble/(e.original(4,4)*e.length/4);
+            }
             Vector actions=-ends.head(6); actions[0]-=q.x()*x; actions[1]-=q.y()*x; actions[2]-=q.z()*x; actions[4]-=ends[2]*x+q.z()*x*x/2; actions[5]+=ends[1]*x+q.y()*x*x/2;
             const Vec3 globalSample=e.x*sample.x()+e.y*sample.y()+e.z*sample.z();
             if (!actions.allFinite() || !sample.allFinite() || !globalSample.allFinite()) throw Failure("native-computation-error","Nonfinite station recovery");
             responses.push_back({{"position",x},{"forces",jsonVector(actions)},{"localDisplacement",json3(sample)},{"globalDisplacement",json3(globalSample)}});
         }
         memberResults.push_back({{"memberId",e.member["id"]},{"length",e.length},{"localAxes",{{"x",json3(e.x)},{"y",json3(e.y)},{"z",json3(e.z)}}},{"localEndForces",{{"start",jsonVector(ends.head(6))},{"end",jsonVector(ends.tail(6))}}},{"nativeResponses",responses}});
+        if (!e.released.empty()) memberResults.back()["nativeReleaseRecovery"]={
+            {"originalLocalStiffness",jsonMatrix(e.original)},{"localStiffness",jsonMatrix(e.local)},
+            {"transformation",jsonMatrix(e.transform)},{"recoveryTransformation",jsonMatrix(e.recovery)},
+            {"localDisplacement",jsonVector(localU)},{"originalEquivalentLocalForces",jsonVector(originalEquivalent[i])},
+            {"equivalentLocalForces",jsonVector(equivalentLocal[i])},{"equivalentGlobalForces",jsonVector(equivalentGlobal[i])},
+            {"globalStiffness",jsonMatrix(e.global)}};
         Json elementDofs=Json::array(); for (int index:e.indices) elementDofs.push_back(dofs[index]);
         contributions.push_back({{"memberId",e.member["id"]},{"dofs",elementDofs},{"globalDofIndices",e.indices},{"globalStiffness",jsonMatrix(e.global)},{"equivalentGlobalForces",jsonVector(equivalentGlobal[i])}});
     }
     Json process={{"solver",staticSolver},{"dofOrder",dofOrder},{"dofs",dofs},{"loadVector",jsonVector(force)},{"freeDofs",free},{"constrainedDofs",constrained},
         {"matrixLimit",72},{"assembledStiffness",size<=72 ? jsonMatrix(Matrix(global)) : Json(nullptr)},{"reducedStiffness",count<=72 ? jsonMatrix(Matrix(reduced)) : Json(nullptr)},{"members",contributions}};
+    if (!releaseGaugeDofs.empty()) { process["releaseGaugeDofs"]=releaseGaugeDofs; process["releaseNullRotations"]=releaseNullRotations; }
     Json service={{"version",request["version"]},{"requestId",request["requestId"]},{"analysisId",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},
         {"origin",origin},{"sourceId",source},{"dependencies",dependencies},{"solver",staticSolver},{"status","complete"},{"stages",stages}};
     return {{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input},{"nodes",nodeResults},{"members",memberResults},{"process",process},{"service",service}};

@@ -1,3 +1,4 @@
+import { validateMemberEndReleases, type MemberEndReleases } from "./member-releases";
 import { validateSectionDimensions, validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
 import { validateCatalogSectionBasis, type CatalogSectionBasis } from "./catalog-section";
 import type { UnitPresetId } from "./units";
@@ -33,7 +34,7 @@ export interface FrameMaterial extends MaterialProperties { id: MaterialId; labe
 export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; geometry?: SectionGeometry; parameterBasis?: ReturnType<typeof sectionParameterBasis>; catalogBasis?: CatalogSectionBasis; }
 export type SectionInput = SectionProperties | { name: string; geometry: SectionGeometry };
 export interface FrameSection extends SectionProperties { id: SectionId; label: string; provenance: ResourceProvenance; }
-export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; }
+export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; endReleases?: MemberEndReleases; }
 export interface FrameMember extends MemberProperties { id: MemberId; label: string; }
 export type DofRestraints = [boolean, boolean, boolean, boolean, boolean, boolean];
 export interface FrameSupport { id: SupportId; label: string; nodeId: NodeId; restraints: DofRestraints; }
@@ -189,7 +190,7 @@ export function validateMember(project: FrameProject, label: string, member: Mem
   } catch (error) {
     throw new Error(`杆件 ${label} 的两个节点不能位于同一位置；${error instanceof Error ? error.message : "几何无效"}`);
   }
-  return { ...member };
+  return { ...member, ...(member.endReleases !== undefined ? { endReleases: validateMemberEndReleases(member.endReleases) } : {}) };
 }
 
 export function createProject(name = "未命名项目"): FrameProject {
@@ -293,6 +294,7 @@ export function updateMember(project: FrameProject, id: MemberId, changes: Parti
     startNodeId: changes.startNodeId ?? current.startNodeId, endNodeId: changes.endNodeId ?? current.endNodeId,
     materialId: changes.materialId ?? current.materialId, sectionId: changes.sectionId ?? current.sectionId,
     rotationDegrees: changes.rotationDegrees ?? current.rotationDegrees,
+    ...(changes.endReleases !== undefined || current.endReleases !== undefined ? { endReleases: changes.endReleases ?? current.endReleases } : {}),
   });
   return { ...project, members: project.members.map((item) => item.id === id ? { ...item, ...input } : item), ...nextRevision(project) };
 }

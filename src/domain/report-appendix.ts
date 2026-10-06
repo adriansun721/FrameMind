@@ -23,11 +23,12 @@ function requireProcessCorrespondence(result: AnalysisResult): void {
   if (!process) return;
   // Rebuild coefficients for validation only, without solving or replacing the saved snapshot.
   const expected = getOverallAnalysisProcessRecord({ ...result, process: undefined });
+  expected.freeDofs = expected.freeDofs.filter((index) => !process.releaseGaugeDofs?.includes(index));
   const numbersMatch = (actual: number[], reference: number[]) => actual.length === reference.length && actual.every((value, index) => Math.abs(value - reference[index]) <= 1e-9 * Math.max(1, Math.abs(reference[index])));
   const restraints = new Set(input.supports.flatMap((support) => support.restraints.flatMap((value, index) => value ? [input.nodes.findIndex((node) => node.id === support.nodeId) * 6 + index] : [])));
   const dofsMatch = process.dofs.every((dof, index) => dof.nodeId === input.nodes[Math.floor(index / 6)].id && dof.dof === ANALYSIS_DOF_ORDER[index % 6] && dof.globalIndex === index && dof.restrained === restraints.has(index));
   const constrained = process.dofs.filter((dof) => restraints.has(dof.globalIndex)).map((dof) => dof.globalIndex);
-  const free = process.dofs.filter((dof) => !restraints.has(dof.globalIndex)).map((dof) => dof.globalIndex);
+  const free = process.dofs.filter((dof) => !restraints.has(dof.globalIndex) && !process.releaseGaugeDofs?.includes(dof.globalIndex)).map((dof) => dof.globalIndex);
   const memberIds = new Set(process.members.map((member) => member.memberId));
   const membersMatch = process.members.length === input.members.length && memberIds.size === input.members.length && process.members.every((record) => {
     const member = input.members.find((item) => item.id === record.memberId);
