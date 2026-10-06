@@ -3,7 +3,7 @@ export const ANALYSIS_CAPABILITIES = {
   static: { name: "线性静力", available: true, loadCombination: true, responseSuperposition: true, resultComparison: true },
   "second-order": { name: "弹性二阶", available: false, loadCombination: true, responseSuperposition: false, resultComparison: false },
   buckling: { name: "特征值屈曲", available: false, loadCombination: true, responseSuperposition: false, resultComparison: false },
-  modal: { name: "模态", available: false, loadCombination: false, responseSuperposition: false, resultComparison: false },
+  modal: { name: "模态", available: true, loadCombination: false, responseSuperposition: false, resultComparison: false },
   random: { name: "随机响应", available: false, loadCombination: false, responseSuperposition: false, resultComparison: false },
 } as const;
 export type AnalysisMethod = keyof typeof ANALYSIS_CAPABILITIES;

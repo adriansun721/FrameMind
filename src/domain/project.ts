@@ -1,3 +1,4 @@
+import { validateModalSettings, type ModalSettings } from "./modal";
 import { validateMeshPolicy, type MeshPolicy } from "./analysis-mesh";
 import { validateMemberEndReleases, type MemberEndReleases } from "./member-releases";
 import { validateSectionDimensions, validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
@@ -49,7 +50,7 @@ export interface FrameAnalysisCase {
   name: string;
   method: AnalysisMethod;
   loadSourceId: string;
-  settings: { solver: "native-static"; mesh?: MeshPolicy };
+  settings: { solver: "native-static" | "native-modal"; mesh?: MeshPolicy; modal?: ModalSettings };
   legacySourceId?: string;
 }
 export const DEFAULT_LOAD_CASES: readonly FrameLoadCase[] = [{ id: DEFAULT_LOAD_CASE, name: "默认工况", description: "" }];
@@ -523,6 +524,10 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
   if (!value || typeof value.id !== "string" || !/^AC[1-9]\d*$/.test(value.id) || !Number.isSafeInteger(Number(value.id.slice(2)))) throw new Error("分析工况标识无效");
   requireAnalysisCapability(value.method);
   if (typeof value.name !== "string" || !value.name.trim()) throw new Error("分析工况名称不能为空");
+  if (value.method === "modal") {
+    if (value.loadSourceId !== "structure" || value.legacySourceId !== undefined || !value.settings || value.settings.solver !== "native-modal" || Object.keys(value.settings).some((key) => !["solver", "modal"].includes(key))) throw new Error("模态仅使用结构质量，不接受荷载来源或静力设置");
+    return { id: value.id, name: value.name.trim(), method: "modal", loadSourceId: "structure", settings: { solver: "native-modal", modal: validateModalSettings(value.settings.modal) } };
+  }
   if (!value.settings || value.settings.solver !== "native-static" || Object.keys(value.settings).some((key) => !["solver", "mesh"].includes(key))) throw new Error("分析工况数值设置不受支持");
   if (project.loadCombinations.some((item) => item.id === value.loadSourceId)) requireAnalysisCapability(value.method, "loadCombination");
   else requireLoadCase(project, value.loadSourceId);
@@ -552,6 +557,7 @@ export function requireAnalysisCase(project: Pick<FrameProject, "analysisCases">
 
 export function selectAnalysisCase(project: FrameProject, id: string): FrameProject {
   const item = requireAnalysisCase(project, id);
+  if (item.method === "modal") return { ...project, activeAnalysisCaseId: id, activeLoadCombinationId: undefined };
   const selected = project.loadCombinations.some((c) => c.id === item.loadSourceId) ? selectLoadCombination(project, item.loadSourceId) : selectLoadCase(project, item.loadSourceId);
   return { ...selected, activeAnalysisCaseId: id };
 }

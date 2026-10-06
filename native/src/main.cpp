@@ -13,6 +13,7 @@
 #include <map>
 #include <set>
 #include <cstdlib>
+#include <functional>
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -367,6 +368,7 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
 
 #include "static-analysis.hpp"
 #include "mesh-analysis.hpp"
+#include "modal-analysis.hpp"
 
 int main() {
     Json request, stages=Json::array(); std::string stage="model-check";
@@ -376,7 +378,7 @@ int main() {
         std::string bytes; char c;
         while (std::cin.get(c)) { if (bytes.size()>=16*1024*1024) throw Failure("native-resource-limit", "Input exceeds 16 MiB"); bytes.push_back(c); }
         request=Json::parse(bytes);
-        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/4" ? calculateMeshStatic(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
+        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/5" ? calculateModal(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/4" ? calculateMeshStatic(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         emit({{"kind","result"},{"requestId",request.at("requestId")},{"result",result}});
         std::cerr << "{\"kind\":\"native-resources\",\"peakCommittedBytes\":" << budget.peakCommittedBytes()

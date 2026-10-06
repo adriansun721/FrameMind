@@ -1,0 +1,168 @@
+// Euler-Bernoulli consistent translational mass; torsion has polar inertia.
+// Bending rotary inertia and shear deformation are deliberately neglected.
+static Matrix modalMass(const StaticElement& e, double polarArea) {
+    Matrix mass=Matrix::Zero(12,12); const double l=e.length, total=e.density*e.area*l/1000;
+    for (const auto& entry:std::vector<std::pair<int,double>>{{0,total},{3,e.density*polarArea*l/1000}}) {
+        const int i=entry.first; const double m=entry.second/6;
+        mass(i,i)=mass(i+6,i+6)=2*m; mass(i,i+6)=mass(i+6,i)=m;
+    }
+    Matrix block(4,4);
+    block<<156,22*l,54,-13*l,22*l,4*l*l,13*l,-3*l*l,54,13*l,156,-22*l,-13*l,-3*l*l,-22*l,4*l*l;
+    const int indices[2][4]={{1,5,7,11},{2,4,8,10}}; const double signs[2][4]={{1,1,1,1},{1,-1,1,-1}};
+    for (int plane=0;plane<2;++plane) for (int r=0;r<4;++r) for (int c=0;c<4;++c)
+        mass(indices[plane][r],indices[plane][c])=total/420*block(r,c)*signs[plane][r]*signs[plane][c];
+    return mass;
+}
+
+struct ModalLevelResult { Json modes; int equations, releaseCoordinates, zeroEnergyModes; double orthogonalityError, zeroEigenvalueTolerance; Json eigenproblem; };
+
+static ModalLevelResult solveModalLevel(const Json& request, const Json& level, int modeCount, int maxEquations, std::string& stage, const std::function<void(const std::string&)>& onPhase) {
+    const auto& input=request.at("input"); Json calculation=meshInput(input,level);
+    calculation.erase("analysisCase");
+    Json packet=request; packet["input"]=calculation; packet["sourceId"]=calculation.at("loadCase").at("id");
+    packet["dependencies"]=Json::array({{{"loadCaseId",packet["sourceId"]},{"factor",1}}});
+    ModalAssembly assembly; assembly.onPhase=onPhase; Json innerStages=Json::array();
+    try { calculateStatic(packet,innerStages,stage,false,true,&assembly); }
+    catch (Failure& failure) {
+        if (failure.diagnostic.contains("target")) {
+            auto& target=failure.diagnostic["target"]; const auto key=target.value("id",std::string());
+            for (const auto& n:level["nodes"]) if (n["nodeId"]==key) { target={{"kind","member"},{"id",n["memberId"]}}; failure.diagnostic["position"]=n["position"]; }
+            for (const auto& e:level["elements"]) if (e["elementId"]==key) { target={{"kind","member"},{"id",e["memberId"]}}; failure.diagnostic["position"]=e["start"]; }
+        }
+        throw;
+    }
+    int releases=0; for (const auto& e:assembly.elements) releases+=static_cast<int>(e.released.size());
+    const int nodal=static_cast<int>(assembly.free.size()), count=nodal+releases;
+    if (!count) throw Failure("modal-no-free-dofs","No unconstrained inertial coordinates remain",nullptr,"restraints");
+    if (count>maxEquations) throw Failure("modal-budget-exhausted","Modal equation budget exhausted",nullptr,"modal");
+    Matrix k=Matrix::Zero(count,count), mass=k; std::vector<Matrix> maps;
+    std::map<std::string,Json> sections; for (const auto& s:input.at("sections")) sections[id(s["id"])]=s;
+    std::vector<int> reducedIndex(assembly.size,-1); for (int i=0;i<nodal;++i) reducedIndex[assembly.free[i]]=i;
+    int extra=nodal;
+    for (const auto& e:assembly.elements) {
+        Matrix b=Matrix::Zero(12,count);
+        for (int local=0;local<12;++local) for (int global=0;global<12;++global) {
+            const int r=reducedIndex[e.indices[global]]; if (r>=0) b(local,r)=e.transform(local,global);
+        }
+        for (int local:e.released) { b.row(local).setZero(); b(local,extra++)=1; }
+        const auto& section=sections.at(id(e.member["sectionId"]));
+        const Matrix localMass=modalMass(e,number(section["secondMomentYM4"])+number(section["secondMomentZM4"]));
+        k.noalias()+=b.transpose()*e.original*b; mass.noalias()+=b.transpose()*localMass*b; maps.push_back(std::move(b));
+    }
+    k=(k+k.transpose()).eval()/2; mass=(mass+mass.transpose()).eval()/2;
+    if (!k.allFinite() || !mass.allFinite()) throw Failure("modal-nonfinite-matrices","Nonfinite stiffness or mass",nullptr,"modal");
+    // Diagonal equilibration makes mixed translations/rotations less sensitive
+    // to arbitrary coordinate units. No artificial stiffness/mass is introduced.
+    Vector scale(count);
+    for (int i=0;i<count;++i) {
+        if (!(mass(i,i)>0)) throw Failure("modal-singular-mass","Missing positive inertia at a free coordinate",nullptr,"densityKgM3");
+        scale[i]=1/std::sqrt(mass(i,i));
+    }
+    Matrix scaledK=scale.asDiagonal()*k*scale.asDiagonal(), scaledM=scale.asDiagonal()*mass*scale.asDiagonal();
+    Eigen::LLT<Matrix> factor(scaledM);
+    if (factor.info()!=Eigen::Success || factor.matrixL().toDenseMatrix().diagonal().array().square().minCoeff()<=1e-12) throw Failure("modal-singular-mass","Mass matrix is not positive definite above the registered scaled pivot tolerance",nullptr,"densityKgM3");
+    stage="solve"; if (onPhase) onPhase(stage);
+    Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> eig(scaledK,scaledM);
+    if (eig.info()!=Eigen::Success) throw Failure("modal-eigensolver-failed","Generalized self-adjoint eigensolver did not converge",nullptr,"modal");
+    const Matrix vectors=scale.asDiagonal()*eig.eigenvectors(); const Vector eigenvalues=eig.eigenvalues();
+    const double spectralScale=std::max(1.0,eigenvalues.cwiseAbs().maxCoeff()), zeroThreshold=spectralScale*1e-12;
+    int zeroCount=0; for (int i=0;i<count;++i) {
+        if (eigenvalues[i]<-zeroThreshold) throw Failure("modal-negative-stiffness","Negative eigenvalue exceeds the zero-energy tolerance",nullptr,"restraints");
+        if (std::abs(eigenvalues[i])<=zeroThreshold) ++zeroCount;
+    }
+    Json modes=Json::array(); const int extracted=std::min(modeCount,count);
+    const Matrix gram=vectors.leftCols(extracted).transpose()*mass*vectors.leftCols(extracted);
+    const double orthogonality=(gram-Matrix::Identity(extracted,extracted)).cwiseAbs().maxCoeff();
+    if (orthogonality>1e-8) throw Failure("modal-orthogonality-failed","Mass orthogonality exceeds tolerance",nullptr,"modal");
+    for (int mode=0;mode<extracted;++mode) {
+        const Vector q=vectors.col(mode); const double lambda=std::abs(eigenvalues[mode])<=zeroThreshold ? 0 : eigenvalues[mode];
+        const Vector residualVector=k*q-lambda*mass*q;
+        const double denominator=k.norm()*q.norm()+std::abs(lambda)*(mass*q).norm();
+        const double residual=residualVector.norm()/std::max(1e-30,denominator);
+        if (!std::isfinite(residual) || residual>1e-8) throw Failure("modal-residual-failed","Eigenpair residual exceeds tolerance",nullptr,"modal");
+        Vector u=Vector::Zero(assembly.size); for (int i=0;i<nodal;++i) u[assembly.free[i]]=q[i];
+        Json nodes=Json::array(), members=Json::array();
+        for (size_t i=0;i<input.at("nodes").size();++i) nodes.push_back({{"nodeId",input["nodes"][i]["id"]},{"translation",json3(u.segment<3>(i*6))},{"rotation",json3(u.segment<3>(i*6+3))}});
+        size_t offset=0; const int divisions=level.at("divisions").get<int>();
+        for (const auto& m:input.at("members")) {
+            const double length=number(input["meshPlan"]["frames"][id(m["id"])]["length"]); Json samples=Json::array();
+            for (int station=0;station<=16;++station) {
+                const int scaled=station*divisions, segment=std::min(divisions-1,scaled/16); const double t=(scaled-segment*16)/16.0;
+                const auto index=offset+segment; const auto& e=assembly.elements[index]; const Vector v=maps[index]*q;
+                const double h0=1-3*t*t+2*t*t*t, h1=e.length*(t-2*t*t+t*t*t), h2=3*t*t-2*t*t*t, h3=e.length*(-t*t+t*t*t);
+                const Vec3 local((1-t)*v[0]+t*v[6],h0*v[1]+h1*v[5]+h2*v[7]+h3*v[11],h0*v[2]-h1*v[4]+h2*v[8]-h3*v[10]);
+                samples.push_back({{"position",length*station/16},{"translation",json3(e.x*local.x()+e.y*local.y()+e.z*local.z())}});
+            }
+            members.push_back({{"memberId",m["id"]},{"samples",samples}}); offset+=divisions;
+        }
+        modes.push_back({{"number",mode+1},{"eigenvalue",lambda},{"frequencyHz",std::sqrt(lambda)/(2*std::acos(-1.0))},{"kind",lambda==0 ? "zero-energy" : "elastic"},
+            {"residual",residual},{"massNorm",q.dot(mass*q)},{"nodes",nodes},{"members",members}});
+    }
+    Json coordinates=Json::array(), capturedVectors=Json::array();
+    for (int index:assembly.free) coordinates.push_back({{"kind","node"},{"id",calculation["nodes"][index/6]["id"]},{"dof",dofOrder[index%6]}});
+    for (const auto& e:assembly.elements) for (int index:e.released) coordinates.push_back({{"kind","release"},{"id",e.member["id"]},{"dof",std::string(index<6 ? "start." : "end.")+(index%6==4 ? "my" : "mz")}});
+    for (int i=0;i<extracted;++i) capturedVectors.push_back(jsonVector(vectors.col(i)));
+    Json eigenproblem={{"matrixLimit",144},{"coordinates",coordinates},{"vectors",capturedVectors},
+        {"stiffness",count<=144 ? jsonMatrix(k) : Json(nullptr)},{"mass",count<=144 ? jsonMatrix(mass) : Json(nullptr)}};
+    return {modes,count,releases,zeroCount,orthogonality,zeroThreshold,eigenproblem};
+}
+
+static Json calculateModal(const Json& request, Json& stages, std::string& stage) {
+    auto phase=[&](const std::string& name) { stage=name; Json record={{"stage",name},{"startedAt",now()}}; stages.push_back(record); emit({{"kind","phase"},{"requestId",request.at("requestId")},{"record",record}}); };
+    phase("model-check"); const auto& input=request.at("input"); const auto& definition=input.at("analysisCase");
+    const Json modalSolver={{"implementation","framemind-native/5"},{"algorithm","generalized-self-adjoint"},{"constraints","free-dof-elimination"},{"relativePivotTolerance",1e-12}};
+    require(input.at("solver")==modalSolver && definition.at("method")=="modal" && definition.at("loadSourceId")=="structure"
+        && definition.at("settings").is_object() && definition.at("settings").size()==2 && definition.at("settings").at("solver")=="native-modal", "Unsupported modal contract");
+    // Reuse static identity validation on an isolated copy, with no fabricated loads.
+    Json identityInput=input; identityInput["analysisCase"]["method"]="static"; identityInput["analysisCase"]["loadSourceId"]=input.at("loadCase").at("id"); identityInput["analysisCase"]["settings"]={{"solver","native-static"}};
+    analysisCaseSource(identityInput,input.at("loadCase").at("id"));
+    require(request.at("sourceId")==definition.at("id") && request.at("dependencies")==Json::array(),"Modal source mismatch");
+    require(input.at("nodalLoads").empty() && input.at("uniformLoads").empty() && input.at("selfWeight").at("enabled")==false && !input.contains("combination"),"Static loads are not modal mass");
+    const auto& settings=definition.at("settings").at("modal");
+    require(settings.is_object() && settings.size()==4,"Invalid modal parameters");
+    const double requested=number(settings.at("modeCount")), budget=number(settings.at("maxEquations")), divisionsValue=number(settings.at("maxDivisions")), tolerance=number(settings.at("frequencyTolerance"));
+    require(requested>=1 && requested<=50 && std::floor(requested)==requested && budget>=1 && budget<=1200 && std::floor(budget)==budget
+        && (divisionsValue==1 || divisionsValue==2 || divisionsValue==4 || divisionsValue==8 || divisionsValue==16) && tolerance>0 && tolerance<=0.01,"Invalid modal extraction parameters");
+    const int modeCount=static_cast<int>(requested), maxEquations=static_cast<int>(budget), maxDivisions=static_cast<int>(divisionsValue);
+    const auto& plan=input.at("meshPlan");
+    const Json policy={{"maxDivisions",maxDivisions},{"maxEquations",maxEquations},{"relativeTolerance",1e-6},{"displacementTolerance",1e-12},{"forceTolerance",1e-8}};
+    require(meshNumbersMatch(plan.at("policy"),policy) && meshNumbersMatch(plan.at("frames"),meshFrames(input)),"Modal mesh policy or frames mismatch");
+    int levels=0; for (int d=1;d<=maxDivisions;d*=2) { require(levels<static_cast<int>(plan.at("levels").size()) && meshNumbersMatch(plan["levels"][levels],meshLevel(input,d)),"Modal mesh mapping mismatch"); ++levels; }
+    require(levels==static_cast<int>(plan.at("levels").size()),"Unexpected modal mesh levels");
+    Json runs=Json::array(); ModalLevelResult finalResult; Json selectedLevel;
+    std::string status="budget-exhausted", reason="max-divisions";
+    for (const auto& level:plan.at("levels")) {
+        // Conservative budget before constructing any dense matrices; releases
+        // at engineering ends add independent beam-end coordinates.
+        std::set<std::pair<std::string,int>> constrained;
+        for (const auto& support:input.at("supports")) for (int d=0;d<6;++d) if (support.at("restraints")[d]==true) constrained.insert({id(support["nodeId"]),d});
+        int releases=0; for (const auto& m:input.at("members")) if (m.contains("endReleases")) for (const auto& end:{"start","end"}) for (const auto& component:{"my","mz"}) if (m["endReleases"][end][component]==true) ++releases;
+        const size_t estimate=(input.at("nodes").size()+level.at("nodes").size())*6-constrained.size()+releases;
+        if (!estimate) continue; // An all-fixed /1 mesh has no internal dynamic coordinates; refine it.
+        if (estimate>static_cast<size_t>(maxEquations)) { reason="equation-budget"; break; }
+        finalResult=solveModalLevel(request,level,modeCount,maxEquations,stage,runs.empty() ? std::function<void(const std::string&)>(phase) : std::function<void(const std::string&)>()); selectedLevel=level;
+        Json frequencies=Json::array(); for (const auto& m:finalResult.modes) frequencies.push_back(m["frequencyHz"]);
+        Json run={{"divisions",level["divisions"]},{"equations",finalResult.equations},{"frequenciesHz",frequencies}};
+        if (!runs.empty() && frequencies.size()==static_cast<size_t>(modeCount) && runs.back()["frequenciesHz"].size()==frequencies.size()) {
+            double error=0; for (size_t i=0;i<frequencies.size();++i) { const double a=number(frequencies[i]), b=number(runs.back()["frequenciesHz"][i]); error=std::max(error,std::abs(a-b)/std::max(1e-8,std::max(a,b))); }
+            run["error"]=error; if (error<=tolerance) { status="converged"; reason="frequency-tolerance"; }
+        }
+        runs.push_back(run); if (status=="converged") break;
+    }
+    if (runs.empty()) throw Failure("modal-budget-exhausted","Equation budget prevents even the initial modal mesh",nullptr,"modal");
+    phase("recovery"); Json sources=Json::array(); double total=0;
+    for (const auto& m:input.at("members")) {
+        Json material, section; for (const auto& v:input.at("materials")) if (v["id"]==m["materialId"]) material=v; for (const auto& v:input.at("sections")) if (v["id"]==m["sectionId"]) section=v;
+        const double length=number(plan.at("frames").at(id(m["id"])).at("length")), density=number(material.at("densityKgM3")), mass=density*number(section.at("areaM2"))*length; total+=mass;
+        sources.push_back({{"memberId",m["id"]},{"materialId",m["materialId"]},{"sectionId",m["sectionId"]},{"densityKgM3",density},{"lengthM",length},{"massKg",mass}});
+    }
+    Json modal={{"massModel","consistent-eb-with-torsional-inertia"},{"normalization","unit-generalized-mass"},{"massUnit","kN·s²/m"},{"totalMassKg",total},{"sources",sources},
+        {"modes",finalResult.modes},{"orthogonalityError",finalResult.orthogonalityError},{"zeroEnergyModes",finalResult.zeroEnergyModes},{"zeroEigenvalueTolerance",finalResult.zeroEigenvalueTolerance},{"eigenproblem",finalResult.eigenproblem},{"selectedDivisions",selectedLevel["divisions"]},
+        {"convergence",{{"status",status},{"reason",reason},{"runs",runs}}},
+        {"counts",{{"engineeringNodes",input.at("nodes").size()},{"engineeringMembers",input.at("members").size()},{"calculationNodes",input.at("nodes").size()+selectedLevel.at("nodes").size()},
+        {"calculationElements",selectedLevel.at("elements").size()},{"equations",finalResult.equations},{"releaseCoordinates",finalResult.releaseCoordinates}}}};
+    Json service={{"version",request["version"]},{"requestId",request["requestId"]},{"analysisId",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},
+        {"origin",request["origin"]},{"sourceId",request["sourceId"]},{"dependencies",Json::array()},{"solver",modalSolver},{"status","complete"},{"stages",stages}};
+    return {{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input},
+        {"nodes",Json::array()},{"members",Json::array()},{"modal",modal},{"service",service}};
+}

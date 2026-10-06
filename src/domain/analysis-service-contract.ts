@@ -30,7 +30,7 @@ export interface AnalysisRunRecord {
 }
 
 export function analysisDependencies(input: AnalysisInputSnapshot): AnalysisRunRecord["dependencies"] {
-  return input.combination ? input.combination.definition.terms.map((term) => ({ ...term }))
+  return input.analysisCase?.method === "modal" ? [] : input.combination ? input.combination.definition.terms.map((term) => ({ ...term }))
     : [{ loadCaseId: input.loadCase?.id ?? "LC1", factor: 1 }];
 }
 

@@ -1,3 +1,4 @@
+import { DEFAULT_MODAL_SETTINGS } from "../domain/modal";
 import { useState, type FormEvent } from "react";
 import { DEFAULT_MESH_POLICY } from "../domain/analysis-mesh";
 import { X } from "lucide-react";
@@ -13,17 +14,20 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   const [editingId, setEditingId] = useState(initial?.id ?? "");
   const [name, setName] = useState(initial?.name ?? "");
   const [sourceId, setSourceId] = useState(initial?.loadSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
+  const [method, setMethod] = useState<AnalysisMethod>(initial?.method ?? "static");
+  const [modal, setModal] = useState(initial?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
   const [error, setError] = useState<string>();
   const [mesh, setMesh] = useState(initial?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   const edit = (id: string) => {
     const item = project.analysisCases.find((c) => c.id === id);
     setEditingId(id); setName(item?.name ?? ""); setSourceId(item?.loadSourceId ?? project.activeLoadCaseId); setError(undefined);
+    setMethod(item?.method ?? "static"); setModal(item?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
     setMesh(item?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   };
   const save = (event: FormEvent) => {
     event.preventDefault();
     try {
-      const properties = { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
+      const properties = method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
       const next = editingId ? updateAnalysisCase(project, editingId, properties) : addAnalysisCase(project, properties);
       const id = editingId || next.analysisCases.at(-1)!.id;
       onChange(selectAnalysisCase(next, id)); setEditingId(id); setError(undefined);
@@ -40,19 +44,24 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
       <div className="load-case-actions"><button className="button ghost" onClick={onLoads}>编辑荷载定义</button><button className="button ghost" onClick={onCombinations}>编辑荷载组合</button></div>
       <div className="load-case-list" role="list" aria-label="分析工况列表">{project.analysisCases.map((item) => {
         const result = getAnalysisResultForSource(project, item.id);
-        return <button role="listitem" key={item.id} className={`load-case-row ${item.id === editingId ? "active" : ""}`} onClick={() => edit(item.id)}><span>{item.id} · {item.name}</span><small>线性静力 · {item.loadSourceId} · {result ? isAnalysisResultCurrent(project, result) ? "结果当前" : "结果已过期" : "未计算"}</small></button>;
+        return <button role="listitem" key={item.id} className={`load-case-row ${item.id === editingId ? "active" : ""}`} onClick={() => edit(item.id)}><span>{item.id} · {item.name}</span><small>{ANALYSIS_CAPABILITIES[item.method].name} · {item.loadSourceId} · {result ? isAnalysisResultCurrent(project, result) ? "结果当前" : "结果已过期" : "未计算"}</small></button>;
       })}</div>
       <button className="button ghost" onClick={() => edit("")}>新建分析工况</button>
       <form onSubmit={save}>
         <label className="field"><span>分析工况名称</span><input value={name} onChange={(e) => setName(e.target.value)} /></label>
-        <label className="field"><span>分析方法</span><select value="static" onChange={() => {}}>{Object.entries(ANALYSIS_CAPABILITIES).map(([method, capability]) => <option key={method} value={method} disabled={!capability.available}>{capability.name}{capability.available ? "" : "（尚未开放）"}</option>)}</select></label>
-        <label className="field"><span>复用荷载定义</span><select value={sourceId} onChange={(e) => setSourceId(e.target.value)}>{[...project.loadCases, ...project.loadCombinations].map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label>
+        <label className="field"><span>分析方法</span><select aria-label="分析方法" value={method} onChange={(e) => setMethod(e.target.value as AnalysisMethod)}>{Object.entries(ANALYSIS_CAPABILITIES).map(([method, capability]) => <option key={method} value={method} disabled={!capability.available}>{capability.name}{capability.available ? "" : "（尚未开放）"}</option>)}</select></label>
+        {method === "static" && <><label className="field"><span>复用荷载定义</span><select value={sourceId} onChange={(e) => setSourceId(e.target.value)}>{[...project.loadCases, ...project.loadCombinations].map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label>
         <p>数值设置：原生静力求解器 · 稀疏 LDLT · 自由度消元 · 相对主元阈值 1e-12。单位 m / kN / kN·m。</p>
         <details><summary>内部细分精度与预算</summary>
           <p>逐杆采用 1、2、4… 单元加密，工程拓扑保持完整。预算耗尽会标记未收敛。</p>
           <label className="field"><span>每杆最大计算单元</span><select value={mesh.maxDivisions} onChange={(e) => setMesh({ ...mesh, maxDivisions: Number(e.target.value) })}>{[1, 2, 4, 8, 16].map((n) => <option key={n}>{n}</option>)}</select></label>
           {([['maxEquations', '最大计算方程数'], ['relativeTolerance', '细分相对误差'], ['displacementTolerance', '位移绝对误差（m / rad）'], ['forceTolerance', '内力绝对误差（kN / kN·m）']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input type="number" step="any" value={mesh[key]} onChange={(e) => setMesh({ ...mesh, [key]: Number(e.target.value) })} /></label>)}
-        </details>
+        </details></>}
+        {method === "modal" && <>
+          <p>密度 × 截面积 × 杆长形成结构质量，静力荷载和自重开关不参与质量。Euler-Bernoulli 一致质量，忽略剪切及弯曲转动惯性，保留扭转惯性。</p>
+          {([['modeCount', '提取模态数'], ['maxEquations', '模态最大方程数'], ['frequencyTolerance', '频率细分相对误差']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input aria-label={label} type="number" step="any" value={modal[key]} onChange={(e) => setModal({ ...modal, [key]: Number(e.target.value) })} /></label>)}
+          <label className="field"><span>模态每杆最大单元</span><select aria-label="模态每杆最大单元" value={modal.maxDivisions} onChange={(e) => setModal({ ...modal, maxDivisions: Number(e.target.value) })}>{[1, 2, 4, 8, 16].map((n) => <option key={n}>{n}</option>)}</select></label>
+        </>}
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="load-case-actions"><button className="button primary" type="submit">{editingId ? "保存分析工况" : "创建分析工况"}</button><button className="button ghost" type="button" disabled={!editingId} onClick={remove}>删除分析工况</button><button className="button ghost" type="button" disabled={!editingId} onClick={() => onAnalyze(editingId)}>计算此分析工况</button></div>
       </form>

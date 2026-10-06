@@ -20,8 +20,11 @@ const mergeProperties = { ...NODE_MERGE_SELECTION_SCHEMA, resolution: { type: "o
   } } };
 
 const analysisCase = { type: "object", additionalProperties: false, required: ["name", "method", "loadSourceId", "settings"], properties: {
-  name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static"] }, loadSourceId: identity,
-  settings: { type: "object", additionalProperties: false, required: ["solver"], properties: { solver: { const: "native-static" },
+  name: { type: "string", minLength: 1 }, method: { type: "string", enum: ["static", "modal"] }, loadSourceId: identity,
+  settings: { type: "object", additionalProperties: false, required: ["solver"], properties: { solver: { enum: ["native-static", "native-modal"] },
+    modal: { type: "object", additionalProperties: false, required: ["modeCount", "maxDivisions", "maxEquations", "frequencyTolerance"], properties: {
+      modeCount: { type: "integer", minimum: 1, maximum: 50 }, maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 1200 }, frequencyTolerance: { type: "number", exclusiveMinimum: 0, maximum: 0.01 },
+    }, description: "Modal: loadSourceId=structure, solver=native-modal, no mesh. Density forms mass independently of static loads/self-weight." },
     mesh: { type: "object", additionalProperties: false, required: ["maxDivisions", "maxEquations", "relativeTolerance", "displacementTolerance", "forceTolerance"], properties: {
       maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 12000 },
       relativeTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-2 }, displacementTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-6 }, forceTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-3 },

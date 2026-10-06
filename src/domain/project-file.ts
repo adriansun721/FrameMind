@@ -1,3 +1,4 @@
+import { decodeModalResult } from "./modal";
 import { decodeNativeReleaseRecovery, decodeReleaseGauges } from "./native-release-record";
 import { validateMemberEndReleases, hasMemberReleases } from "./member-releases";
 import { requireUnitPreset } from "./units";
@@ -218,7 +219,7 @@ function decodeSelfWeight(value: unknown, fallback = DEFAULT_SELF_WEIGHT): Frame
 }
 
 function isSolverAlgorithm(value: unknown): value is "partial-pivot-gaussian" | "sparse-ldlt" {
-  return value === "partial-pivot-gaussian" || value === "sparse-ldlt";
+  return value === "partial-pivot-gaussian" || value === "sparse-ldlt" || value === "generalized-self-adjoint";
 }
 
 function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number, internal = false): AnalysisInputSnapshot {
@@ -252,7 +253,7 @@ function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, 
     combination = { definition: decodeLoadCombination(input.combination.definition, cases.map((source) => source.loadCase)), cases };
   }
   const analysisCase = input.analysisCase === undefined ? undefined : decodeAnalysisCase(input.analysisCase, { loadCases: loadCase ? [loadCase] : [], loadCombinations: combination ? [combination.definition] : [] });
-  if (analysisCase && analysisCase.loadSourceId !== (combination?.definition.id ?? loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
+  if (analysisCase && analysisCase.method !== "modal" && analysisCase.loadSourceId !== (combination?.definition.id ?? loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
   const decoded = { ...input, analysisCase, loadCase, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight, combination } as AnalysisInputSnapshot;
   validateCombinationInput(decoded);
   return freezeAnalysisInput(decoded);
@@ -320,6 +321,7 @@ function decodeResult(value: unknown, internal: boolean): AnalysisResult {
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
   const input = decodeAnalysisInput(value.input, projectId, projectRevision, internal);
+  if (input.solver?.implementation === "framemind-native/5" || input.analysisCase?.method === "modal") return decodeModalResult(value, input);
   if (input.solver?.implementation === "framemind-native/4") return decodeMeshResult(value, input, (packet) => decodeResult(packet, true));
   const inputNodes = input.nodes; const inputMembers = input.members;
   const finiteVector = (vector: unknown, label: string) => {

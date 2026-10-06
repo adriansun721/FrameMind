@@ -1,3 +1,4 @@
+import type { ModalRecord } from "./modal";
 import { hasMemberReleases } from "./member-releases";
 import { selectedMeshLevel, type MeshPlan, type DiscretizationRecord } from "./analysis-mesh";
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
@@ -28,7 +29,7 @@ export type AnalysisDof = typeof ANALYSIS_DOF_ORDER[number];
 
 export interface AnalysisSolverConfig {
   implementation: string;
-  algorithm: "partial-pivot-gaussian" | "sparse-ldlt";
+  algorithm: "partial-pivot-gaussian" | "sparse-ldlt" | "generalized-self-adjoint";
   constraints: "free-dof-elimination";
   relativePivotTolerance: number;
 }
@@ -42,8 +43,10 @@ export const NATIVE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freez
 export const NATIVE_RELEASE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/3" });
 export const NATIVE_MESH_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/4" });
 
+export const NATIVE_MODAL_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/5", algorithm: "generalized-self-adjoint" });
+
 export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
-  return sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
+  return sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
 }
 
 export interface AnalysisAssumptions {
@@ -114,6 +117,7 @@ export interface NativeReleaseRecovery {
 }
 
 export interface AnalysisResult {
+  modal?: ModalRecord;
   discretization?: DiscretizationRecord;
   id: string;
   projectId: string;
@@ -366,6 +370,10 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
 export function captureAnalysisInput(project: FrameProject, loadCaseId?: string): AnalysisInputSnapshot {
   if (loadCaseId === undefined && project.activeAnalysisCaseId) {
     const analysisCase = validateAnalysisCase(project, requireAnalysisCase(project, project.activeAnalysisCaseId));
+    if (analysisCase.method === "modal") {
+      const base = captureAnalysisInput({ ...project, activeAnalysisCaseId: undefined, activeLoadCombinationId: undefined }, project.activeLoadCaseId);
+      return freezeAnalysisInput({ ...base, analysisCase, solver: { ...NATIVE_MODAL_SOLVER }, nodalLoads: [], uniformLoads: [], selfWeight: { ...base.selfWeight!, enabled: false } });
+    }
     const source = selectAnalysisSource(project, analysisCase.loadSourceId);
     return freezeAnalysisInput(structuredClone({ ...captureAnalysisInput(source), analysisCase }));
   }
@@ -490,9 +498,9 @@ export function analysisInputDependencies(input: AnalysisInputSnapshot): unknown
     analysisCase: input.analysisCase ? { id: input.analysisCase.id, method: input.analysisCase.method, loadSourceId: input.analysisCase.loadSourceId, settings: input.analysisCase.settings } : undefined,
     nodes: sorted(input.nodes).map(({ id, position }) => ({ id, position })),
     members: sorted(input.members), supports: sorted(input.supports),
-    materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight ? { densityKgM3 } : {}) })),
+    materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight || input.analysisCase?.method === "modal" ? { densityKgM3 } : {}) })),
     sections: sorted(input.sections.filter((s) => sectionIds.has(s.id))).map(({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 }) => ({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 })),
-    conditions: input.combination ? {
+    conditions: input.analysisCase?.method === "modal" ? undefined : input.combination ? {
       id: input.combination.definition.id,
       terms: [...input.combination.definition.terms].sort((a, b) => a.loadCaseId.localeCompare(b.loadCaseId)),
       cases: input.combination.cases.filter((c) => input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions),

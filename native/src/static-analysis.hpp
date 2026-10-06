@@ -25,9 +25,14 @@ struct StaticLoads {
     std::vector<Vec3> intensity;
 };
 
-static Json calculateStatic(const Json& request, Json& stages, std::string& stage, bool publishPhases=true, bool inheritedFrames=false) {
+// Public assembly seam shared by static and modal adapters. Modal keeps released
+// beam-end rotations as independent inertial coordinates instead of Guyan reduction.
+struct ModalAssembly { std::vector<StaticElement> elements; std::vector<int> free; int size=0; std::function<void(const std::string&)> onPhase; };
+
+static Json calculateStatic(const Json& request, Json& stages, std::string& stage, bool publishPhases=true, bool inheritedFrames=false, ModalAssembly* modalAssembly=nullptr) {
     auto phase=[&](const std::string& name) {
         stage=name; Json record={{"stage",name},{"startedAt",now()}}; stages.push_back(record);
+        if (modalAssembly && modalAssembly->onPhase && name=="assembly") modalAssembly->onPhase(name);
         if (publishPhases) emit({{"kind","phase"},{"requestId",request.at("requestId")},{"record",record}});
     };
     phase("model-check"); id(request.at("requestId")); id(request.at("analysisId"));
@@ -174,7 +179,7 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
             for (int d=0;d<6;++d) supported=supported || restrained[node*6+d];
             for (int next:adjacency[node]) if (!visited.count(next)) pending.push_back(next);
         }
-        check(supported,"unrestrained-component","Connected component has no restrained DOFs",target,"restraints");
+        check(modalAssembly || supported,"unrestrained-component","Connected component has no restrained DOFs",target,"restraints");
     }
     auto loadSet=[&](const Json& data,const Json& caseId) {
         StaticLoads loads={Vector::Zero(size),std::vector<Vec3>(elements.size(),Vec3::Zero())};
@@ -282,6 +287,7 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     std::vector<Triplet> reducedEntries;
     for (int c=0;c<global.outerSize();++c) for (Sparse::InnerIterator it(global,c);it;++it) if (reducedIndex[it.row()]>=0 && reducedIndex[it.col()]>=0) reducedEntries.emplace_back(reducedIndex[it.row()],reducedIndex[it.col()],it.value());
     const int count=static_cast<int>(free.size()); Sparse reduced(count,count); reduced.setFromTriplets(reducedEntries.begin(),reducedEntries.end()); reduced.makeCompressed();
+    if (modalAssembly) { modalAssembly->elements=std::move(elements); modalAssembly->free=std::move(free); modalAssembly->size=size; return nullptr; }
     Vector rhs(count); for (int i=0;i<count;++i) rhs[i]=force[free[i]];
     phase("solve"); Vector displacement=Vector::Zero(size);
     if (count) {

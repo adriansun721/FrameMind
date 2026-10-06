@@ -1,3 +1,4 @@
+import { createModalMesh } from "./modal";
 import { ANALYSIS_DOF_ORDER, ANALYSIS_SOLVER, freezeAnalysisInput, sameInputValue, solveFrame, type AnalysisInputSnapshot, type AnalysisResult } from "./analysis";
 import { createMeshPlan } from "./analysis-mesh";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "./analysis-diagnostics";
@@ -22,6 +23,7 @@ export class AnalysisServiceFailure extends AnalysisFailure {
 export function createAnalysisRequest(input: AnalysisInputSnapshot, origin: AnalysisOrigin = { kind: "formal-model" }): AnalysisServiceRequest {
   const snapshot = structuredClone(input);
   snapshot.solver ??= { ...ANALYSIS_SOLVER };
+  if (snapshot.solver.implementation === "framemind-native/5") snapshot.meshPlan ??= createModalMesh(snapshot);
   if (snapshot.solver.implementation === "framemind-native/4") snapshot.meshPlan ??= createMeshPlan(snapshot, snapshot.analysisCase?.settings.mesh);
   if (snapshot.meshPlan && snapshot.analysisCase?.settings.mesh && !sameInputValue(snapshot.meshPlan.policy, snapshot.analysisCase.settings.mesh)) throw new Error("冻结细分策略与分析工况设置不一致");
   const request: AnalysisServiceRequest = {

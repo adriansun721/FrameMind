@@ -74,11 +74,21 @@ function fields(input: Record<string, unknown>, allowed: string[]) {
 export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>) {
   fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query"]);
   const collection = input.collection;
-  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members 或 mesh");
+  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh", "modes", "mass"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members、mesh、modes 或 mass");
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
   const provenance = analysisProvenance(result, current);
+  if (result.modal) {
+    if (input.fields !== undefined || input.query !== undefined) throw new Error("模态仅支持完整条目的分页读取");
+    if (["nodes", "members"].includes(collection)) throw new Error("模态振型不是静力位移或内力；请读取 modes");
+    const modal = result.modal;
+    if (collection === "summary") return { ...provenance, method: "modal", totalMassKg: modal.totalMassKg, modes: modal.modes.map(({ number, frequencyHz, kind, residual }) => ({ number, frequencyHz, kind, residual })), convergence: modal.convergence, counts: modal.counts, normalization: modal.normalization, amplitudeMeaning: "振型幅值仅表示归一化形态，显示缩放不代表受载实际位移", zeroEnergyModes: modal.zeroEnergyModes };
+    const items = collection === "modes" ? modal.modes : collection === "mass" ? modal.sources : result.input.meshPlan!.levels.find((l) => l.divisions === modal.selectedDivisions)!.elements;
+    const pageItems = items.slice(offset, offset + limit);
+    return { ...provenance, collection, total: items.length, offset, limit, items: pageItems, page: { empty: !pageItems.length, hasMore: offset + pageItems.length < items.length, nextOffset: offset + pageItems.length } };
+  }
+  if (["modes", "mass"].includes(collection)) throw new Error("本结果不是模态分析");
   if (collection === "mesh") {
     if (input.fields !== undefined || input.query !== undefined) throw new Error("mesh 只支持完整映射条目的分页读取");
     const level = selectedMeshLevel(result);

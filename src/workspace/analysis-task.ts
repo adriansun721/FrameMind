@@ -1,4 +1,4 @@
-import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_MESH_STATIC_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_MODAL_SOLVER, NATIVE_ANALYSIS_SOLVER, NATIVE_MESH_STATIC_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
 import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
@@ -47,7 +47,7 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
   const native = options.backend !== "typescript-reference";
-  const nativeSolver = options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_MESH_STATIC_SOLVER;
+  const nativeSolver = input.analysisCase?.method === "modal" ? NATIVE_MODAL_SOLVER : options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_MESH_STATIC_SOLVER;
   const request = createAnalysisRequest(native ? { ...input, solver: { ...nativeSolver } } : input, options.origin);
   const stages: AnalysisStageRecord[] = [];
   let settled = false;
@@ -84,7 +84,7 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
   const complete = (result: AnalysisResult) => {
     try {
       const validated = decodeAnalysisResult(result);
-      if (result.discretization) result = validated;
+      if (result.discretization || result.modal) result = validated;
       if (result.id !== request.analysisId || result.projectId !== request.input.projectId
         || result.projectRevision !== request.input.projectRevision || !result.service
         || result.service.requestId !== request.requestId || !sameInputValue(result.input, request.input)

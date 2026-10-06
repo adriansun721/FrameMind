@@ -834,3 +834,9 @@ button { color: inherit; }
 .member-release-fields .field { display: grid; gap: 4px; }
 .member-release-fields select { width: 100%; min-width: 0; }
 .member-release-fields .field-help { margin: 0; font-size: 11px; line-height: 1.5; }
+
+.modal-result-panel p { font-size: var(--text-caption); line-height: 1.6; color: var(--text-secondary); }
+.modal-result-panel table { width: 100%; border-collapse: collapse; font-size: var(--text-caption); font-variant-numeric: tabular-nums; }
+.modal-result-panel th, .modal-result-panel td { padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: left; white-space: nowrap; }
+.modal-result-panel > details { grid-column: 1 / -1; }
+.modal-result-panel > details summary, .modal-result-panel .property-section > details summary { cursor: pointer; font-size: var(--text-caption); }
