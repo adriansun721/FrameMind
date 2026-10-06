@@ -1,4 +1,4 @@
-import { addSection, updateMember, validateSection, type FrameProject, type FrameSection, type SectionId, type SectionProperties } from "../domain/project";
+import { addSection, updateMember, validateSection, type FrameProject, type FrameSection, type SectionId, type SectionInput } from "../domain/project";
 import { applyProjectTransaction } from "../domain/project-operations";
 import { SECTION_CATALOG } from "../domain/resource-library";
 import { captureAiSnapshot, type AiObjectRef, type AiSnapshot, type AiToolResult } from "./ai-tools";
@@ -49,9 +49,9 @@ export function proposeSectionChange(snapshot: AiSnapshot, input: Record<string,
   } else {
     if (!input.section || typeof input.section !== "object" || Array.isArray(input.section)) throw new Error("新截面必须包含名称和 A/Iy/Iz/J 参数");
     const raw = input.section as Record<string, unknown>;
-    if (Object.keys(raw).some((key) => !["name", ...Object.keys(SECTION_PARAMETERS)].includes(key)) || typeof raw.name !== "string"
-      || Object.keys(SECTION_PARAMETERS).some((key) => typeof raw[key] !== "number")) throw new Error("新截面参数格式无效");
-    section = { ...validateSection("待确认截面", raw as unknown as SectionProperties), id: "preview_section:custom" as SectionId,
+    if (Object.keys(raw).some((key) => !["name", "geometry", ...Object.keys(SECTION_PARAMETERS)].includes(key)) || typeof raw.name !== "string"
+      || raw.geometry === undefined && Object.keys(SECTION_PARAMETERS).some((key) => typeof raw[key] !== "number")) throw new Error("新截面参数格式无效");
+    section = { ...validateSection("待确认截面", raw as unknown as SectionInput), id: "preview_section:custom" as SectionId,
       label: "待确认自定义截面", provenance: { kind: "custom" } };
   }
   return { id: previous?.id ?? `section_change_${crypto.randomUUID()}`, version: (previous?.version ?? 0) + 1, memberIds, section, source: input.source };

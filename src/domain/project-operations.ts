@@ -1,4 +1,6 @@
 import {
+  addSection, updateSection,
+  type SectionInput, type FrameSection, type SectionId,
   addMember,
   addNode,
   deleteMember,
@@ -99,6 +101,10 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
+  | { type: "create_section"; properties: SectionInput }
+  | { type: "update_section"; id: SectionId; properties: SectionInput }
+  | { type: "duplicate_section"; id: SectionId }
+  | { type: "assign_section"; id: SectionId; memberIds: MemberId[]; rotationDegrees?: number }
   | ({ type: "merge_nodes" } & NodeMergeInput)
   | ({ type: "split_member" | "connect_members" } & TopologyInput)
   | { type: "create_node"; position: Vector3 }
@@ -112,17 +118,17 @@ export type ProjectEditOperation =
   | { type: "delete_analysis_case"; id: string };
 
 export interface ProjectEditChange {
-  kind: "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case";
+  kind: "section" | "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case";
   id: string;
-  before?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
-  after?: FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
+  before?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
+  after?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase;
 }
 export interface ProjectEditReceipt {
   projectId: string;
   baseRevision: number;
   appliedRevision: number;
   changes: ProjectEditChange[];
-  created: { operationIndex: number; kind: "node" | "member"; id: string; sourceId?: string }[];
+  created: { operationIndex: number; kind: "node" | "member" | "section"; id: string; sourceId?: string }[];
   affectedMemberIds: MemberId[];
   topology?: TopologyReceipt[];
   nodeMerges?: NodeMergeReceipt[];
@@ -149,6 +155,20 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
+      case "create_section": changed = addSection(current, operation.properties); created.push({ operationIndex, kind: "section", id: changed.sections.at(-1)!.id }); break;
+      case "update_section": changed = updateSection(current, operation.id, operation.properties); break;
+      case "duplicate_section": {
+        const source = current.sections.find((s) => s.id === operation.id);
+        if (!source) throw new Error(`Section ${operation.id} does not exist`);
+        changed = addSection(current, { ...source, name: `${source.name} (copy)` }, structuredClone(source.provenance));
+        created.push({ operationIndex, kind: "section", id: changed.sections.at(-1)!.id, sourceId: operation.id }); break;
+      }
+      case "assign_section": {
+        if (!current.sections.some((s) => s.id === operation.id)) throw new Error(`Section ${operation.id} does not exist`);
+        if (!operation.memberIds.length || new Set(operation.memberIds).size !== operation.memberIds.length) throw new Error("Explicit unique member targets required");
+        changed = operation.memberIds.reduce((p, id) => updateMember(p, id, { sectionId: operation.id,
+          ...(operation.rotationDegrees !== undefined ? { rotationDegrees: operation.rotationDegrees } : {}) }), current); break;
+      }
       case "merge_nodes": {
         const outcome = mergeNodes(current, operation); changed = outcome.project; nodeMerges.push(outcome.receipt); break;
       }
@@ -179,7 +199,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     return changed;
   }));
   const changes: ProjectEditChange[] = [];
-  const collections = [["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"]] as const;
+  const collections = [["section", "sections"], ["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"]] as const;
   for (const [kind, collection] of collections) {
     const before = new Map(project[collection].map((object) => [object.id as string, object]));
     const after = new Map(next[collection].map((object) => [object.id as string, object]));
@@ -188,7 +208,8 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     }
   }
   const nodeIds = new Set(changes.filter((change) => change.kind === "node").map((change) => change.id));
-  const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
+  const sectionIds = new Set(changes.filter((change) => change.kind === "section").map((change) => change.id));
+  const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => sectionIds.has(member.sectionId) || nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
     || changes.some((change) => change.kind === "member" && change.id === member.id)).map((member) => member.id))];
   return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds, ...(topology.length ? { topology } : {}), ...(nodeMerges.length ? { nodeMerges } : {}) } };
 }

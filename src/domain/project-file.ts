@@ -135,6 +135,7 @@ function decodeSection(value: unknown): FrameSection {
     id: id as SectionId,
     label,
     ...validateSection(label, {
+      ...(value.geometry !== undefined ? { geometry: value.geometry as NonNullable<FrameSection["geometry"]> } : {}),
       name: requireString(value.name, `截面 ${label} 的名称不能为空`),
       areaM2: requireFinite(value.areaM2, `截面 ${label} 的面积必须为正有限数值`),
       secondMomentYM4: requireFinite(value.secondMomentYM4, `截面 ${label} 的 Iy 必须为正有限数值`),

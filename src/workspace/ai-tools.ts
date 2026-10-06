@@ -1,5 +1,6 @@
 import { CANONICAL_UNITS, convertQuantity, UNIT_CONTRACT, type QuantityDimension } from "../domain/units";
 import { GEOMETRY_CONTRACT } from "../domain/geometry-policy";
+import { SECTION_SHAPES, SECTION_SHAPE_FIELDS, sectionParameterBasis } from "../domain/section-geometry";
 import { inspectNearNodes, inspectNodeMerge } from "../domain/node-merge";
 import type { NodeId } from "../domain/project";
 import { normalizeToolUnits, presentToolData } from "./unit-tools";
@@ -266,6 +267,15 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
     input = record(JSON.parse(call.function.arguments));
     if (call.function.name === "read_unit_contract") { exactFields(input, []); return { status: "completed", message: "已读取单位契约", context: snapshot.context, data: UNIT_CONTRACT }; }
     if (call.function.name === "read_geometry_contract") { exactFields(input, []); return { status: "completed", message: "已读取几何与交互容差契约（规范单位 m）", context: snapshot.context, data: GEOMETRY_CONTRACT }; }
+    if (call.function.name === "read_section_contract") {
+      exactFields(input, []);
+      return { status: "completed", message: "已读取五类截面公式与近似范围", context: snapshot.context, data: {
+        dimensions: "m", orientation: "° around local x by right-hand rule; width along local y, height along local z",
+        shapes: Object.entries(SECTION_SHAPES).map(([shape, name]) => ({ shape, name, fields: SECTION_SHAPE_FIELDS[shape as keyof typeof SECTION_SHAPES], parameterBasis: sectionParameterBasis(shape as keyof typeof SECTION_SHAPES) })),
+        validation: "Positive finite dimensions; tube 2t < min outer size; rectangular tube t/min(b,h) <= .1; I/H tf/b <= .1 and tw/(h-2tf) <= .1. Properties generated from geometry, no arbitrary polygons.",
+        operations: "propose_model_edits: create_section/update_section properties={name,geometry}; duplicate_section id; assign_section id,memberIds,optional rotationDegrees. Confirmation required; shared editing impacts all referencing members.",
+      } };
+    }
     if (call.function.name === "convert_quantity") {
       exactFields(input, ["value", "dimension", "fromUnit", "toUnit"]);
       if (typeof input.dimension !== "string" || !Object.hasOwn(CANONICAL_UNITS, input.dimension) || typeof input.value !== "number" || typeof input.fromUnit !== "string" || typeof input.toUnit !== "string") throw new Error("外部数值必须明确量纲及源单位和目标单位");
@@ -472,7 +482,7 @@ function finalizeAiToolResult(snapshot: AiSnapshot, value: unknown, result: AiTo
   // References and confirmation payloads remain canonical for navigation and persistence.
   try {
     const call = validateCall(value); const args = record(JSON.parse(call.function.arguments));
-    if ((args.outputUnitPreset !== undefined || snapshot.editProject.displayUnitPreset !== undefined) && result.data !== undefined && result.status !== "failed" && !["read_unit_contract", "read_geometry_contract", "convert_quantity"].includes(call.function.name)) {
+    if ((args.outputUnitPreset !== undefined || snapshot.editProject.displayUnitPreset !== undefined) && result.data !== undefined && result.status !== "failed" && !["read_unit_contract", "read_geometry_contract", "read_section_contract", "convert_quantity"].includes(call.function.name)) {
       const outputPreset = args.outputUnitPreset === undefined ? snapshot.editProject.displayUnitPreset : normalizeToolUnits(args).outputPreset;
       return { ...result, data: presentToolData(result.data, outputPreset!), receipt: buildReceipt(snapshot, value, result) };
     }

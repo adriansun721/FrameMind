@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "shapes": [
+    "rectangle",
+    "circle",
+    "rectangular-tube",
+    "circular-tube",
+    "i-section"
+  ],
+  "invalidWallsRejected": true,
+  "undoRedo": true,
+  "nativeAnalysis": "analysis_afe4ff3e-ea45-4f46-9738-6e6cd30cf0b7",
+  "restartPreserved": true
+}

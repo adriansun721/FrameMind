@@ -1,3 +1,4 @@
+import { SECTION_INPUT_SCHEMA } from "./section-schema";
 const identity = { type: "string", minLength: 1, maxLength: 200 };
 const position = { type: "object", additionalProperties: false, minProperties: 1,
   properties: { x: { type: "number" }, y: { type: "number" }, z: { type: "number" } } };
@@ -24,6 +25,10 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
+      { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_section" }, properties: SECTION_INPUT_SCHEMA } },
+      { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_section" }, id: identity, properties: SECTION_INPUT_SCHEMA } },
+      { type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: "duplicate_section" }, id: identity } },
+      { type: "object", additionalProperties: false, required: ["type", "id", "memberIds"], properties: { type: { const: "assign_section" }, id: identity, memberIds: { ...identityList, minItems: 1, maxItems: 100 }, rotationDegrees: { type: "number" } } },
       { type: "object", additionalProperties: false, required: ["type", ...Object.keys(mergeProperties)], properties: { type: { const: "merge_nodes" }, ...mergeProperties } },
       { type: "object", additionalProperties: false, required: ["type", "position"], properties: { type: { const: "create_node" }, position: { ...position, required: ["x", "y", "z"] } } },
       { type: "object", additionalProperties: false, required: ["type", "id", "position"], properties: { type: { const: "update_node" }, id: identity, position } },

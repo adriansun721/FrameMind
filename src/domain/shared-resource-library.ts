@@ -44,6 +44,7 @@ export function decodeSharedResourceLibrary(content: string): SharedResourceLibr
   const sections = data.sections.map((value) => {
     const item = record(value);
     return { libraryId: textField(item.libraryId), ...validateSection("资源库", {
+      ...(item.geometry !== undefined ? { geometry: item.geometry as NonNullable<SectionProperties["geometry"]> } : {}),
       name: textField(item.name), areaM2: numberField(item.areaM2),
       secondMomentYM4: numberField(item.secondMomentYM4), secondMomentZM4: numberField(item.secondMomentZM4),
       torsionalConstantM4: numberField(item.torsionalConstantM4),

@@ -4,6 +4,8 @@ import type { AiSnapshot } from "../workspace/ai-tools";
 import { frameResourceOptions } from "../workspace/frame-proposal";
 import { proposeSectionChange, SECTION_PARAMETERS, type SectionChangeProposal } from "../workspace/section-stage";
 import { ProposalCard } from "./ProposalCard";
+import { SectionGeometryPreview } from "./SectionGeometryPreview";
+import { SECTION_DIMENSIONS, SECTION_SHAPE_FIELDS, type SectionGeometry } from "../domain/section-geometry";
 
 export function SectionChangeCard({ snapshot, proposal, current, busy, visible, calculate, previous, onChange, onDirty, onConfirm, onReject, onRegenerate }: {
   snapshot: AiSnapshot; proposal: SectionChangeProposal; current: boolean; busy: boolean;
@@ -18,6 +20,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
     : proposal.section.provenance.catalogId ?? "custom";
   const [resource, setResource] = useState<string>(initialRef);
   const [name, setName] = useState(proposal.section.name);
+  const [geometry, setGeometry] = useState(proposal.section.geometry);
   const [parameters, setParameters] = useState(Object.fromEntries(Object.keys(SECTION_PARAMETERS).map((key) => [key, String(proposal.section[key as keyof typeof SECTION_PARAMETERS])])));
   const [dirty, setDirty] = useState(false); const [error, setError] = useState("");
   const edit = () => { setDirty(true); onDirty(true); };
@@ -26,6 +29,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
     return snapshot.model.sections.find((item) => item.id === member?.sectionId)?.name ?? "对象已不存在";
   }))];
   const details = <>
+    <SectionGeometryPreview geometry={proposal.section.geometry} />
     <p>{proposal.source === "user" ? "用户提供" : "建议 · 待确认"} · {proposal.memberIds.length} 根柱 · 输入 R{snapshot.context.modelRevision}</p>
     <p>仅重新指定下列柱的截面，共享截面保持原参数。全部 {snapshot.model.members.length} 根杆件的响应将在重算后更新。</p>
     {proposal.memberIds.map((id) => {
@@ -33,6 +37,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
       const before = snapshot.model.sections.find((item) => item.id === member?.sectionId);
       if (!member || !before) return <p key={id}>{id} · 目标或原截面已删除</p>;
       return <div className="section-change-object" key={id}><strong>{member.label} · {id}</strong><p>{before.name} → {proposal.section.name}</p>
+        <SectionGeometryPreview geometry={proposal.section.geometry} rotationDegrees={member.rotationDegrees} />
         <dl>{Object.entries(SECTION_PARAMETERS).map(([key, label]) => <div key={key}><dt>{label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}</dt><dd>{u.quantity(before[key as keyof typeof SECTION_PARAMETERS], fieldUnit(key))} → {u.quantity(proposal.section[key as keyof typeof SECTION_PARAMETERS], fieldUnit(key))}</dd></div>)}</dl>
       </div>;
     })}
@@ -44,6 +49,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
     updateDisabled={busy || !current}
     confirmLabel={calculate ? "确认并重算" : "确认修改"} onConfirm={onConfirm} onCancelEdit={() => {
       setResource(initialRef); setName(proposal.section.name);
+      setGeometry(proposal.section.geometry);
       setParameters(Object.fromEntries(Object.keys(SECTION_PARAMETERS).map((key) => [key, String(proposal.section[key as keyof typeof SECTION_PARAMETERS])])));
       setDirty(false); setError(""); onDirty(false);
     }} rows={[
@@ -57,7 +63,7 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
     <form onSubmit={(event) => {
       event.preventDefault();
       try {
-        const section = { name, ...Object.fromEntries(Object.keys(SECTION_PARAMETERS).map((key) => {
+        const section = geometry ? { name, geometry } : { name, ...Object.fromEntries(Object.keys(SECTION_PARAMETERS).map((key) => {
           if (!parameters[key].trim()) throw new Error(`${SECTION_PARAMETERS[key as keyof typeof SECTION_PARAMETERS]}不能为空`);
           return [key, Number(parameters[key])];
         })) };
@@ -70,7 +76,8 @@ export function SectionChangeCard({ snapshot, proposal, current, busy, visible, 
       </select></label>
       {resource === "custom" && <fieldset disabled={busy || !current}><legend>自定义参数</legend>
         <label>名称<input aria-label="新柱截面名称" value={name} onChange={(event) => { edit(); setName(event.target.value); }} /></label>
-        {Object.entries(SECTION_PARAMETERS).map(([key, label]) => <label key={key}>{label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}<UnitInput unit={fieldUnit(key)} aria-label={`新柱截面 ${label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}`} value={parameters[key]} onValueChange={(value) => { edit(); setParameters({ ...parameters, [key]: value }); }} /></label>)}
+        {geometry ? SECTION_SHAPE_FIELDS[geometry.shape].map((key) => <label key={key}>{SECTION_DIMENSIONS[key]} ({u.unit("m")})<UnitInput unit="m" aria-label={`新柱截面 ${SECTION_DIMENSIONS[key]}`} value={String((geometry as unknown as Record<string, number>)[key])} onValueChange={(value) => { edit(); setGeometry({ ...geometry, [key]: value.trim() ? Number(value) : NaN } as SectionGeometry); }} /></label>)
+          : Object.entries(SECTION_PARAMETERS).map(([key, label]) => <label key={key}>{label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}<UnitInput unit={fieldUnit(key)} aria-label={`新柱截面 ${label.replace(/m[²⁴]/g, u.unit(fieldUnit(key)))}`} value={parameters[key]} onValueChange={(value) => { edit(); setParameters({ ...parameters, [key]: value }); }} /></label>)}
       </fieldset>}
       {dirty && <p className="frame-draft-notice">编辑尚未保存，当前三维预览保持原方案。</p>}{error && <p role="alert">{error}</p>}
     </form>

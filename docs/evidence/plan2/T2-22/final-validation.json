@@ -1,0 +1,25 @@
+﻿{
+    "date":  "2026-10-06",
+    "typecheck":  true,
+    "build":  true,
+    "unitFiles":  69,
+    "unitTests":  519,
+    "nativeChecks":  152,
+    "focusedDesktop":  {
+                           "passed":  7,
+                           "baselineFailure":  "T26 selected-column continuation after missing selection",
+                           "failed":  1,
+                           "paths":  [
+                                         "e2e/plan2-t2-22-sections.spec.ts",
+                                         "e2e/project-lifecycle.spec.ts",
+                                         "e2e/t13-resource-library.spec.ts",
+                                         "e2e/t26-section-comparison.spec.ts"
+                                     ],
+                           "legacySectionEditingPassed":  2,
+                           "taskSpecificPassed":  2
+                       },
+    "reviews":  {
+                    "specRemaining":  0,
+                    "standardsRemaining":  0
+                }
+}

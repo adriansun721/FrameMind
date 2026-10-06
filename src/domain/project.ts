@@ -1,3 +1,4 @@
+import { validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
 import type { UnitPresetId } from "./units";
 import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisResult } from "./analysis";
@@ -28,7 +29,8 @@ export interface MaterialProperties { name: string; elasticModulusGPa: number; p
 export interface CatalogSource { publisher: string; title: string; edition: string; url: string; accessedOn: string; units: string; }
 export interface ResourceProvenance { kind: "catalog" | "custom"; catalogId?: string; source?: CatalogSource; derivedFrom?: { catalogId: string; source: CatalogSource; } }
 export interface FrameMaterial extends MaterialProperties { id: MaterialId; label: string; provenance: ResourceProvenance; }
-export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; }
+export interface SectionProperties { name: string; areaM2: number; secondMomentYM4: number; secondMomentZM4: number; torsionalConstantM4: number; geometry?: SectionGeometry; parameterBasis?: ReturnType<typeof sectionParameterBasis>; }
+export type SectionInput = SectionProperties | { name: string; geometry: SectionGeometry };
 export interface FrameSection extends SectionProperties { id: SectionId; label: string; provenance: ResourceProvenance; }
 export interface MemberProperties { startNodeId: NodeId; endNodeId: NodeId; materialId: MaterialId; sectionId: SectionId; rotationDegrees: number; }
 export interface FrameMember extends MemberProperties { id: MemberId; label: string; }
@@ -151,13 +153,20 @@ export function validateMaterial(label: string, material: MaterialProperties): M
   return { name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3 };
 }
 
-export function validateSection(label: string, section: SectionProperties): SectionProperties {
+export function validateSection(label: string, section: SectionInput): SectionProperties {
   const name = cleanName(section.name, `截面 ${label} 的名称不能为空`);
-  assertPositive(section.areaM2, `截面 ${label} 的面积必须为正有限数值`);
-  assertPositive(section.secondMomentYM4, `截面 ${label} 的 Iy 必须为正有限数值`);
-  assertPositive(section.secondMomentZM4, `截面 ${label} 的 Iz 必须为正有限数值`);
-  assertPositive(section.torsionalConstantM4, `截面 ${label} 的扭转常数 J 必须为正有限数值`);
-  return { name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4 };
+  const geometry = section.geometry === undefined ? undefined : validateSectionGeometry(section.geometry);
+  const derived = geometry ? sectionMechanicalProperties(geometry) : undefined;
+  const keys = ["areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"] as const;
+  const parameterNames = { areaM2: "面积", secondMomentYM4: " Iy ", secondMomentZM4: " Iz ", torsionalConstantM4: "扭转常数 J " };
+  for (const key of keys) {
+    const supplied = (section as Partial<SectionProperties>)[key];
+    if (supplied !== undefined && derived && (!Number.isFinite(supplied) || Math.abs(supplied - derived[key]) > Math.abs(derived[key]) * 1e-9)) throw new Error(`截面 ${label} 的 ${key} 与几何尺寸不一致`);
+    assertPositive(derived?.[key] ?? supplied!, `截面 ${label} 的${parameterNames[key]}必须为正有限数值`);
+  }
+  const values = derived ?? section as SectionProperties;
+  return { name, areaM2: values.areaM2, secondMomentYM4: values.secondMomentYM4, secondMomentZM4: values.secondMomentZM4, torsionalConstantM4: values.torsionalConstantM4,
+    ...(geometry ? { geometry, parameterBasis: sectionParameterBasis(geometry.shape) } : {}) };
 }
 
 function requireNode(project: FrameProject, id: NodeId, label: string, role: "起点" | "终点"): FrameNode {
@@ -246,24 +255,24 @@ export function updateMaterial(project: FrameProject, id: MaterialId, input: Mat
   return { ...project, materials: project.materials.map((item) => item.id === id ? { ...item, ...properties, provenance } : item), ...nextRevision(project) };
 }
 
-export function addSection(project: FrameProject, input: SectionProperties, provenance: ResourceProvenance = { kind: "custom" }): FrameProject {
+export function addSection(project: FrameProject, input: SectionInput, provenance: ResourceProvenance = { kind: "custom" }): FrameProject {
   assertCounter(project.nextSectionNumber); const number = project.nextSectionNumber;
   const section: FrameSection = { id: `section_${String(number).padStart(4, "0")}` as SectionId, label: `S${number}`, ...validateSection(`S${number}`, input), provenance };
   return { ...project, sections: [...project.sections, section], nextSectionNumber: number + 1, ...nextRevision(project) };
 }
 
-export function addCatalogSection(project: FrameProject, input: SectionProperties, provenance: ResourceProvenance): FrameProject {
+export function addCatalogSection(project: FrameProject, input: SectionInput, provenance: ResourceProvenance): FrameProject {
   if (provenance.kind !== "catalog" || !provenance.catalogId || !provenance.source) throw new Error("库截面缺少可追溯来源");
   return addSection(project, input, provenance);
 }
 
-export function updateSection(project: FrameProject, id: SectionId, input: SectionProperties): FrameProject {
+export function updateSection(project: FrameProject, id: SectionId, input: SectionInput): FrameProject {
   const current = project.sections.find((item) => item.id === id); if (!current) throw new Error(`截面 ${id} 不存在`);
   const properties = validateSection(current.label, input);
   const provenance = current.provenance.kind === "catalog" && current.provenance.catalogId && current.provenance.source
     ? { kind: "custom" as const, derivedFrom: { catalogId: current.provenance.catalogId, source: current.provenance.source } }
     : current.provenance;
-  return { ...project, sections: project.sections.map((item) => item.id === id ? { ...item, ...properties, provenance } : item), ...nextRevision(project) };
+  return { ...project, sections: project.sections.map((item) => item.id === id ? { ...item, geometry: undefined, parameterBasis: undefined, ...properties, provenance } : item), ...nextRevision(project) };
 }
 
 export function addMember(project: FrameProject, input: MemberProperties): FrameProject {

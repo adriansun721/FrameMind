@@ -1,0 +1,33 @@
+﻿{
+    "baseline":  "f8fdb3e",
+    "date":  "2026-10-06",
+    "tested":  6,
+    "failed":  6,
+    "taskChangesPresent":  false,
+    "failures":  [
+                     {
+                         "test":  "compact-ai-cards-compact-c-140ec-and-previews-in-both-themes",
+                         "errorExcerpt":  "\n```\nTest timeout of 30000ms exceeded.\n```"
+                     },
+                     {
+                         "test":  "plan2-t2-09-restart-T2-09--01a7c--it-offline-only-on-request",
+                         "errorExcerpt":  "\n```\nError: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 2\n+ Received  + 2\n\n@@ -160,13 +160,13 @@\n        \"z\": -10,\n      },\n      \"loadCaseId\": \"LC1\",\n    },\n    \"solver\": Object {\n-     \"algorithm\": \"partial-pivot-gaussian\",\n+     \"algorithm\": \"sparse-ldlt\",\n      \"constraints\": \"free-dof-elimination\",\n-     \"implementation\": \"framemind-frame/3\",\n+     \"implementation\": \"framemind-native/2\","
+                     },
+                     {
+                         "test":  "plan2-t2-10-recovery-T2-10-e8c4b-ozen-input-snapshot-offline",
+                         "errorExcerpt":  "\n```\nError: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n```\n\n# Test source\n\n```ts\n  136 |           if (stage === \"before-write\") return stop();\n  137 |           if (stage === \"mid-write\") { await nodeRequire(\"node:fs/promises\").writeFile(path, content.slice(0, content.length / 2)); return stop(); }\n  138 |           await originalWrite(path, content);\n  139 |           if (stage === \"before-rename\") return stop();"
+                     },
+                     {
+                         "test":  "sidebar-library-sidebar-mo-c4731-cross-projects-and-restarts",
+                         "errorExcerpt":  "\n```\nTest timeout of 30000ms exceeded.\n```"
+                     },
+                     {
+                         "test":  "t03-analysis-T03-computes--99bd4-strained-spatial-cantilever",
+                         "errorExcerpt":  "\n```\nError: expect(locator).toBeVisible() failed\n\nLocator: getByText(\u0027位移 (0.000, 0.005, -0.002) m\u0027, { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText(\u0027位移 (0.000, 0.005, -0.002) m\u0027, { exact: true }) with timeout 5000ms\n  - waiting for getByText(\u0027位移 (0.000, 0.005, -0.002) m\u0027, { exact: true })\n\n```\n\n```yaml\n- main:\n  - text: FrameMind"
+                     },
+                     {
+                         "test":  "t04-analysis-T04-manually--e8a9d--spatial-multi-member-frame",
+                         "errorExcerpt":  "\n```\nError: expect(locator).toBeVisible() failed\n\nLocator: getByText(\u0027位移 (0.028, 0.009, -0.024) m\u0027, { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText(\u0027位移 (0.028, 0.009, -0.024) m\u0027, { exact: true }) with timeout 5000ms\n  - waiting for getByText(\u0027位移 (0.028, 0.009, -0.024) m\u0027, { exact: true })\n\n```\n\n```yaml\n- main:\n  - text: FrameMind"
+                     }
+                 ]
+}

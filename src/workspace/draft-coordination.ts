@@ -58,11 +58,13 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
   return [
     ...conditionTargets(base, drafts.taskDraft?.conditions),
     ...conditionTargets(base, drafts.conditions ?? undefined),
+    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => item.type === "update_section"
+      ? base.members.filter((m) => m.sectionId === item.id).map((m) => ({ kind: "member" as const, id: m.id })) : []),
     ...(drafts.sectionChange?.memberIds ?? []).map((id) => ({ kind: "member" as const, id })),
     ...(drafts.modelEdits?.operations ?? []).flatMap((item) => item.type === "merge_nodes"
       ? item.nodeIds.map((id) => ({ kind: "node" as const, id })) : "memberIds" in item
-      ? [...item.memberIds.map((id) => ({ kind: "member" as const, id })), ...(item.nodeId ? [{ kind: "node" as const, id: item.nodeId }] : [])]
-      : "id" in item && !item.type.endsWith("analysis_case")
+      ? [...item.memberIds.map((id) => ({ kind: "member" as const, id })), ...("nodeId" in item && item.nodeId ? [{ kind: "node" as const, id: item.nodeId }] : [])]
+      : "id" in item && !item.type.endsWith("analysis_case") && !item.type.endsWith("section")
       ? [{ kind: item.type.endsWith("node") ? "node" as const : "member" as const, id: item.id }] : []),
   ];
 }
@@ -114,6 +116,16 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
       if (!same(impact(base), impact(current))) conflicts.push("合并目标、关联杆件或边界荷载已变化，请重读并重新确认合并影响");
       return operation;
     }
+    if (operation.type === "assign_section") {
+      if (!same(base.sections.find((s) => s.id === operation.id), current.sections.find((s) => s.id === operation.id))
+        || operation.memberIds.some((id) => !same(base.members.find((m) => m.id === id), current.members.find((m) => m.id === id)))) conflicts.push("Section assignment inputs changed");
+      return operation;
+    }
+    if (operation.type === "update_section" || operation.type === "duplicate_section") {
+      const impact = (p: FrameProject) => [p.sections.find((s) => s.id === operation.id), p.members.filter((m) => m.sectionId === operation.id)];
+      if (!same(impact(base), impact(current))) conflicts.push("Shared section or its member references changed; review again");
+      return operation;
+    }
     if ("memberIds" in operation) {
       const ids = new Set(operation.memberIds);
       const nodes = new Set(base.members.filter((member) => ids.has(member.id)).flatMap((member) => [member.startNodeId, member.endNodeId]));
@@ -140,7 +152,7 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   });
   // Deleting a node or member also removes its conditions and connected members.
   for (const change of draft.preview.changes.filter((item) => item.before && !item.after)) {
-    const collection = { node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases }[change.kind];
+    const collection = { section: current.sections, node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases }[change.kind];
     if (!same(change.before, collection.find((item) => item.id === change.id))) conflicts.push(`${change.id}：级联删除对象已变化`);
   }
   try {

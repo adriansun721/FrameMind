@@ -1,4 +1,5 @@
 import { unitPresentation } from "../domain/units";
+import { SECTION_DIMENSIONS, SECTION_SHAPES } from "../domain/section-geometry";
 import { getSelfWeightSummary } from "../domain/analysis";
 import { ANALYSIS_STAGE_LABELS } from "../domain/analysis-diagnostics";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
@@ -48,6 +49,9 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     tableCaption("截面参数"),
     table(["截面", "名称", `A (${u.unit("m²")})`, `Iy (${u.unit("m⁴")})`, `Iz (${u.unit("m⁴")})`, `J (${u.unit("m⁴")})`], input.sections.map((item) => [item.label, item.name, q(item.areaM2, "m²"), q(item.secondMomentYM4, "m⁴"), q(item.secondMomentZM4, "m⁴"), q(item.torsionalConstantM4, "m⁴")])),
     ...input.sections.map((item) => provenance(`${item.label} · ${item.id}`, item.provenance)),
+    ...input.sections.map((item) => paragraph(item.geometry
+      ? `${item.label} · ${SECTION_SHAPES[item.geometry.shape]}；${Object.entries(item.geometry).filter(([key]) => key !== "shape").map(([key, value]) => `${SECTION_DIMENSIONS[key as keyof typeof SECTION_DIMENSIONS]} = ${q(Number(value), "m")} ${u.unit("m")}`).join("；")}。${item.parameterBasis?.method}；${item.parameterBasis?.source}；${item.parameterBasis?.url}。${item.parameterBasis?.notes}`
+      : `${item.label}：几何未定义，仅保存力学属性。`)),
     tableCaption("节点坐标与稳定标识"),
     table(["节点", "ID", `X (${u.unit("m")})`, `Y (${u.unit("m")})`, `Z (${u.unit("m")})`], input.nodes.map((item) => [item.label, item.id, ...vector(item.position, "m")])),
     tableCaption("杆件连接、分配与截面朝向"),

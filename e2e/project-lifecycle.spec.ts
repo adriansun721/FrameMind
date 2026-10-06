@@ -101,6 +101,9 @@ test("creates, edits, displays, saves, and reopens a custom single member", asyn
   await page.getByText("截面 S1 · 箱形 300", { exact: true }).click();
   await page.getByLabel("面积 A").fill("0.012");
   await page.getByRole("button", { name: "保存截面属性" }).click();
+  const sectionReview = page.getByRole("dialog", { name: "参数化截面管理" });
+  await sectionReview.getByRole("button", { name: "预览截面影响" }).click();
+  await sectionReview.getByRole("button", { name: "确认截面变更" }).click();
   await page.getByText("M1", { exact: true }).click();
   await expect(page.getByText("5 m", { exact: true })).toBeVisible();
   await expect(page.getByTestId("viewport-member-details")).toContainText("E 210 GPa");

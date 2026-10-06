@@ -4,6 +4,8 @@ import { CopyPlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { MATERIAL_CATALOG, SECTION_CATALOG } from "../domain/resource-library";
 import { emptySharedResourceLibrary, loadSharedResourceLibrary, saveSharedResourceLibrary, type SharedResourceLibrary } from "../domain/shared-resource-library";
 import { validateMaterial, validateSection, type CatalogSource, type MaterialProperties, type SectionProperties } from "../domain/project";
+import { SECTION_SHAPES, SECTION_DIMENSIONS, SECTION_SHAPE_FIELDS, type SectionGeometry } from "../domain/section-geometry";
+import { SectionGeometryPreview } from "./SectionGeometryPreview";
 
 export type LibraryResource =
   | { kind: "material"; id: string; properties: MaterialProperties; catalogId?: string; source?: CatalogSource }
@@ -36,7 +38,7 @@ function materialProperties(item: MaterialProperties): MaterialProperties {
 }
 
 function sectionProperties(item: SectionProperties): SectionProperties {
-  return { name: item.name, areaM2: item.areaM2, secondMomentYM4: item.secondMomentYM4, secondMomentZM4: item.secondMomentZM4, torsionalConstantM4: item.torsionalConstantM4 };
+  return { name: item.name, areaM2: item.areaM2, secondMomentYM4: item.secondMomentYM4, secondMomentZM4: item.secondMomentZM4, torsionalConstantM4: item.torsionalConstantM4, ...(item.geometry ? { geometry: item.geometry, parameterBasis: item.parameterBasis } : {}) };
 }
 
 export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryResource): void }) {
@@ -46,6 +48,7 @@ export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryR
   const [kind, setKind] = useState<ResourceKind>("material");
   const [selectedId, setSelectedId] = useState<string>(MATERIAL_CATALOG[0].catalogId);
   const [editor, setEditor] = useState<{ id: string | null; draft: Draft } | null>(null);
+  const [shape, setShape] = useState<SectionGeometry["shape"] | "properties">("properties");
   const [error, setError] = useState<string | null>(initial.error);
   const label = kind === "material" ? "材料" : "截面";
   const entries: LibraryResource[] = kind === "material"
@@ -61,9 +64,12 @@ export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryR
     setError(null);
   };
   const beginEdit = (resource?: LibraryResource) => {
+    const geometry = resource?.kind === "section" ? resource.properties.geometry : undefined;
+    setShape(geometry?.shape ?? "properties");
     const values = resource ? Object.fromEntries(Object.entries(resource.properties).map(([key, value]) => [key, String(value)]))
       : { name: "", ...Object.fromEntries(FIELDS[kind].map((field) => [field.key, field.initial])) };
-    setEditor({ id: resource?.id ?? null, draft: values });
+    setEditor({ id: resource?.id ?? null, draft: { width: ".2", height: ".4", diameter: ".2", thickness: ".01", webThickness: ".01", flangeThickness: ".02",
+      ...values, ...Object.fromEntries(Object.entries(geometry ?? {}).filter(([, v]) => typeof v === "number").map(([k, v]) => [k, String(v)])) } });
     setError(initial.error);
   };
   const submit = (event: React.FormEvent) => {
@@ -80,7 +86,9 @@ export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryR
         const item = { libraryId, ...validateMaterial("资源库", { name: editor.draft.name, elasticModulusGPa: numeric("elasticModulusGPa"), poissonRatio: numeric("poissonRatio"), densityKgM3: numeric("densityKgM3") }) };
         persist({ ...library, materials: [...library.materials.filter((entry) => entry.libraryId !== libraryId), item] });
       } else {
-        const item = { libraryId, ...validateSection("资源库", { name: editor.draft.name, areaM2: numeric("areaM2"), secondMomentYM4: numeric("secondMomentYM4"), secondMomentZM4: numeric("secondMomentZM4"), torsionalConstantM4: numeric("torsionalConstantM4") }) };
+        const input = shape === "properties" ? { name: editor.draft.name, areaM2: numeric("areaM2"), secondMomentYM4: numeric("secondMomentYM4"), secondMomentZM4: numeric("secondMomentZM4"), torsionalConstantM4: numeric("torsionalConstantM4") }
+          : { name: editor.draft.name, geometry: { shape, ...Object.fromEntries(SECTION_SHAPE_FIELDS[shape].map((key) => [key, numeric(key)])) } as SectionGeometry };
+        const item = { libraryId, ...validateSection("资源库", input) };
         persist({ ...library, sections: [...library.sections.filter((entry) => entry.libraryId !== libraryId), item] });
       }
       setSelectedId(libraryId);
@@ -116,11 +124,13 @@ export function ResourceLibraryPanel({ onImport }: { onImport(resource: LibraryR
       {editor ? <form className="library-editor" aria-label={`自定义${label}`} onSubmit={submit}>
         <div className="library-detail-heading"><strong>{editor.id ? "编辑" : "新增"}自定义{label}</strong><button type="button" className="icon-button" title="取消编辑" aria-label="取消编辑" onClick={() => { setEditor(null); setError(initial.error); }}><X size={15} /></button></div>
         <label className="field"><span>{label}名称</span><input aria-label={`${label}名称`} value={editor.draft.name} onChange={(event) => setEditor({ ...editor, draft: { ...editor.draft, name: event.target.value } })} required /></label>
-        {FIELDS[kind].map((field) => <label className="field" key={field.key}><span>{field.label}</span><div><UnitInput aria-label={field.label} value={editor.draft[field.key]} unit={u.unit(field.unit)} onValueChange={(value) => setEditor({ ...editor, draft: { ...editor.draft, [field.key]: value } })} required /><em>{u.unit(field.unit)}</em></div></label>)}
+        {kind === "section" && <label className="field"><span>截面形状</span><select aria-label="资源库截面形状" value={shape} onChange={(e) => setShape(e.target.value as typeof shape)}><option value="properties">仅力学属性</option>{Object.entries(SECTION_SHAPES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>}
+        {(kind === "section" && shape !== "properties" ? SECTION_SHAPE_FIELDS[shape].map((key) => ({ key, label: SECTION_DIMENSIONS[key], unit: "m", initial: "" })) : FIELDS[kind]).map((field) => <label className="field" key={field.key}><span>{field.label}</span><div><UnitInput aria-label={field.label} value={editor.draft[field.key]} unit={field.unit} onValueChange={(value) => setEditor({ ...editor, draft: { ...editor.draft, [field.key]: value } })} required /><em>{u.unit(field.unit)}</em></div></label>)}
         <button type="submit" className="button primary"><Save size={14} />保存到资源库</button>
       </form> : selected && <section className="library-details" aria-label={`${label}详情`}>
         <div className="library-detail-heading"><strong>{selected.properties.name}</strong>{!selected.catalogId && <div className="library-actions"><button className="icon-button" title={`编辑自定义${label}`} aria-label={`编辑自定义${label}`} disabled={!!initial.error} onClick={() => beginEdit(selected)}><Pencil size={14} /></button><button className="icon-button" title={`删除自定义${label}`} aria-label={`删除自定义${label}`} disabled={!!initial.error} onClick={remove}><Trash2 size={14} /></button></div>}</div>
         <dl>{FIELDS[kind].map((field) => <div key={field.key}><dt>{field.label}</dt><dd>{u.number(Number(Object.entries(selected.properties).find(([key]) => key === field.key)?.[1]), field.unit)} <span>{u.unit(field.unit)}</span></dd></div>)}</dl>
+        {selected.kind === "section" && <SectionGeometryPreview geometry={selected.properties.geometry} />}
         {selected.source && <div className="library-source"><span>{selected.source.publisher}</span><span>{selected.source.edition}</span><a href={selected.source.url} target="_blank" rel="noreferrer">来源文档</a></div>}
         <button className="button" onClick={() => onImport(selected)}><CopyPlus size={14} />加入当前项目</button>
       </section>}

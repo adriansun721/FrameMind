@@ -1,3 +1,4 @@
+import { SectionEditImpact } from "./SectionEditImpact";
 import { useUnits } from "./UnitPresentation";
 import { TopologyImpact } from "./TopologyImpact";
 import { NodeMergeImpact } from "./NodeMergeImpact";
@@ -566,7 +567,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   }
 
   return <aside id="assistant-panel" className="assistant-panel" aria-label="AI 对话" hidden={!open}>
-    <div className="panel-heading"><span>Frame</span><div className="ai-heading-actions">
+    <div className="panel-heading"><span>Framer</span><div className="ai-heading-actions">
          <button className="icon-button" aria-label="历史对话" title="历史对话" aria-pressed={showHome} disabled={busy || analysisBusy || Boolean(taskDraft)} onClick={() => setShowHome((value) => !value)}><History size={15} /></button>
       <button className="icon-button" aria-label="新建对话" title="新建对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(taskDraft)} onClick={newConversation}><SquarePen size={15} /></button>
       {busy && <button className="icon-button" aria-label="取消对话" title="结束本次对话请求" onClick={() => { taskRef.current?.cancel(); setCalculationRequested(false); continuationRef.current = null; }}><X size={14} /></button>}
@@ -653,6 +654,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
         </dl>
         <p className="frame-draft-notice">草案仅来自当前项目修订 R{modelEdits.baseRevision}；确认后形成一个可撤销的整体历史项。节点删除会级联其支座、节点荷载、关联杆件及均布荷载。</p>
         <details className="proposal-details"><summary>查看逐项变化</summary><p>坐标 {units.unit("m")} · 截面转角 {units.unit("°")}</p><ol>{modelEdits.preview.changes.map((change) => <li key={`${change.kind}:${change.id}`}><span>{change.kind} · {change.id}</span><code>{editPreviewText(change.before ?? null)} -&gt; {editPreviewText(change.after ?? null)}</code></li>)}</ol></details>
+        {(modelEdits.preview.changes.some((c) => c.kind === "section") || modelEdits.operations.some((o) => o.type === "assign_section")) && <SectionEditImpact project={modelEditsSource} receipt={modelEdits.preview} />}
         {modelEdits.preview.topology && <TopologyImpact receipts={modelEdits.preview.topology} />}
         {modelEdits.preview.nodeMerges?.map((impact, index) => <NodeMergeImpact key={index} impact={impact} />)}
         {!modelEditsCurrent && <p className="frame-draft-notice">正式模型已变化，请重新生成草案。</p>}

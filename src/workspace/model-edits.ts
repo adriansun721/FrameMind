@@ -1,3 +1,4 @@
+import { validateSection, type SectionInput } from "../domain/project";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
 import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
 import { prepareDrawnMemberEdits, type DrawingPoint } from "../domain/work-plane";
@@ -48,8 +49,22 @@ function memberProperties(value: unknown, partial: boolean) {
 export function parseProjectEditOperations(value: unknown): ProjectEditOperation[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 100) throw new Error("operations 必须包含 1 至 100 项基础编辑");
   return value.map((value) => {
-    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution"]);
+    const input = object(value, ["type", "id", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution"]);
     switch (input.type) {
+      case "create_section": case "update_section": {
+        object(input, input.type === "create_section" ? ["type", "properties"] : ["type", "id", "properties"]);
+        const properties = object(input.properties, ["name", "geometry", "areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"]);
+        if (typeof properties.name !== "string") throw new Error("Section name required");
+        const validated = validateSection("draft", properties as unknown as SectionInput);
+        return { type: input.type, ...(input.type === "update_section" ? { id: identity(input.id) as SectionId } : {}), properties: validated.geometry ? { name: validated.name, geometry: validated.geometry } : properties as unknown as SectionInput } as ProjectEditOperation;
+      }
+      case "duplicate_section": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) as SectionId };
+      case "assign_section": {
+        object(input, ["type", "id", "memberIds", "rotationDegrees"]);
+        if (!Array.isArray(input.memberIds) || !input.memberIds.length || input.memberIds.length > 100 || (input.rotationDegrees !== undefined && (typeof input.rotationDegrees !== "number" || !Number.isFinite(input.rotationDegrees)))) throw new Error("Invalid section assignment targets or angle");
+        return { type: input.type, id: identity(input.id) as SectionId, memberIds: input.memberIds.map((id) => identity(id) as MemberId),
+          ...(input.rotationDegrees !== undefined ? { rotationDegrees: input.rotationDegrees as number } : {}) };
+      }
       case "merge_nodes": {
         object(input, ["type", "nodeIds", "targetNodeId", "tolerance", "resolution"]);
         const ids = (value: unknown) => { if (!Array.isArray(value)) throw new Error("冲突处理必须明确提供身份数组"); return value.map(identity); };
@@ -168,6 +183,7 @@ export class ModelEditConfirmation {
       if (JSON.stringify(reviewedEngineeringReceipt(outcome.receipt)) !== JSON.stringify(reviewedEngineeringReceipt(draft.preview))) return failed("草案内容与预览不一致，请重新核对");
       const snapshot = captureAiSnapshot(outcome.project, []);
       const collections = {
+        section: outcome.project.sections,
         node: outcome.project.nodes,
         member: outcome.project.members,
         support: outcome.project.supports,

@@ -44,7 +44,8 @@
     "package:win:native-candidate": "npm run build:native && npm run build && electron-builder --config electron-builder.native.yml --win nsis --x64 --publish never",
     "evidence:t34": "node scripts/verify-t34-install.cjs",
     "evidence:t34:online": "node scripts/verify-t34-install.cjs --online",
-    "delivery:t34": "node scripts/create-t34-delivery.cjs"
+    "delivery:t34": "node scripts/create-t34-delivery.cjs",
+    "evidence:plan2:t222": "npm run build:native && npm run build && node scripts/verify-plan2-t222.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-22-sections.spec.ts"
   },
   "dependencies": {
     "docx": "^9.7.1",

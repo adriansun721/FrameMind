@@ -1,0 +1,18 @@
+﻿{
+    "baseline":  "f8fdb3e",
+    "date":  "2026-10-06",
+    "tested":  3,
+    "failed":  2,
+    "passed":  1,
+    "taskChangesPresent":  false,
+    "failures":  [
+                     {
+                         "test":  "t26-section-comparison-T26-a549d-fixed-comparison-after-undo",
+                         "errorExcerpt":  "\n```\nTimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole(\u0027region\u0027, { name: \u0027选柱截面修改方案\u0027 }).getByRole(\u0027button\u0027, { name: \u0027详情\u0027, exact: true })\n\n```\n\n# Test source\n\n```ts\n  1  | import { expect, type Locator, type Page } from \"@playwright/test\";\n  2  | \n  3  | export const proposalDrawer = (page: Page) =\u003e page.locator(\".proposal-drawer\");\n  4  | export async function closeProposalDrawer(page: Page) {\n  5  |   const drawer = proposalDrawer(page);\n  6  |   if (await drawer.count()) await drawer.getByRole(\"button\", { name: /^(关闭详情|关闭编辑侧栏)$/ }).click();\n  7  | }\n  8  | export async function openProposalView(page: Page, card: Locator, view: \"edit\" | \"details\" | \"actions\") {\n  9  |   const drawer = proposalDrawer(page);"
+                     },
+                     {
+                         "test":  "t26-section-comparison-T26-abb8c--modifying-the-shared-model",
+                         "errorExcerpt":  "\n```\nError: expect(locator).toContainText(expected) failed\n\nLocator: locator(\u0027.proposal-drawer\u0027)\nExpected substring: \"0.01 → 0.03\"\nReceived string:    \"修改柱截面方案详情用户提供 · 1 根柱 · 输入 R15仅重新指定下列柱的截面，共享截面保持原参数。全部 2 根杆件的响应将在重算后更新。M1 · member_0001原截面 → 加大截面A (m²)0.01 m² → 0.03 m²Iy (m⁴)0.0001 m⁴ → 0.0002 m⁴Iz (m⁴)0.0001 m⁴ → 0.0002 m⁴J (m⁴)0.0001 m⁴ → 0.0002 m⁴自重已启用 · LC1。新面积同时改变质量和重算荷载，前后差异包含自重影响。\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toContainText\" locator(\u0027.proposal-drawer\u0027) with timeout 5000ms\n  - waiting for locator(\u0027.proposal-drawer\u0027)\n    14 × locator resolved to \u003caside role=\"dialog\" aria-modal=\"false\" aria-label=\"修改柱截面 · 详情\" class=\"proposal-drawer frame-proposal-card\"\u003e…\u003c/aside\u003e\n       - unexpected value \"修改柱截面方案详情用户提供 · 1 根柱 · 输入 R15仅重新指定下列柱的截面，共享截面保持原参数。全部 2 根杆件的响应将在重算后更新。M1 · member_0001原截面 → 加大截面A (m²)0.01 m² → 0.03 m²Iy (m⁴)0.0001 m⁴ → 0.0002 m⁴Iz (m⁴)0.0001 m⁴ → 0.0002 m⁴J (m⁴)0.0001 m⁴ → 0.0002 m⁴自重已启用 · LC1。新面积同时改变质量和重算荷载，前后差异包含自重影响。\"\n\n```\n\n```yaml\n- dialog \"修改柱截面 · 详情\":\n  - banner:"
+                     }
+                 ]
+}

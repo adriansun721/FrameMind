@@ -589,6 +589,15 @@ button { color: inherit; }
 .node-dialog form { margin: 0; }
 .dialog-form { padding: var(--space-6) var(--space-7) var(--space-7); }
 .wide-dialog { width: min(680px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+.section-geometry-preview { padding: 10px 0; font-size: var(--text-body); }
+.section-geometry-preview svg { display: block; width: 160px; height: 160px; max-width: 100%; margin: auto; }
+.section-geometry-preview p { margin: 6px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.section-geometry-preview a { color: var(--text-primary); text-decoration: underline; }
+.section-editor details { margin: 10px 0; }
+.section-editor > header { position: sticky; top: 0; z-index: 2; background: var(--surface-panel); }
+.section-editor [aria-label="截面影响预览"] dl > div { display: grid; grid-template-columns: 100px 1fr; gap: 12px; padding: 4px 0; }
+.section-editor [aria-label="截面影响预览"] dd { margin: 0; font-variant-numeric: tabular-nums; }
+.section-editor .dialog-actions { position: sticky; bottom: 0; background: var(--surface-panel); }
 .topology-form .field select.topology-member-select { height: 96px; }
 .topology-form p, .topology-form small, .topology-impact { font-size: var(--text-caption); line-height: 1.6; overflow-wrap: anywhere; }
 .topology-preview { margin: var(--space-3) 0; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); background: var(--surface-panel-muted); }

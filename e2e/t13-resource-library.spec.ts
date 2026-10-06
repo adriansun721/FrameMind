@@ -29,6 +29,9 @@ test("T13 selects traceable catalog resources and preserves a custom derivative"
   await expect(properties).toContainText("Saint-Venant 扭转常数");
   await properties.getByLabel("面积 A").fill("0.003");
   await properties.getByRole("button", { name: "保存截面属性" }).click();
+  const review = page.getByRole("dialog", { name: "参数化截面管理" });
+  await review.getByRole("button", { name: "预览截面影响" }).click();
+  await review.getByRole("button", { name: "确认截面变更" }).click();
   await expect(properties).toContainText("自定义参数（由库条目修改）");
 
   await page.getByRole("button", { name: "文件" }).click();

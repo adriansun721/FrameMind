@@ -13,19 +13,24 @@ async function replay(app: ElectronApplication) {
       const request = JSON.parse(String(init?.body));
       const prompt = request.messages.filter((message: { role: string }) => message.role === "user").at(-1).content;
       const comparison = prompt.includes("重算已完成") || prompt.startsWith("解释前后");
+      const lastUserIndex = request.messages.findLastIndex((message: { role: string }) => message.role === "user");
+      const answered = request.messages.slice(lastUserIndex + 1).some((message: { role: string }) => message.role === "tool");
       const tool = (name: string, args: unknown, id: string) => ({ id, type: "function", function: { name, arguments: JSON.stringify(args) } });
       const message = comparison ? request.messages.some((message: { role: string }) => message.role === "tool")
         ? { role: "assistant", content: "计算事实：[[comparison:t26-node]]，[[comparison:t26-reaction]]。原因推断：截面刚度与面积产生的自重同时变化，需结合冻结输入；线弹性结果不提供安全或规范合格结论。" }
         : { role: "assistant", content: null, tool_calls: [tool("read_comparison", { collection: "summary" }, "t26-summary"),
           tool("read_comparison_result", { kind: "node", id: "node_0002", quantity: "displacement", component: "x" }, "t26-node"),
           tool("read_comparison_result", { kind: "node", id: "node_0001", quantity: "reaction", component: "z" }, "t26-reaction")] }
-        : { role: "assistant", content: null, tool_calls: [tool("propose_section_change", { sectionId: "section_0002", source: "user" }, "t26-section")] };
+        : answered ? { role: "assistant", content: "请先选择柱；已存在截面方案时核对后确认。" }
+          : { role: "assistant", content: null, tool_calls: [tool("propose_section_change", { sectionId: "section_0002", source: "user" }, "t26-section")] };
       return new Response(JSON.stringify({ choices: [{ message }] }));
     };
   });
 }
 async function send(page: Page, prompt: string) {
+  const count = await page.getByTestId("ai-turn-status").count();
   await page.getByLabel("AI 消息草稿").fill(prompt); await page.getByRole("button", { name: "发送消息", exact: true }).click();
+  await expect(page.getByTestId("ai-turn-status")).toHaveCount(count + 1);
 }
 async function openExample(page: Page, path: string) {
   const p = columns(); await writeFile(path, encodeProject(p), "utf8");
@@ -46,7 +51,7 @@ test("T26 confirms selected column sections, automatically recomputes self weigh
     const card = page.getByRole("region", { name: "选柱截面修改方案" });
     await openProposalView(page, card, "details");
     await expect(proposalDrawer(page)).toContainText("member_0001"); await expect(proposalDrawer(page)).not.toContainText("member_0002");
-    await expect(proposalDrawer(page)).toContainText("0.01 → 0.02");
+    await expect(proposalDrawer(page)).toContainText("0.01 m² → 0.02 m²");
     await closeProposalDrawer(page);
     await expect(page.getByLabel("未应用三维方案")).toHaveCount(0);
     expect((await save(page, path)).members).toEqual(before.members);
@@ -131,7 +136,7 @@ test("T26 preserves submitted selections and supports card edits and rejection w
     await openProposalView(page, card, "edit");
     await proposalDrawer(page).getByRole("button", { name: "更新预览", exact: true }).click();
     await openProposalView(page, card, "details");
-    await expect(proposalDrawer(page)).toContainText("0.01 → 0.03");
+    await expect(proposalDrawer(page)).toContainText("0.01 m² → 0.03 m²");
     await openProposalView(page, card, "actions");
     await proposalDrawer(page).getByRole("button", { name: "拒绝截面方案", exact: true }).click();
     await expect(card).toHaveCount(0); expect((await save(page, path)).members).toEqual(before.members);

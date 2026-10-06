@@ -1,6 +1,7 @@
 import { CANONICAL_UNITS, convertQuantity, requireUnitPreset, UNIT_CONTRACT, unitDimension, unitPresentation, type QuantityDimension, type UnitPresetId } from "../domain/units";
 
 const FIELD_DIMENSIONS: Record<string, QuantityDimension> = {
+  width: "length", height: "length", diameter: "length", thickness: "length", webThickness: "length", flangeThickness: "length",
   position: "length", endPosition: "length", origin: "length", xSpans: "length", ySpans: "length", storeyHeights: "length", length: "length", tolerance: "length", distance: "length", targetPosition: "length",
   displacement: "length", displacementDelta: "length", rotation: "rotation", rotationDelta: "rotation", rotationDegrees: "orientation",
   force: "force", reaction: "force", reactionDelta: "force", totalForce: "force", totalWeightKN: "force", weightKN: "force", globalForce: "force", massKg: "mass", area: "area",
@@ -23,7 +24,7 @@ export function convertToolQuantities(value: unknown, convert: (n: number, dimen
   const record = value as Record<string, unknown>;
   const result: Record<string, unknown> = {};
   for (const [key, child] of Object.entries(record)) {
-    if (["assumptions", "solver", "service", "provenance", "basis", "process"].includes(key)) { result[key] = child; continue; }
+    if (["assumptions", "solver", "service", "provenance", "parameterBasis", "basis", "process"].includes(key)) { result[key] = child; continue; }
     if (["localEndForces", "startEndForces", "endEndForces", "startDelta", "endDelta"].includes(key)) {
       const forces = (v: unknown): unknown => Array.isArray(v) ? v.map((n, i) => typeof n === "number" ? convert(n, i % 6 < 3 ? "force" : "moment") : n)
         : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, a]) => [k, forces(a)])) : v;
@@ -69,7 +70,7 @@ export function presentToolData(data: unknown, preset: UnitPresetId): unknown {
   const converted = convertToolQuantities(data, (v, d) => u.value(v, CANONICAL_UNITS[d]));
   const labels = (value: unknown): unknown => Array.isArray(value) ? value.map(labels) : value && typeof value === "object"
     ? Object.fromEntries(Object.entries(value).map(([key, child]) => [key,
-      ["assumptions", "solver", "service", "provenance", "basis", "process"].includes(key) ? child
+      ["assumptions", "solver", "service", "provenance", "parameterBasis", "basis", "process"].includes(key) ? child
         : (key === "unit" || key === "units") && typeof child === "string" && Object.values(CANONICAL_UNITS).includes(child as never) ? u.unit(child)
           : key === "units" && child && typeof child === "object" ? Object.fromEntries(Object.entries(child).map(([k, v]) => [k, typeof v === "string" && Object.values(CANONICAL_UNITS).includes(v as never) ? u.unit(v) : v])) : labels(child)])) : value;
   const presented = labels(converted);
