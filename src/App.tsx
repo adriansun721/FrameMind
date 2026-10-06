@@ -1,3 +1,4 @@
+import { indeterminateRotationComponents } from "./domain/member-releases";
 import { MemberReleaseFields } from "./components/MemberReleaseFields";
 import { ParametricSectionEditor } from "./components/ParametricSectionEditor";
 import { SectionBasisView } from "./components/SectionBasisView";
@@ -949,7 +950,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
     </section>
     {view === "model" && <>
       <section className="property-section"><h3>节点结果 · 位移、转动与支座反力</h3><PagedItems items={result.nodes} label="节点结果">{(nodes) => <div className="analysis-table">{nodes.map((node) => { const sourceNode = result.input.nodes.find((item) => item.id === node.nodeId); return <div className="analysis-row result-select-row" key={node.nodeId} role="button" tabIndex={0} onClick={() => sourceNode && onSelect({ kind: "node", id: sourceNode.id })} onKeyDown={(event) => { if (event.key === "Enter") sourceNode && onSelect({ kind: "node", id: sourceNode.id }); }}>
-        <strong>{sourceNode?.label ?? node.nodeId}</strong>
+        <strong>{sourceNode?.label ?? node.nodeId}</strong>{indeterminateRotationComponents(result, node.nodeId).length > 0 && <span>转角 {indeterminateRotationComponents(result, node.nodeId).join(" / ")} 含脱开方向，仅显示坐标参考值；梁端转角见杆件恢复。</span>}
         <span title={`${u.vector(node.displacement, "m", 10)}`}>位移 {u.vector(node.displacement, "m")}</span><span title={`${u.vector(node.rotation, "rad", 10)}`}>转角 {u.vector(node.rotation, "rad")}</span><span title={`${u.vector(node.reaction, "kN", 10)}`}>反力 {u.vector(node.reaction, "kN")}</span><span title={`${u.vector(node.reactionMoment, "kN·m", 10)}`}>反力矩 {u.vector(node.reactionMoment, "kN·m")}</span>
       </div>; })}</div>}</PagedItems></section>
       <section className="property-section"><h3>杆端内力（局部轴）</h3><PagedItems items={result.members} label="杆端内力">{(members) => <div className="analysis-table">{members.map((member) => { const sourceMember = result.input.members.find((item) => item.id === member.memberId); return <div className="analysis-row result-select-row" key={member.memberId} role="button" tabIndex={0} onClick={() => sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 })} onKeyDown={(event) => { if (event.key === "Enter") sourceMember && onSelect({ kind: "member", id: sourceMember.id }, { memberId: sourceMember.id, position: 0 }); }}>

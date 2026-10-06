@@ -25,3 +25,8 @@ export function hasMemberReleases(member: { endReleases?: MemberEndReleases }): 
 export function releaseLabel(end?: BendingRelease): string {
   return end?.my && end.mz ? "释放 My、Mz" : end?.my ? "释放 My" : end?.mz ? "释放 Mz" : "刚接";
 }
+
+/** Disconnected node rotation components are coordinate references, not responses. */
+export function indeterminateRotationComponents(result: { process?: { releaseNullRotations?: Array<{ nodeId: string; direction: { x: number; y: number; z: number } }> } }, nodeId: string) {
+  return (["x", "y", "z"] as const).filter((axis) => result.process?.releaseNullRotations?.some((record) => record.nodeId === nodeId && Math.abs(record.direction[axis]) > 1e-9));
+}

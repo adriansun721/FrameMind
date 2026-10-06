@@ -38,6 +38,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     paragraph(`显示单位：坐标与长度 ${u.unit("m")}；力 ${u.unit("kN")}；力矩 ${u.unit("kN·m")}；位移 ${u.unit("m")}；转角 ${u.unit("rad")}；均布荷载 ${u.unit("kN/m")}；E ${u.unit("GPa")}；密度 ${u.unit("kg/m³")}；面积 ${u.unit("m²")}；Iy、Iz、J ${u.unit("m⁴")}。内部规范单位及冻结数值未改变。`),
     image(figures.model, `冻结输入模型 ${source}`),
     paragraph("图 1 冻结输入模型。全局 +X、+Y、+Z 方向见图，杆件连接和支座自由度以正文表为准。大模型省略对象标签，稳定 ID 见表。"),
+    ...(result.process?.releaseNullRotations?.length ? [paragraph("节点脱开方向的转角不可确定，节点结果表中相关数值只是坐标参考，不是物理转角。已释放梁端转角由原生恢复记录给出。")] : []),
     heading("2 理论假设与适用边界"),
     paragraph("空间 Euler–Bernoulli 直杆单元，每节点 ux、uy、uz、rx、ry、rz 六个自由度。线弹性、小变形，未释放分量为刚接，忽略剪切变形；支座采用零位移自由度约束。"),
     paragraph("分析不包含几何非线性、材料非线性、屈曲、动力响应、截面强度或规范符合性验算。本报告给出分析响应，不据此判定结构满足设计规范。用户定义组合系数为输入值。"),

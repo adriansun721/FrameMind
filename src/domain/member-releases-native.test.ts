@@ -10,6 +10,7 @@ import { decodeAnalysisResult, decodeProject, encodeProject } from "./project-fi
 import { applyProjectEdits } from "./project-operations";
 import { captureEngineeringReport } from "./engineering-report";
 import { buildReportPdfHtml } from "../workspace/report-pdf";
+import { readResult, readResults } from "../workspace/ai-results";
 
 function nativePacket(p: ReturnType<typeof releasedBeam>) {
   const input = captureAnalysisInput(p);
@@ -52,6 +53,8 @@ it("recovers the actual released beam-end slopes and exact simply-supported UDL 
   expect(getMemberResponseSamples(r, r.members[0].memberId, 33)[16].localDisplacement.z).toBeCloseTo(-5 * 2 * 4 ** 4 / (384 * ei), 12);
   const malformed = structuredClone(r); malformed.process!.releaseNullRotations![0].direction = { x: 1, y: 0, z: 0 };
   expect(() => decodeAnalysisResult(malformed)).toThrow();
+  expect(() => readResult(r, true, { kind: "node", id: p.nodes[0].id, quantity: "rotation", component: "y" }, "undefined-rotation")).toThrow();
+  expect(JSON.stringify(readResults(r, true, { collection: "nodes", fields: ["rotation.y"] }))).toContain("undetermined");
 });
 
 it("keeps rotated local release directions independent of global support rotations", () => {

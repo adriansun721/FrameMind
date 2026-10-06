@@ -1,4 +1,5 @@
 import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
+import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
 import type { Vector3 } from "../domain/project";
 
@@ -93,7 +94,9 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
         total: { supports: result.input.supports.length, nodalLoads: result.input.nodalLoads.length, uniformLoads: result.input.uniformLoads?.length ?? 0 },
         limit, scope: "冻结输入的有效条件；组合荷载已按用户系数加权。仅展示各类前limit项，不是完整大模型荷载清单。" } };
   }
-  const items = collection === "nodes" ? result.nodes.map((node) => ({ ...node, object: result.input.nodes.find((item) => item.id === node.nodeId),
+  const items = collection === "nodes" ? result.nodes.map((node) => ({ ...node,
+    rotation: Object.fromEntries(Object.entries(node.rotation).map(([axis, value]) => [axis, indeterminateRotationComponents(result, node.nodeId).includes(axis as "x" | "y" | "z") ? null : value])),
+    object: result.input.nodes.find((item) => item.id === node.nodeId),
     units: { displacement: "m", rotation: "rad", reaction: "kN", reactionMoment: "kN·m" }, coordinateSystem: "global XYZ" }))
     : result.members.map((member) => ({ ...member, object: result.input.members.find((item) => item.id === member.memberId),
       components: ANALYSIS_FORCE_COMPONENTS, signConvention: "杆端节点作用力；截面正局部 x 面内力由 read_result sectionForces 获取" }));
@@ -101,6 +104,7 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
   const filtered = filterResults(items, input.fields, input.query);
   const pageItems = filtered.slice(offset, offset + limit);
   return { ...provenance, collection, total: filtered.length, offset, limit, items: pageItems, query: input.query, fields: input.fields,
+    ...(collection === "nodes" && result.process?.releaseNullRotations?.length ? { rotationMeaning: "null = undetermined disconnected node rotation; solver coordinates are reference values. Beam-end slopes are recovered separately." } : {}),
     page: { empty: pageItems.length === 0, hasMore: offset + pageItems.length < filtered.length, nextOffset: offset + pageItems.length } };
 }
 
@@ -116,6 +120,7 @@ export function readResult(result: AnalysisResult, current: boolean, input: Reco
     const response = result.nodes.find((item) => item.nodeId === input.id);
     if (!node || !response) throw new Error("本次分析无此节点");
     if (component !== "x" && component !== "y" && component !== "z") throw new Error("节点分量须为全局 x、y、z");
+    if (quantity === "rotation" && indeterminateRotationComponents(result, node.id).includes(component)) throw new Error("该节点转角分量含完全脱开的转动方向，数值只是坐标参考，不能作为真实响应引用；梁端转角见原生杆件恢复记录");
     const quantities = { displacement: { vector: response.displacement, unit: "m" }, rotation: { vector: response.rotation, unit: "rad" },
       reaction: { vector: response.reaction, unit: "kN" }, reactionMoment: { vector: response.reactionMoment, unit: "kN·m" } };
     if (!Object.hasOwn(quantities, quantity)) throw new Error("无效节点结果类型");
