@@ -1,4 +1,5 @@
 import { hasMemberReleases } from "./member-releases";
+import { selectedMeshLevel, type MeshPlan, type DiscretizationRecord } from "./analysis-mesh";
 import { calculateMemberGeometry, type MemberGeometry } from "./member-geometry";
 import { AnalysisFailure, checkAnalysisInput, type AnalysisStage } from "./analysis-diagnostics";
 import { memberUniformIntensity, uniformEquivalentForces } from "./uniform-loads";
@@ -39,9 +40,10 @@ export const NATIVE_ANALYSIS_SOLVER: Readonly<AnalysisSolverConfig> = Object.fre
 export const NATIVE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...ANALYSIS_SOLVER, implementation: "framemind-native/2", algorithm: "sparse-ldlt" });
 
 export const NATIVE_RELEASE_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/3" });
+export const NATIVE_MESH_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/4" });
 
 export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
-  return sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER);
+  return sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
 }
 
 export interface AnalysisAssumptions {
@@ -53,6 +55,7 @@ export interface AnalysisAssumptions {
 }
 
 export interface AnalysisInputSnapshot {
+  meshPlan?: MeshPlan;
   projectId: string;
   projectRevision: number;
   dofOrder: readonly AnalysisDof[];
@@ -109,6 +112,7 @@ export interface NativeReleaseRecovery {
 }
 
 export interface AnalysisResult {
+  discretization?: DiscretizationRecord;
   id: string;
   projectId: string;
   projectRevision: number;
@@ -604,13 +608,13 @@ export function getSelfWeightSummary(source: FrameProject | AnalysisInputSnapsho
 }
 
 function requireCurrentSolver(solver: AnalysisSolverConfig | undefined): void {
-  if (sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER)) return;
+  if (sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER)) return;
   if (!solver || ![ANALYSIS_SOLVER.implementation, NATIVE_ANALYSIS_SOLVER.implementation, "framemind-frame/2"].includes(solver.implementation) || solver.algorithm !== ANALYSIS_SOLVER.algorithm || solver.constraints !== ANALYSIS_SOLVER.constraints || solver.relativePivotTolerance !== ANALYSIS_SOLVER.relativePivotTolerance) throw new Error("该分析的求解器版本或配置不支持数值过程重建");
 }
 
 function requireLoadRecoveryVersion(input: AnalysisInputSnapshot): void {
   requireCurrentSolver(input.solver);
-  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation && !sameInputValue(input.solver, NATIVE_STATIC_SOLVER) && !sameInputValue(input.solver, NATIVE_RELEASE_STATIC_SOLVER)) throw new Error("该分析的求解器版本不支持分布荷载恢复");
+  if ((input.uniformLoads?.length || input.selfWeight?.enabled) && input.solver?.implementation !== ANALYSIS_SOLVER.implementation && !isNativeSolver(input.solver)) throw new Error("该分析的求解器版本不支持分布荷载恢复");
 }
 
 export interface MemberSectionForces {
@@ -647,6 +651,26 @@ export function getMemberResponseSamples(result: AnalysisResult, memberId: strin
   if (!Number.isInteger(stationCount) || stationCount < 2 || stationCount > 101) throw new Error("沿杆采样数量必须在 2 到 101 之间");
   const captured = result.members.find((member) => member.memberId === memberId)?.nativeResponses;
   if (captured && stationCount === captured.length) return structuredClone(captured).map((sample) => ({ ...sample, analysisId: result.id, memberId }));
+  const member = result.members.find((m) => m.memberId === memberId);
+  if (!member) throw new Error(`本次分析没有杆件 ${memberId}`);
+  return memberResponsesAt(result, memberId, Array.from({ length: stationCount }, (_, i) => member.length * i / (stationCount - 1)));
+}
+
+export function memberResponsesAt(result: AnalysisResult, memberId: string, positions: number[]): MemberResponseSample[] {
+  const level = selectedMeshLevel(result);
+  if (level && result.discretization) {
+    const run = result.discretization.runs.at(-1)!.result;
+    const elements = level.elements.filter((e) => e.memberId === memberId);
+    if (!elements.length) throw new Error(`本次分析没有杆件 ${memberId}`);
+    return positions.map((position) => {
+      if (!Number.isFinite(position) || position < 0 || position > elements.at(-1)!.end) throw new Error("沿杆位置超出工程杆长");
+      const element = elements.find((e) => position <= e.end) ?? elements.at(-1)!;
+      const length = run.members.find((m) => m.memberId === element.elementId)!.length;
+      const local = Math.max(0, Math.min(length, position - element.start));
+      const sample = memberResponsesAt(run, element.elementId, [local])[0];
+      return { ...sample, analysisId: result.id, memberId, position };
+    });
+  }
   const record = getMemberAnalysisRecord(result, memberId);
   const start = record.localDisplacement.slice(0, 6);
   const end = record.localDisplacement.slice(6, 12);
@@ -659,12 +683,11 @@ export function getMemberResponseSamples(result: AnalysisResult, memberId: strin
   const original = record.releaseRecovery?.originalLocalStiffness ?? localStiffness(geometry.length,
         result.input.materials.find((m) => m.id === result.input.members.find((m) => m.id === memberId)!.materialId)!,
         result.input.sections.find((s) => s.id === result.input.members.find((m) => m.id === memberId)!.sectionId)!);
-  return Array.from({ length: stationCount }, (_, index) => {
-    const position = geometry.length * index / (stationCount - 1);
+  return positions.map((position) => {
     const shape = hermite(position, geometry.length);
     let localY = shape.valueStart * start[1] + shape.slopeStart * start[5] + shape.valueEnd * end[1] + shape.slopeEnd * end[5];
     let localZ = shape.valueStart * start[2] - shape.slopeStart * start[4] + shape.valueEnd * end[2] - shape.slopeEnd * end[4];
-    let localX = start[0] + (end[0] - start[0]) * index / (stationCount - 1);
+    let localX = start[0] + (end[0] - start[0]) * position / geometry.length;
     if (sameInputValue(result.input.solver, NATIVE_RELEASE_STATIC_SOLVER)) {
       const bubble = position ** 2 * (geometry.length - position) ** 2 / 24;
       localX += record.totalIntensity.x * position * (geometry.length - position) / (2 * original[0][0] * geometry.length);
@@ -686,6 +709,10 @@ export function getMemberResponseSamples(result: AnalysisResult, memberId: strin
 /** Section actions on the positive local-x face; order: N, Vy, Vz, T, My, Mz. */
 export function getMemberSectionForces(result: AnalysisResult, memberId: string, position: number): MemberSectionForces {
   requireLoadRecoveryVersion(result.input);
+  if (result.discretization) {
+    const sample = memberResponsesAt(result, memberId, [position])[0];
+    return { analysisId: result.id, memberId, position, forces: sample.forces };
+  }
   const member = result.input.members.find((item) => item.id === memberId);
   const stored = result.members.find((item) => item.memberId === memberId);
   if (!member || !stored) throw new Error(`本次分析没有杆件 ${memberId}`);
@@ -725,16 +752,19 @@ export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string
   const stored = result.members.find((item) => item.memberId === memberId);
   if (!stored) throw new Error(`分析结果缺少杆件 ${memberId}`);
   const captured = stored.nativeReleaseRecovery;
-  if (hasMemberReleases(member) && !captured) throw new Error("Released member is missing its actual native recovery record");
+  if (hasMemberReleases(member) && !captured && !result.discretization) throw new Error("Released member is missing its actual native recovery record");
+  const coefficients = result.discretization ? getFrozenMemberCoefficients(input, memberId) : undefined;
+  const transformed = transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0));
+  const equivalentRecovery = coefficients ? coefficients.recoveryTransformation.map((row, i) => row.reduce((sum, k, j) => sum + k * transformed[j], coefficients.releaseOffset[i])) : transformed;
   return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: captured ? "captured-from-run" : "reconstructed-from-frozen-input", solver: { ...result.input.solver! }, memberId, dofs, geometry,
     localStiffness: captured?.localStiffness ?? local, transformation: transform, globalStiffness: captured?.globalStiffness ?? global, globalDisplacement,
-    localDisplacement: captured?.localDisplacement ?? transform.map((row) => row.reduce((sum, value, index) => sum + value * globalDisplacement[index], 0)),
+    localDisplacement: captured?.localDisplacement ?? equivalentRecovery,
     equivalentLocalForces: captured?.equivalentLocalForces ?? equivalentLocalForces,
     equivalentGlobalForces: captured?.equivalentGlobalForces ?? equivalentGlobalForces,
     uniformIntensity,
     selfWeightIntensity,
     totalIntensity: intensity,
-    ...(captured ? { releaseRecovery: structuredClone(captured) } : {}),
+    ...(captured ? { releaseRecovery: structuredClone(captured) } : coefficients && hasMemberReleases(member) ? { releaseRecovery: { ...coefficients, localDisplacement: equivalentRecovery } } : {}),
     localEndForces: { start: [...stored.localEndForces.start], end: [...stored.localEndForces.end] },
   };
 }
@@ -800,8 +830,8 @@ function reconstructProcessSnapshot(input: AnalysisInputSnapshot): AnalysisProce
 /** Uses the process captured by the run, falling back to frozen-input reconstruction for older files. */
 export function getOverallAnalysisProcessRecord(result: AnalysisResult): OverallAnalysisProcessRecord {
   requireLoadRecoveryVersion(result.input);
-  const snapshot = result.process ?? reconstructProcessSnapshot(result.input);
-  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: result.process ? "captured-from-run" : "reconstructed-from-frozen-input", service: result.service ? structuredClone(result.service) : undefined, ...structuredClone(snapshot), basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
+  const snapshot = result.discretization?.runs.at(-1)?.result.process ?? result.process ?? reconstructProcessSnapshot(result.input);
+  return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: result.process || result.discretization ? "captured-from-run" : "reconstructed-from-frozen-input", service: result.service ? structuredClone(result.service) : undefined, ...structuredClone(snapshot), basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
 }
 
 /** Rebuilds the overall process for a legacy result without relabelling the original analysis. */

@@ -1,3 +1,4 @@
+import { validateMeshPolicy, type MeshPolicy } from "./analysis-mesh";
 import { validateMemberEndReleases, type MemberEndReleases } from "./member-releases";
 import { validateSectionDimensions, validateSectionGeometry, sectionMechanicalProperties, sectionParameterBasis, type SectionGeometry } from "./section-geometry";
 import { validateCatalogSectionBasis, type CatalogSectionBasis } from "./catalog-section";
@@ -48,7 +49,7 @@ export interface FrameAnalysisCase {
   name: string;
   method: AnalysisMethod;
   loadSourceId: string;
-  settings: { solver: "native-static" };
+  settings: { solver: "native-static"; mesh?: MeshPolicy };
   legacySourceId?: string;
 }
 export const DEFAULT_LOAD_CASES: readonly FrameLoadCase[] = [{ id: DEFAULT_LOAD_CASE, name: "默认工况", description: "" }];
@@ -522,11 +523,12 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
   if (!value || typeof value.id !== "string" || !/^AC[1-9]\d*$/.test(value.id) || !Number.isSafeInteger(Number(value.id.slice(2)))) throw new Error("分析工况标识无效");
   requireAnalysisCapability(value.method);
   if (typeof value.name !== "string" || !value.name.trim()) throw new Error("分析工况名称不能为空");
-  if (!value.settings || value.settings.solver !== "native-static" || Object.keys(value.settings).length !== 1) throw new Error("分析工况数值设置不受支持");
+  if (!value.settings || value.settings.solver !== "native-static" || Object.keys(value.settings).some((key) => !["solver", "mesh"].includes(key))) throw new Error("分析工况数值设置不受支持");
   if (project.loadCombinations.some((item) => item.id === value.loadSourceId)) requireAnalysisCapability(value.method, "loadCombination");
   else requireLoadCase(project, value.loadSourceId);
   if (value.legacySourceId !== undefined && value.legacySourceId !== value.loadSourceId) throw new Error("旧分析工况映射无效");
-  return { id: value.id, name: value.name.trim(), method: value.method, loadSourceId: value.loadSourceId, settings: { solver: "native-static" }, ...(value.legacySourceId ? { legacySourceId: value.legacySourceId } : {}) };
+  const mesh = value.settings.mesh === undefined ? undefined : validateMeshPolicy(value.settings.mesh);
+  return { id: value.id, name: value.name.trim(), method: value.method, loadSourceId: value.loadSourceId, settings: { solver: "native-static", ...(mesh ? { mesh } : {}) }, ...(value.legacySourceId ? { legacySourceId: value.legacySourceId } : {}) };
 }
 
 export function addAnalysisCase(project: FrameProject, properties: Omit<FrameAnalysisCase, "id" | "legacySourceId">): FrameProject {

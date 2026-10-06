@@ -1,0 +1,5160 @@
+{
+  "passed": true,
+  "registeredBasis": "docs/decisions/0059-internal-mesh-and-static-convergence.md",
+  "cases": [
+    {
+      "id": "releases-0",
+      "elapsedMs": 55.65289999999993,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.5083076446667675e-10,
+            "reaction": 0,
+            "sectionForce": 4.440892098500429e-8
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-1",
+      "elapsedMs": 40.67489999999998,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.5559453547195334e-10,
+            "reaction": 0,
+            "sectionForce": 4.440892098500429e-8
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-2",
+      "elapsedMs": 45.15779999999995,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 1.7763568393999347e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-3",
+      "elapsedMs": 41.33140000000003,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 1.7763568393999347e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-4",
+      "elapsedMs": 40.809900000000084,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.781384619349904e-10,
+            "reaction": 0,
+            "sectionForce": 4.440892098500429e-8
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-5",
+      "elapsedMs": 42.18270000000007,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.250225811442062e-10,
+            "reaction": 0,
+            "sectionForce": 3.108624468949472e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-6",
+      "elapsedMs": 37.84860000000003,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 1.7763568393999347e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-7",
+      "elapsedMs": 39.52109999999993,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 3.108624468949472e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-8",
+      "elapsedMs": 40.49260000000004,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 2.664535259099665e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-9",
+      "elapsedMs": 40.98959999999988,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 2.664535259099665e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-10",
+      "elapsedMs": 42.15879999999993,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 4.0276839470090724e-10,
+            "reaction": 0,
+            "sectionForce": 1.7763568393999347e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-11",
+      "elapsedMs": 42.307399999999916,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 4.0276839470090724e-10,
+            "reaction": 0,
+            "sectionForce": 1.7763568393999347e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-12",
+      "elapsedMs": 38.94699999999989,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 2.664535259099665e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-13",
+      "elapsedMs": 43.5462,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.884190600531927e-10,
+            "reaction": 1.4778343089852332e-10,
+            "sectionForce": 3.108624468949472e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-14",
+      "elapsedMs": 45.688899999999876,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 4.0276839470090724e-10,
+            "reaction": 0,
+            "sectionForce": 1.7763568393999347e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases-15",
+      "elapsedMs": 49.567999999999984,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 4.0276839470090724e-10,
+            "reaction": 0,
+            "sectionForce": 3.108624468949472e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "portal",
+      "elapsedMs": 52.54120000000012,
+      "counts": {
+        "engineeringNodes": 4,
+        "engineeringMembers": 3,
+        "calculationNodes": 7,
+        "calculationElements": 6,
+        "totalDofs": 42,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 30
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 4.180867241295495e-10,
+            "reaction": 8.881784197000464e-8,
+            "sectionForce": 3.108624468949472e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "axial",
+      "elapsedMs": 40.13090000000011,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 6,
+        "releaseGaugeDofs": 0,
+        "equations": 12
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.0587911840678754e-10,
+            "reaction": 0,
+            "sectionForce": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "oblique",
+      "elapsedMs": 43.37020000000007,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 10,
+        "releaseGaugeDofs": 1,
+        "equations": 7
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.694065894508598e-9,
+            "reaction": 5.551115123125751e-9,
+            "sectionForce": 1.3322676295500105e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "combination",
+      "elapsedMs": 38.406099999999924,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 3,
+        "calculationElements": 2,
+        "totalDofs": 18,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 6
+      },
+      "status": "converged",
+      "reason": "tolerance",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 2.20302754758205e-10,
+            "reaction": 2.9011169986660975e-10,
+            "sectionForce": 5.329070518197912e-7
+          }
+        }
+      ]
+    },
+    {
+      "id": "single-mesh-budget",
+      "elapsedMs": 47.213100000000395,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 2,
+        "calculationElements": 1,
+        "totalDofs": 12,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 0
+      },
+      "status": "budget-exhausted",
+      "reason": "max-divisions",
+      "runs": [
+        {
+          "divisions": 1
+        }
+      ]
+    },
+    {
+      "id": "equation-budget",
+      "elapsedMs": 36.22380000000021,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 2,
+        "calculationElements": 1,
+        "totalDofs": 12,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 0
+      },
+      "status": "budget-exhausted",
+      "reason": "equation-budget",
+      "runs": [
+        {
+          "divisions": 1
+        }
+      ]
+    },
+    {
+      "id": "tight-accuracy-budget",
+      "elapsedMs": 53.571699999999964,
+      "counts": {
+        "engineeringNodes": 2,
+        "engineeringMembers": 1,
+        "calculationNodes": 9,
+        "calculationElements": 8,
+        "totalDofs": 54,
+        "constrainedDofs": 12,
+        "releaseGaugeDofs": 0,
+        "equations": 42
+      },
+      "status": "budget-exhausted",
+      "reason": "max-divisions",
+      "runs": [
+        {
+          "divisions": 1
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1694.0514784241661,
+            "reaction": 0,
+            "sectionForce": 0
+          }
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 5082.131729652571,
+            "reaction": 296059473.2333751,
+            "sectionForce": 5329070518.200724
+          }
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 111806.89805235657,
+            "reaction": 5595524044.11076,
+            "sectionForce": 14210854715.2018
+          }
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "releases-0:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:residual:13",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-0:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:z:M-start",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:z:M-end",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:z:midpoint",
+      "actual": -0.000006249999999999998,
+      "expected": -0.000006249999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "0:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:y:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:y:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "0:y:midpoint",
+      "actual": -0.00003749999999999999,
+      "expected": -0.00003749999999999999,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "0:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-1:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:residual:13",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:residual:16",
+      "actual": 3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-1:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:z:R-start",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:z:R-end",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:z:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "1:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:y:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:y:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "1:y:midpoint",
+      "actual": -0.00003749999999999999,
+      "expected": -0.00003749999999999999,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "1:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-2:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:residual:17",
+      "actual": 4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-2:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:z:M-start",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:z:M-end",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:z:midpoint",
+      "actual": -0.000006249999999999998,
+      "expected": -0.000006249999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "2:y:R-start",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:y:R-end",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:y:M-end",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "2:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "2:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-3:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:residual:16",
+      "actual": 3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:residual:17",
+      "actual": 4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-3:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:z:R-start",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:z:R-end",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:z:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "3:y:R-start",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:y:R-end",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:y:M-end",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "3:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "3:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-4:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:residual:13",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:residual:16",
+      "actual": -3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-4:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:z:R-start",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:z:R-end",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:z:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "4:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:y:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:y:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "4:y:midpoint",
+      "actual": -0.00003749999999999999,
+      "expected": -0.00003749999999999999,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "4:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-5:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:residual:13",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:residual:14",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-5:2:load-balance:z",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:z:midpoint",
+      "actual": -0.00003124999999999999,
+      "expected": -0.000031249999999999994,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "5:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:y:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:y:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "5:y:midpoint",
+      "actual": -0.00003749999999999999,
+      "expected": -0.00003749999999999999,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "5:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-6:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:residual:16",
+      "actual": -3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:residual:17",
+      "actual": 4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-6:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:z:R-start",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:z:R-end",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:z:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "6:y:R-start",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:y:R-end",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:y:M-end",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "6:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "6:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-7:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:residual:14",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:residual:17",
+      "actual": 4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-7:2:load-balance:z",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:z:midpoint",
+      "actual": -0.00003124999999999999,
+      "expected": -0.000031249999999999994,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "7:y:R-start",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:y:R-end",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:y:M-end",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "7:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "7:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-8:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:residual:17",
+      "actual": -4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-8:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:z:M-start",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:z:M-end",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:z:midpoint",
+      "actual": -0.000006249999999999998,
+      "expected": -0.000006249999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "8:y:R-start",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:y:R-end",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:y:M-start",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "8:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "8:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-9:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:residual:16",
+      "actual": 3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:residual:17",
+      "actual": -4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-9:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:z:R-start",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:z:R-end",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:z:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "9:y:R-start",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:y:R-end",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:y:M-start",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "9:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "9:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-10:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-10:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:z:M-start",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:z:M-end",
+      "actual": 2.6666666666666665,
+      "expected": 2.6666666666666665,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:z:midpoint",
+      "actual": -0.000006249999999999998,
+      "expected": -0.000006249999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "10:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "10:y:midpoint",
+      "actual": -0.0001874999999999999,
+      "expected": -0.00018749999999999995,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "10:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-11:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:residual:16",
+      "actual": 3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-11:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:z:R-start",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:z:R-end",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:z:M-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "11:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "11:y:midpoint",
+      "actual": -0.0001874999999999999,
+      "expected": -0.00018749999999999995,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "11:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-12:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:residual:16",
+      "actual": -3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:residual:17",
+      "actual": -4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-12:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:z:R-start",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:z:R-end",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:z:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "12:y:R-start",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:y:R-end",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:y:M-start",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "12:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "12:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-13:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:residual:14",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:residual:17",
+      "actual": -4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-13:2:load-balance:z",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:z:midpoint",
+      "actual": -0.00003124999999999999,
+      "expected": -0.000031249999999999994,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "13:y:R-start",
+      "actual": 7.499999999999999,
+      "expected": 7.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:y:R-end",
+      "actual": 4.5,
+      "expected": 4.5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:y:M-start",
+      "actual": 5.999999999999999,
+      "expected": 6,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "13:y:midpoint",
+      "actual": -0.00007499999999999997,
+      "expected": -0.00007499999999999998,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "13:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-14:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:residual:16",
+      "actual": -3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-14:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:z:R-start",
+      "actual": 5,
+      "expected": 5,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:z:R-end",
+      "actual": 3,
+      "expected": 3,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:z:M-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:z:midpoint",
+      "actual": -0.000012499999999999996,
+      "expected": -0.000012499999999999996,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "14:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "14:y:midpoint",
+      "actual": -0.0001874999999999999,
+      "expected": -0.00018749999999999995,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "14:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "releases-15:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:residual:14",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "releases-15:2:load-balance:z",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:z:R-start",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:z:R-end",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:z:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:z:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:z:midpoint",
+      "actual": -0.00003124999999999999,
+      "expected": -0.000031249999999999994,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "15:y:R-start",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:y:R-end",
+      "actual": 6,
+      "expected": 6,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:y:M-start",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:y:M-end",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN·m",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "15:y:midpoint",
+      "actual": -0.0001874999999999999,
+      "expected": -0.00018749999999999995,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "15:axial-midpoint",
+      "actual": 1.2499999999999997e-7,
+      "expected": 1.2499999999999997e-7,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:0",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:1",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:2",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:3",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:4",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:5",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:6",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:7",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:8",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:9",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:10",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:residual:11",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:0",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:1",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:2",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:3",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:4",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:5",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:6",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:7",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:8",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:9",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:10",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:11",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:24",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:25",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:26",
+      "actual": 8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:27",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:28",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:29",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:30",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:31",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:32",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:33",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:34",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:35",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:36",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:37",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:38",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:39",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:40",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:residual:41",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:2:load-balance:z",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:node_0003:Rz",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "portal:node_0004:Rz",
+      "actual": 4,
+      "expected": 4,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:residual:6",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:residual:7",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:residual:8",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:residual:9",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:residual:10",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:residual:11",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:6",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:7",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:8",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:9",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:10",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:11",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:16",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "axial:tip",
+      "actual": 0.000016,
+      "expected": 0.000016,
+      "unit": "m",
+      "tolerance": 1e-12,
+      "passed": true
+    },
+    {
+      "name": "oblique:1:residual:11",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:11",
+      "actual": -1.3877787807814457e-17,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:13",
+      "actual": 4.440892098500626e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:14",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:16",
+      "actual": -5.551115123125783e-17,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:residual:17",
+      "actual": -2.220446049250313e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:2:load-balance:z",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "oblique:Rstart",
+      "actual": 3.993177550236464,
+      "expected": 3.993177550236464,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:residual:14",
+      "actual": 3.552713678800501e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:residual:16",
+      "actual": 4.440892098500626e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "combination:Rstart",
+      "actual": 29.10255,
+      "expected": 29.102549999999997,
+      "unit": "kN",
+      "tolerance": 2.9102549999999998e-8,
+      "passed": true
+    },
+    {
+      "name": "single-mesh-budget:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "single-mesh-budget:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "single-mesh-budget:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "equation-budget:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "equation-budget:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "equation-budget:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:1:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:1:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:1:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:residual:14",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:residual:16",
+      "actual": -3.3306690738754696e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:2:load-balance:z",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:14",
+      "actual": 2.6645352591003757e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:16",
+      "actual": 2.220446049250313e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:18",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:19",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:20",
+      "actual": -5.329070518200751e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:21",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:22",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:23",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:24",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:25",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:26",
+      "actual": 8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:27",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:28",
+      "actual": 5.828670879282072e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:residual:29",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:4:load-balance:z",
+      "actual": -4.440892098500626e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:12",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:13",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:14",
+      "actual": -7.105427357601002e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:15",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:16",
+      "actual": -8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:17",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:18",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:19",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:20",
+      "actual": -7.105427357601002e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:21",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:22",
+      "actual": 8.881784197001252e-16,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:23",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:24",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:25",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:26",
+      "actual": 3.552713678800501e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:27",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:28",
+      "actual": 3.9968028886505635e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:29",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:30",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:31",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:32",
+      "actual": -5.861977570020827e-14,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:33",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:34",
+      "actual": 9.992007221626409e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:35",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:36",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:37",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:38",
+      "actual": -1.4210854715202004e-14,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:39",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:40",
+      "actual": -1.1546319456101628e-14,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:41",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:42",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:43",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:44",
+      "actual": 7.105427357601002e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:45",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:46",
+      "actual": -3.552713678800501e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:47",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:48",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:49",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:50",
+      "actual": -1.7763568394002505e-14,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:51",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:52",
+      "actual": -4.739264536368637e-15,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:residual:53",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:load-balance:x",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:load-balance:y",
+      "actual": 0,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    },
+    {
+      "name": "tight-accuracy-budget:8:load-balance:z",
+      "actual": -6.572520305780927e-14,
+      "expected": 0,
+      "unit": "kN",
+      "tolerance": 1e-8,
+      "passed": true
+    }
+  ],
+  "failures": [
+    {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "singular-system",
+            "dof": "uz",
+            "evidence": {
+              "globalDofIndex": 8,
+              "matrixScale": 4000000.000000001,
+              "pivotMagnitude": 2.7284841053187847e-12,
+              "threshold": 0.000004000000000000001
+            },
+            "field": "restraints",
+            "message": "Reduced stiffness is not positive definite above the registered pivot threshold",
+            "target": {
+              "id": "node_0002",
+              "kind": "node"
+            }
+          }
+        ],
+        "message": "Reduced stiffness is not positive definite above the registered pivot threshold",
+        "name": "AnalysisFailure",
+        "stage": "solve"
+      },
+      "kind": "error",
+      "requestId": "request_08744250-458b-4541-808b-9416da3168c3"
+    },
+    {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "mesh-budget-exhausted",
+            "field": "meshPlan",
+            "message": "Equation budget prevents even the initial mesh"
+          }
+        ],
+        "message": "Equation budget prevents even the initial mesh",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      },
+      "kind": "error",
+      "requestId": "request_d7889465-881b-4999-9011-eb8b2d90bf46"
+    }
+  ]
+}

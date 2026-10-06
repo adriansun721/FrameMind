@@ -3,7 +3,8 @@ import type { DeepSeekChatRequest, DeepSeekChatResult } from "../../electron/con
 import { addNode, attachAnalysisResult, createProject, updateNode } from "../domain/project";
 import { decodeAnalysisResult, decodeProject } from "../domain/project-file";
 import type { AnalysisServiceRequest } from "../domain/analysis-service";
-import nativeSamples from "../../docs/evidence/plan2/T2-14/wire-samples.json";
+import nativeSamples from "../../docs/evidence/plan2/T2-26/wire-samples.json";
+import { nativeMeshTranscript } from "../validation/native-mesh-transcript";
 import { applyProjectEdits } from "../domain/project-operations";
 import { captureAiSnapshot } from "./ai-tools";
 import { startAiTask, type AiProgress, type AiTransport } from "./ai-task";
@@ -32,10 +33,7 @@ describe("AI progressive output", () => {
     const project = attachAnalysisResult(decodeProject(JSON.stringify(sample.project)), decodeAnalysisResult(sample.result));
     // Replay the external native transport at its public IPC boundary.
     vi.stubGlobal("window", { frameMind: { runNativeAnalysis: async (request: AnalysisServiceRequest) => {
-      const result = decodeAnalysisResult(sample.result);
-      result.id = request.analysisId; result.projectId = request.input.projectId; result.projectRevision = request.input.projectRevision; result.input = request.input;
-      result.service = { ...result.service!, requestId: request.requestId, analysisId: request.analysisId, projectId: request.input.projectId, projectRevision: request.input.projectRevision, origin: request.origin };
-      return [...result.service.stages.map((record) => ({ kind: "phase", requestId: request.requestId, record })), { kind: "result", requestId: request.requestId, result }];
+      return nativeMeshTranscript(request);
     } } });
     const snapshot = captureAiSnapshot(project, []);
     const tool = (name: string, input: unknown): DeepSeekChatResult => ({ status: "success", message: "工具请求", assistant: {

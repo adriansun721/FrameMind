@@ -28,6 +28,8 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
   const source = reportSourceLabel(result);
   const children: ReportBlock[] = [
     title(`${report.projectName} 工程计算书`),
+    ...(result.discretization ? [paragraph(`内部细分：${result.discretization.status === "converged" ? "加密检查满足精度" : "预算内未满足精度，结果未收敛，仅供核查"}。工程节点／杆件 ${result.discretization.counts.engineeringNodes}/${result.discretization.counts.engineeringMembers}；计算节点／单元 ${result.discretization.counts.calculationNodes}/${result.discretization.counts.calculationElements}；实际自由度 ${result.discretization.counts.totalDofs}；约束后方程 ${result.discretization.counts.equations}。`),
+      table(["每杆计算单元", "位移误差比", "反力误差比", "内力误差比"], result.discretization.runs.map((run) => [String(run.divisions), ...(["displacement", "reaction", "sectionForce"] as const).map((key) => run.error ? n(run.error[key]) : "基线")]))] : []),
     paragraph(`本计算书记录 ${source} 的空间刚架线弹性分析模型、输入参数、荷载和响应，供计算结果复核。`),
     heading("1 模型概况与来源"),
     paragraph(`项目 ${report.projectName}；项目 ID ${result.projectId}`),

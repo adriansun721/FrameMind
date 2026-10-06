@@ -25,10 +25,10 @@ struct StaticLoads {
     std::vector<Vec3> intensity;
 };
 
-static Json calculateStatic(const Json& request, Json& stages, std::string& stage) {
+static Json calculateStatic(const Json& request, Json& stages, std::string& stage, bool publishPhases=true) {
     auto phase=[&](const std::string& name) {
         stage=name; Json record={{"stage",name},{"startedAt",now()}}; stages.push_back(record);
-        emit({{"kind","phase"},{"requestId",request.at("requestId")},{"record",record}});
+        if (publishPhases) emit({{"kind","phase"},{"requestId",request.at("requestId")},{"record",record}});
     };
     phase("model-check"); id(request.at("requestId")); id(request.at("analysisId"));
     const auto& input=request.at("input");

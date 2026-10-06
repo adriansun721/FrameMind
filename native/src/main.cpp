@@ -188,12 +188,25 @@ static Vector solve(Matrix a, Vector b, const std::vector<int>& free, const Json
     return result;
 }
 
+static bool validMeshPolicy(const Json& policy) {
+    if (!policy.is_object() || policy.size()!=5) return false;
+    for (const auto& key:{"maxDivisions","maxEquations","relativeTolerance","displacementTolerance","forceTolerance"})
+        if (!policy.contains(key) || !policy.at(key).is_number() || !std::isfinite(policy.at(key).get<double>())) return false;
+    const double divisions=policy["maxDivisions"].get<double>(), equations=policy["maxEquations"].get<double>();
+    if (!(divisions==1 || divisions==2 || divisions==4 || divisions==8 || divisions==16) || equations<1 || equations>12000 || std::floor(equations)!=equations) return false;
+    for (const auto& entry:std::vector<std::pair<std::string,double>>{{"relativeTolerance",1e-2},{"displacementTolerance",1e-6},{"forceTolerance",1e-3}}) {
+        const double value=policy.at(entry.first).get<double>(); if (value<=0 || value>entry.second) return false;
+    }
+    return true;
+}
+
 static Json analysisCaseSource(const Json& input, const Json& loadSource) {
     if (!input.contains("analysisCase")) return loadSource;
     const auto& definition=input.at("analysisCase");
     require(definition.is_object() && definition.at("method")=="static"
         && definition.at("loadSourceId")==loadSource
-        && definition.at("settings")==Json{{"solver","native-static"}}, "Unsupported analysis case or settings");
+        && definition.at("settings").is_object() && definition.at("settings").at("solver")=="native-static"
+        && (definition.at("settings")==Json{{"solver","native-static"}} || definition.at("settings").size()==2 && definition.at("settings").contains("mesh") && validMeshPolicy(definition.at("settings").at("mesh"))), "Unsupported analysis case or settings");
     const std::string caseId=id(definition.at("id"));
     require(caseId.size()>2 && caseId.size()<=18 && caseId.rfind("AC",0)==0
         && caseId[2]>='1' && caseId[2]<='9', "Invalid analysis case identity");
@@ -353,6 +366,7 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
 }
 
 #include "static-analysis.hpp"
+#include "mesh-analysis.hpp"
 
 int main() {
     Json request, stages=Json::array(); std::string stage="model-check";
@@ -362,7 +376,7 @@ int main() {
         std::string bytes; char c;
         while (std::cin.get(c)) { if (bytes.size()>=16*1024*1024) throw Failure("native-resource-limit", "Input exceeds 16 MiB"); bytes.push_back(c); }
         request=Json::parse(bytes);
-        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
+        Json result=request.at("input").at("solver").at("implementation")=="framemind-native/4" ? calculateMeshStatic(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         emit({{"kind","result"},{"requestId",request.at("requestId")},{"result",result}});
         std::cerr << "{\"kind\":\"native-resources\",\"peakCommittedBytes\":" << budget.peakCommittedBytes()

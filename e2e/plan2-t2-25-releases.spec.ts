@@ -29,7 +29,7 @@ test("T2-25 manual releases, markers, native result, undo, stale history and reo
     await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("分析完成", { timeout: 30000 });
     await save(page, path); let saved = decodeProject(await readFile(path, "utf8"));
-    expect(saved.latestAnalysis!.input.solver!.implementation).toBe("framemind-native/3");
+    expect(saved.latestAnalysis!.input.solver!.implementation).toBe("framemind-native/4");
     expect(saved.latestAnalysis!.members[0].localEndForces.start[4]).toBeCloseTo(0, 9);
     expect(saved.latestAnalysis!.nodes[0].reaction.z).toBeCloseTo(4, 9);
     for (const theme of ["light", "dark"]) {

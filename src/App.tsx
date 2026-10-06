@@ -459,14 +459,16 @@ export function App() {
         const execution = analysisExecutionRef.current.get(handle.ownerTaskId);
         const analysisResult = result as AnalysisResult;
         if (!execution || !isProjectCheckpointCurrent(execution.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
-        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: "success", text: `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
+        const unchecked = analysisResult.discretization?.status === "budget-exhausted";
+        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: unchecked ? "neutral" : "success", text: unchecked ? "计算完成 · 预算内未满足细分精度，结果未收敛，仅供核查" : `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
         setResultReference(null); setResultFocus(null);
         if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
-        return { status: "completed", message: `本地分析完成 · ${analysisResult.nodes.length} 个节点、${analysisResult.members.length} 根杆件，已展示结果`, context,
+        return { status: "completed", message: unchecked ? "本地计算完成，但预算内未满足细分精度，结果未收敛，仅供核查" : `本地分析完成 · ${analysisResult.nodes.length} 个节点、${analysisResult.members.length} 根杆件，已展示结果`, context,
           data: { analysisId: analysisResult.id, modelRevision: execution.checkpoint.revision, units: execution.source.units,
             analysisSourceId: getAnalysisSourceId(analysisResult.input), analysisCase: analysisResult.input.analysisCase,
             loadCase: analysisResult.input.combination ? undefined : analysisResult.input.loadCase, combination: analysisResult.input.combination,
-            nodes: analysisResult.nodes, members: analysisResult.members, service: analysisResult.service } };
+            nodes: analysisResult.nodes, members: analysisResult.members, service: analysisResult.service,
+            discretization: analysisResult.discretization ? { ...analysisResult.discretization, runs: analysisResult.discretization.runs.map(({ divisions, error }) => ({ divisions, error })) } : undefined } };
       }).catch((error): AiToolResult => {
         const execution = analysisExecutionRef.current.get(handle.ownerTaskId);
         const scheduled = analysisSchedulerRef.current.get(handle.ownerTaskId);
@@ -730,7 +732,7 @@ export function App() {
             const objects = target?.kind === "node" ? project.nodes : target?.kind === "member" ? project.members : target?.kind === "material" ? project.materials : target?.kind === "section" ? project.sections : target?.kind === "support" ? project.supports : target?.kind === "uniform-load" ? project.uniformLoads : target?.kind === "load" ? project.nodalLoads : [];
             const object = target?.kind !== "self-weight" && target ? objects.find((item) => item.id === target.id) : undefined;
             const fieldLabel = diagnostic.field ? ANALYSIS_FIELD_LABELS[diagnostic.field] ?? diagnostic.field : diagnostic.dof?.toUpperCase() ?? "对象";
-            return <li key={index}><div><p>{diagnostic.message}</p>{diagnostic.evidence && <small>主元 {diagnostic.evidence.pivotMagnitude.toExponential(3)} · 阈值 {diagnostic.evidence.threshold.toExponential(3)} · 矩阵尺度 {diagnostic.evidence.matrixScale.toExponential(3)} · 全局索引 {diagnostic.evidence.globalDofIndex}（从 0 起）</small>}</div>
+            return <li key={index}><div><p>{diagnostic.message}</p>{diagnostic.position !== undefined && <small>工程杆件沿杆位置 {diagnostic.position.toPrecision(6)} m</small>}{diagnostic.evidence && <small>主元 {diagnostic.evidence.pivotMagnitude.toExponential(3)} · 阈值 {diagnostic.evidence.threshold.toExponential(3)} · 矩阵尺度 {diagnostic.evidence.matrixScale.toExponential(3)} · 全局索引 {diagnostic.evidence.globalDofIndex}（从 0 起）</small>}</div>
               {target?.kind === "load-combination" && <button className="diagnostic-location" aria-label={`定位组合 ${target.id}`} title="打开荷载工况与组合设置" onClick={() => setLoadCaseManagerOpen(true)}><Crosshair size={14} /><span>{target.id} · {fieldLabel}</span></button>}
               {target?.kind === "self-weight" ? <button className="diagnostic-location" aria-label="定位自重设置" title="打开自重设置" onClick={() => openSelfWeightDialog()}><Crosshair size={14} /><span>自重设置 · {fieldLabel}</span></button> : target && object && <button className="diagnostic-location" aria-label={`定位 ${object.label} · ${fieldLabel}`} title={`定位 ${object.label} · ${fieldLabel}`} onClick={() => { selectObject(target); setDiagnosticFitRequest((value) => value + 1); }}><Crosshair size={14} /><span>{object.label} · {fieldLabel}</span></button>}
             </li>;

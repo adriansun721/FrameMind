@@ -20,7 +20,7 @@ export interface ReportAppendix {
   basis: AnalysisProcessBasis;
 }
 
-function requireProcessCorrespondence(result: AnalysisResult): void {
+export function requireProcessCorrespondence(result: AnalysisResult): void {
   const { input, process } = result;
   if (!process) return;
   // Rebuild coefficients for validation only, without solving or replacing the saved snapshot.
@@ -74,9 +74,9 @@ export function captureReportAppendix(result: AnalysisResult, selection: ReportA
     catch (error) { appendix.missing.push(`${result.input.members.find((member) => member.id === id)!.label} 杆件过程缺少记录：${error instanceof Error ? error.message : "无法重建"}`); }
   }
   if (steps.some((step) => step !== "member-process")) {
-    if (!result.process) appendix.missing.push("所选分析未采集整体过程快照，整体步骤缺少记录。可基于冻结输入补算过程。");
+    if (!result.process && !result.discretization) appendix.missing.push("所选分析未采集整体过程快照，整体步骤缺少记录。可基于冻结输入补算过程。");
     else {
-      try { requireProcessCorrespondence(result); appendix.overall = getOverallAnalysisProcessRecord(result); }
+      try { requireProcessCorrespondence(result.discretization?.runs.at(-1)!.result ?? result); appendix.overall = getOverallAnalysisProcessRecord(result); }
       catch (error) { appendix.missing.push(`整体过程缺少记录：${error instanceof Error ? error.message : "无法读取"}`); }
     }
   }

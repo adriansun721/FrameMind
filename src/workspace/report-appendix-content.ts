@@ -27,8 +27,10 @@ export function reportAppendixContent(report: EngineeringReport): Content {
   if (!appendix) return [];
   const { selection, overall, basis } = appendix;
   const { result } = report; const { input } = result;
-  const memberLabel = (id: string) => input.members.find((member) => member.id === id)!.label;
-  const nodeLabel = (id: string) => input.nodes.find((node) => node.id === id)!.label;
+  const mappings = input.meshPlan?.levels.find((l) => l.divisions === result.discretization?.selectedDivisions);
+  const originalId = (id: string) => mappings?.elements.find((e) => e.elementId === id)?.memberId ?? id;
+  const memberLabel = (id: string) => input.members.find((member) => member.id === originalId(id))?.label ?? id;
+  const nodeLabel = (id: string) => input.nodes.find((node) => node.id === id)?.label ?? `内部节点 ${id}`;
   const content: Content = [
     heading("附录 A 所选分析的计算过程", true),
     paragraph(`正文来源分析 ${result.id}；输入修订 R${result.projectRevision}；${reportSourceLabel(result)}。`),
@@ -60,7 +62,7 @@ export function reportAppendixContent(report: EngineeringReport): Content {
     if (selection.steps.includes("dof-mapping")) content.push(tableCaption("整体自由度映射表"), table(["整体索引", "节点 / ID", "自由度", "状态"], overall.dofs.map((dof) => [String(dof.globalIndex), `${nodeLabel(dof.nodeId)} / ${dof.nodeId}`, dof.dof, dof.restrained ? "约束" : overall.releaseGaugeDofs?.includes(dof.globalIndex) ? "脱开转动" : "自由"])));
     if (selection.steps.includes("assembly")) {
       content.push(heading("所选杆件组装贡献"), paragraph("K = Σ kᵢ；将单元行列对号到整体索引后相加。以下只列所选贡献，不能当作完整 K。"));
-      for (const member of overall.members.filter((member) => selection.memberIds.includes(member.memberId))) content.push(
+      for (const member of overall.members.filter((member) => selection.memberIds.includes(originalId(member.memberId)))) content.push(
         tableCaption(`${memberLabel(member.memberId)} · ${member.memberId} 对号与等效荷载`),
         table(["单元位置", "节点 / 自由度", "整体索引", `等效 F (${u.unit("kN")}/${u.unit("kN·m")})`], member.dofs.map((dof, index) => [String(index), `${dof.nodeId}.${dof.dof}`, String(member.globalDofIndices[index]), mixed(member.equivalentGlobalForces[index], index, true)])),
         ...matrixTables(`${memberLabel(member.memberId)} 单元整体刚度贡献`, member.globalStiffness, member.globalDofIndices));

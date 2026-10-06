@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "counts": {
+    "engineeringNodes": 2,
+    "engineeringMembers": 1,
+    "calculationNodes": 3,
+    "calculationElements": 2,
+    "totalDofs": 18,
+    "constrainedDofs": 12,
+    "releaseGaugeDofs": 0,
+    "equations": 6
+  },
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ],
+  "reopened": true
+}

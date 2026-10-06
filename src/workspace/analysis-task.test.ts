@@ -45,7 +45,7 @@ describe("analysis task boundary", () => {
       { kind: "error", requestId: request.requestId, error: { name: "AnalysisFailure", stage: failure.stage, diagnostics: failure.diagnostics } },
     ] } });
     const task = startAnalysisTask(captureAnalysisInput(reportFixture(true)), { backend: "native-static" });
-    await expect(task.promise).rejects.toMatchObject({ diagnostics: failure.diagnostics, run: { status: "failed", solver: { implementation: "framemind-native/2" } } });
+    await expect(task.promise).rejects.toMatchObject({ diagnostics: failure.diagnostics, run: { status: "failed", solver: { implementation: "framemind-native/4" } } });
   });
 
   it("fails native startup without silently using the TypeScript solver", async () => {

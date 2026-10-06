@@ -29,6 +29,7 @@ export type AnalysisTarget =
   | { kind: "self-weight"; id: ProjectId | string };
 
 export interface AnalysisDiagnostic {
+  position?: number;
   code: string;
   message: string;
   target?: AnalysisTarget;

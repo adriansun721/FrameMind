@@ -43,6 +43,7 @@ import {
   type CatalogSource,
 } from "./project";
 import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_STATIC_SOLVER, NATIVE_RELEASE_STATIC_SOLVER, isNativeSolver, sameInputValue, freezeAnalysisInput, validateCombinationInput, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type AnalysisResult, type CombinationCaseInput } from "./analysis";
+import { decodeMeshResult } from "./mesh-result";
 import { decodeTaskState, decodeConfirmedOperations } from "../workspace/task-persistence";
 import { redactPersistence } from "../../electron/persistence-redaction";
 
@@ -98,11 +99,11 @@ function assertNumberedIdentity(name: string, id: string, label: string, idPrefi
   if (label !== `${labelPrefix}${number}`) throw new Error(`${name} ${label} 的稳定标识与显示编号不一致`);
 }
 
-function decodeNode(value: unknown): FrameNode {
+function decodeNode(value: unknown, internal = false): FrameNode {
   if (!isRecord(value)) throw new Error("项目包含无效节点");
   const id = requireString(value.id, "节点缺少稳定标识");
   const label = requireString(value.label, `节点 ${id} 缺少编号`);
-  assertNumberedIdentity("节点", id, label, "node", "N");
+  if (!internal) assertNumberedIdentity("节点", id, label, "node", "N");
   const position = value.position;
   if (!isRecord(position) || ![position.x, position.y, position.z].every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))) {
     throw new Error(`节点 ${id} 的坐标无效`);
@@ -149,11 +150,11 @@ function decodeSection(value: unknown): FrameSection {
   };
 }
 
-function decodeMember(value: unknown): FrameMember {
+function decodeMember(value: unknown, internal = false): FrameMember {
   if (!isRecord(value)) throw new Error("项目包含无效杆件");
   const id = requireString(value.id, "杆件缺少稳定标识");
   const label = requireString(value.label, `杆件 ${id} 缺少编号`);
-  assertNumberedIdentity("杆件", id, label, "member", "M");
+  if (!internal) assertNumberedIdentity("杆件", id, label, "member", "M");
   return {
     id: id as MemberId,
     label,
@@ -197,11 +198,11 @@ function decodeLoadCase(value: unknown): FrameLoadCase {
   return { id, name, description: value.description };
 }
 
-function decodeUniformLoad(value: unknown): FrameUniformLoad {
+function decodeUniformLoad(value: unknown, internal = false): FrameUniformLoad {
   if (!isRecord(value)) throw new Error("项目包含无效均布荷载");
   const id = requireString(value.id, "均布荷载缺少稳定标识");
   const label = requireString(value.label, `均布荷载 ${id} 缺少编号`);
-  assertNumberedIdentity("均布荷载", id, label, "uniform_load", "Q");
+  if (!internal) assertNumberedIdentity("均布荷载", id, label, "uniform_load", "Q");
   // Validate the entire object so unsupported distributions cannot be silently discarded.
   const properties = validateUniformLoad(value as unknown as FrameUniformLoad);
   return { id: id as LoadId, label, ...properties, memberId: requireString(value.memberId, "均布荷载缺少杆件") as MemberId };
@@ -220,14 +221,14 @@ function isSolverAlgorithm(value: unknown): value is "partial-pivot-gaussian" | 
   return value === "partial-pivot-gaussian" || value === "sparse-ldlt";
 }
 
-function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number): AnalysisInputSnapshot {
+function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, projectRevision: number, internal = false): AnalysisInputSnapshot {
   if (input.solver !== undefined && (!isRecord(input.solver) || typeof input.solver.implementation !== "string" || input.solver.implementation.length === 0 || !isSolverAlgorithm(input.solver.algorithm) || input.solver.constraints !== "free-dof-elimination" || typeof input.solver.relativePivotTolerance !== "number" || !Number.isFinite(input.solver.relativePivotTolerance) || input.solver.relativePivotTolerance <= 0 || input.solver.relativePivotTolerance >= 1)) throw new Error("分析结果求解器配置无效");
   if (input.projectId !== projectId || input.projectRevision !== projectRevision || !Array.isArray(input.nodes) || !Array.isArray(input.members) || !Array.isArray(input.materials) || !Array.isArray(input.sections) || !Array.isArray(input.supports) || !Array.isArray(input.nodalLoads) || !Array.isArray(input.dofOrder) || input.dofOrder.join(",") !== "ux,uy,uz,rx,ry,rz" || !isRecord(input.assumptions) || input.assumptions.theory !== "3d-euler-bernoulli-frame" || input.assumptions.shearDeformation !== "neglected" || input.assumptions.rigidJoints !== !input.members.some((member) => hasMemberReleases(member as FrameMember)) || input.assumptions.units !== "m-kN-kN·m" || input.assumptions.localAxis !== "member-geometry") throw new Error("分析结果输入来源无效");
-  const inputNodes = input.nodes.map(decodeNode); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map(decodeMember); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
+  const inputNodes = input.nodes.map((item) => decodeNode(item, internal)); const inputMaterials = input.materials.map(decodeMaterial); const inputSections = input.sections.map(decodeSection); const inputMembers = input.members.map((item) => decodeMember(item, internal)); const inputSupports = input.supports.map(decodeSupport); const inputLoads = input.nodalLoads.map(decodeNodalLoad);
   assertUnique(inputNodes, "分析输入节点"); assertUnique(inputMaterials, "分析输入材料"); assertUnique(inputSections, "分析输入截面"); assertUnique(inputMembers, "分析输入杆件"); assertUnique(inputSupports, "分析输入支座"); assertUnique(inputLoads, "分析输入节点荷载");
   assertUniqueLabels(inputNodes, "分析输入节点"); assertUniqueLabels(inputMaterials, "分析输入材料"); assertUniqueLabels(inputSections, "分析输入截面"); assertUniqueLabels(inputMembers, "分析输入杆件"); assertUniqueLabels(inputSupports, "分析输入支座"); assertUniqueLabels(inputLoads, "分析输入节点荷载");
   const inputNodeIds = new Set(inputNodes.map((node) => node.id)); const inputMaterialIds = new Set(inputMaterials.map((material) => material.id)); const inputSectionIds = new Set(inputSections.map((section) => section.id));
-  const inputUniformLoads = decodeOptionalArray(input.uniformLoads, "分析输入均布荷载", decodeUniformLoad);
+  const inputUniformLoads = decodeOptionalArray(input.uniformLoads, "分析输入均布荷载", (item) => decodeUniformLoad(item, internal));
   const inputSelfWeight = decodeSelfWeight(input.selfWeight);
   const loadCase = input.loadCase === undefined ? undefined : decodeLoadCase(input.loadCase);
   const loadCaseId = getAnalysisLoadCaseId({ loadCase });
@@ -242,7 +243,7 @@ function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, 
     if (!isRecord(input.combination) || !Array.isArray(input.combination.cases)) throw new Error("组合来源无效");
     const cases: CombinationCaseInput[] = input.combination.cases.map((source) => {
       if (!isRecord(source) || Object.keys(source).some((key) => !["loadCase", "nodalLoads", "uniformLoads", "selfWeight"].includes(key)) || !Array.isArray(source.nodalLoads) || !Array.isArray(source.uniformLoads) || !isRecord(source.selfWeight)) throw new Error("组合工况必须共享同一结构基础，且完整记录原始荷载");
-      return { loadCase: decodeLoadCase(source.loadCase), nodalLoads: source.nodalLoads.map(decodeNodalLoad), uniformLoads: source.uniformLoads.map(decodeUniformLoad), selfWeight: decodeSelfWeight(source.selfWeight) };
+      return { loadCase: decodeLoadCase(source.loadCase), nodalLoads: source.nodalLoads.map(decodeNodalLoad), uniformLoads: source.uniformLoads.map((item) => decodeUniformLoad(item, internal)), selfWeight: decodeSelfWeight(source.selfWeight) };
     });
     combination = { definition: decodeLoadCombination(input.combination.definition, cases.map((source) => source.loadCase)), cases };
   }
@@ -306,11 +307,16 @@ function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): An
 }
 
 export function decodeAnalysisResult(value: unknown): AnalysisResult {
+  return decodeResult(value, false);
+}
+
+function decodeResult(value: unknown, internal: boolean): AnalysisResult {
   if (!isRecord(value) || value.status !== "complete") throw new Error("项目包含无效分析结果");
   const id = requireString(value.id, "分析结果缺少稳定标识"); const projectId = requireString(value.projectId, "分析结果缺少项目标识"); const createdAt = requireString(value.createdAt, "分析结果缺少创建时间");
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
-  const input = decodeAnalysisInput(value.input, projectId, projectRevision);
+  const input = decodeAnalysisInput(value.input, projectId, projectRevision, internal);
+  if (input.solver?.implementation === "framemind-native/4") return decodeMeshResult(value, input, (packet) => decodeResult(packet, true));
   const inputNodes = input.nodes; const inputMembers = input.members;
   const finiteVector = (vector: unknown, label: string) => {
     if (!isRecord(vector) || ![vector.x, vector.y, vector.z].every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))) throw new Error(`分析结果${label}无效`);
@@ -416,7 +422,7 @@ export function decodeProject(source: string): FrameProject {
     throw new Error(`项目版本 ${String(value.formatVersion)} 暂不受支持（当前支持版本 ${PROJECT_FORMAT_VERSION}）`);
   }
   if (!Array.isArray(value.nodes)) throw new Error("项目节点列表无效");
-  const nodes = value.nodes.map(decodeNode);
+  const nodes = value.nodes.map((item) => decodeNode(item));
   const materials = decodeOptionalArray(value.materials, "材料", decodeMaterial);
   const sections = decodeOptionalArray(value.sections, "截面", decodeSection);
   const members = decodeOptionalArray(value.members, "杆件", decodeMember);

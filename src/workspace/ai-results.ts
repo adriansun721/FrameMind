@@ -1,6 +1,7 @@
 import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
 import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
+import { selectedMeshLevel } from "../domain/analysis-mesh";
 import type { Vector3 } from "../domain/project";
 
 export interface ResultReference {
@@ -61,7 +62,9 @@ export function analysisProvenance(result: AnalysisResult, current: boolean) {
     source: result.input.analysisCase ? { id: result.input.analysisCase.id, name: result.input.analysisCase.name, kind: "case" as const }
       : combination ? { id: combination.id, name: combination.name, kind: "combination" as const, terms: combination.terms }
       : { id: result.input.loadCase?.id ?? "LC1", name: result.input.loadCase?.name ?? "旧版工况", kind: "case" as const },
-    analysisCase: result.input.analysisCase, assumptions: result.input.assumptions, solver: result.input.solver, service: result.service, status: current ? "当前模型结果" : "历史输入结果，当前模型需重新计算" };
+    analysisCase: result.input.analysisCase, assumptions: result.input.assumptions, solver: result.input.solver, service: result.service,
+    meshPolicy: result.input.meshPlan?.policy,
+    discretization: result.discretization ? { ...result.discretization, runs: result.discretization.runs.map(({ divisions, error }) => ({ divisions, error })) } : undefined, status: current ? "当前模型结果" : "历史输入结果，当前模型需重新计算" };
 }
 
 function fields(input: Record<string, unknown>, allowed: string[]) {
@@ -71,11 +74,19 @@ function fields(input: Record<string, unknown>, allowed: string[]) {
 export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>) {
   fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query"]);
   const collection = input.collection;
-  if (typeof collection !== "string" || !["summary", "nodes", "members"].includes(collection)) throw new Error("结果集合必须为 summary、nodes 或 members");
+  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members 或 mesh");
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
   const provenance = analysisProvenance(result, current);
+  if (collection === "mesh") {
+    if (input.fields !== undefined || input.query !== undefined) throw new Error("mesh 只支持完整映射条目的分页读取");
+    const level = selectedMeshLevel(result);
+    const items = level?.elements.slice(offset, offset + limit) ?? [];
+    return { ...provenance, collection, total: level?.elements.length ?? 0, offset, limit, items,
+      page: { empty: items.length === 0, hasMore: offset + items.length < (level?.elements.length ?? 0), nextOffset: offset + items.length },
+      scope: "冻结工程杆件到实际内部单元及沿杆位置的映射。内部身份不能用于建模编辑或工程结果选中。" };
+  }
   if (collection === "summary") {
     if (input.fields !== undefined || input.query !== undefined) throw new Error("summary 只能读取完整分析摘要，不能按字段或范围筛选");
     const displacementExtrema = (["x", "y", "z"] as const).map((component) => {

@@ -1,4 +1,5 @@
 import { releaseLabel } from "../domain/member-releases";
+import { DiscretizationSummary } from "./DiscretizationSummary";
 import { useUnits } from "./UnitPresentation";
 import { useEffect, useRef, useState } from "react";
 import { createSupplementalAnalysisInput, getMemberAnalysisRecord, type AnalysisResult, type MemberAnalysisRecord } from "../domain/analysis";
@@ -121,6 +122,8 @@ export function MemberAnalysisProcess({ result, memberId, memberLabel, resultIsC
   return <section className="property-section member-process" data-testid="member-analysis-process" aria-label={`${memberLabel}计算过程`}>
     <div className="result-section-heading"><h3>本次杆件计算过程</h3><span className="member-process-badge">{resultIsCurrent ? "结果当前" : "结果已过期"}</span></div>
     <p className="member-process-intro">过程绑定分析 {result.id} · 对象 {memberLabel}。展开矩阵可核对行列自由度、局部轴、单位和转换关系。</p>
+    <DiscretizationSummary result={result} />
+    {result.discretization && <p>下列工程杆件系数按冻结输入重建；实际组装使用内部单元，见整体求解过程。结果来自内部单元映射。</p>}
     {record ? <MemberProcessDetails record={record} result={result} /> : <><SavedMemberResult result={result} memberId={memberId} /><div className="member-process-missing" role="alert"><strong>本次分析未保存可直接重建的过程配置</strong><span>{error}</span><button type="button" className="button ghost compact-button" onClick={supplement} disabled={supplementing}>{supplementing ? "正在补算过程…" : "基于冻结输入补算过程"}</button><small>补算会生成新的过程分析 ID，仅用于查看当前杆件过程，不修改原结果的来源记录。</small></div></>}
   </section>;
 }

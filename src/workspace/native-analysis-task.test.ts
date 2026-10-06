@@ -1,21 +1,15 @@
 import { afterEach, expect, it, vi } from "vitest";
-import samples from "../../docs/evidence/plan2/T2-14/wire-samples.json";
+import samples from "../../docs/evidence/plan2/T2-26/wire-samples.json";
 import { captureAnalysisInput, type AnalysisResult } from "../domain/analysis";
 import type { AnalysisServiceRequest } from "../domain/analysis-service";
-import { decodeAnalysisResult, decodeProject } from "../domain/project-file";
-import { AnalysisCancelledError, startAnalysisTask, type AnalysisTaskMessage } from "./analysis-task";
+import { decodeProject } from "../domain/project-file";
+import { AnalysisCancelledError, startAnalysisTask } from "./analysis-task";
+import { nativeMeshTranscript as nativeTranscript } from "../validation/native-mesh-transcript";
 import { createDiagnosticCopy } from "./diagnostic-trial";
 import { startDiagnosticTrialTask } from "./diagnostic-analysis-task";
 
 const sample = samples.find((entry) => entry.id === "axial")!;
 const project = () => decodeProject(JSON.stringify(sample.project));
-const nativeTranscript = (request: AnalysisServiceRequest): AnalysisTaskMessage[] => {
-  const result = decodeAnalysisResult(sample.result);
-  result.id = request.analysisId; result.projectId = request.input.projectId; result.projectRevision = request.input.projectRevision;
-  result.input = structuredClone(request.input);
-  result.service = { ...result.service!, ...request, projectId: request.input.projectId, projectRevision: request.input.projectRevision, solver: { ...request.input.solver! }, status: "complete", stages: result.service!.stages };
-  return [...result.service.stages.map((record) => ({ kind: "phase" as const, requestId: request.requestId, record })), { kind: "result", requestId: request.requestId, result }];
-};
 afterEach(() => vi.unstubAllGlobals());
 
 it("contains synchronous bridge startup failures as a structured native failure", async () => {
@@ -53,7 +47,7 @@ it("uses C++ for the default formal task and streams phases before the result is
   deliver(messages);
   const result = await task.promise;
   expect(result.input.nodes[1].position.x).toBe(4);
-  expect(result.input.solver!.implementation).toBe("framemind-native/2");
+  expect(result.input.solver!.implementation).toBe("framemind-native/4");
   expect(result.nodes[1].displacement.x).toBeCloseTo(0.000016, 12);
   expect(phases).toEqual(["model-check", "assembly", "solve", "recovery"]);
   expect(unsubscribe).toHaveBeenCalledOnce();
@@ -80,7 +74,7 @@ it.each(["non-finite", "foreign-input", "partial", "wrong-solver", "stage-mismat
       return messages;
     };
   }
-  await expect(startAnalysisTask(captureAnalysisInput(model)).promise).rejects.toMatchObject({ run: { status: "failed", solver: { implementation: "framemind-native/2" } } });
+  await expect(startAnalysisTask(captureAnalysisInput(model)).promise).rejects.toMatchObject({ run: { status: "failed", solver: { implementation: "framemind-native/4" } } });
   expect(model).toEqual(before);
 });
 
@@ -110,7 +104,7 @@ it("executes an isolated diagnostic candidate through the same native task and r
   vi.stubGlobal("window", { frameMind: { runNativeAnalysis: async (request: AnalysisServiceRequest) => nativeTranscript(request) } });
   const outcome = await startDiagnosticTrialTask(copy, { label: "原生副本", operations: [] }).promise;
   expect(outcome.trial.result!.service!.origin).toMatchObject({ kind: "diagnostic-copy", copyId: copy.id, sourceProjectId: model.id });
-  expect(outcome.trial.result!.input.solver!.implementation).toBe("framemind-native/2");
+  expect(outcome.trial.result!.input.solver!.implementation).toBe("framemind-native/4");
   expect(model.analysisResults).toEqual(sample.project.analysisResults);
   window.frameMind!.runNativeAnalysis = async (request: unknown) => [{ kind: "error", requestId: (request as AnalysisServiceRequest).requestId,
     error: { name: "AnalysisFailure", stage: "model-check", diagnostics: [{ code: "native-resource-limit", message: "Memory exhausted", field: "native-core" }] } }];

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { DEFAULT_MESH_POLICY } from "../domain/analysis-mesh";
 import { X } from "lucide-react";
 import { ANALYSIS_CAPABILITIES, type AnalysisMethod } from "../domain/analysis-capabilities";
 import { addAnalysisCase, updateAnalysisCase, deleteAnalysisCase, selectAnalysisCase, type FrameProject } from "../domain/project";
@@ -13,14 +14,16 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   const [name, setName] = useState(initial?.name ?? "");
   const [sourceId, setSourceId] = useState(initial?.loadSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
   const [error, setError] = useState<string>();
+  const [mesh, setMesh] = useState(initial?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   const edit = (id: string) => {
     const item = project.analysisCases.find((c) => c.id === id);
     setEditingId(id); setName(item?.name ?? ""); setSourceId(item?.loadSourceId ?? project.activeLoadCaseId); setError(undefined);
+    setMesh(item?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   };
   const save = (event: FormEvent) => {
     event.preventDefault();
     try {
-      const properties = { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const } };
+      const properties = { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
       const next = editingId ? updateAnalysisCase(project, editingId, properties) : addAnalysisCase(project, properties);
       const id = editingId || next.analysisCases.at(-1)!.id;
       onChange(selectAnalysisCase(next, id)); setEditingId(id); setError(undefined);
@@ -45,6 +48,11 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
         <label className="field"><span>分析方法</span><select value="static" onChange={() => {}}>{Object.entries(ANALYSIS_CAPABILITIES).map(([method, capability]) => <option key={method} value={method} disabled={!capability.available}>{capability.name}{capability.available ? "" : "（尚未开放）"}</option>)}</select></label>
         <label className="field"><span>复用荷载定义</span><select value={sourceId} onChange={(e) => setSourceId(e.target.value)}>{[...project.loadCases, ...project.loadCombinations].map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label>
         <p>数值设置：原生静力求解器 · 稀疏 LDLT · 自由度消元 · 相对主元阈值 1e-12。单位 m / kN / kN·m。</p>
+        <details><summary>内部细分精度与预算</summary>
+          <p>逐杆采用 1、2、4… 单元加密，工程拓扑保持完整。预算耗尽会标记未收敛。</p>
+          <label className="field"><span>每杆最大计算单元</span><select value={mesh.maxDivisions} onChange={(e) => setMesh({ ...mesh, maxDivisions: Number(e.target.value) })}>{[1, 2, 4, 8, 16].map((n) => <option key={n}>{n}</option>)}</select></label>
+          {([['maxEquations', '最大计算方程数'], ['relativeTolerance', '细分相对误差'], ['displacementTolerance', '位移绝对误差（m / rad）'], ['forceTolerance', '内力绝对误差（kN / kN·m）']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input type="number" step="any" value={mesh[key]} onChange={(e) => setMesh({ ...mesh, [key]: Number(e.target.value) })} /></label>)}
+        </details>
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="load-case-actions"><button className="button primary" type="submit">{editingId ? "保存分析工况" : "创建分析工况"}</button><button className="button ghost" type="button" disabled={!editingId} onClick={remove}>删除分析工况</button><button className="button ghost" type="button" disabled={!editingId} onClick={() => onAnalyze(editingId)}>计算此分析工况</button></div>
       </form>
