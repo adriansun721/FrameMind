@@ -1,18 +1,14 @@
 import { useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { FrameProject } from "../domain/project";
+import { sameInputValue } from "../domain/analysis";
 import { applyProjectEdits } from "../domain/project-operations";
 import { unitPresentation } from "../domain/units";
-import { bandLimitedWhiteNoise, canonicalPsdConvention, convertPsd, importPsdCsv, integratePsd, normalizePsd, psdDensityUnit, psdSpectrumInput, validatePsdInput, type PsdConvention, type PsdInput } from "../domain/psd";
+import { bandLimitedWhiteNoise, canonicalPsdConvention, convertPsd, importPsdCsv, integratePsd, parsePsdNumber, psdDensityUnit, psdSpectrumInput, validatePsdInput, type PsdConvention, type PsdInput, type PsdSpectrum } from "../domain/psd";
 
 type Draft = Omit<PsdInput, "band" | "points"> & { band: [string, string]; points: { frequency: string; density: string }[] };
 const draftOf = (input: PsdInput): Draft => ({ ...input, band: [String(input.band[0]), String(input.band[1])], points: input.points.map((p) => ({ frequency: String(p.frequency), density: String(p.density) })) });
-function numeric(text: string): number {
-  if (!text.trim()) throw new Error("PSD 数值不能为空");
-  const value = Number(text);
-  if (!Number.isFinite(value)) throw new Error("PSD 数值必须有限");
-  return value;
-}
+const numeric = parsePsdNumber;
 const inputOf = (draft: Draft): PsdInput => validatePsdInput({ ...draft, band: draft.band.map(numeric), points: draft.points.map((p) => ({ frequency: numeric(p.frequency), density: numeric(p.density) })) });
 const conventionOf = (input: Draft): PsdConvention => ({ quantity: input.quantity, excitationUnit: input.excitationUnit, frequencyUnit: input.frequencyUnit, densityUnit: input.densityUnit, sidedness: input.sidedness });
 
@@ -42,6 +38,8 @@ export function PsdSpectrumManager({ project, onChange, onClose }: { project: Fr
   const blank = (): Draft => ({ name: "带限白噪声", ...canonicalPsdConvention("force"), excitationUnit: units.unit("kN"), densityUnit: psdDensityUnit(units.unit("kN"), "Hz"), band: ["10", "20"], points: [{ frequency: "10", density: "2" }, { frequency: "20", density: "2" }] });
   const [draft, setDraft] = useState<Draft>(blank);
   const [editingId, setEditingId] = useState("");
+  const [editingBase, setEditingBase] = useState<PsdSpectrum>();
+  const sourceProjectId = useRef(project.id);
   const [page, setPage] = useState(0);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
@@ -63,9 +61,14 @@ export function PsdSpectrumManager({ project, onChange, onClose }: { project: Fr
   const attempt = (action: () => void) => { try { action(); setError(undefined); } catch (cause) { setError(cause instanceof Error ? cause.message : "PSD 操作失败"); } };
   const choose = (id: string) => {
     fileGeneration.current++;
+    sourceProjectId.current = project.id;
     const spectrum = project.psdSpectra.find((s) => s.id === id);
     const next = spectrum ? draftOf(psdSpectrumInput(spectrum)) : blank();
-    setEditingId(id); setDraft(next); setTargetUnit(next.excitationUnit); setTargetFrequency(next.frequencyUnit); setTargetSide(next.sidedness); setPage(0); setError(undefined); setNotice(undefined); setCsv(""); setCsvUnit(""); setCsvFrequency(""); setCsvDensity(""); setCsvSide(""); setCsvBand(["", ""]);
+    setEditingId(id); setEditingBase(spectrum ? structuredClone(spectrum) : undefined); setDraft(next); setTargetUnit(next.excitationUnit); setTargetFrequency(next.frequencyUnit); setTargetSide(next.sidedness); setPage(0); setError(undefined); setNotice(undefined); setCsv(""); setCsvUnit(""); setCsvFrequency(""); setCsvDensity(""); setCsvSide(""); setCsvBand(["", ""]);
+  };
+  const checkTarget = () => {
+    if (project.id !== sourceProjectId.current) throw new Error("项目已切换，请重新打开输入谱管理器");
+    if (editingId && (!editingBase || !sameInputValue(editingBase, project.psdSpectra.find((s) => s.id === editingId)))) throw new Error("输入谱已变化或删除，请重新选择当前谱后核对；旧表格不能覆盖正式内容");
   };
   return <div className="dialog-backdrop"><section className="node-dialog wide-dialog psd-dialog" role="dialog" aria-modal="true" aria-labelledby="psd-title">
     <header><h2 id="psd-title">随机输入谱管理</h2><button className="icon-button" aria-label="关闭随机输入谱管理" onClick={onClose}><X size={17} /></button></header>
@@ -110,9 +113,10 @@ export function PsdSpectrumManager({ project, onChange, onClose }: { project: Fr
       {preview ? <PsdPreview input={preview} /> : <p className="form-error" aria-live="polite">预览不可用：{previewError}</p>}
       {notice && <p role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}
       <div className="load-case-actions"><button className="button primary" disabled={!preview} onClick={() => attempt(() => {
+        checkTarget();
         const properties = inputOf(draft), outcome = applyProjectEdits(project, [editingId ? { type: "update_psd_spectrum", id: editingId, properties } : { type: "create_psd_spectrum", properties }]);
-        onChange(outcome.project); const id = editingId || outcome.project.psdSpectra.at(-1)!.id; setEditingId(id); setDraft(draftOf(normalizePsd(properties))); setNotice(`已保存 ${id}，采用单边 Hz 规范单位。`);
-      })}>保存输入谱</button><button className="button ghost" disabled={!editingId} onClick={() => attempt(() => { onChange(applyProjectEdits(project, [{ type: "delete_psd_spectrum", id: editingId }]).project); choose(""); })}>删除输入谱</button></div>
+        onChange(outcome.project); const id = editingId || outcome.project.psdSpectra.at(-1)!.id, spectrum = outcome.project.psdSpectra.find((s) => s.id === id)!; setEditingId(id); setEditingBase(structuredClone(spectrum)); setDraft(draftOf(psdSpectrumInput(spectrum))); setNotice(`已保存 ${id}，采用单边 Hz 规范单位。`);
+      })}>保存输入谱</button><button className="button ghost" disabled={!editingId} onClick={() => attempt(() => { checkTarget(); onChange(applyProjectEdits(project, [{ type: "delete_psd_spectrum", id: editingId }]).project); choose(""); })}>删除输入谱</button></div>
     </div>
   </section></div>;
 }

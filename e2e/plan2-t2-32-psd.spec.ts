@@ -3,6 +3,8 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createProject } from "../src/domain/project";
+import { applyProjectEdits } from "../src/domain/project-operations";
+import { bandLimitedWhiteNoise } from "../src/domain/psd";
 import { canonicalPsdConvention, integratePsd, psdSpectrumInput } from "../src/domain/psd";
 import { enterWorkbenchWithoutRecovery } from "./electron-app";
 import { desktop, replay, save, send } from "./frame-proposal-actions";
@@ -96,5 +98,31 @@ test("T2-32 agent input spectrum remains unapplied until concrete confirmation",
     const after = await save(page, path); expect(after.psdSpectra).toHaveLength(1); expect(after.analysisResults).toHaveLength(0);
     expect(integratePsd(psdSpectrumInput(after.psdSpectra[0]))).toBe(20);
     await writeFile("docs/evidence/plan2/T2-32/agent-replay.json", JSON.stringify({ passed: true, confirmationRequired: true, variance: 20, noAnalysisRequested: true, realAi: false }, null, 2));
+  });
+});
+
+test("T2-32 spectrum editor guards undo and project-session switches while open", async () => {
+  await desktop(async (_app, page, path) => {
+    const properties = bandLimitedWhiteNoise("project A spectrum", canonicalPsdConvention("force"), [10, 20], 2);
+    const projectA = applyProjectEdits(createProject("Project A"), [{ type: "create_psd_spectrum", properties }]).project;
+    await writeFile(path, JSON.stringify(projectA));
+    await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
+    const openEditor = async () => { await page.getByRole("button", { name: "管理分析工况", exact: true }).click(); await page.getByRole("button", { name: "管理随机输入谱", exact: true }).click(); };
+    await openEditor();
+    const dialog = page.getByRole("dialog", { name: "随机输入谱管理" });
+    await dialog.getByRole("button", { name: /PSD1 · project A spectrum/ }).click();
+    await dialog.getByLabel("点 1 密度").fill("4"); await dialog.getByRole("button", { name: "保存输入谱" }).click();
+    await page.keyboard.press("Control+z");
+    await dialog.getByRole("button", { name: "保存输入谱" }).click(); await expect(dialog.getByRole("alert")).toContainText("已变化");
+    expect((await save(page, path)).psdSpectra[0].points[0].density).toBe(2);
+    await dialog.getByRole("button", { name: /PSD1 · project A spectrum/ }).click(); await dialog.getByLabel("输入谱名称").fill("stale local name");
+    const projectB = applyProjectEdits(createProject("Project B"), [{ type: "create_psd_spectrum", properties: { ...properties, name: "project B spectrum" } }]).project;
+    await writeFile(path, JSON.stringify(projectB)); await page.keyboard.press("Control+o");
+    await expect(dialog).toBeHidden(); await openEditor();
+    await expect(dialog.getByLabel("输入谱名称")).not.toHaveValue("stale local name");
+    await dialog.getByRole("button", { name: /PSD1 · project B spectrum/ }).click(); await expect(dialog.getByLabel("输入谱名称")).toHaveValue("project B spectrum");
+    expect((await save(page, path)).psdSpectra).toEqual(projectB.psdSpectra);
+    await page.keyboard.press("Control+o"); await expect(dialog).toBeHidden();
+    await writeFile("docs/evidence/plan2/T2-32/session-guards.json", JSON.stringify({ passed: true, undoCannotBeOverwrittenByOldTable: true, crossProjectSamePsdIdProtected: true, sameProjectReopenClosesEditor: true }, null, 2));
   });
 });

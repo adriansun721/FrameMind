@@ -10,6 +10,15 @@ it("preserves a representable subnormal rectangular area rather than silently ze
   expect(integratePsd(bandLimitedWhiteNoise("tiny", canonicalPsdConvention("force"), [0, 1], Number.MIN_VALUE))).toBe(Number.MIN_VALUE);
 });
 
+it("rejects a nonzero trapezoid whose mean height underflows instead of returning a false zero variance", () => {
+  const input = { name: "tiny triangle", ...canonicalPsdConvention("force"), band: [0, 1], points: [{ frequency: 0, density: 0 }, { frequency: 1, density: Number.MIN_VALUE }] };
+  expect(() => integratePsd(validatePsdInput(input))).toThrow("精度范围");
+});
+
+it.each(["-1e-400", "1e-400"])("rejects CSV nonzero decimal underflow %s before it can become zero", (density) => {
+  expect(() => importPsdCsv(`frequency,density\n10,${density}\n20,2`, { name: "csv", ...canonicalPsdConvention("force"), band: [10, 20] })).toThrow("精度范围");
+});
+
 it("uses the independent triangle area with linear interpolation and zero outside the explicit band", () => {
   const triangle = { name: "triangle", ...canonicalPsdConvention("force"), band: [0, 10] as [number, number], points: [{ frequency: 0, density: 0 }, { frequency: 5, density: 4 }, { frequency: 10, density: 0 }] };
   expect(integratePsd(triangle)).toBe(20);

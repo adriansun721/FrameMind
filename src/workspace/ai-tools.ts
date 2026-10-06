@@ -272,7 +272,12 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
   try {
     call = validateCall(value);
     input = record(JSON.parse(call.function.arguments));
-    if (call.function.name === "prepare_psd_input") return { status: "completed", message: "已验证并预览随机输入谱，正式工程未修改", context: snapshot.context, data: preparePsdInput(input) };
+    if (call.function.name === "prepare_psd_input") {
+      const { inputUnits, outputUnitPreset, ...psdArgs } = input;
+      // Common preferences are valid, but the spectrum's own explicit units govern its data.
+      normalizeToolUnits({ inputUnits, outputUnitPreset }, call.function.name);
+      return { status: "completed", message: "已验证并预览随机输入谱，正式工程未修改", context: snapshot.context, data: preparePsdInput(psdArgs) };
+    }
     if (call.function.name === "read_unit_contract") { exactFields(input, []); return { status: "completed", message: "已读取单位契约", context: snapshot.context, data: UNIT_CONTRACT }; }
     if (call.function.name === "read_geometry_contract") { exactFields(input, []); return { status: "completed", message: "已读取几何与交互容差契约（规范单位 m）", context: snapshot.context, data: GEOMETRY_CONTRACT }; }
     if (call.function.name === "read_section_contract") {

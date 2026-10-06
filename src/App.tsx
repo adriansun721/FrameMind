@@ -242,7 +242,7 @@ export function App() {
     const previous = activeProjectRef.current;
     if (!newSession && next.displayUnitPreset !== previous.displayUnitPreset) next = { ...next, displayUnitPreset: previous.displayUnitPreset };
     if (newSession && startupReady) captureRecoveryRef.current();
-    if (newSession) { setDrawingEnabled(false); setDrawingReset((value) => value + 1); }
+    if (newSession) { setDrawingEnabled(false); setDrawingReset((value) => value + 1); setPsdManagerOpen(false); }
     if (historyMode === "reset") {
       projectHistoryRef.current.reset();
       frameConfirmationRef.current = new FrameStageConfirmation();
@@ -920,7 +920,7 @@ export function App() {
     {sectionEditor && <ParametricSectionEditor key={project.id + (sectionEditor.id ?? "new")} project={project} initialSectionId={sectionEditor.id} initialInput={sectionEditor.input} onClose={() => setSectionEditor(null)} onCommit={(next) => { activateProject(next, false); selectObject(selection, next); setStatus({ tone: "success", text: "截面变更已成组应用，可撤销；相关结果需重算" }); }} />}
     {nodeMergeOpen && <NodeMergeEditor key={project.id} project={project} onClose={() => setNodeMergeOpen(false)} onCommit={(next) => { activateProject(next, false); selectObject(null); setStatus({ tone: "success", text: "节点合并已成组应用，可撤销；相关任务需重读目标身份" }); }} />}
     {settingsDialogOpen && <Dialog id="settings-dialog" title="设置" copy="FrameMind" onClose={() => setSettingsDialogOpen(false)}><section className="settings-general" aria-label="常规设置"><h3>外观</h3><div className="theme-options" role="group" aria-label="主题">{(["dark", "light"] as const).map((value) => <button key={value} className="button ghost" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === "dark" ? <Moon size={15} /> : <Sun size={15} />}{value === "dark" ? "深色" : "浅色"}</button>)}</div></section><DeepSeekSettingsPanel /></Dialog>}
-    {psdManagerOpen && <PsdSpectrumManager project={project} onChange={(next) => activateProject(next, false)} onClose={() => setPsdManagerOpen(false)} />}
+    {psdManagerOpen && <PsdSpectrumManager key={`${project.id}:${activeSessionRef.current}`} project={project} onChange={(next) => activateProject(next, false)} onClose={() => setPsdManagerOpen(false)} />}
     {analysisCaseManagerOpen && <AnalysisCaseManager project={project} onChange={(next) => { activateProject(next, false); setHistoryAnalysisId(undefined); setSelection(null); }} onAnalyze={(id) => { setAnalysisCaseManagerOpen(false); void runAnalysis(true, id); }} onViewHistory={(id) => { setHistoryAnalysisId(id); setResultReference(null); setPropertyPanelOpen(true); setAnalysisCaseManagerOpen(false); }} onLoads={() => { setAnalysisCaseManagerOpen(false); setLoadCaseManagerOpen(true); }} onCombinations={() => { setAnalysisCaseManagerOpen(false); setLoadCombinationManagerOpen(true); }} onPsd={() => { setAnalysisCaseManagerOpen(false); setPsdManagerOpen(true); }} onClose={() => setAnalysisCaseManagerOpen(false)} />}
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onSelfWeight={(loadCaseId) => { setLoadCaseManagerOpen(false); openSelfWeightDialog(loadCaseId); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}

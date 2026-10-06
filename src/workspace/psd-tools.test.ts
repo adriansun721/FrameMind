@@ -19,6 +19,12 @@ it("prepares the same band-limited input through the tool without mutating forma
   expect(project.psdSpectra).toEqual([]);
 });
 
+it("accepts declared common tool preferences without overriding the PSD's own units", () => {
+  const result = executeAiTool(captureAiSnapshot(createProject(), []), call("prepare_psd_input", { format: "white-noise", metadata: { name: "rectangle", ...canonicalPsdConvention("force"), band: [10, 20] }, density: 2, inputUnits: { force: "N" }, outputUnitPreset: "mm-N" }));
+  expect(result.status).toBe("completed");
+  expect(result.data).toMatchObject({ variance: 20, varianceUnit: "kN²", displayUnitPreset: "mm-N", canonical: { excitationUnit: "kN", densityUnit: "kN²/Hz", points: [{ frequency: 10, density: 2 }, { frequency: 20, density: 2 }] } });
+});
+
 it("manual and confirmed tool editing persist identical spectra with readback, undo and idempotence", () => {
   const project = createProject(), properties = bandLimitedWhiteNoise("rectangle", canonicalPsdConvention("force"), [10, 20], 2);
   const operations = [{ type: "create_psd_spectrum" as const, properties }];

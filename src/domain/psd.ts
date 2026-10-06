@@ -21,6 +21,15 @@ export interface PsdSpectrum extends PsdInput {
   outsideBand: "zero";
 }
 export const PSD_MAX_POINTS = 10000;
+export function parsePsdNumber(text: string): number {
+  const decimal = text.trim();
+  if (!decimal) throw new Error("PSD 数值不能为空");
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(decimal)) throw new Error("PSD 数值必须是有限十进制数值");
+  const value = Number(decimal);
+  if (!Number.isFinite(value)) throw new Error("PSD 数值必须有限");
+  if (value === 0 && /[1-9]/.test(decimal.split(/[eE]/)[0])) throw new Error("PSD 非零数值下溢，超出有限数值精度范围");
+  return value;
+}
 export function psdDensityUnit(excitationUnit: string, frequencyUnit: PsdConvention["frequencyUnit"]): string {
   return `${excitationUnit.includes("/") ? `(${excitationUnit})` : excitationUnit}²/${frequencyUnit === "Hz" ? "Hz" : "(rad/s)"}`;
 }
@@ -66,6 +75,7 @@ function tableArea(input: PsdInput): number {
   for (let i = 1; i < input.points.length; i++) {
     const a = input.points[i - 1], b = input.points[i];
     const height = Math.min(a.density, b.density) + Math.abs(b.density - a.density) / 2, width = b.frequency - a.frequency;
+    if (height === 0 && (a.density > 0 || b.density > 0)) throw new Error("PSD 非零梯形高度下溢，超出有限数值精度范围");
     const part = height * width;
     if (!Number.isFinite(part) || (height > 0 && part === 0)) throw new Error("PSD 积分超出有限数值精度范围");
     area += part;
@@ -136,11 +146,11 @@ export function importPsdCsv(csv: string, metadata: Omit<PsdInput, "points">): P
   const cellsOf = (line: string) => line.split(",").map((cell) => cell.trim().replace(/^"([^"]*)"$/, "$1"));
   const header = cellsOf(lines[0]);
   if (header.length !== 2 || header[0] !== "frequency" || header[1] !== "density") throw new Error("PSD CSV 表头必须为 frequency,density；单位在导入面板明确选择");
-  const decimal = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
   const points = lines.slice(1).map((line, i) => {
     const cells = cellsOf(line);
-    if (cells.length !== 2 || cells.some((cell) => !decimal.test(cell))) throw new Error(`PSD CSV 第 ${i + 2} 行需两个有限十进制数值`);
-    return { frequency: Number(cells[0]), density: Number(cells[1]) };
+    if (cells.length !== 2) throw new Error(`PSD CSV 第 ${i + 2} 行需两个有限十进制数值`);
+    try { return { frequency: parsePsdNumber(cells[0]), density: parsePsdNumber(cells[1]) }; }
+    catch (cause) { throw new Error(`PSD CSV 第 ${i + 2} 行：${cause instanceof Error ? cause.message : "数值无效"}`); }
   });
   return validatePsdInput({ ...metadata, points });
 }
