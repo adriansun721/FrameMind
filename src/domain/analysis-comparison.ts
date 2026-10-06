@@ -1,4 +1,5 @@
 import { getAnalysisSourceId } from "./project";
+import { secondOrderBaseMatches } from "./second-order";
 import { requireAnalysisCapability } from "./analysis-capabilities";
 import { sameInputValue, type AnalysisResult, type MemberAnalysisResult, type NodeAnalysisResult } from "./analysis";
 
@@ -65,16 +66,19 @@ function compareCollection<T extends { id: string; label: string }>(
 
 export function compareAnalysisResults(before: AnalysisResult, after: AnalysisResult): AnalysisComparison {
   const issues: string[] = [];
+  const crossMethod = (before.input.analysisCase?.method ?? "static") !== (after.input.analysisCase?.method ?? "static");
+  const secondOrderPair = crossMethod && Boolean(before.secondOrder || after.secondOrder);
   try {
     requireAnalysisCapability(before.input.analysisCase?.method ?? "static", "resultComparison");
     requireAnalysisCapability(after.input.analysisCase?.method ?? "static", "resultComparison");
-    if ((before.input.analysisCase?.method ?? "static") !== (after.input.analysisCase?.method ?? "static")) issues.push("分析方法不同，不能比较");
+    if (crossMethod && !secondOrderPair) issues.push("分析方法不同，不能比较");
   } catch (error) { issues.push(error instanceof Error ? error.message : "不支持此结果比较"); }
   if (before.projectId !== after.projectId) issues.push("两份结果属于不同项目，不能比较");
   if (before.input.assumptions.units !== after.input.assumptions.units) issues.push("单位约定不同，不能比较");
   if (before.input.dofOrder.join(",") !== after.input.dofOrder.join(",")) issues.push("自由度顺序不同，不能比较");
-  const beforeSource = before.input.analysisCase?.legacySourceId ?? getAnalysisSourceId(before.input);
-  const afterSource = after.input.analysisCase?.legacySourceId ?? getAnalysisSourceId(after.input);
+  if (secondOrderPair && (!secondOrderBaseMatches(before.input, after.input) || (before.secondOrder?.selectedDivisions ?? before.discretization?.selectedDivisions) !== (after.secondOrder?.selectedDivisions ?? after.discretization?.selectedDivisions))) issues.push("二阶与线性基础输入或内部网格不同，不能归因于二阶效应");
+  const beforeSource = secondOrderPair ? before.input.analysisCase?.loadSourceId ?? before.input.combination?.definition.id ?? before.input.loadCase?.id : before.input.analysisCase?.legacySourceId ?? getAnalysisSourceId(before.input);
+  const afterSource = secondOrderPair ? after.input.analysisCase?.loadSourceId ?? after.input.combination?.definition.id ?? after.input.loadCase?.id : after.input.analysisCase?.legacySourceId ?? getAnalysisSourceId(after.input);
   if (beforeSource !== afterSource) issues.push(`来源工况或组合不同（${beforeSource} 与 ${afterSource}），不能比较`);
   if (before.input.combination || after.input.combination) {
     const left = before.input.combination?.definition;

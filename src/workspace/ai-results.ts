@@ -4,6 +4,7 @@ import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
 import { selectedMeshLevel } from "../domain/analysis-mesh";
 import type { FrameProject, Vector3 } from "../domain/project";
 import { BUCKLING_MEANING } from "../domain/buckling";
+import { SECOND_ORDER_MEANING } from "../domain/second-order";
 import { modalDampingStatus, modalTruncationCheck } from "../domain/modal-damping";
 
 export interface ResultReference {
@@ -80,7 +81,7 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
-  const provenance = { ...analysisProvenance(result, current), ...(result.modal ? { damping: project ? modalDampingStatus(project, result) : { status: "missing", message: "需读取项目阻尼配置", truncation: modalTruncationCheck(result) } } : {}) };
+  const provenance = { ...analysisProvenance(result, current), ...(result.secondOrder ? { method: "second-order", meaning: SECOND_ORDER_MEANING, completion: result.secondOrder.status } : {}), ...(result.modal ? { damping: project ? modalDampingStatus(project, result) : { status: "missing", message: "需读取项目阻尼配置", truncation: modalTruncationCheck(result) } } : {}) };
   if (result.buckling) {
     if (input.fields !== undefined || input.query !== undefined || !["summary", "modes", "mesh"].includes(collection)) throw new Error("屈曲仅支持 summary、modes、mesh；屈曲形态不是静力位移、内力或质量");
     const b = result.buckling;
@@ -114,7 +115,7 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
       const node = result.nodes.reduce<typeof result.nodes[number] | undefined>((best, item) => !best || Math.abs(item.displacement[component]) > Math.abs(best.displacement[component]) ? item : best, undefined);
       return node ? { nodeId: node.nodeId, component, value: node.displacement[component], unit: "m", criterion: "节点平移分量绝对值最大，非沿杆连续极值" } : null;
     });
-    return { ...provenance, counts: { nodes: result.nodes.length, members: result.members.length }, displacementExtrema,
+    return { ...provenance, ...(result.secondOrder ? { secondOrder: { ...result.secondOrder, runs: result.secondOrder.runs.map(({ divisions, error, calculation }) => ({ divisions, error, equations: calculation.vector.length, iterations: calculation.iterations.map(({ displacement: _u, correction: _d, ...record }) => record), linearIdentity: calculation.linearRun.service, linearNodes: calculation.linearRun.nodes.slice(0, result.input.nodes.length) })) } } : {}), counts: { nodes: result.nodes.length, members: result.members.length }, displacementExtrema,
       frozenConditions: { supports: result.input.supports.slice(0, limit), nodalLoads: result.input.nodalLoads.slice(0, limit),
         uniformLoads: (result.input.uniformLoads ?? []).slice(0, limit), selfWeight: result.input.selfWeight,
         originalCombinationLoads: result.input.combination ? {

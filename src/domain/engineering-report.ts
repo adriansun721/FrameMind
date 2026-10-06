@@ -14,7 +14,7 @@ export interface EngineeringReport {
 }
 
 export function reportSourceLabel(result: AnalysisResult): string {
-  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name} · ${result.modal ? "模态" : "线性静力"} · ${result.input.analysisCase.loadSourceId}`;
+  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name} · ${result.secondOrder ? "弹性二阶" : result.buckling ? "特征值屈曲" : result.modal ? "模态" : "线性静力"} · ${result.input.analysisCase.loadSourceId}`;
   const source = result.input.combination?.definition ?? result.input.loadCase;
   return source ? `${source.id} · ${source.name}${result.input.combination ? " · 用户定义组合" : ""}` : "LC1 · 默认工况";
 }
@@ -24,6 +24,7 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
   const selected = project.analysisResults.find((result) => result.id === analysisId);
   if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
   const result = decodeAnalysisResult(structuredClone(selected));
+  if (result.secondOrder) throw new Error("二阶计算书由 T2-37 接入；请在二阶响应与线性比较面板核查");
   if (result.buckling) throw new Error("屈曲计算书由 T2-37 接入；请在屈曲因子与形态面板核查");
   if (result.modal) throw new Error("模态结果请在频率与振型面板核查；模态计算书由 T2-37 接入");
   if (!result.input.nodes.length || !result.input.members.length) throw new Error("分析输入缺少节点或杆件，不能导出成功报告");

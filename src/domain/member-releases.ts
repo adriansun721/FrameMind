@@ -27,7 +27,7 @@ export function releaseLabel(end?: BendingRelease): string {
 }
 
 /** Disconnected node rotation components are coordinate references, not responses. */
-export function indeterminateRotationComponents(result: { process?: { releaseNullRotations?: Array<{ nodeId: string; direction: { x: number; y: number; z: number } }> }; discretization?: { runs: Array<{ result: { process?: { releaseNullRotations?: Array<{ nodeId: string; direction: { x: number; y: number; z: number } }> } } }> } }, nodeId: string) {
-  const process = result.discretization?.runs.at(-1)?.result.process ?? result.process;
+export function indeterminateRotationComponents(result: { secondOrder?: { runs: Array<{ calculation: { releaseNullRotations: Array<{ nodeId: string; direction: { x: number; y: number; z: number } }> } }> }; process?: { releaseNullRotations?: Array<{ nodeId: string; direction: { x: number; y: number; z: number } }> }; discretization?: { runs: Array<{ result: { process?: { releaseNullRotations?: Array<{ nodeId: string; direction: { x: number; y: number; z: number } }> } } }> } }, nodeId: string) {
+  const process = result.secondOrder?.runs.at(-1)?.calculation ?? result.discretization?.runs.at(-1)?.result.process ?? result.process;
   return (["x", "y", "z"] as const).filter((axis) => process?.releaseNullRotations?.some((record) => record.nodeId === nodeId && Math.abs(record.direction[axis]) > 1e-9));
 }

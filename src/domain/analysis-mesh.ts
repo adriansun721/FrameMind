@@ -86,5 +86,5 @@ export function meshCalculationInput(input: AnalysisInputSnapshot, level: MeshLe
 }
 
 export function selectedMeshLevel(result: AnalysisResult): MeshLevel | undefined {
-  return result.input.meshPlan?.levels.find((l) => l.divisions === result.discretization?.selectedDivisions);
+  return result.input.meshPlan?.levels.find((l) => l.divisions === (result.secondOrder?.selectedDivisions ?? result.discretization?.selectedDivisions));
 }

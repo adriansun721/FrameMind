@@ -1,3 +1,5 @@
+import type { SecondOrderRecord } from "./second-order";
+import { secondOrderResponsesAt } from "./second-order-process";
 import { bucklingPattern, type BucklingRecord, type BucklingLoadPattern } from "./buckling";
 import type { ModalRecord } from "./modal";
 import { hasMemberReleases } from "./member-releases";
@@ -47,9 +49,10 @@ export const NATIVE_MESH_STATIC_SOLVER: Readonly<AnalysisSolverConfig> = Object.
 export const NATIVE_MODAL_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/5", algorithm: "generalized-self-adjoint" });
 
 export const NATIVE_BUCKLING_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_MODAL_SOLVER, implementation: "framemind-native/6" });
+export const NATIVE_SECOND_ORDER_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/7" });
 
 export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
-  return sameInputValue(solver, NATIVE_BUCKLING_SOLVER) || sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
+  return sameInputValue(solver, NATIVE_SECOND_ORDER_SOLVER) || sameInputValue(solver, NATIVE_BUCKLING_SOLVER) || sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
 }
 
 export interface AnalysisAssumptions {
@@ -121,6 +124,7 @@ export interface NativeReleaseRecovery {
 }
 
 export interface AnalysisResult {
+  secondOrder?: SecondOrderRecord;
   buckling?: BucklingRecord;
   modal?: ModalRecord;
   discretization?: DiscretizationRecord;
@@ -388,7 +392,7 @@ export function captureAnalysisInput(project: FrameProject, loadCaseId?: string)
       return freezeAnalysisInput({ ...base, analysisCase, solver: { ...NATIVE_MODAL_SOLVER }, nodalLoads: [], uniformLoads: [], selfWeight: { ...base.selfWeight!, enabled: false } });
     }
     const source = selectAnalysisSource(project, analysisCase.loadSourceId);
-    return freezeAnalysisInput(structuredClone({ ...captureAnalysisInput(source), analysisCase }));
+    return freezeAnalysisInput(structuredClone({ ...captureAnalysisInput(source), analysisCase, ...(analysisCase.method === "second-order" ? { solver: { ...NATIVE_SECOND_ORDER_SOLVER } } : {}) }));
   }
   if (loadCaseId === undefined && project.activeLoadCombinationId) {
     const definition = requireLoadCombination(project, project.activeLoadCombinationId);
@@ -680,6 +684,7 @@ export function getMemberResponseSamples(result: AnalysisResult, memberId: strin
 }
 
 export function memberResponsesAt(result: AnalysisResult, memberId: string, positions: number[]): MemberResponseSample[] {
+  if (result.secondOrder) return secondOrderResponsesAt(result, memberId, positions);
   const level = selectedMeshLevel(result);
   if (level && result.discretization) {
     const run = result.discretization.runs.at(-1)!.result;
@@ -731,8 +736,9 @@ export function memberResponsesAt(result: AnalysisResult, memberId: string, posi
 
 /** Section actions on the positive local-x face; order: N, Vy, Vz, T, My, Mz. */
 export function getMemberSectionForces(result: AnalysisResult, memberId: string, position: number): MemberSectionForces {
+  if (result.secondOrder) return { analysisId: result.id, memberId, position, forces: secondOrderResponsesAt(result, memberId, [position])[0].forces };
   requireLoadRecoveryVersion(result.input);
-  if (result.discretization) {
+  if (result.discretization || result.secondOrder) {
     const sample = memberResponsesAt(result, memberId, [position])[0];
     return { analysisId: result.id, memberId, position, forces: sample.forces };
   }
@@ -762,6 +768,7 @@ function sectionForces(s: MemberAnalysisResult["localEndForces"]["start"], q: Ve
 }
 
 export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {
+  if (result.secondOrder) throw new Error("二阶不能重建为线性静力过程；请读取保存的二阶加载与内部单元记录");
   requireLoadRecoveryVersion(result.input);
   const input = result.input; const member = input.members.find((item) => item.id === memberId);
   if (!member) throw new Error(`本次分析没有杆件 ${memberId}`);
@@ -852,6 +859,7 @@ function reconstructProcessSnapshot(input: AnalysisInputSnapshot): AnalysisProce
 
 /** Uses the process captured by the run, falling back to frozen-input reconstruction for older files. */
 export function getOverallAnalysisProcessRecord(result: AnalysisResult): OverallAnalysisProcessRecord {
+  if (result.secondOrder) throw new Error("二阶不能重建为 K·u=F 静力过程；请读取保存的二阶加载记录");
   requireLoadRecoveryVersion(result.input);
   const snapshot = result.discretization?.runs.at(-1)?.result.process ?? result.process ?? reconstructProcessSnapshot(result.input);
   return { analysisId: result.id, sourceAnalysisId: result.id, projectRevision: result.projectRevision, origin: result.process || result.discretization ? "captured-from-run" : "reconstructed-from-frozen-input", service: result.service ? structuredClone(result.service) : undefined, ...structuredClone(snapshot), basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
@@ -865,6 +873,7 @@ export function supplementOverallAnalysisProcessRecord(result: AnalysisResult): 
 }
 
 export function createSupplementalAnalysisInput(result: AnalysisResult): AnalysisInputSnapshot {
+  if (result.secondOrder) throw new Error("二阶不能补算为线性静力过程；请重新执行原二阶工况");
   const input = structuredClone(result.input);
   return freezeAnalysisInput({ ...input, solver: { ...ANALYSIS_SOLVER } });
 }

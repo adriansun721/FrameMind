@@ -1,7 +1,7 @@
 /** Extend when an analysis method has a verified public solver. */
 export const ANALYSIS_CAPABILITIES = {
   static: { name: "线性静力", available: true, loadCombination: true, responseSuperposition: true, resultComparison: true },
-  "second-order": { name: "弹性二阶", available: false, loadCombination: true, responseSuperposition: false, resultComparison: false },
+  "second-order": { name: "弹性二阶", available: true, loadCombination: true, responseSuperposition: false, resultComparison: true },
   buckling: { name: "特征值屈曲", available: true, loadCombination: true, responseSuperposition: false, resultComparison: false },
   modal: { name: "模态", available: true, loadCombination: false, responseSuperposition: false, resultComparison: false },
   random: { name: "随机响应", available: false, loadCombination: false, responseSuperposition: false, resultComparison: false },

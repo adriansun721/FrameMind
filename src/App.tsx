@@ -1,5 +1,6 @@
 import { BucklingResultPanel } from "./components/BucklingResultPanel";
 import { bucklingDisplayResult } from "./domain/buckling";
+import { SecondOrderResultSummary } from "./components/SecondOrderResultSummary";
 import { ModalResultPanel } from "./components/ModalResultPanel";
 import { updateAnalysisCase } from "./domain/project";
 import { modalDisplayResult } from "./domain/modal";
@@ -469,7 +470,7 @@ export function App() {
         if (!execution || !isProjectCheckpointCurrent(execution.checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return { status: "cancelled", message: "分析上下文已变化，旧结果未应用；已确认模型保留", context };
         const unchecked = analysisResult.discretization?.status === "budget-exhausted" || analysisResult.modal?.convergence.status === "budget-exhausted" || analysisResult.buckling?.convergence.status === "budget-exhausted";
         if (analysisResult.modal || analysisResult.buckling) { setModeNumber(1); setResultView("deformation"); }
-        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: unchecked ? "neutral" : "success", text: unchecked ? "计算完成 · 预算内未满足细分精度，结果未收敛，仅供核查" : analysisResult.buckling ? `分析完成 · ${analysisResult.buckling.modes.length} 阶屈曲 · λ₁ = ${analysisResult.buckling.modes[0].factor.toPrecision(7)}` : analysisResult.modal ? `分析完成 · ${analysisResult.modal.modes.length} 阶模态 · 总质量 ${analysisResult.modal.totalMassKg.toPrecision(6)} kg` : `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
+        const updated = attachAnalysisResult(activeProjectRef.current, analysisResult); activateProject(updated, false, "restore"); setSelection(null); setStatus({ tone: unchecked ? "neutral" : "success", text: unchecked ? "计算完成 · 预算内未满足细分精度，结果未收敛，仅供核查" : analysisResult.secondOrder ? `分析完成 · 弹性二阶已收敛 · 每杆 ${analysisResult.secondOrder.selectedDivisions} 单元` : analysisResult.buckling ? `分析完成 · ${analysisResult.buckling.modes.length} 阶屈曲 · λ₁ = ${analysisResult.buckling.modes[0].factor.toPrecision(7)}` : analysisResult.modal ? `分析完成 · ${analysisResult.modal.modes.length} 阶模态 · 总质量 ${analysisResult.modal.totalMassKg.toPrecision(6)} kg` : `分析完成 · ${analysisResult.nodes.length} 个节点结果，${analysisResult.members.length} 根杆件结果` });
         setResultReference(null); setResultFocus(null);
         if (showResults) { setResultView("deformation"); setPropertyPanelOpen(true); }
         return { status: "completed", message: unchecked ? "本地计算完成，但预算内未满足细分精度，结果未收敛，仅供核查" : `本地分析完成 · ${analysisResult.nodes.length} 个节点、${analysisResult.members.length} 根杆件，已展示结果`, context,
@@ -477,6 +478,7 @@ export function App() {
             analysisSourceId: getAnalysisSourceId(analysisResult.input), analysisCase: analysisResult.input.analysisCase,
             loadCase: analysisResult.input.combination ? undefined : analysisResult.input.loadCase, combination: analysisResult.input.combination,
             nodes: analysisResult.nodes, members: analysisResult.members, service: analysisResult.service,
+            secondOrder: analysisResult.secondOrder ? { method: analysisResult.secondOrder.method, status: analysisResult.secondOrder.status, selectedDivisions: analysisResult.secondOrder.selectedDivisions, runs: analysisResult.secondOrder.runs.map(({ divisions, error, calculation }) => ({ divisions, error, iterations: calculation.iterations.map(({ displacement: _u, correction: _d, ...record }) => record) })) } : undefined,
             buckling: analysisResult.buckling ? { meaning: "λ 只放大参考荷载，形态不是实际位移，不能据此给出极限承载力、安全系数或规范结论", modes: analysisResult.buckling.modes.map(({ number, factor, residual }) => ({ number, factor, residual })), convergence: analysisResult.buckling.convergence, counts: analysisResult.buckling.counts } : undefined,
             discretization: analysisResult.discretization ? { ...analysisResult.discretization, runs: analysisResult.discretization.runs.map(({ divisions, error }) => ({ divisions, error })) } : undefined } };
       }).catch((error): AiToolResult => {
@@ -782,7 +784,7 @@ export function App() {
             <section className="property-section"><h3>几何</h3><dl><div><dt>长度</dt><dd>{u.quantity(memberGeometry.length, "m")}</dd></div></dl><details><summary>局部坐标与参考轴</summary><dl><div><dt>局部 x</dt><dd>{vectorText(memberGeometry.localX)}</dd></div><div><dt>局部 y</dt><dd>{vectorText(memberGeometry.localY)}</dd></div><div><dt>局部 z</dt><dd>{vectorText(memberGeometry.localZ)}</dd></div><div><dt>参考轴</dt><dd>{memberGeometry.referenceAxis === "global-z" ? "全局 Z" : "全局 Y（竖杆回退）"}</dd></div></dl></details></section>
 
             <form className="property-form" onSubmit={saveMemberEdit}><h3>连接与朝向</h3><SelectField label="起点节点" value={memberDraft.startNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, startNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="终点节点" value={memberDraft.endNodeId} onChange={(value) => setMemberDraft({ ...memberDraft, endNodeId: value })} options={project.nodes.map((item) => ({ value: item.id, label: `${item.label} · ${item.id}` }))} /><SelectField label="材料" value={memberDraft.materialId} onChange={(value) => setMemberDraft({ ...memberDraft, materialId: value })} options={project.materials.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><SelectField label="截面" value={memberDraft.sectionId} onChange={(value) => setMemberDraft({ ...memberDraft, sectionId: value })} options={project.sections.map((item) => ({ value: item.id, label: `${item.label} · ${item.name}` }))} /><NumberField label="截面转角（°）" value={memberDraft.rotationDegrees} onChange={(value) => setMemberDraft({ ...memberDraft, rotationDegrees: value })} unit="°" /><MemberReleaseFields value={memberDraft.endReleases} onChange={(endReleases) => setMemberDraft({ ...memberDraft, endReleases })} /><div className="assignment-summary"><span>{project.materials.find((item) => item.id === selectedMember.materialId)?.name}</span><span>{project.sections.find((item) => item.id === selectedMember.sectionId)?.name}</span></div><FormFeedback error={formError} /><button className="button primary" type="submit">保存杆件属性</button></form>
-            {caseResult && !caseResult.modal && !caseResult.buckling && <MemberAnalysisProcess result={caseResult} memberId={selectedMember.id} memberLabel={selectedMember.label} resultIsCurrent={resultIsCurrent(caseResult)} />}
+            {caseResult && !caseResult.modal && !caseResult.buckling && !caseResult.secondOrder && <MemberAnalysisProcess result={caseResult} memberId={selectedMember.id} memberLabel={selectedMember.label} resultIsCurrent={resultIsCurrent(caseResult)} />}
           </Inspector>}
           {selectedMaterial && <Inspector title={selectedMaterial.provenance.kind === "catalog" ? "库材料" : "自定义材料"} label={`${selectedMaterial.label} · ${selectedMaterial.name}`} icon={<Layers3 size={15} />} id={selectedMaterial.id}><ResourceProvenanceView provenance={selectedMaterial.provenance} /><MaterialFields draft={materialDraft} setDraft={setMaterialDraft} /><FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveMaterialEdit(event)}>保存材料属性</button></Inspector>}
           {selectedSection && <Inspector title={selectedSection.provenance.kind === "catalog" ? "库截面" : "自定义截面"} label={`${selectedSection.label} · ${selectedSection.name}`} icon={<Box size={15} />} id={selectedSection.id}><ResourceProvenanceView provenance={selectedSection.provenance} /><SectionFieldNotes /><SectionGeometryPreview geometry={selectedSection.geometry} /><SectionBasisView section={selectedSection} />{selectedSection.geometry ? <button className="button" onClick={() => setSectionEditor({ id: selectedSection.id })}>编辑尺寸与共享影响</button> : <SectionFields draft={sectionDraft} setDraft={setSectionDraft} />}<FormFeedback error={formError} /><button className="button primary inspector-save" onClick={(event) => void saveSectionEdit(event)}>保存截面属性</button></Inspector>}
@@ -956,9 +958,9 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
   const localSectionText = (values: number[]) => values.map((value, index) => `${["N", "Vy", "Vz", "T", "My", "Mz"][index]} ${u.quantity(value, index < 3 ? "kN" : "kN·m")}`).join(" · ");
 
   return <div className="analysis-result-panel">
-    <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>所选分析</small><strong>3D 线弹性静力</strong></div></div>
+    <div className="selection-title"><span className="selection-icon"><Calculator size={15} /></span><div><small>所选分析</small><strong>{result.secondOrder ? "3D 弹性二阶 · 初应力近似" : "3D 线弹性静力"}</strong></div></div>
     <section className="property-section"><div className="result-section-heading"><h3>计算输入</h3><button type="button" className="button ghost compact-button" onClick={onOpenComparison} disabled={project.analysisResults.length < 2} title={project.analysisResults.length < 2 ? "至少需要两份已完成分析" : "选择两份已完成分析"}><Files size={14} />前后结果对比</button></div><dl>
-      {result.input.analysisCase && <div><dt>分析工况 / 方法</dt><dd>{result.input.analysisCase.id} · {result.input.analysisCase.name} · 线性静力</dd></div>}
+      {result.input.analysisCase && <div><dt>分析工况 / 方法</dt><dd>{result.input.analysisCase.id} · {result.input.analysisCase.name} · {result.secondOrder ? "弹性二阶" : "线性静力"}</dd></div>}
       <div><dt>{combination ? "用户定义组合" : "来源工况"}</dt><dd>{combination ? `${combination.definition.id} · ${combination.definition.name}` : result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入"}</dd></div>
       <div><dt>模型版本</dt><dd>R{result.projectRevision}{stale ? " · 已过期" : " · 当前"}</dd></div>
       <div><dt>支座 / 荷载</dt><dd>{result.input.supports.length} / {result.input.nodalLoads.length + (result.input.uniformLoads?.length ?? 0)}</dd></div>
@@ -966,7 +968,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
       <div><dt>历史结果</dt><dd>{project.analysisResults.length} 份 · 本结果 {result.id.slice(-8)}</dd></div>
     </dl><details><summary>求解与输入详情</summary><dl><div><dt>理论</dt><dd>Euler-Bernoulli 空间刚架</dd></div><div><dt>求解版本</dt><dd>{result.input.solver?.implementation ?? "T03（未记录）"}</dd></div></dl></details></section>
     {combination && <section className="property-section"><h3>组合依据 · 无量纲系数</h3><ul className="combination-source-terms">{combination.definition.terms.map((term) => <li key={term.loadCaseId}>{term.loadCaseId} · {combination.cases.find((item) => item.loadCase.id === term.loadCaseId)?.loadCase.name} × {term.factor}</li>)}</ul><p className="combination-basis">用户定义 · 线弹性 · {u.unit("m")} / {u.unit("kN")} / {u.unit("kN·m")}</p></section>}
-    <AnalysisProcess result={result} resultIsCurrent={!stale} />
+    {result.secondOrder ? <SecondOrderResultSummary result={result} /> : <AnalysisProcess result={result} resultIsCurrent={!stale} />}
     <section className="property-section result-view-controls" aria-label="结果视图">
       <h3>结果视图</h3>
       <div className="result-view-tabs" role="tablist">
@@ -991,7 +993,7 @@ function AnalysisResultPanel({ result, project, view, forceComponent, deformatio
 }
 
 function analysisSourceLabel(result: AnalysisResult): string {
-  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name}（${result.buckling ? "特征值屈曲" : result.modal ? "模态" : "线性静力"} · ${result.input.analysisCase.loadSourceId}）`;
+  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name}（${result.secondOrder ? "弹性二阶" : result.buckling ? "特征值屈曲" : result.modal ? "模态" : "线性静力"} · ${result.input.analysisCase.loadSourceId}）`;
   if (result.input.combination) return `${result.input.combination.definition.id} · ${result.input.combination.definition.name}（组合）`;
   return result.input.loadCase ? `${result.input.loadCase.id} · ${result.input.loadCase.name}` : "LC1 · 旧版输入";
 }

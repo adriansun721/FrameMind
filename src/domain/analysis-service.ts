@@ -1,3 +1,4 @@
+import { createSecondOrderMesh } from "./second-order";
 import { createBucklingMesh } from "./buckling";
 import { createModalMesh } from "./modal";
 import { ANALYSIS_DOF_ORDER, ANALYSIS_SOLVER, freezeAnalysisInput, sameInputValue, solveFrame, type AnalysisInputSnapshot, type AnalysisResult } from "./analysis";
@@ -24,6 +25,7 @@ export class AnalysisServiceFailure extends AnalysisFailure {
 export function createAnalysisRequest(input: AnalysisInputSnapshot, origin: AnalysisOrigin = { kind: "formal-model" }): AnalysisServiceRequest {
   const snapshot = structuredClone(input);
   snapshot.solver ??= { ...ANALYSIS_SOLVER };
+  if (snapshot.solver.implementation === "framemind-native/7") snapshot.meshPlan ??= createSecondOrderMesh(snapshot);
   if (snapshot.solver.implementation === "framemind-native/6") snapshot.meshPlan ??= createBucklingMesh(snapshot);
   if (snapshot.solver.implementation === "framemind-native/5") snapshot.meshPlan ??= createModalMesh(snapshot);
   if (snapshot.solver.implementation === "framemind-native/4") snapshot.meshPlan ??= createMeshPlan(snapshot, snapshot.analysisCase?.settings.mesh);

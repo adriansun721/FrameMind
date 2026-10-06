@@ -1,3 +1,4 @@
+import { validateSecondOrderSettings, type SecondOrderSettings } from "./second-order";
 import { validateBucklingSettings, type BucklingSettings } from "./buckling";
 import { validateAdditionalMass } from "./additional-mass";
 import { validateModalDampingBinding, type ModalDampingBinding } from "./modal-damping";
@@ -53,7 +54,7 @@ export interface FrameAnalysisCase {
   name: string;
   method: AnalysisMethod;
   loadSourceId: string;
-  settings: { solver: "native-static" | "native-modal" | "native-buckling"; mesh?: MeshPolicy; modal?: ModalSettings; buckling?: BucklingSettings };
+  settings: { solver: "native-static" | "native-modal" | "native-buckling" | "native-second-order"; mesh?: MeshPolicy; modal?: ModalSettings; buckling?: BucklingSettings; secondOrder?: SecondOrderSettings };
   legacySourceId?: string;
   damping?: ModalDampingBinding;
 }
@@ -542,6 +543,11 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
   if (!value || typeof value.id !== "string" || !/^AC[1-9]\d*$/.test(value.id) || !Number.isSafeInteger(Number(value.id.slice(2)))) throw new Error("分析工况标识无效");
   requireAnalysisCapability(value.method);
   if (typeof value.name !== "string" || !value.name.trim()) throw new Error("分析工况名称不能为空");
+  if (value.method === "second-order") {
+    if (!value.settings || value.settings.solver !== "native-second-order" || Object.keys(value.settings).sort().join() !== "secondOrder,solver" || value.damping !== undefined || value.legacySourceId !== undefined) throw new Error("二阶须使用独立加载与求解设置");
+    if (!project.loadCombinations.some((c) => c.id === value.loadSourceId)) requireLoadCase(project, value.loadSourceId);
+    return { id: value.id, name: value.name.trim(), method: value.method, loadSourceId: value.loadSourceId, settings: { solver: "native-second-order", secondOrder: validateSecondOrderSettings(value.settings.secondOrder) } };
+  }
   if (value.method === "buckling") {
     if (value.loadSourceId !== "buckling" || value.legacySourceId !== undefined || value.damping !== undefined || !value.settings || value.settings.solver !== "native-buckling" || Object.keys(value.settings).sort().join() !== "buckling,solver") throw new Error("屈曲须独立指定固定／参考荷载与求解设置");
     return { id: value.id, name: value.name.trim(), method: "buckling", loadSourceId: "buckling", settings: { solver: "native-buckling", buckling: validateBucklingSettings(project, value.settings.buckling) } };

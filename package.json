@@ -53,7 +53,8 @@
     "evidence:plan2:t228": "npm run build:native && npm run build && npx vitest run src/domain/additional-mass.test.ts && node scripts/verify-plan2-t228.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-28-mass.spec.ts",
     "evidence:plan2:t227": "npm run build:native && npm run build && node scripts/verify-plan2-t227.mjs && npx vitest run src/domain/modal.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-27-modal.spec.ts",
     "evidence:plan2:t229": "npm run build && node scripts/verify-plan2-t229.mjs && npx vitest run src/domain/modal.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-29-damping.spec.ts",
-    "evidence:plan2:t230": "npm run build:native && npm run build && node scripts/verify-plan2-t230.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-30-buckling.spec.ts"
+    "evidence:plan2:t230": "npm run build:native && npm run build && node scripts/verify-plan2-t230.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-30-buckling.spec.ts",
+    "evidence:plan2:t231": "npm run build:native && npm run build && node scripts/verify-plan2-t231.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-31-second-order.spec.ts"
   },
   "dependencies": {
     "docx": "^9.7.1",

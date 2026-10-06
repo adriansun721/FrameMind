@@ -1,3 +1,4 @@
+import { decodeSecondOrderResult } from "./second-order-result";
 import { decodeBucklingResult } from "./buckling";
 import { decodeModalResult } from "./modal";
 import { dampingMatchesResult } from "./modal-damping";
@@ -330,6 +331,7 @@ function decodeResult(value: unknown, internal: boolean): AnalysisResult {
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
   const input = decodeAnalysisInput(value.input, projectId, projectRevision, internal);
+  if (input.solver?.implementation === "framemind-native/7" || input.analysisCase?.method === "second-order") return decodeSecondOrderResult(value, input, (packet) => decodeResult(packet, true));
   if (input.solver?.implementation === "framemind-native/6" || input.analysisCase?.method === "buckling") return decodeBucklingResult(value, input, (packet) => decodeResult(packet, true));
   if (input.solver?.implementation === "framemind-native/5" || input.analysisCase?.method === "modal") return decodeModalResult(value, input);
   if (input.solver?.implementation === "framemind-native/4") return decodeMeshResult(value, input, (packet) => decodeResult(packet, true));

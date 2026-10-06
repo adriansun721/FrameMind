@@ -1,6 +1,6 @@
 // Dead loads on the undeformed elastic frame. Initial stress enters only through
 // axial-force transverse Hermite slope energy; no follower or torsional stress terms.
-static Matrix bucklingGeometric(const StaticElement& e, double start, double end) {
+static Matrix initialStressGeometric(const StaticElement& e, double start, double end) {
     Matrix result=Matrix::Zero(12,12);
     const double points[3]={.5-std::sqrt(15.0)/10,.5,.5+std::sqrt(15.0)/10};
     const double weights[3]={5.0/18,8.0/18,5.0/18};
@@ -44,7 +44,7 @@ static Json bucklingShape(const Json& input, const Json& level, const ModalAssem
     return {{"nodes",nodes},{"members",members}};
 }
 
-static void remapBucklingFailure(Failure& failure, const Json& level) {
+static void remapMeshFailure(Failure& failure, const Json& level) {
     if (!failure.diagnostic.contains("target")) return;
     auto& target=failure.diagnostic["target"]; const auto key=target.value("id",std::string());
     for (const auto& n:level["nodes"]) if (n["nodeId"]==key) { target={{"kind","member"},{"id",n["memberId"]}}; failure.diagnostic["position"]=n["position"]; }
@@ -75,8 +75,8 @@ static BucklingLevelResult solveBucklingLevel(const Json& request, const Json& l
         const auto& f=fixed.at("members")[i].at("localEndForces"); const auto& r=reference.at("members")[i].at("localEndForces");
         const double fs=-number(f.at("start")[0]), fe=number(f.at("end")[0]), rs=-number(r.at("start")[0]), re=number(r.at("end")[0]);
         k.noalias()+=b.transpose()*e.original*b;
-        gf.noalias()+=b.transpose()*bucklingGeometric(e,fs,fe)*b;
-        gr.noalias()+=b.transpose()*bucklingGeometric(e,rs,re)*b;
+        gf.noalias()+=b.transpose()*initialStressGeometric(e,fs,fe)*b;
+        gr.noalias()+=b.transpose()*initialStressGeometric(e,rs,re)*b;
         const auto& mapping=level.at("elements")[i]; Json record=mapping; record.erase("startNodeId"); record.erase("endNodeId");
         record["fixedAxialStartKN"]=fs; record["fixedAxialEndKN"]=fe; record["referenceAxialStartKN"]=rs; record["referenceAxialEndKN"]=re; prestress.push_back(record);
         maps.push_back(std::move(b));
@@ -143,7 +143,7 @@ static Json calculateBuckling(const Json& request, Json& stages, std::string& st
         if (!estimate) continue;
         if (estimate>static_cast<size_t>(budget)) { reason="equation-budget"; break; }
         try { finalResult=solveBucklingLevel(request,level,static_cast<int>(modes),static_cast<int>(budget),stage,runs.empty() ? std::function<void(const std::string&)>(phase) : std::function<void(const std::string&)>()); }
-        catch (Failure& failure) { remapBucklingFailure(failure,level); throw; }
+        catch (Failure& failure) { remapMeshFailure(failure,level); throw; }
         selected=level; Json factors=Json::array(); for (const auto& m:finalResult.modes) factors.push_back(m["factor"]);
         Json run={{"divisions",level["divisions"]},{"equations",finalResult.equations},{"factors",factors}};
         if (!runs.empty() && factors.size()==static_cast<size_t>(modes) && runs.back()["factors"].size()==factors.size()) {

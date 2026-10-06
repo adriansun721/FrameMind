@@ -1,4 +1,6 @@
 import { DEFAULT_BUCKLING_SETTINGS } from "../domain/buckling";
+import { DEFAULT_SECOND_ORDER_SETTINGS } from "../domain/second-order";
+import { SecondOrderSettingsEditor } from "./SecondOrderSettingsEditor";
 import { BucklingSettingsEditor } from "./BucklingSettingsEditor";
 import { DEFAULT_MODAL_SETTINGS } from "../domain/modal";
 import { useState, type FormEvent } from "react";
@@ -19,6 +21,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   const [method, setMethod] = useState<AnalysisMethod>(initial?.method ?? "static");
   const [buckling, setBuckling] = useState(initial?.settings.buckling ?? structuredClone({ ...DEFAULT_BUCKLING_SETTINGS, reference: [{ loadCaseId: project.activeLoadCaseId, factor: 1 }] }));
   const [modal, setModal] = useState(initial?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
+  const [secondOrder, setSecondOrder] = useState(initial?.settings.secondOrder ?? { ...DEFAULT_SECOND_ORDER_SETTINGS });
   const [error, setError] = useState<string>();
   const [mesh, setMesh] = useState(initial?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   const edit = (id: string) => {
@@ -26,12 +29,13 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
     setEditingId(id); setName(item?.name ?? ""); setSourceId(item?.loadSourceId ?? project.activeLoadCaseId); setError(undefined);
     setBuckling(item?.settings.buckling ?? structuredClone({ ...DEFAULT_BUCKLING_SETTINGS, reference: [{ loadCaseId: project.activeLoadCaseId, factor: 1 }] }));
     setMethod(item?.method ?? "static"); setModal(item?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
+    setSecondOrder(item?.settings.secondOrder ?? { ...DEFAULT_SECOND_ORDER_SETTINGS });
     setMesh(item?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   };
   const save = (event: FormEvent) => {
     event.preventDefault();
     try {
-      const properties = method === "buckling" ? { name, method, loadSourceId: "buckling", settings: { solver: "native-buckling" as const, buckling } } : method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
+      const properties = method === "second-order" ? { name, method, loadSourceId: sourceId, settings: { solver: "native-second-order" as const, secondOrder } } : method === "buckling" ? { name, method, loadSourceId: "buckling", settings: { solver: "native-buckling" as const, buckling } } : method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
       const next = editingId ? updateAnalysisCase(project, editingId, properties) : addAnalysisCase(project, properties);
       const id = editingId || next.analysisCases.at(-1)!.id;
       onChange(selectAnalysisCase(next, id)); setEditingId(id); setError(undefined);
@@ -53,7 +57,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
       <button className="button ghost" onClick={() => edit("")}>新建分析工况</button>
       <form onSubmit={save}>
         <label className="field"><span>分析工况名称</span><input value={name} onChange={(e) => setName(e.target.value)} /></label>
-        <label className="field"><span>分析方法</span><select aria-label="分析方法" value={method} onChange={(e) => setMethod(e.target.value as AnalysisMethod)}>{Object.entries(ANALYSIS_CAPABILITIES).map(([method, capability]) => <option key={method} value={method} disabled={!capability.available}>{capability.name}{capability.available ? "" : "（尚未开放）"}</option>)}</select></label>
+        <label className="field"><span>分析方法</span><select aria-label="分析方法" value={method} onChange={(e) => { setMethod(e.target.value as AnalysisMethod); if (["buckling", "structure"].includes(sourceId)) setSourceId(project.activeLoadCaseId); }}>{Object.entries(ANALYSIS_CAPABILITIES).map(([method, capability]) => <option key={method} value={method} disabled={!capability.available}>{capability.name}{capability.available ? "" : "（尚未开放）"}</option>)}</select></label>
         {method === "static" && <><label className="field"><span>复用荷载定义</span><select value={sourceId} onChange={(e) => setSourceId(e.target.value)}>{[...project.loadCases, ...project.loadCombinations].map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label>
         <p>数值设置：原生静力求解器 · 稀疏 LDLT · 自由度消元 · 相对主元阈值 1e-12。单位 m / kN / kN·m。</p>
         <details><summary>内部细分精度与预算</summary>
@@ -62,6 +66,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
           {([['maxEquations', '最大计算方程数'], ['relativeTolerance', '细分相对误差'], ['displacementTolerance', '位移绝对误差（m / rad）'], ['forceTolerance', '内力绝对误差（kN / kN·m）']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input type="number" step="any" value={mesh[key]} onChange={(e) => setMesh({ ...mesh, [key]: Number(e.target.value) })} /></label>)}
         </details></>}
         {method === "buckling" && <BucklingSettingsEditor project={project} value={buckling} onChange={setBuckling} />}
+        {method === "second-order" && <><label className="field"><span>复用荷载定义</span><select value={sourceId === "buckling" || sourceId === "structure" ? project.activeLoadCaseId : sourceId} onChange={(e) => setSourceId(e.target.value)}>{[...project.loadCases, ...project.loadCombinations].map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label><SecondOrderSettingsEditor value={secondOrder} onChange={setSecondOrder} /></>}
         {method === "modal" && <>
           <p>密度 × 截面积 × 杆长形成结构质量，静力荷载和自重开关不参与质量。Euler-Bernoulli 一致质量，忽略剪切及弯曲转动惯性，保留扭转惯性。</p>
           {([['modeCount', '提取模态数'], ['maxEquations', '模态最大方程数'], ['frequencyTolerance', '频率细分相对误差']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input aria-label={label} type="number" step="any" value={modal[key]} onChange={(e) => setModal({ ...modal, [key]: Number(e.target.value) })} /></label>)}
