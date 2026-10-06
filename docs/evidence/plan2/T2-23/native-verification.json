@@ -691,10 +691,10 @@
   ],
   "results": [
     {
-      "id": "analysis_c0dd7e93-d067-4424-929c-f096b621485a",
-      "projectId": "project_8d183e48-6de1-4df2-a072-fa0f03ec1929",
+      "id": "analysis_fb3fed40-a598-48e0-a345-d65db576ca50",
+      "projectId": "project_b34b0767-9a13-4ac9-abd5-8a27aed3ed87",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:14Z",
+      "createdAt": "2026-10-06T06:04:11Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -779,7 +779,7 @@
             }
           }
         ],
-        "projectId": "project_8d183e48-6de1-4df2-a072-fa0f03ec1929",
+        "projectId": "project_b34b0767-9a13-4ac9-abd5-8a27aed3ed87",
         "projectRevision": 8,
         "sections": [
           {
@@ -823,6 +823,22 @@
                 "secondMomentYM4": 0.00000171,
                 "secondMomentZM4": 1.591e-7,
                 "torsionalConstantM4": 1.157e-8
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.0009902600000000002,
+                  "secondMomentYM4": 0.0000016332267824666671,
+                  "secondMomentZM4": 1.5856511671666668e-7,
+                  "torsionalConstantM4": 8.825876866666666e-9
+                },
+                "withinApproximationLimits": false
               }
             },
             "provenance": {
@@ -1938,7 +1954,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_c0dd7e93-d067-4424-929c-f096b621485a",
+        "analysisId": "analysis_fb3fed40-a598-48e0-a345-d65db576ca50",
         "dependencies": [
           {
             "factor": 1,
@@ -1948,9 +1964,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_8d183e48-6de1-4df2-a072-fa0f03ec1929",
+        "projectId": "project_b34b0767-9a13-4ac9-abd5-8a27aed3ed87",
         "projectRevision": 8,
-        "requestId": "request_836bb0f9-b5ea-416d-9a90-3a195007b141",
+        "requestId": "request_fdeb65ce-e792-4e73-a4a2-715801e58ed5",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -1961,19 +1977,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:11Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:11Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:11Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:11Z"
           }
         ],
         "status": "complete",
@@ -1981,10 +1997,10 @@
       }
     },
     {
-      "id": "analysis_5dd9aa64-70e0-4919-850b-7a7775fb19dc",
-      "projectId": "project_56cf63f0-8438-4fdd-a860-ef319c938a7c",
+      "id": "analysis_9c7f12dd-13fb-42e3-91ee-f4289705f85a",
+      "projectId": "project_c4947572-213b-4565-a5dd-aba15ca48134",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:14Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -2069,7 +2085,7 @@
             }
           }
         ],
-        "projectId": "project_56cf63f0-8438-4fdd-a860-ef319c938a7c",
+        "projectId": "project_c4947572-213b-4565-a5dd-aba15ca48134",
         "projectRevision": 8,
         "sections": [
           {
@@ -2113,6 +2129,22 @@
                 "secondMomentYM4": 0.00000171,
                 "secondMomentZM4": 1.591e-7,
                 "torsionalConstantM4": 1.157e-8
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.0009902600000000002,
+                  "secondMomentYM4": 0.0000016332267824666671,
+                  "secondMomentZM4": 1.5856511671666668e-7,
+                  "torsionalConstantM4": 8.825876866666666e-9
+                },
+                "withinApproximationLimits": false
               }
             },
             "provenance": {
@@ -3228,7 +3260,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_5dd9aa64-70e0-4919-850b-7a7775fb19dc",
+        "analysisId": "analysis_9c7f12dd-13fb-42e3-91ee-f4289705f85a",
         "dependencies": [
           {
             "factor": 1,
@@ -3238,9 +3270,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_56cf63f0-8438-4fdd-a860-ef319c938a7c",
+        "projectId": "project_c4947572-213b-4565-a5dd-aba15ca48134",
         "projectRevision": 8,
-        "requestId": "request_089765f5-6e9d-4477-b0fa-762a16bfb1a4",
+        "requestId": "request_d4d8e389-cd4b-402a-a69b-e96c154864a6",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -3251,19 +3283,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:14Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -3271,10 +3303,10 @@
       }
     },
     {
-      "id": "analysis_c0969db2-71c6-492e-8984-5fb28e0ba34f",
-      "projectId": "project_1c544c21-fffb-43b1-943d-b83249f18b6b",
+      "id": "analysis_fc998413-cbf4-4556-b5e5-2ba031ae1446",
+      "projectId": "project_cb23f367-598c-42d8-9b07-bd76402feff2",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -3359,7 +3391,7 @@
             }
           }
         ],
-        "projectId": "project_1c544c21-fffb-43b1-943d-b83249f18b6b",
+        "projectId": "project_cb23f367-598c-42d8-9b07-bd76402feff2",
         "projectRevision": 8,
         "sections": [
           {
@@ -3403,6 +3435,22 @@
                 "secondMomentYM4": 0.00000171,
                 "secondMomentZM4": 1.591e-7,
                 "torsionalConstantM4": 1.157e-8
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.0009902600000000002,
+                  "secondMomentYM4": 0.0000016332267824666671,
+                  "secondMomentZM4": 1.5856511671666668e-7,
+                  "torsionalConstantM4": 8.825876866666666e-9
+                },
+                "withinApproximationLimits": false
               }
             },
             "provenance": {
@@ -4518,7 +4566,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_c0969db2-71c6-492e-8984-5fb28e0ba34f",
+        "analysisId": "analysis_fc998413-cbf4-4556-b5e5-2ba031ae1446",
         "dependencies": [
           {
             "factor": 1,
@@ -4528,9 +4576,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_1c544c21-fffb-43b1-943d-b83249f18b6b",
+        "projectId": "project_cb23f367-598c-42d8-9b07-bd76402feff2",
         "projectRevision": 8,
-        "requestId": "request_4210f389-8a5a-49a7-9ad4-7ced58f939ad",
+        "requestId": "request_6113401d-221d-435f-95b8-7dee73194951",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -4541,19 +4589,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -4561,10 +4609,10 @@
       }
     },
     {
-      "id": "analysis_280865da-7c17-4749-a46a-2396c8332b67",
-      "projectId": "project_c966445b-c184-4340-8742-952ad7c98337",
+      "id": "analysis_ea12de70-9a4a-42fe-b3df-d0b44f7a7dca",
+      "projectId": "project_0016d6f8-f4b9-47ae-9887-71c5d7d44d8d",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -4649,7 +4697,7 @@
             }
           }
         ],
-        "projectId": "project_c966445b-c184-4340-8742-952ad7c98337",
+        "projectId": "project_0016d6f8-f4b9-47ae-9887-71c5d7d44d8d",
         "projectRevision": 8,
         "sections": [
           {
@@ -4693,6 +4741,22 @@
                 "secondMomentYM4": 0.00001943,
                 "secondMomentZM4": 0.000001423,
                 "torsionalConstantM4": 6.915e-8
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.0027248000000000003,
+                  "secondMomentYM4": 0.00001845590226666667,
+                  "secondMomentZM4": 0.000001419344810666667,
+                  "torsionalConstantM4": 5.165424266666668e-8
+                },
+                "withinApproximationLimits": true
               }
             },
             "provenance": {
@@ -5808,7 +5872,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_280865da-7c17-4749-a46a-2396c8332b67",
+        "analysisId": "analysis_ea12de70-9a4a-42fe-b3df-d0b44f7a7dca",
         "dependencies": [
           {
             "factor": 1,
@@ -5818,9 +5882,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_c966445b-c184-4340-8742-952ad7c98337",
+        "projectId": "project_0016d6f8-f4b9-47ae-9887-71c5d7d44d8d",
         "projectRevision": 8,
-        "requestId": "request_e448c729-2da0-4482-9d6c-f321ee3eebf8",
+        "requestId": "request_bf896014-677f-4437-9c8b-23a654322db9",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -5831,19 +5895,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -5851,10 +5915,10 @@
       }
     },
     {
-      "id": "analysis_03c3f0fb-fb36-4999-b027-ce5b4efc189d",
-      "projectId": "project_3fba1c38-f0c1-4002-8f0c-9e082e9a48c2",
+      "id": "analysis_3fc4ea6a-661f-4161-b7fc-c9df5d8d43b8",
+      "projectId": "project_cc714884-6be5-4bd6-9498-74da108c0e11",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -5939,7 +6003,7 @@
             }
           }
         ],
-        "projectId": "project_3fba1c38-f0c1-4002-8f0c-9e082e9a48c2",
+        "projectId": "project_cc714884-6be5-4bd6-9498-74da108c0e11",
         "projectRevision": 8,
         "sections": [
           {
@@ -5983,6 +6047,22 @@
                 "secondMomentYM4": 0.00001943,
                 "secondMomentZM4": 0.000001423,
                 "torsionalConstantM4": 6.915e-8
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.0027248000000000003,
+                  "secondMomentYM4": 0.00001845590226666667,
+                  "secondMomentZM4": 0.000001419344810666667,
+                  "torsionalConstantM4": 5.165424266666668e-8
+                },
+                "withinApproximationLimits": true
               }
             },
             "provenance": {
@@ -7098,7 +7178,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_03c3f0fb-fb36-4999-b027-ce5b4efc189d",
+        "analysisId": "analysis_3fc4ea6a-661f-4161-b7fc-c9df5d8d43b8",
         "dependencies": [
           {
             "factor": 1,
@@ -7108,9 +7188,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_3fba1c38-f0c1-4002-8f0c-9e082e9a48c2",
+        "projectId": "project_cc714884-6be5-4bd6-9498-74da108c0e11",
         "projectRevision": 8,
-        "requestId": "request_128705e2-80e9-4b5f-9cfb-b2c35b314d0f",
+        "requestId": "request_37859ea8-2092-4713-be8d-584223c173b9",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -7121,19 +7201,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -7141,10 +7221,10 @@
       }
     },
     {
-      "id": "analysis_4497d2bb-408b-449e-b606-547b9ab19983",
-      "projectId": "project_5f142aac-28c8-4410-b936-c1391feea73a",
+      "id": "analysis_a30a4721-cb8f-45f0-b84c-970d092dd1ee",
+      "projectId": "project_e08bb8f9-37f8-4ba9-b81a-11e7a99e1ee5",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -7229,7 +7309,7 @@
             }
           }
         ],
-        "projectId": "project_5f142aac-28c8-4410-b936-c1391feea73a",
+        "projectId": "project_e08bb8f9-37f8-4ba9-b81a-11e7a99e1ee5",
         "projectRevision": 8,
         "sections": [
           {
@@ -7273,6 +7353,22 @@
                 "secondMomentYM4": 0.00001943,
                 "secondMomentZM4": 0.000001423,
                 "torsionalConstantM4": 6.915e-8
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.0027248000000000003,
+                  "secondMomentYM4": 0.00001845590226666667,
+                  "secondMomentZM4": 0.000001419344810666667,
+                  "torsionalConstantM4": 5.165424266666668e-8
+                },
+                "withinApproximationLimits": true
               }
             },
             "provenance": {
@@ -8388,7 +8484,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_4497d2bb-408b-449e-b606-547b9ab19983",
+        "analysisId": "analysis_a30a4721-cb8f-45f0-b84c-970d092dd1ee",
         "dependencies": [
           {
             "factor": 1,
@@ -8398,9 +8494,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_5f142aac-28c8-4410-b936-c1391feea73a",
+        "projectId": "project_e08bb8f9-37f8-4ba9-b81a-11e7a99e1ee5",
         "projectRevision": 8,
-        "requestId": "request_8045d044-3e5c-402d-92b1-5f7a9a8f7740",
+        "requestId": "request_f6d2bfbb-e4d4-4796-b355-c1b21a4c701e",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -8411,19 +8507,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -8431,10 +8527,10 @@
       }
     },
     {
-      "id": "analysis_c0f68dcb-f34d-49a7-b654-862982bb16bd",
-      "projectId": "project_2e759f41-8033-4f24-b9d4-21294444ce43",
+      "id": "analysis_d40049e3-e42e-4f12-93dd-04228043a204",
+      "projectId": "project_72e35757-ad40-40e6-b45e-f23844fe6e42",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -8519,7 +8615,7 @@
             }
           }
         ],
-        "projectId": "project_2e759f41-8033-4f24-b9d4-21294444ce43",
+        "projectId": "project_72e35757-ad40-40e6-b45e-f23844fe6e42",
         "projectRevision": 8,
         "sections": [
           {
@@ -8563,6 +8659,22 @@
                 "secondMomentYM4": 0.00003692,
                 "secondMomentZM4": 0.00001335,
                 "torsionalConstantM4": 2.104e-7
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.005105,
+                  "secondMomentYM4": 0.000035094541666666666,
+                  "secondMomentZM4": 0.00001333722385416667,
+                  "torsionalConstantM4": 1.488954166666667e-7
+                },
+                "withinApproximationLimits": true
               }
             },
             "provenance": {
@@ -9678,7 +9790,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_c0f68dcb-f34d-49a7-b654-862982bb16bd",
+        "analysisId": "analysis_d40049e3-e42e-4f12-93dd-04228043a204",
         "dependencies": [
           {
             "factor": 1,
@@ -9688,9 +9800,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_2e759f41-8033-4f24-b9d4-21294444ce43",
+        "projectId": "project_72e35757-ad40-40e6-b45e-f23844fe6e42",
         "projectRevision": 8,
-        "requestId": "request_1037fdf5-14b3-4a8a-9a38-948a84fe382d",
+        "requestId": "request_2b7a6d58-eafa-4244-891a-fa821e67bae5",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -9701,19 +9813,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -9721,10 +9833,10 @@
       }
     },
     {
-      "id": "analysis_1ce10956-ef12-4430-8ef6-3b6e4eb4c974",
-      "projectId": "project_c9d4faaa-ab75-410f-becc-2d19c334997f",
+      "id": "analysis_b9204060-e4ce-49ad-ab02-e70479906c36",
+      "projectId": "project_57b11512-648b-4f7d-b4c4-4711ecd7a7b1",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -9809,7 +9921,7 @@
             }
           }
         ],
-        "projectId": "project_c9d4faaa-ab75-410f-becc-2d19c334997f",
+        "projectId": "project_57b11512-648b-4f7d-b4c4-4711ecd7a7b1",
         "projectRevision": 8,
         "sections": [
           {
@@ -9853,6 +9965,22 @@
                 "secondMomentYM4": 0.00003692,
                 "secondMomentZM4": 0.00001335,
                 "torsionalConstantM4": 2.104e-7
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.005105,
+                  "secondMomentYM4": 0.000035094541666666666,
+                  "secondMomentZM4": 0.00001333722385416667,
+                  "torsionalConstantM4": 1.488954166666667e-7
+                },
+                "withinApproximationLimits": true
               }
             },
             "provenance": {
@@ -10968,7 +11096,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_1ce10956-ef12-4430-8ef6-3b6e4eb4c974",
+        "analysisId": "analysis_b9204060-e4ce-49ad-ab02-e70479906c36",
         "dependencies": [
           {
             "factor": 1,
@@ -10978,9 +11106,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_c9d4faaa-ab75-410f-becc-2d19c334997f",
+        "projectId": "project_57b11512-648b-4f7d-b4c4-4711ecd7a7b1",
         "projectRevision": 8,
-        "requestId": "request_608901fb-d582-4805-9907-1f73429d8bf1",
+        "requestId": "request_fadd4de7-6c6b-49f1-a91b-5fc64f770e53",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -10991,19 +11119,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -11011,10 +11139,10 @@
       }
     },
     {
-      "id": "analysis_d2c30477-a6a6-4a01-b5a6-f859dfea02f5",
-      "projectId": "project_8a903942-5230-4d34-97a2-3d2aada803cf",
+      "id": "analysis_a89c9030-6f66-43e9-ab34-fa6523bfe36d",
+      "projectId": "project_a62733da-dbcf-466e-b849-4560afe694ee",
       "projectRevision": 8,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -11099,7 +11227,7 @@
             }
           }
         ],
-        "projectId": "project_8a903942-5230-4d34-97a2-3d2aada803cf",
+        "projectId": "project_a62733da-dbcf-466e-b849-4560afe694ee",
         "projectRevision": 8,
         "sections": [
           {
@@ -11143,6 +11271,22 @@
                 "secondMomentYM4": 0.00003692,
                 "secondMomentZM4": 0.00001335,
                 "torsionalConstantM4": 2.104e-7
+              },
+              "idealizedComparison": {
+                "basis": {
+                  "method": "idealized-section-v1",
+                  "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。",
+                  "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                  "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf"
+                },
+                "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。",
+                "properties": {
+                  "areaM2": 0.005105,
+                  "secondMomentYM4": 0.000035094541666666666,
+                  "secondMomentZM4": 0.00001333722385416667,
+                  "torsionalConstantM4": 1.488954166666667e-7
+                },
+                "withinApproximationLimits": true
               }
             },
             "provenance": {
@@ -12258,7 +12402,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_d2c30477-a6a6-4a01-b5a6-f859dfea02f5",
+        "analysisId": "analysis_a89c9030-6f66-43e9-ab34-fa6523bfe36d",
         "dependencies": [
           {
             "factor": 1,
@@ -12268,9 +12412,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_8a903942-5230-4d34-97a2-3d2aada803cf",
+        "projectId": "project_a62733da-dbcf-466e-b849-4560afe694ee",
         "projectRevision": 8,
-        "requestId": "request_a45c7855-211e-47c9-9a9b-b273f3abab8a",
+        "requestId": "request_3f091249-a91b-4bd7-a7a5-56bc45ef0cba",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -12281,19 +12425,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",
@@ -12305,10 +12449,10 @@
     "restored": {
       "format": "framemind-project",
       "formatVersion": 2,
-      "id": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+      "id": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
       "name": "T2-22 parameter section",
-      "createdAt": "2026-10-06T05:48:15.354Z",
-      "updatedAt": "2026-10-06T05:48:15.361Z",
+      "createdAt": "2026-10-06T06:04:12.404Z",
+      "updatedAt": "2026-10-06T06:04:12.412Z",
       "revision": 9,
       "units": {
         "length": "m",
@@ -12427,13 +12571,13 @@
       "nextLoadCaseNumber": 2,
       "analysisResults": [
         {
-          "id": "analysis_8ec89733-9bc2-465b-81f7-3e1c002a0670",
-          "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+          "id": "analysis_7a180699-db27-4e42-a3a8-03d0ba0fe47c",
+          "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
           "projectRevision": 8,
-          "createdAt": "2026-10-06T05:48:15.361Z",
+          "createdAt": "2026-10-06T06:04:12.412Z",
           "status": "complete",
           "input": {
-            "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+            "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
             "projectRevision": 8,
             "dofOrder": [
               "ux",
@@ -13277,13 +13421,13 @@
       "analysisCases": [],
       "nextAnalysisCaseNumber": 1,
       "latestAnalysis": {
-        "id": "analysis_8ec89733-9bc2-465b-81f7-3e1c002a0670",
-        "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+        "id": "analysis_7a180699-db27-4e42-a3a8-03d0ba0fe47c",
+        "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
         "projectRevision": 8,
-        "createdAt": "2026-10-06T05:48:15.361Z",
+        "createdAt": "2026-10-06T06:04:12.412Z",
         "status": "complete",
         "input": {
-          "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+          "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
           "projectRevision": 8,
           "dofOrder": [
             "ux",
@@ -14138,10 +14282,10 @@
       }
     },
     "fresh": {
-      "id": "analysis_c55ef7b7-4793-488d-aadc-83030dd26016",
-      "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+      "id": "analysis_065cb463-521d-4a9f-8431-c72396a0e644",
+      "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
       "projectRevision": 9,
-      "createdAt": "2026-10-06T05:48:15Z",
+      "createdAt": "2026-10-06T06:04:12Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -14226,7 +14370,7 @@
             }
           }
         ],
-        "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+        "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
         "projectRevision": 9,
         "sections": [
           {
@@ -15341,7 +15485,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_c55ef7b7-4793-488d-aadc-83030dd26016",
+        "analysisId": "analysis_065cb463-521d-4a9f-8431-c72396a0e644",
         "dependencies": [
           {
             "factor": 1,
@@ -15351,9 +15495,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_205ec410-d967-41ed-b531-84ebc0e27d41",
+        "projectId": "project_a952bb28-6e42-46c5-b595-ff1f2e649de7",
         "projectRevision": 9,
-        "requestId": "request_fc132444-9d97-42af-8757-2505e5e6eb2e",
+        "requestId": "request_bb158bbf-0910-4fd5-b037-0bbf3c8834e4",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -15364,19 +15508,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T05:48:15Z"
+            "startedAt": "2026-10-06T06:04:12Z"
           }
         ],
         "status": "complete",

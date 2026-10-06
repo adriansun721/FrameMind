@@ -8,11 +8,11 @@
 
 ## 保存与计算
 
-`SectionProperties.catalogBasis` 保存目录编号、原始名称、完整来源、行列位置、圆角 r、参考几何和参考 A/I/J。顶层几何为忽略圆角的双对称 I/H 示意；顶层 A/I/J 为**正式求解使用的目录值**。领域校验保证顶层几何及参数与归档行一致，拒绝只修改顶层数据而保留目录声明。明确转为属性模式或理想化尺寸模式后移除目录依据，原目录保留在 provenance.derivedFrom。
+`SectionProperties.catalogBasis` 保存目录编号、原始名称、完整来源、行列位置、圆角 r、参考几何和参考 A/I/J，同时归档仅供对照的 `idealizedComparison` 数值、公式版本及 URL、简化说明和适用性标记。顶层几何为忽略圆角的双对称 I/H 示意；顶层 A/I/J 为**正式求解使用的目录值**。领域校验保证顶层几何及参数与归档行一致，拒绝只修改顶层数据而保留目录声明。明确转为属性模式或理想化尺寸模式后移除目录依据，原目录保留在 provenance.derivedFrom。
 
 与 ADR-0055 的理想化参数截面分开：`parameterBasis` 只用于理想化正式分析；目录模式没有该字段。`idealizedCatalogComparison` 用同一尺寸计算独立显示的理想化 A/I/J，并明确公式来源、忽略圆角、交汇及目录舍入的影响，不向求解器替换目录值。IPE 100 的 tf/b=5.7/55 略超出 0.1 门槛，因此目录可正常使用，理想化 J 只作公式对照。物理尺寸验证和正式薄壁公式适用性验证各自明确；T2-22 正式尺寸计算的限制没有放宽。
 
-已保存项目及冻结结果读取其归档行，**不依赖当前安装目录**。目录以后变化不能静默改写已有对象。资源库导入、材料截面创建对话框、参数截面管理及 Agent 工具都复制完整依据。`read_section_contract` 提供首批目录；`propose_model_edits` 的 create/update_section 接受 `{name,catalogId}`，归一化后经过同一整体预览与确认。读取对象提供 geometryStatus 和 idealizedComparison；归档 catalogBasis 保持规范单位 m/m²/m⁴，当前显示的几何及力学数据按单位预设转换。
+已保存项目及冻结结果读取其归档行和归档理想化对照，**不依赖当前安装目录或当前公式重新生成历史对照**。目录以后变化不能静默改写已有对象。资源库导入、材料截面创建对话框、参数截面管理及 Agent 工具都复制完整依据，纯建模与整体任务确认入口均通过完整截面契约保留归档字段。`read_section_contract` 提供首批目录；`propose_model_edits` 的 create/update_section 接受 `{name,catalogId}`，归一化后经过同一整体预览与确认。读取对象提供 geometryStatus 和 idealizedComparison；归档 catalogBasis 保持规范单位 m/m²/m⁴，当前显示的几何及力学数据按单位预设转换。
 
 ## 旧项目及人工控制
 

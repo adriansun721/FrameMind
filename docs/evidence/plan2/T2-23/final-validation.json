@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Asia/Taipei",
+  "baseline": "8c73fbd20f577a2d22f41cfae27a69809c0d2f42",
+  "implementationCommits": ["21c1920", "0f69a47"],
+  "typecheck": { "command": "npm run typecheck", "passed": true },
+  "build": { "command": "npm run build", "passed": true, "warning": "Existing chunks above 500 kB" },
+  "unitTests": { "command": "npm test -- --maxWorkers=2", "passed": true, "files": 70, "tests": 528, "durationSeconds": 60.63 },
+  "nativeNumerics": { "command": "node scripts/verify-plan2-t223.mjs", "passed": true, "checks": 94, "catalogOrientationSolves": 9, "legacyMigrationSolves": 1, "evidence": "native-verification.json" },
+  "desktop": {
+    "command": "node scripts/run-e2e-isolated.cjs e2e/plan2-t2-23-catalog.spec.ts e2e/t13-resource-library.spec.ts",
+    "passed": true,
+    "tests": 3,
+    "durationSeconds": 12.2,
+    "relatedT222TestsPassed": 2,
+    "fullDesktopSuiteRun": false,
+    "additionalKnownFailure": { "test": "sidebar-library.spec.ts", "status": "timeout at 30000 ms", "priorBaselineEvidence": "../T2-22/baseline-desktop-failures.json" }
+  },
+  "review": { "independentAxes": ["Standards", "Spec"], "initialSpecFindings": 2, "closedSpecFindings": 2, "closedStandardsSuggestions": 1, "remainingFindings": 0 },
+  "boundaries": ["Deterministic AI replay does not replace T2-41 real AI testing", "Local migration does not replace T2-44 clean Windows installation", "T2-24 owns model-wide solid geometry rendering"]
+}
