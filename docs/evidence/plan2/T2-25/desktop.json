@@ -3,10 +3,10 @@
   "project": {
     "format": "framemind-project",
     "formatVersion": 2,
-    "id": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+    "id": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
     "name": "T2-25 固定－铰接梁",
-    "createdAt": "2026-10-06T08:05:35.255Z",
-    "updatedAt": "2026-10-06T08:05:37.816Z",
+    "createdAt": "2026-10-06T08:23:39.458Z",
+    "updatedAt": "2026-10-06T08:23:44.753Z",
     "revision": 14,
     "units": {
       "length": "m",
@@ -156,10 +156,10 @@
     "nextLoadCaseNumber": 2,
     "analysisResults": [
       {
-        "id": "analysis_b625a65b-28f0-45cf-b3d4-065ca924ce44",
-        "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+        "id": "analysis_e15fb261-dc19-4cd5-8824-a612f49fbbe8",
+        "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:05:36Z",
+        "createdAt": "2026-10-06T08:23:43Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -237,7 +237,7 @@
               }
             }
           ],
-          "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+          "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
           "projectRevision": 12,
           "sections": [
             {
@@ -2248,7 +2248,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_b625a65b-28f0-45cf-b3d4-065ca924ce44",
+          "analysisId": "analysis_e15fb261-dc19-4cd5-8824-a612f49fbbe8",
           "dependencies": [
             {
               "factor": 1,
@@ -2258,9 +2258,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+          "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
           "projectRevision": 12,
-          "requestId": "request_fa8be5f9-2457-4e76-a084-8b4d338b0104",
+          "requestId": "request_01847ae9-a8cf-4391-b57e-1a6ee6de169b",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -2271,19 +2271,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:05:36Z"
+              "startedAt": "2026-10-06T08:23:43Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:05:36Z"
+              "startedAt": "2026-10-06T08:23:43Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:05:36Z"
+              "startedAt": "2026-10-06T08:23:43Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:05:36Z"
+              "startedAt": "2026-10-06T08:23:43Z"
             }
           ],
           "status": "complete",
@@ -2296,10 +2296,10 @@
     "analysisCases": [],
     "nextAnalysisCaseNumber": 1,
     "latestAnalysis": {
-      "id": "analysis_b625a65b-28f0-45cf-b3d4-065ca924ce44",
-      "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+      "id": "analysis_e15fb261-dc19-4cd5-8824-a612f49fbbe8",
+      "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
       "projectRevision": 12,
-      "createdAt": "2026-10-06T08:05:36Z",
+      "createdAt": "2026-10-06T08:23:43Z",
       "status": "complete",
       "input": {
         "assumptions": {
@@ -2377,7 +2377,7 @@
             }
           }
         ],
-        "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+        "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
         "projectRevision": 12,
         "sections": [
           {
@@ -4388,7 +4388,7 @@
         "matrixLimit": 72
       },
       "service": {
-        "analysisId": "analysis_b625a65b-28f0-45cf-b3d4-065ca924ce44",
+        "analysisId": "analysis_e15fb261-dc19-4cd5-8824-a612f49fbbe8",
         "dependencies": [
           {
             "factor": 1,
@@ -4398,9 +4398,9 @@
         "origin": {
           "kind": "formal-model"
         },
-        "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+        "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
         "projectRevision": 12,
-        "requestId": "request_fa8be5f9-2457-4e76-a084-8b4d338b0104",
+        "requestId": "request_01847ae9-a8cf-4391-b57e-1a6ee6de169b",
         "solver": {
           "algorithm": "sparse-ldlt",
           "constraints": "free-dof-elimination",
@@ -4411,19 +4411,19 @@
         "stages": [
           {
             "stage": "model-check",
-            "startedAt": "2026-10-06T08:05:36Z"
+            "startedAt": "2026-10-06T08:23:43Z"
           },
           {
             "stage": "assembly",
-            "startedAt": "2026-10-06T08:05:36Z"
+            "startedAt": "2026-10-06T08:23:43Z"
           },
           {
             "stage": "solve",
-            "startedAt": "2026-10-06T08:05:36Z"
+            "startedAt": "2026-10-06T08:23:43Z"
           },
           {
             "stage": "recovery",
-            "startedAt": "2026-10-06T08:05:36Z"
+            "startedAt": "2026-10-06T08:23:43Z"
           }
         ],
         "status": "complete",
@@ -4439,25 +4439,25 @@
     "nextUniformLoadNumber": 2,
     "taskState": {
       "version": 1,
-      "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+      "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
       "conversations": [],
       "scheduled": [
         {
-          "id": "task_d229c6e5-97f4-4ac3-b04d-41678a5753f1",
-          "projectId": "project_0ce11387-15c3-4e10-bfbf-0105fd5394e8",
+          "id": "task_3da4b540-7905-4cb7-ab26-c0105697f4ad",
+          "projectId": "project_0b6f92ab-2223-44e5-92ad-1deda6ac3e4a",
           "kind": "analysis",
           "goal": "计算 LC1",
           "status": "completed",
-          "queuedAt": 1791273936526,
+          "queuedAt": 1791275023179,
           "queuedRevision": 12,
           "supplementCount": 0,
           "operationCount": 1,
-          "analysisId": "analysis_b625a65b-28f0-45cf-b3d4-065ca924ce44",
+          "analysisId": "analysis_e15fb261-dc19-4cd5-8824-a612f49fbbe8",
           "analysisSourceId": "LC1",
-          "startedAt": 1791273936527,
+          "startedAt": 1791275023180,
           "startedRevision": 12,
           "phase": "recovery",
-          "finishedAt": 1791273936594
+          "finishedAt": 1791275023282
         }
       ],
       "analyses": []

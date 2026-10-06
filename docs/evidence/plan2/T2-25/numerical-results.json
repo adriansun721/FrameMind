@@ -1231,10 +1231,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_26c7bca8-dd21-4fe3-a50b-da6d001ec1e7",
+        "id": "project_ce6aa10f-289f-41ce-b9bd-25ba3bcc908f",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.475Z",
-        "updatedAt": "2026-10-06T08:04:28.479Z",
+        "createdAt": "2026-10-06T08:23:34.666Z",
+        "updatedAt": "2026-10-06T08:23:34.669Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -1396,10 +1396,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_eb3ac7cb-aaea-44b6-80a0-92a373aaeb42",
-        "projectId": "project_26c7bca8-dd21-4fe3-a50b-da6d001ec1e7",
+        "id": "analysis_4e53236e-f654-4ae2-847d-52b5460bb3fb",
+        "projectId": "project_ce6aa10f-289f-41ce-b9bd-25ba3bcc908f",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:34Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -1477,7 +1477,7 @@
               }
             }
           ],
-          "projectId": "project_26c7bca8-dd21-4fe3-a50b-da6d001ec1e7",
+          "projectId": "project_ce6aa10f-289f-41ce-b9bd-25ba3bcc908f",
           "projectRevision": 12,
           "sections": [
             {
@@ -2580,7 +2580,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_eb3ac7cb-aaea-44b6-80a0-92a373aaeb42",
+          "analysisId": "analysis_4e53236e-f654-4ae2-847d-52b5460bb3fb",
           "dependencies": [
             {
               "factor": 1,
@@ -2590,9 +2590,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_26c7bca8-dd21-4fe3-a50b-da6d001ec1e7",
+          "projectId": "project_ce6aa10f-289f-41ce-b9bd-25ba3bcc908f",
           "projectRevision": 12,
-          "requestId": "request_6b1a3922-9b28-4ecd-9e0a-f418ab6a63cd",
+          "requestId": "request_6a6cd8f2-bb31-4b09-aa05-66e7990e51be",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -2603,19 +2603,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             }
           ],
           "status": "complete",
@@ -2628,10 +2628,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_4cede89e-05db-4eef-aef2-2adbfcfee36b",
+        "id": "project_f56c25a4-f7fe-4390-9619-1150263ae80a",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.532Z",
-        "updatedAt": "2026-10-06T08:04:28.532Z",
+        "createdAt": "2026-10-06T08:23:34.746Z",
+        "updatedAt": "2026-10-06T08:23:34.746Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -2793,10 +2793,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_b9522ab0-684d-480f-8e97-048913620118",
-        "projectId": "project_4cede89e-05db-4eef-aef2-2adbfcfee36b",
+        "id": "analysis_af5e4dc4-46dc-4e48-b1ca-ce4097ae750c",
+        "projectId": "project_f56c25a4-f7fe-4390-9619-1150263ae80a",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:34Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -2874,7 +2874,7 @@
               }
             }
           ],
-          "projectId": "project_4cede89e-05db-4eef-aef2-2adbfcfee36b",
+          "projectId": "project_f56c25a4-f7fe-4390-9619-1150263ae80a",
           "projectRevision": 12,
           "sections": [
             {
@@ -4885,7 +4885,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_b9522ab0-684d-480f-8e97-048913620118",
+          "analysisId": "analysis_af5e4dc4-46dc-4e48-b1ca-ce4097ae750c",
           "dependencies": [
             {
               "factor": 1,
@@ -4895,9 +4895,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_4cede89e-05db-4eef-aef2-2adbfcfee36b",
+          "projectId": "project_f56c25a4-f7fe-4390-9619-1150263ae80a",
           "projectRevision": 12,
-          "requestId": "request_3d98e1bc-5fce-4117-ac37-74c4a663379f",
+          "requestId": "request_b29d24ab-c5bd-4767-b634-18a3c1cdc8c9",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -4908,19 +4908,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             }
           ],
           "status": "complete",
@@ -4933,10 +4933,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_aabc6c8e-ae62-4599-acba-278d2b1974d4",
+        "id": "project_7ae77dce-e085-4abe-89cb-523915aa494b",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.575Z",
-        "updatedAt": "2026-10-06T08:04:28.575Z",
+        "createdAt": "2026-10-06T08:23:34.811Z",
+        "updatedAt": "2026-10-06T08:23:34.811Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -5098,10 +5098,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_6870951f-e944-4cae-b7dd-9294335a7a6e",
-        "projectId": "project_aabc6c8e-ae62-4599-acba-278d2b1974d4",
+        "id": "analysis_0b6d633d-e1e1-4958-8f9e-f639105ce2c7",
+        "projectId": "project_7ae77dce-e085-4abe-89cb-523915aa494b",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:34Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -5179,7 +5179,7 @@
               }
             }
           ],
-          "projectId": "project_aabc6c8e-ae62-4599-acba-278d2b1974d4",
+          "projectId": "project_7ae77dce-e085-4abe-89cb-523915aa494b",
           "projectRevision": 12,
           "sections": [
             {
@@ -7190,7 +7190,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_6870951f-e944-4cae-b7dd-9294335a7a6e",
+          "analysisId": "analysis_0b6d633d-e1e1-4958-8f9e-f639105ce2c7",
           "dependencies": [
             {
               "factor": 1,
@@ -7200,9 +7200,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_aabc6c8e-ae62-4599-acba-278d2b1974d4",
+          "projectId": "project_7ae77dce-e085-4abe-89cb-523915aa494b",
           "projectRevision": 12,
-          "requestId": "request_7db95e74-0ca8-492f-8399-61860543d0ae",
+          "requestId": "request_139742f9-8a7a-4b27-ba82-f295153df4ab",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -7213,19 +7213,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             }
           ],
           "status": "complete",
@@ -7238,10 +7238,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_71b8e11a-217d-43ba-a917-efa293a99e4c",
+        "id": "project_e8c73653-71dc-4836-8e2a-f2eb67590e97",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.623Z",
-        "updatedAt": "2026-10-06T08:04:28.624Z",
+        "createdAt": "2026-10-06T08:23:34.881Z",
+        "updatedAt": "2026-10-06T08:23:34.881Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -7403,10 +7403,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_a711e6f2-b731-4d55-a95d-54e497ac9ddf",
-        "projectId": "project_71b8e11a-217d-43ba-a917-efa293a99e4c",
+        "id": "analysis_0d70bf2a-5e79-4faf-bf47-a00bf80b7a17",
+        "projectId": "project_e8c73653-71dc-4836-8e2a-f2eb67590e97",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:34Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -7484,7 +7484,7 @@
               }
             }
           ],
-          "projectId": "project_71b8e11a-217d-43ba-a917-efa293a99e4c",
+          "projectId": "project_e8c73653-71dc-4836-8e2a-f2eb67590e97",
           "projectRevision": 12,
           "sections": [
             {
@@ -9495,7 +9495,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_a711e6f2-b731-4d55-a95d-54e497ac9ddf",
+          "analysisId": "analysis_0d70bf2a-5e79-4faf-bf47-a00bf80b7a17",
           "dependencies": [
             {
               "factor": 1,
@@ -9505,9 +9505,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_71b8e11a-217d-43ba-a917-efa293a99e4c",
+          "projectId": "project_e8c73653-71dc-4836-8e2a-f2eb67590e97",
           "projectRevision": 12,
-          "requestId": "request_bc549e9d-aee1-4cd4-a47c-524a4e9301f7",
+          "requestId": "request_4c0fcac2-ffb0-4e18-ac85-865ded80575a",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -9518,19 +9518,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:34Z"
             }
           ],
           "status": "complete",
@@ -9543,10 +9543,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_289e143c-7e76-40a1-ab17-36863fdabad5",
+        "id": "project_d07416ed-85de-42a7-831c-75e6989c428f",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.677Z",
-        "updatedAt": "2026-10-06T08:04:28.677Z",
+        "createdAt": "2026-10-06T08:23:34.961Z",
+        "updatedAt": "2026-10-06T08:23:34.962Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -9708,10 +9708,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_b5b6a2d8-41ab-4ae0-a50f-dcde840d1c07",
-        "projectId": "project_289e143c-7e76-40a1-ab17-36863fdabad5",
+        "id": "analysis_b337e8e6-8b38-477e-8aca-583b91e568b0",
+        "projectId": "project_d07416ed-85de-42a7-831c-75e6989c428f",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -9789,7 +9789,7 @@
               }
             }
           ],
-          "projectId": "project_289e143c-7e76-40a1-ab17-36863fdabad5",
+          "projectId": "project_d07416ed-85de-42a7-831c-75e6989c428f",
           "projectRevision": 12,
           "sections": [
             {
@@ -11800,7 +11800,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_b5b6a2d8-41ab-4ae0-a50f-dcde840d1c07",
+          "analysisId": "analysis_b337e8e6-8b38-477e-8aca-583b91e568b0",
           "dependencies": [
             {
               "factor": 1,
@@ -11810,9 +11810,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_289e143c-7e76-40a1-ab17-36863fdabad5",
+          "projectId": "project_d07416ed-85de-42a7-831c-75e6989c428f",
           "projectRevision": 12,
-          "requestId": "request_83de69db-f57d-4387-a7c6-56754222ac57",
+          "requestId": "request_79a5717e-4cff-4a15-bfda-5ec66310f39f",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -11823,19 +11823,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -11848,10 +11848,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_9b351c6c-fa1b-449e-a4b0-a65c207e51fa",
+        "id": "project_f095eea2-6891-4ec0-9896-afb31c6d063a",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.720Z",
-        "updatedAt": "2026-10-06T08:04:28.720Z",
+        "createdAt": "2026-10-06T08:23:35.046Z",
+        "updatedAt": "2026-10-06T08:23:35.046Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -12013,10 +12013,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_87a2b647-dd32-4d12-897d-aacdbffb681b",
-        "projectId": "project_9b351c6c-fa1b-449e-a4b0-a65c207e51fa",
+        "id": "analysis_b526279c-1a16-4499-84de-357d9f3dd993",
+        "projectId": "project_f095eea2-6891-4ec0-9896-afb31c6d063a",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -12094,7 +12094,7 @@
               }
             }
           ],
-          "projectId": "project_9b351c6c-fa1b-449e-a4b0-a65c207e51fa",
+          "projectId": "project_f095eea2-6891-4ec0-9896-afb31c6d063a",
           "projectRevision": 12,
           "sections": [
             {
@@ -14105,7 +14105,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_87a2b647-dd32-4d12-897d-aacdbffb681b",
+          "analysisId": "analysis_b526279c-1a16-4499-84de-357d9f3dd993",
           "dependencies": [
             {
               "factor": 1,
@@ -14115,9 +14115,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_9b351c6c-fa1b-449e-a4b0-a65c207e51fa",
+          "projectId": "project_f095eea2-6891-4ec0-9896-afb31c6d063a",
           "projectRevision": 12,
-          "requestId": "request_a3788ee9-8e91-4ba2-afbb-2b1db766f5d6",
+          "requestId": "request_fcca2625-1187-4ef0-a55c-6e937eef3f26",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -14128,19 +14128,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -14153,10 +14153,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_f97a0900-5cb5-4371-aad7-0eb36018d4ee",
+        "id": "project_bc10f905-4929-484b-8db1-f6680b8c5041",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.767Z",
-        "updatedAt": "2026-10-06T08:04:28.767Z",
+        "createdAt": "2026-10-06T08:23:35.111Z",
+        "updatedAt": "2026-10-06T08:23:35.111Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -14318,10 +14318,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_2474b12a-ad83-40ca-9cb6-34f507ef3445",
-        "projectId": "project_f97a0900-5cb5-4371-aad7-0eb36018d4ee",
+        "id": "analysis_0a65b21e-421b-4704-8370-e9e584707af9",
+        "projectId": "project_bc10f905-4929-484b-8db1-f6680b8c5041",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -14399,7 +14399,7 @@
               }
             }
           ],
-          "projectId": "project_f97a0900-5cb5-4371-aad7-0eb36018d4ee",
+          "projectId": "project_bc10f905-4929-484b-8db1-f6680b8c5041",
           "projectRevision": 12,
           "sections": [
             {
@@ -16410,7 +16410,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_2474b12a-ad83-40ca-9cb6-34f507ef3445",
+          "analysisId": "analysis_0a65b21e-421b-4704-8370-e9e584707af9",
           "dependencies": [
             {
               "factor": 1,
@@ -16420,9 +16420,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_f97a0900-5cb5-4371-aad7-0eb36018d4ee",
+          "projectId": "project_bc10f905-4929-484b-8db1-f6680b8c5041",
           "projectRevision": 12,
-          "requestId": "request_62f1915c-b9bc-4f97-aaec-90b82ebc3c5d",
+          "requestId": "request_397849db-0a0c-455e-ae39-fd41438e842f",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -16433,19 +16433,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -16458,10 +16458,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_c734d789-8b75-45a4-81ca-4b38f6668f1f",
+        "id": "project_1cbfb495-0d38-49e6-bb49-37ff4e294143",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.817Z",
-        "updatedAt": "2026-10-06T08:04:28.817Z",
+        "createdAt": "2026-10-06T08:23:35.207Z",
+        "updatedAt": "2026-10-06T08:23:35.207Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -16623,10 +16623,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_70913802-c507-4a24-b3ba-434cae5cb766",
-        "projectId": "project_c734d789-8b75-45a4-81ca-4b38f6668f1f",
+        "id": "analysis_bd1c8ca1-ae86-48f8-aa4c-9893d74e6dc2",
+        "projectId": "project_1cbfb495-0d38-49e6-bb49-37ff4e294143",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -16704,7 +16704,7 @@
               }
             }
           ],
-          "projectId": "project_c734d789-8b75-45a4-81ca-4b38f6668f1f",
+          "projectId": "project_1cbfb495-0d38-49e6-bb49-37ff4e294143",
           "projectRevision": 12,
           "sections": [
             {
@@ -18715,7 +18715,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_70913802-c507-4a24-b3ba-434cae5cb766",
+          "analysisId": "analysis_bd1c8ca1-ae86-48f8-aa4c-9893d74e6dc2",
           "dependencies": [
             {
               "factor": 1,
@@ -18725,9 +18725,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_c734d789-8b75-45a4-81ca-4b38f6668f1f",
+          "projectId": "project_1cbfb495-0d38-49e6-bb49-37ff4e294143",
           "projectRevision": 12,
-          "requestId": "request_a9b5bdc5-b013-46f6-b324-00e1cf64369b",
+          "requestId": "request_983abd37-19fe-451c-a170-0082889a97f4",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -18738,19 +18738,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -18763,10 +18763,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_d94b9d87-5866-4609-8416-0c22de967abf",
+        "id": "project_7988de13-4984-40a6-8d7f-33ce544cf9a8",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.866Z",
-        "updatedAt": "2026-10-06T08:04:28.866Z",
+        "createdAt": "2026-10-06T08:23:35.295Z",
+        "updatedAt": "2026-10-06T08:23:35.295Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -18928,10 +18928,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_ca3ad109-703d-4ec7-90d6-80f9c04df3ef",
-        "projectId": "project_d94b9d87-5866-4609-8416-0c22de967abf",
+        "id": "analysis_01be1297-88a9-43f8-b580-8e4d37391a2a",
+        "projectId": "project_7988de13-4984-40a6-8d7f-33ce544cf9a8",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -19009,7 +19009,7 @@
               }
             }
           ],
-          "projectId": "project_d94b9d87-5866-4609-8416-0c22de967abf",
+          "projectId": "project_7988de13-4984-40a6-8d7f-33ce544cf9a8",
           "projectRevision": 12,
           "sections": [
             {
@@ -21020,7 +21020,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_ca3ad109-703d-4ec7-90d6-80f9c04df3ef",
+          "analysisId": "analysis_01be1297-88a9-43f8-b580-8e4d37391a2a",
           "dependencies": [
             {
               "factor": 1,
@@ -21030,9 +21030,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_d94b9d87-5866-4609-8416-0c22de967abf",
+          "projectId": "project_7988de13-4984-40a6-8d7f-33ce544cf9a8",
           "projectRevision": 12,
-          "requestId": "request_8550c444-bbe6-4d96-ac0a-3f968221844c",
+          "requestId": "request_3ed3b29f-8fe3-43f3-a412-2c3f5280b492",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -21043,19 +21043,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -21068,10 +21068,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_13fe940d-9119-4433-9006-0c8361867d11",
+        "id": "project_7d3a42c2-25a3-4f6b-aeff-ba042e426c04",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.906Z",
-        "updatedAt": "2026-10-06T08:04:28.906Z",
+        "createdAt": "2026-10-06T08:23:35.366Z",
+        "updatedAt": "2026-10-06T08:23:35.366Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -21233,10 +21233,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_c7ce740d-66df-4ebf-b35d-2357db8f5af5",
-        "projectId": "project_13fe940d-9119-4433-9006-0c8361867d11",
+        "id": "analysis_53b2bfce-3b03-495c-b42e-051688a64729",
+        "projectId": "project_7d3a42c2-25a3-4f6b-aeff-ba042e426c04",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:28Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -21314,7 +21314,7 @@
               }
             }
           ],
-          "projectId": "project_13fe940d-9119-4433-9006-0c8361867d11",
+          "projectId": "project_7d3a42c2-25a3-4f6b-aeff-ba042e426c04",
           "projectRevision": 12,
           "sections": [
             {
@@ -23325,7 +23325,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_c7ce740d-66df-4ebf-b35d-2357db8f5af5",
+          "analysisId": "analysis_53b2bfce-3b03-495c-b42e-051688a64729",
           "dependencies": [
             {
               "factor": 1,
@@ -23335,9 +23335,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_13fe940d-9119-4433-9006-0c8361867d11",
+          "projectId": "project_7d3a42c2-25a3-4f6b-aeff-ba042e426c04",
           "projectRevision": 12,
-          "requestId": "request_39d19f44-efe7-4ba6-88cd-8e366eb1f484",
+          "requestId": "request_bdb476c1-7bdb-4b11-a318-2935546fad13",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -23348,19 +23348,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:28Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -23373,10 +23373,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_6ddb9780-4fc0-43a1-b3ae-e1bb3fca61c0",
+        "id": "project_d82b1fd1-93aa-49ec-a8b4-47c7c11b409c",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:28.953Z",
-        "updatedAt": "2026-10-06T08:04:28.954Z",
+        "createdAt": "2026-10-06T08:23:35.433Z",
+        "updatedAt": "2026-10-06T08:23:35.433Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -23538,10 +23538,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_ffc48495-dc44-4df9-a7f1-530f38b12be6",
-        "projectId": "project_6ddb9780-4fc0-43a1-b3ae-e1bb3fca61c0",
+        "id": "analysis_2a4a010b-5489-49c0-a2cd-389f004c227f",
+        "projectId": "project_d82b1fd1-93aa-49ec-a8b4-47c7c11b409c",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -23619,7 +23619,7 @@
               }
             }
           ],
-          "projectId": "project_6ddb9780-4fc0-43a1-b3ae-e1bb3fca61c0",
+          "projectId": "project_d82b1fd1-93aa-49ec-a8b4-47c7c11b409c",
           "projectRevision": 12,
           "sections": [
             {
@@ -25630,7 +25630,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_ffc48495-dc44-4df9-a7f1-530f38b12be6",
+          "analysisId": "analysis_2a4a010b-5489-49c0-a2cd-389f004c227f",
           "dependencies": [
             {
               "factor": 1,
@@ -25640,9 +25640,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_6ddb9780-4fc0-43a1-b3ae-e1bb3fca61c0",
+          "projectId": "project_d82b1fd1-93aa-49ec-a8b4-47c7c11b409c",
           "projectRevision": 12,
-          "requestId": "request_9d55abe8-11f0-42f2-9705-63ab19993adb",
+          "requestId": "request_a7c06285-43d1-42c0-8311-03323d29c078",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -25653,19 +25653,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -25678,10 +25678,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_efa99761-3251-4aee-9c63-3a2a8587982d",
+        "id": "project_72e29ac1-bc6e-4802-b15c-c9c12cd35713",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:29.007Z",
-        "updatedAt": "2026-10-06T08:04:29.007Z",
+        "createdAt": "2026-10-06T08:23:35.508Z",
+        "updatedAt": "2026-10-06T08:23:35.508Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -25843,10 +25843,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_2dd4664d-cbf9-4a44-8880-3e13309995c3",
-        "projectId": "project_efa99761-3251-4aee-9c63-3a2a8587982d",
+        "id": "analysis_13777da1-f783-4b96-8e8b-e2b394533213",
+        "projectId": "project_72e29ac1-bc6e-4802-b15c-c9c12cd35713",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -25924,7 +25924,7 @@
               }
             }
           ],
-          "projectId": "project_efa99761-3251-4aee-9c63-3a2a8587982d",
+          "projectId": "project_72e29ac1-bc6e-4802-b15c-c9c12cd35713",
           "projectRevision": 12,
           "sections": [
             {
@@ -27935,7 +27935,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_2dd4664d-cbf9-4a44-8880-3e13309995c3",
+          "analysisId": "analysis_13777da1-f783-4b96-8e8b-e2b394533213",
           "dependencies": [
             {
               "factor": 1,
@@ -27945,9 +27945,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_efa99761-3251-4aee-9c63-3a2a8587982d",
+          "projectId": "project_72e29ac1-bc6e-4802-b15c-c9c12cd35713",
           "projectRevision": 12,
-          "requestId": "request_ed127139-a6c9-4edc-aee0-77a1f4a5a5ec",
+          "requestId": "request_f09c756f-520f-41f1-8f02-543186c25978",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -27958,19 +27958,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -27983,10 +27983,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_dc62dd12-d1a6-4eed-8d7c-ff3e15cbe257",
+        "id": "project_19c14cc1-966e-4ec5-9452-68b2e5c7e646",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:29.056Z",
-        "updatedAt": "2026-10-06T08:04:29.056Z",
+        "createdAt": "2026-10-06T08:23:35.581Z",
+        "updatedAt": "2026-10-06T08:23:35.581Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -28148,10 +28148,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_c361930e-a019-4560-b2c3-a2a6083f6971",
-        "projectId": "project_dc62dd12-d1a6-4eed-8d7c-ff3e15cbe257",
+        "id": "analysis_6e015122-5f8f-4fcd-a39c-8b95d03297c6",
+        "projectId": "project_19c14cc1-966e-4ec5-9452-68b2e5c7e646",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -28229,7 +28229,7 @@
               }
             }
           ],
-          "projectId": "project_dc62dd12-d1a6-4eed-8d7c-ff3e15cbe257",
+          "projectId": "project_19c14cc1-966e-4ec5-9452-68b2e5c7e646",
           "projectRevision": 12,
           "sections": [
             {
@@ -30240,7 +30240,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_c361930e-a019-4560-b2c3-a2a6083f6971",
+          "analysisId": "analysis_6e015122-5f8f-4fcd-a39c-8b95d03297c6",
           "dependencies": [
             {
               "factor": 1,
@@ -30250,9 +30250,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_dc62dd12-d1a6-4eed-8d7c-ff3e15cbe257",
+          "projectId": "project_19c14cc1-966e-4ec5-9452-68b2e5c7e646",
           "projectRevision": 12,
-          "requestId": "request_e89caae3-06b3-43fa-bb3e-1cf21f05e349",
+          "requestId": "request_7bc33cde-981f-46cc-aafb-05674f1b3ceb",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -30263,19 +30263,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -30288,10 +30288,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_e9dd1fb4-816a-4726-9fdf-42c42905f3f2",
+        "id": "project_75d8d64e-8e19-4fde-ae7b-c4dd42c49894",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:29.101Z",
-        "updatedAt": "2026-10-06T08:04:29.102Z",
+        "createdAt": "2026-10-06T08:23:35.647Z",
+        "updatedAt": "2026-10-06T08:23:35.647Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -30453,10 +30453,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_ad68bc14-e299-47ae-97c7-00aacc43d6dc",
-        "projectId": "project_e9dd1fb4-816a-4726-9fdf-42c42905f3f2",
+        "id": "analysis_c7d072ca-355b-452e-a1c5-77d0616402e0",
+        "projectId": "project_75d8d64e-8e19-4fde-ae7b-c4dd42c49894",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -30534,7 +30534,7 @@
               }
             }
           ],
-          "projectId": "project_e9dd1fb4-816a-4726-9fdf-42c42905f3f2",
+          "projectId": "project_75d8d64e-8e19-4fde-ae7b-c4dd42c49894",
           "projectRevision": 12,
           "sections": [
             {
@@ -32545,7 +32545,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_ad68bc14-e299-47ae-97c7-00aacc43d6dc",
+          "analysisId": "analysis_c7d072ca-355b-452e-a1c5-77d0616402e0",
           "dependencies": [
             {
               "factor": 1,
@@ -32555,9 +32555,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_e9dd1fb4-816a-4726-9fdf-42c42905f3f2",
+          "projectId": "project_75d8d64e-8e19-4fde-ae7b-c4dd42c49894",
           "projectRevision": 12,
-          "requestId": "request_02977c22-0927-4ff2-85b2-af070e6182d9",
+          "requestId": "request_ffed6b3d-2955-41b6-9c7e-829d1320e61b",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -32568,19 +32568,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -32593,10 +32593,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_760e3889-a4d7-458d-8b4e-aac2c94ae9af",
+        "id": "project_ae5e6fc2-c98b-4215-9928-6b089ed3eaf5",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:29.138Z",
-        "updatedAt": "2026-10-06T08:04:29.138Z",
+        "createdAt": "2026-10-06T08:23:35.713Z",
+        "updatedAt": "2026-10-06T08:23:35.713Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -32758,10 +32758,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_19fde76d-376e-4c9c-b559-fe0936ede765",
-        "projectId": "project_760e3889-a4d7-458d-8b4e-aac2c94ae9af",
+        "id": "analysis_20254403-0b43-413e-9d25-42d196abea45",
+        "projectId": "project_ae5e6fc2-c98b-4215-9928-6b089ed3eaf5",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -32839,7 +32839,7 @@
               }
             }
           ],
-          "projectId": "project_760e3889-a4d7-458d-8b4e-aac2c94ae9af",
+          "projectId": "project_ae5e6fc2-c98b-4215-9928-6b089ed3eaf5",
           "projectRevision": 12,
           "sections": [
             {
@@ -34850,7 +34850,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_19fde76d-376e-4c9c-b559-fe0936ede765",
+          "analysisId": "analysis_20254403-0b43-413e-9d25-42d196abea45",
           "dependencies": [
             {
               "factor": 1,
@@ -34860,9 +34860,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_760e3889-a4d7-458d-8b4e-aac2c94ae9af",
+          "projectId": "project_ae5e6fc2-c98b-4215-9928-6b089ed3eaf5",
           "projectRevision": 12,
-          "requestId": "request_78da55da-2ce4-4069-868d-599acf1ccfff",
+          "requestId": "request_2bf8f9ca-0115-40e7-86b7-910dcd3283f6",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -34873,19 +34873,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -34898,10 +34898,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_6083162f-1cf3-4e7d-aa7e-ed81c15b6d0f",
+        "id": "project_0ea391a8-38f9-46d4-b38c-a944da552217",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:29.182Z",
-        "updatedAt": "2026-10-06T08:04:29.182Z",
+        "createdAt": "2026-10-06T08:23:35.784Z",
+        "updatedAt": "2026-10-06T08:23:35.785Z",
         "revision": 12,
         "units": {
           "length": "m",
@@ -35063,10 +35063,10 @@
         "nextUniformLoadNumber": 2
       },
       "result": {
-        "id": "analysis_c7d34bee-6df0-455e-9357-6cb207d8b249",
-        "projectId": "project_6083162f-1cf3-4e7d-aa7e-ed81c15b6d0f",
+        "id": "analysis_27ca4ab4-b3d1-48d5-bb3c-b2d84c3afeea",
+        "projectId": "project_0ea391a8-38f9-46d4-b38c-a944da552217",
         "projectRevision": 12,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -35144,7 +35144,7 @@
               }
             }
           ],
-          "projectId": "project_6083162f-1cf3-4e7d-aa7e-ed81c15b6d0f",
+          "projectId": "project_0ea391a8-38f9-46d4-b38c-a944da552217",
           "projectRevision": 12,
           "sections": [
             {
@@ -37155,7 +37155,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_c7d34bee-6df0-455e-9357-6cb207d8b249",
+          "analysisId": "analysis_27ca4ab4-b3d1-48d5-bb3c-b2d84c3afeea",
           "dependencies": [
             {
               "factor": 1,
@@ -37165,9 +37165,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_6083162f-1cf3-4e7d-aa7e-ed81c15b6d0f",
+          "projectId": "project_0ea391a8-38f9-46d4-b38c-a944da552217",
           "projectRevision": 12,
-          "requestId": "request_1175168a-3518-424e-8232-0477a69aec4f",
+          "requestId": "request_2c08d103-2cdf-4ae8-8094-93af539702c2",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -37178,19 +37178,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
@@ -37203,10 +37203,10 @@
       "project": {
         "format": "framemind-project",
         "formatVersion": 2,
-        "id": "project_5062d57c-d746-4f17-a92a-0bfdaf2aed50",
+        "id": "project_66ef20a4-521e-4c83-9b02-5c8ad640f58b",
         "name": "T2-25 固定－铰接梁",
-        "createdAt": "2026-10-06T08:04:29.225Z",
-        "updatedAt": "2026-10-06T08:04:29.225Z",
+        "createdAt": "2026-10-06T08:23:35.853Z",
+        "updatedAt": "2026-10-06T08:23:35.853Z",
         "revision": 21,
         "units": {
           "length": "m",
@@ -37404,10 +37404,10 @@
         "nextUniformLoadNumber": 3
       },
       "result": {
-        "id": "analysis_cdebfb34-21ec-4dfc-a1b2-718cb82cd4ee",
-        "projectId": "project_5062d57c-d746-4f17-a92a-0bfdaf2aed50",
+        "id": "analysis_c45b4e6d-3d51-439a-bccf-993d936b0819",
+        "projectId": "project_66ef20a4-521e-4c83-9b02-5c8ad640f58b",
         "projectRevision": 21,
-        "createdAt": "2026-10-06T08:04:29Z",
+        "createdAt": "2026-10-06T08:23:35Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -37521,7 +37521,7 @@
               }
             }
           ],
-          "projectId": "project_5062d57c-d746-4f17-a92a-0bfdaf2aed50",
+          "projectId": "project_66ef20a4-521e-4c83-9b02-5c8ad640f58b",
           "projectRevision": 21,
           "sections": [
             {
@@ -41646,7 +41646,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_cdebfb34-21ec-4dfc-a1b2-718cb82cd4ee",
+          "analysisId": "analysis_c45b4e6d-3d51-439a-bccf-993d936b0819",
           "dependencies": [
             {
               "factor": 1,
@@ -41656,9 +41656,9 @@
           "origin": {
             "kind": "formal-model"
           },
-          "projectId": "project_5062d57c-d746-4f17-a92a-0bfdaf2aed50",
+          "projectId": "project_66ef20a4-521e-4c83-9b02-5c8ad640f58b",
           "projectRevision": 21,
-          "requestId": "request_0b9b0220-d622-4f30-ad36-82ebb32abd25",
+          "requestId": "request_f7c3bc7c-3534-429e-8bfb-d864227feeb9",
           "solver": {
             "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
@@ -41669,19 +41669,19 @@
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-06T08:04:29Z"
+              "startedAt": "2026-10-06T08:23:35Z"
             }
           ],
           "status": "complete",
