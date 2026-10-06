@@ -1,0 +1,62 @@
+﻿
+> framemind@0.1.0 evidence:plan2:t232
+> npm run build && npx vitest run src/domain/psd.test.ts src/workspace/psd-tools.test.ts src/components/PsdSpectrumManager.test.tsx electron/psd-tools.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-32-psd.spec.ts
+
+
+> framemind@0.1.0 build
+> npm run typecheck && npm run build:main && vite build
+
+
+> framemind@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit
+
+
+> framemind@0.1.0 build:main
+> tsc -p tsconfig.electron.json
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 2024 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                              0.44 kB │ gzip:   0.28 kB
+dist/assets/analysis-worker-DmjmNVyU.js     40.70 kB
+dist/assets/report-worker-BezVA149.js      624.82 kB
+dist/assets/index-DgBpw_Ae.css              72.39 kB │ gzip:  12.43 kB
+dist/assets/report-pdf-D2eOiuos.js           2.48 kB │ gzip:   1.31 kB
+dist/assets/report-content-CeihmAOI.js      19.18 kB │ gzip:   8.00 kB
+dist/assets/report-word-CmSAZaNc.js        472.41 kB │ gzip: 134.74 kB
+dist/assets/index-CfvaUjLK.js            1,590.77 kB │ gzip: 446.82 kB
+
+node.exe : [plugin builtin:vite-reporter]
+At line:1 char:1
++ & "D:\nodejs/node.exe" "D:\nodejs/node_modules/npm/bin/npm-cli.js" ru ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([plugin builtin:vite-reporter] :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeS
+plitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 916ms
+
+ RUN  v5.0.2 D:/FrameMind
+
+
+ Test Files  4 passed (4)
+      Tests  50 passed (50)
+   Start at  23:45:21
+   Duration  3.60s (environment 43%, import 23%, transform 17%, setup 9%, tests 8%)
+
+
+Running 3 tests using 1 worker
+
+(node:34736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\plan2-t2-32-psd.spec.ts:12:5 › T2-32 desktop table, white-noise, explicit CSV units, conversion, undo and reopening (10.0s)
+  ok 2 e2e\plan2-t2-32-psd.spec.ts:88:5 › T2-32 agent input spectrum remains unapplied until concrete confirmation (3.0s)
+  ok 3 e2e\plan2-t2-32-psd.spec.ts:104:5 › T2-32 spectrum editor guards undo and project-session switches while open (4.2s)
+
+  3 passed (18.1s)

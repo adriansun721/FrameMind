@@ -746,7 +746,7 @@
 - [x] 显式转换谱时核查谱面积对应的物理量不变，频率轴和谱密度同时按约定转换，不只换轴标签。
 - [x] 以可独立积分的输入谱验证预览及积分约定；该任务交付可用的输入准备闭环，不把输入 PSD 误显示成响应结果。
 
-**证据：** [技术约定](./docs/decisions/0065-psd-input-conventions.md)、[实现记录](./docs/evidence/plan2/T2-32/implementation.md)、[逐项验收](./docs/evidence/plan2/T2-32/acceptance.md)、[验证记录](./docs/evidence/plan2/T2-32/verification.md)、[双轴审查](./docs/evidence/plan2/T2-32/review.md)。实现提交 `c93b2da`，审查修正 `e45932f`。类型检查、生产构建、完整单元测试（82 文件、638 测试）及三项公开 Electron 流程通过；真实 AI 和后续响应未标为通过。
+**证据：** [技术约定](./docs/decisions/0065-psd-input-conventions.md)、[实现记录](./docs/evidence/plan2/T2-32/implementation.md)、[逐项验收](./docs/evidence/plan2/T2-32/acceptance.md)、[验证记录](./docs/evidence/plan2/T2-32/verification.md)、[双轴审查](./docs/evidence/plan2/T2-32/review.md)。实现提交 `c93b2da`，审查修正 `e45932f`，工具 JSON 数字下溢补充修正 `5f21882`。[最新复验](./docs/evidence/plan2/T2-32/revalidation.md)通过类型检查、生产构建、50 项专项单元、完整单元测试（82 文件、644 测试）及三项公开 Electron 流程；双轴审查无未关闭项，真实 AI 和后续响应未标为通过。
 
 ### T2-33 — 单随机节点外力 PSD／RMS
 

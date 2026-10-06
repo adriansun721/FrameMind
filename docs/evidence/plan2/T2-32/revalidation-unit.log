@@ -1,0 +1,16 @@
+﻿
+> framemind@0.1.0 test
+> vitest run --maxWorkers=2
+
+
+ RUN  v5.0.2 D:/FrameMind
+
+
+ Test Files  82 passed (82)
+      Tests  644 passed (644)
+   Start at  23:46:19
+   Duration  79.62s (environment 61%, import 11%, tests 11%, setup 11%, transform 6%)
+
+Environment  jsdom was created 82 times · 87.44s total, 61% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
