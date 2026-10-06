@@ -824,6 +824,7 @@ button { color: inherit; }
 .report-missing { padding: 12px; border: 1px solid var(--border-strong); border-radius: 6px; }
 .process-pagination { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 12px; }
 .viewport-label-policy { position: absolute; left: 12px; bottom: 10px; max-width: calc(100% - 24px); padding: 3px 5px; background: var(--surface-overlay); pointer-events: none; color: var(--text-muted); font-size: 11px; }
-.viewport-case-source ~ .viewport-label-policy { bottom: 38px; }
+.viewport-legend-stack { position: absolute; z-index: 2; left: 12px; bottom: 38px; max-width: calc(100% - 24px); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
+.viewport-legend-stack > .viewport-result-legend, .viewport-legend-stack > .viewport-weight-marker, .viewport-legend-stack > .viewport-label-policy { position: static; max-width: 100%; }
 
 .unit-preset-selector { max-width: 150px; height: 28px; padding: 2px 6px; color: var(--text-primary); background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 11px; }

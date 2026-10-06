@@ -358,6 +358,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
     const hitAtPointer = (event: PointerEvent): THREE.Intersection | undefined => {
       const bounds = renderer.domElement.getBoundingClientRect();
+      model.preparePicking(camera, bounds.height);
       pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
       // Pick visible overlay symbols first, then the model's invisible interaction hulls.
@@ -593,7 +594,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       }
     }
     for (const path of paths.values()) {
-      const line = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(path.points), new THREE.LineBasicMaterial({ color: path.color, linewidth: path.width, transparent: true, opacity: .92 }));
+      const line = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(path.points), new THREE.LineBasicMaterial({ color: path.color, linewidth: path.width, transparent: true, opacity: .92, depthTest: false, depthWrite: false }));
       line.renderOrder = 4; line.userData = { result: true }; group.add(line);
     }
     if (resultFocus) {
@@ -606,8 +607,8 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
         const focusedSamples = memberSamples.get(member.id);
         const nearest = focusedSamples?.reduce((best, sample) => Math.abs(sample.position - resultFocus.position) < Math.abs(best.position - resultFocus.position) ? sample : best);
         if (nearest && resultView === "deformation") point.add(new THREE.Vector3(nearest.globalDisplacement.x, nearest.globalDisplacement.y, nearest.globalDisplacement.z).multiplyScalar(scale));
-        const marker = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), new THREE.MeshBasicMaterial({ color: palette.selected }));
-        marker.position.copy(point); marker.renderOrder = 5; group.add(marker);
+        const marker = new THREE.Points(new THREE.BufferGeometry().setFromPoints([point]), new THREE.PointsMaterial({ color: palette.selected, size: 7, sizeAttenuation: false, depthTest: false, depthWrite: false }));
+        marker.renderOrder = 5; group.add(marker);
       }
     }
   }, [analysis, resultView, forceComponent, deformationScale, resultFocus, nodes, theme]);
@@ -642,6 +643,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       <div className="viewport-count"><span data-testid="viewport-node-count">{nodes.length} 个节点</span><span data-testid="viewport-member-count">{members.length} 根杆件</span></div>
       {preview && (!!preview.nodes.length || !!preview.supports?.length || !!preview.nodalLoads?.length || !!preview.loadStageSummary) && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.sectionChange ? `${preview.members.length} 根选中柱 · 截面修改 · 虚线` : preview.conditionNodes ? `${preview.supports?.length ?? 0} 支座 / ${preview.nodalLoads?.length ?? 0} 节点荷载${preview.loadStageSummary ? ` / ${preview.loadStageSummary}` : ""} · 半透明` : `${preview.nodes.length} 节点 / ${preview.members.length} 杆件 · 虚线`}</div>}
       {sourceLabel && <div className="viewport-case-source" aria-label="视图工况来源">{sourceLabel}</div>}
+      <div className="viewport-legend-stack">
       {displayedWeight && <div className={`viewport-weight-marker${weightPending ? " pending" : ""}`} aria-label={weightPending ? "待确认自重标记" : "自重标记"}>
         <Weight size={16} /><div><strong>{displayedWeight.enabled ? "结构自重" : "关闭自重"}{weightPending ? " · 待确认" : " · 已启用"}</strong>
           <span>{weightPending ? preview!.selfWeight!.caseLabel : selfWeightLabel ?? displayedWeight.loadCaseId} · 全结构</span>
@@ -649,6 +651,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       </div>}
       {analysis && resultView !== "model" && <div className="viewport-result-legend" aria-label="视图结果图例"><span className={resultView === "deformation" ? "deformation-key" : "force-key"} />{resultView === "deformation" ? `变形 · ${deformationScale}×` : `${forceComponent} · ${u.unit(["N", "Vy", "Vz"].includes(forceComponent) ? "kN" : "kN·m")}`}</div>}
       <div className="viewport-label-policy">{displayMode === "solid" ? "真实尺寸 · 梁单元分析" : "中心分析线 · 梁单元分析"}{members.some((member) => !sections.find((section) => section.id === member.sectionId)?.geometry) && " · 几何未定义构件用分析线"}<br />标签随缩放避让 · 优先选中与结果对象 · 完整数值见属性</div>
+      </div>
       {!drawingEnabled && selectedNode && <div className="viewport-member-details" aria-label="选中节点信息"><strong>{selectedSupport?.label ?? selectedNodalLoad?.label ?? selectedNode.label} · {selectedNode.label}</strong><span>XYZ {u.vector(selectedNode.position, "m")}</span>{selectedSupport && <span>约束 {selectedSupport.restraints.map((fixed, index) => fixed ? ["Ux", "Uy", "Uz", "Rx", "Ry", "Rz"][index] : null).filter(Boolean).join(" · ") || "无"}</span>}{selectedNodalLoad && <><span>F {u.vector(selectedNodalLoad.force, "kN")}</span><span>M {u.vector(selectedNodalLoad.moment, "kN·m")}</span></>}</div>}
       {!drawingEnabled && (selectedLoad ? <div className="viewport-member-details" data-testid="viewport-load-details"><strong>{selectedLoad.label} · {selectedMember?.label} · {selectedLoad.loadCaseId}</strong><span>{selectedLoad.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"} · q {u.vector(selectedLoad.intensity, "kN/m")}</span><small>整根杆件均布力</small></div> : selectedMember && selectedMaterial && selectedSection && <div className="viewport-member-details" data-testid="viewport-member-details"><strong>{selectedMember.label}</strong><span>{selectedMaterial.name} · E {u.quantity(selectedMaterial.elasticModulusGPa, "GPa")}</span><span>{selectedSection.name} · A {u.quantity(selectedSection.areaM2, "m²")}</span><small>{!selectedSection.geometry ? "几何未定义 · 分析线模型" : displayMode === "solid" ? "真实截面 · 梁单元分析" : "分析线模型 · 梁单元分析"} · 截面转角 {u.quantity(selectedMember.rotationDegrees, "°")}{selectedSection.catalogBasis && " · 目录几何忽略圆角"}</small></div>)}
       {!drawingEnabled && nodes.length === 0 && !preview?.nodes.length && <div className="empty-scene"><strong>从第一个空间节点开始</strong><p>输入 X、Y、Z 坐标，节点会立即出现在统一模型中。</p></div>}

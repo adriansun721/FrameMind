@@ -55,8 +55,8 @@ test("T2-24 default solids, line switching, mouse picking, themes and immutable 
       await page.getByRole("button", { name: "设置", exact: true }).click();
       await page.getByRole("button", { name: theme === "dark" ? "深色" : "浅色", exact: true }).click();
       await page.getByRole("dialog", { name: "设置", exact: true }).getByRole("button", { name: "关闭", exact: true }).click();
-      for (const width of [1440, 1080]) {
-        await page.setViewportSize({ width, height: 900 });
+      for (const [width, height] of [[1440, 900], [1080, 900], [1080, 680]]) {
+        await page.setViewportSize({ width, height });
         await page.getByRole("button", { name: "适合模型", exact: true }).click();
         for (const mode of ["实体", "分析线"]) {
           await controls.getByRole("button", { name: mode, exact: true }).click();
@@ -65,10 +65,24 @@ test("T2-24 default solids, line switching, mouse picking, themes and immutable 
           await expect(page.getByTestId("viewport-node-count")).toHaveText("14 个节点");
           await expect(page.getByTestId("viewport-member-count")).toHaveText("7 根杆件");
           expect(await viewport.locator("canvas").evaluate((element, original) => element === original, canvas)).toBe(true);
-          await page.screenshot({ path: join(evidence, `${mode === "实体" ? "solid" : "line"}-${theme}-${width}.png`) });
+          await page.screenshot({ path: join(evidence, `${mode === "实体" ? "solid" : "line"}-${theme}-${width}${height === 900 ? "" : `-${height}`}.png`) });
         }
       }
     }
+    await controls.getByRole("button", { name: "实体", exact: true }).click();
+    await page.getByRole("button", { name: "查看分析结果", exact: true }).click();
+    await page.getByRole("tab", { name: "变形图", exact: true }).click();
+    await page.getByLabel("变形放大比例").fill("1");
+    await expect(viewport.getByLabel("视图结果图例")).toContainText("1×");
+    const legendBounds = (await viewport.getByLabel("视图结果图例").boundingBox())!;
+    const policyBounds = (await viewport.locator(".viewport-label-policy").boundingBox())!;
+    expect(legendBounds.y + legendBounds.height).toBeLessThan(policyBounds.y);
+    await page.screenshot({ path: join(evidence, "solid-small-deformation-light-1080-680.png") });
+    await page.getByRole("tab", { name: "结果表", exact: true }).click();
+    await page.getByLabel("M1 沿杆位置").fill("1.5");
+    await page.getByRole("button", { name: "定位 M1 结果位置", exact: true }).click();
+    await expect(page.getByTestId("viewport-member-details")).toContainText("rectangle");
+    await page.screenshot({ path: join(evidence, "solid-result-focus-light-1080-680.png") });
     await controls.getByRole("button", { name: "实体", exact: true }).click();
     // Project a known engineering midpoint using the public camera state, then click it.
     const box = (await viewport.locator("canvas").boundingBox())!;
@@ -76,7 +90,7 @@ test("T2-24 default solids, line switching, mouse picking, themes and immutable 
     const values = (await viewport.getAttribute("data-camera-state"))!.split(",").map(Number);
     const camera = new THREE.PerspectiveCamera(42, box.width / box.height, .1, 200);
     camera.up.set(0, 0, 1); camera.position.set(values[0], values[1], values[2]); camera.lookAt(values[3], values[4], values[5]); camera.updateMatrixWorld();
-    const midpoint = new THREE.Vector3(1.5, .9, 0).project(camera);
+    const midpoint = new THREE.Vector3(2.2, .9, 0).project(camera);
     await page.mouse.click(box.x + (midpoint.x + 1) * box.width / 2, box.y + (1 - midpoint.y) * box.height / 2 + 2);
     await expect(page.getByTestId("viewport-member-details")).toContainText("circle");
     await page.getByRole("region", { name: "项目树" }).getByText("M7", { exact: true }).click();
@@ -85,6 +99,6 @@ test("T2-24 default solids, line switching, mouse picking, themes and immutable 
     const saved = await save(page, path);
     expect(saved.nodes).toEqual(analyzed.nodes); expect(saved.members).toEqual(analyzed.members); expect(saved.sections).toEqual(analyzed.sections);
     expect(saved.revision).toBe(analyzed.revision); expect(saved.analysisResults).toEqual(analyzed.analysisResults); expect(saved.latestAnalysis).toEqual(analyzed.latestAnalysis);
-    await writeFile(join(evidence, "desktop.json"), JSON.stringify({ passed: true, themes: ["dark", "light"], widths: [1440, 1080], modes: ["solid", "line"], members: 7, nodes: 14, mousePicking: true, canvasPreserved: true, immutableModelAndAnalysis: true, analysisId: saved.latestAnalysis.id }, null, 2));
+    await writeFile(join(evidence, "desktop.json"), JSON.stringify({ passed: true, themes: ["dark", "light"], sizes: [[1440, 900], [1080, 900], [1080, 680]], modes: ["solid", "line"], members: 7, nodes: 14, mousePicking: true, canvasPreserved: true, immutableModelAndAnalysis: true, analysisId: saved.latestAnalysis.id }, null, 2));
   } finally { await app.close(); if (!resolve(directory).startsWith(resolve(tmpdir()) + sep)) throw new Error("Invalid cleanup path"); await rm(directory, { recursive: true, force: true }); }
 });

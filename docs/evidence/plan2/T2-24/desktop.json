@@ -4,9 +4,19 @@
     "dark",
     "light"
   ],
-  "widths": [
-    1440,
-    1080
+  "sizes": [
+    [
+      1440,
+      900
+    ],
+    [
+      1080,
+      900
+    ],
+    [
+      1080,
+      680
+    ]
   ],
   "modes": [
     "solid",
@@ -17,5 +27,5 @@
   "mousePicking": true,
   "canvasPreserved": true,
   "immutableModelAndAnalysis": true,
-  "analysisId": "analysis_ab7ae7af-f12a-4d06-8799-c361cef77b74"
+  "analysisId": "analysis_56d5b284-ca13-48f4-81f3-db77417aadd0"
 }

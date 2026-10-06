@@ -6,6 +6,10 @@ import type { SectionGeometry } from "../domain/section-geometry";
 import { createSectionExtrusion, memberSolidTransform, sectionOuterRadius } from "./member-solid";
 import { disposeObjectTree } from "./three-resources";
 
+const PICKING_CYLINDER_SEGMENTS = 6;
+// CylinderGeometry's radius is circumscribed; make the inscribed circle contain the section.
+const PICKING_CIRCUMRADIUS_FACTOR = 1 / Math.cos(Math.PI / PICKING_CYLINDER_SEGMENTS);
+
 export type EngineeringSceneSelection = { kind: "node"; id: NodeId } | { kind: "member"; id: MemberId } | null;
 export type MemberDisplayMode = "solid" | "line";
 
@@ -34,6 +38,7 @@ interface MemberRecord {
   batch?: { mesh: THREE.InstancedMesh; index: number };
   hitTarget: THREE.Mesh;
   member: FrameMember;
+  pickingRadius: number;
   start: FrameNode;
   end: FrameNode;
 }
@@ -157,6 +162,21 @@ export class EngineeringSceneModel {
     ];
   }
 
+  preparePicking(camera: THREE.PerspectiveCamera, viewportHeight: number): void {
+    camera.updateMatrixWorld();
+    const direction = camera.getWorldDirection(new THREE.Vector3());
+    const unitsPerPixel = (point: THREE.Vector3) => Math.max(camera.near, point.clone().sub(camera.position).dot(direction))
+      * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / (Math.max(1, viewportHeight) * camera.zoom);
+    for (const record of this.nodeRecords.values()) {
+      const factor = Math.max(1, unitsPerPixel(record.hitTarget.position) * GEOMETRY_CONTRACT.picking.nodeRadiusPixels / GEOMETRY_CONTRACT.picking.nodeRadius);
+      record.hitTarget.scale.setScalar(factor); record.hitTarget.updateMatrixWorld(true);
+    }
+    for (const record of this.memberRecords.values()) {
+      const factor = Math.max(1, unitsPerPixel(record.hitTarget.position) * GEOMETRY_CONTRACT.picking.memberRadiusPixels * PICKING_CIRCUMRADIUS_FACTOR / record.pickingRadius);
+      record.hitTarget.scale.set(factor, 1, factor); record.hitTarget.updateMatrixWorld(true);
+    }
+  }
+
   dispose(): void {
     for (const [id, record] of this.memberRecords) this.removeMember(id, record);
     for (const [id, record] of this.nodeRecords) this.removeNode(id, record);
@@ -201,16 +221,16 @@ export class EngineeringSceneModel {
     display.userData = { kind: "member", id: member.id };
     const length = startVector.distanceTo(endVector);
     const picking = GEOMETRY_CONTRACT.picking;
-    const radius = Math.max(sectionOuterRadius(sectionGeometry), Math.min(picking.memberRadiusMax, Math.max(picking.memberRadiusMin, length * picking.memberLengthFactor)));
+    const radius = Math.max(sectionOuterRadius(sectionGeometry), Math.min(picking.memberRadiusMax, Math.max(picking.memberRadiusMin, length * picking.memberLengthFactor))) * PICKING_CIRCUMRADIUS_FACTOR;
     const hitTarget = new THREE.Mesh(
-      new THREE.CylinderGeometry(radius, radius, length, 6),
+      new THREE.CylinderGeometry(radius, radius, length, PICKING_CYLINDER_SEGMENTS),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     );
     placeCylinderBetween(hitTarget, startVector, endVector);
     hitTarget.visible = false;
     hitTarget.userData = { kind: "member", id: member.id };
     this.parent.add(display, hitTarget);
-    return { fingerprint, display, hitTarget, member, start, end, sectionGeometry };
+    return { fingerprint, display, hitTarget, member, start, end, sectionGeometry, pickingRadius: radius };
   }
 
   private removeNode(id: NodeId, record: NodeRecord): void {

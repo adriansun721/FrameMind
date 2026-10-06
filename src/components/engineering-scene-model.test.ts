@@ -92,6 +92,30 @@ describe("engineering scene model", () => {
     model.dispose();
   });
 
+  it("keeps a pixel-sized invisible picking range when the model is zoomed out", () => {
+    const p = sectionCantilever({ shape: "circle", diameter: .002 }), parent = new THREE.Group();
+    const model = new EngineeringSceneModel(parent, palette, () => new THREE.Sprite(new THREE.SpriteMaterial()));
+    model.sync(p.nodes, p.members, p.sections);
+    const camera = new THREE.PerspectiveCamera(42, 1, .1, 200);
+    camera.position.set(1.5, -50, 0); camera.lookAt(1.5, 0, 0); camera.updateMatrixWorld();
+    model.preparePicking(camera, 600); parent.updateMatrixWorld(true);
+    const hits = new THREE.Raycaster(new THREE.Vector3(1.5, -50, .3), new THREE.Vector3(0, 1, 0)).intersectObjects(model.getHitTargets());
+    expect(hits[0]?.object.userData).toEqual({ kind: "member", id: p.members[0].id });
+    expect(model.getBounds().getSize(new THREE.Vector3()).z).toBeCloseTo(.002, 7);
+    model.dispose();
+  });
+
+  it("allows picking the corners of wide real sections", () => {
+    const p = sectionCantilever({ shape: "rectangle", width: 2, height: 2 }), parent = new THREE.Group();
+    const model = new EngineeringSceneModel(parent, palette, () => new THREE.Sprite(new THREE.SpriteMaterial()));
+    model.sync(p.nodes, p.members, p.sections); parent.updateMatrixWorld(true);
+    for (const y of [-.99, .99]) for (const z of [-.99, .99]) {
+      const hits = new THREE.Raycaster(new THREE.Vector3(-1, y, z), new THREE.Vector3(1, 0, 0)).intersectObjects(model.getHitTargets());
+      expect(hits[0]?.object.userData).toEqual({ kind: "member", id: p.members[0].id });
+    }
+    model.dispose();
+  });
+
   it("shows every solid in dense models with true dimensions and stable instance highlights", () => {
     const p = sectionCantilever(), parent = new THREE.Group();
     const model = new EngineeringSceneModel(parent, palette, () => new THREE.Sprite(new THREE.SpriteMaterial()));
