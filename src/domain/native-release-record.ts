@@ -2,6 +2,12 @@ import { calculateMemberGeometry } from "./member-geometry";
 import type { FrameMember } from "./project";
 import { NATIVE_RELEASE_STATIC_SOLVER, getFrozenMemberCoefficients, sameInputValue, type AnalysisInputSnapshot, type AnalysisProcessSnapshot, type NativeReleaseRecovery, type NodeAnalysisResult } from "./analysis";
 
+/** Absolute product sums retain the scale lost by cancellation in HᵀKH or TᵀKcT. */
+function congruenceMagnitude(stiffness: number[][], transformation: number[][]): number[][] {
+  return stiffness.map((_, i) => stiffness.map((_, j) => stiffness.reduce((sum, row, a) =>
+    sum + row.reduce((subtotal, value, b) => subtotal + Math.abs(transformation[a][i] * value * transformation[b][j]), 0), 0)));
+}
+
 /** Validate captured numerical work before it enters persistence, process views or reports. */
 export function decodeNativeReleaseRecovery(value: unknown, member: FrameMember, ends: number[], inputSnapshot: AnalysisInputSnapshot, nodes: NodeAnalysisResult[]): NativeReleaseRecovery {
   if (!value || typeof value !== "object") throw new Error("释放杆件缺少原生恢复记录");
@@ -21,10 +27,16 @@ export function decodeNativeReleaseRecovery(value: unknown, member: FrameMember,
     localDisplacement: vector("localDisplacement"), originalEquivalentLocalForces: vector("originalEquivalentLocalForces"),
     equivalentLocalForces: vector("equivalentLocalForces"), equivalentGlobalForces: vector("equivalentGlobalForces") };
   const expected = getFrozenMemberCoefficients(inputSnapshot, member.id);
-  const matches = (actual: number[], reference: number[]) => actual.length === reference.length
-    && actual.every((value, index) => Math.abs(value - reference[index]) <= 1e-9 * Math.max(1, Math.abs(reference[index])));
+  const localMagnitude = congruenceMagnitude(expected.originalLocalStiffness, expected.recoveryTransformation);
+  const globalMagnitude = congruenceMagnitude(localMagnitude, expected.transformation);
+  const matches = (actual: number[], reference: number[], cancellationMagnitude?: number[]) => actual.length === reference.length
+    && actual.every((value, index) => Math.abs(value - reference[index]) <= Math.max(
+      1e-9 * Math.max(1, Math.abs(reference[index])),
+      // 12-term products and two transformations, with independent elimination orders.
+      128 * Number.EPSILON * (cancellationMagnitude?.[index] ?? 0)));
   for (const key of ["originalLocalStiffness", "localStiffness", "transformation", "recoveryTransformation", "globalStiffness"] as const) {
-    if (!matches(r[key].flat(), expected[key].flat())) throw new Error(`原生释放 ${key} 与冻结系数不一致`);
+    const magnitude = key === "localStiffness" ? localMagnitude : key === "globalStiffness" ? globalMagnitude : undefined;
+    if (!matches(r[key].flat(), expected[key].flat(), magnitude?.flat())) throw new Error(`原生释放 ${key} 与冻结系数不一致`);
   }
   for (const key of ["originalEquivalentLocalForces", "equivalentLocalForces", "equivalentGlobalForces"] as const) {
     if (!matches(r[key], expected[key])) throw new Error(`原生释放 ${key} 与冻结荷载不一致`);

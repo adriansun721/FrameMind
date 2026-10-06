@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 import { releasedBeam } from "../validation/member-release-fixtures";
-import { updateMember, addNodalLoad, attachAnalysisResult, addLoadCase, addLoadCombination, selectAnalysisSource, updateSelfWeight } from "./project";
+import { updateMember, updateNode, updateSection, addNodalLoad, attachAnalysisResult, addLoadCase, addLoadCombination, selectAnalysisSource, updateSelfWeight } from "./project";
 import { captureAnalysisInput, NATIVE_STATIC_SOLVER, getMemberAnalysisRecord, isAnalysisResultCurrent, getMemberSectionForces, getMemberResponseSamples, solveFrame } from "./analysis";
 import { createAnalysisRequest } from "./analysis-service";
 import { decodeAnalysisResult, decodeProject, encodeProject } from "./project-file";
@@ -60,6 +60,26 @@ it("recovers the actual released beam-end slopes and exact simply-supported UDL 
   expect(() => decodeAnalysisResult(malformed)).toThrow();
   expect(() => readResult(r, true, { kind: "node", id: p.nodes[0].id, quantity: "rotation", component: "y" }, "undefined-rotation")).toThrow();
   expect(JSON.stringify(readResults(r, true, { collection: "nodes", fields: ["rotation.y"] }))).toContain("undetermined");
+});
+
+it("accepts cancellation roundoff for large-section double hinges while rejecting corrupted coefficients", () => {
+  for (const width of [2, 4]) for (const length of [3.1, 4]) for (const rotationDegrees of [0, 37]) {
+    let p = releasedBeam();
+    p = updateSection(p, p.sections[0].id, { name: "large rectangle", geometry: { shape: "rectangle", width, height: .4 } });
+    p = updateNode(p, p.nodes[1].id, { x: length, y: 0, z: 0 });
+    p = updateMember(p, p.members[0].id, { rotationDegrees, endReleases: { start: { my: true, mz: true }, end: { my: true, mz: true } } });
+    const packet = nativePacket(p); expect(packet.kind, JSON.stringify(packet)).toBe("result");
+    const r = decodeAnalysisResult(packet.result);
+    const ei = 200e6 * width * .4 ** 3 / 12;
+    expect(r.members[0].nativeResponses![8].localDisplacement.z).toBeCloseTo(-5 * 2 * length ** 4 / (384 * ei), 12);
+    expect(r.members[0].localEndForces.start[4]).toBe(0);
+    expect(r.members[0].localEndForces.end[4]).toBe(0);
+    for (const field of ["localStiffness", "globalStiffness"] as const) {
+      const modified = structuredClone(r);
+      modified.members[0].nativeReleaseRecovery![field][1][1] += .01;
+      expect(() => decodeAnalysisResult(modified), field).toThrow();
+    }
+  }
 });
 
 it("keeps rotated local release directions independent of global support rotations", () => {
