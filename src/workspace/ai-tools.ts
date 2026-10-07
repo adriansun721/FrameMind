@@ -86,7 +86,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
   };
   const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
-  const resultSnapshot = (result: AnalysisResult) => structuredClone({ ...result, process: undefined });
+  const resultSnapshot = (result: AnalysisResult) => structuredClone(result);
   const analysisComplete = Boolean(analysis && analysis.status === "complete" && (analysis.random ? analysis.input.analysisCase?.method === "random" && analysis.random.convergence.status === "converged" : analysis.buckling ? analysis.input.analysisCase?.method === "buckling" && analysis.buckling.modes.length > 0 : analysis.modal
     ? analysis.input.analysisCase?.method === "modal" && analysis.modal.modes.length > 0 && analysis.modal.modes.every((mode) => mode.nodes.length === analysis.input.nodes.length && mode.members.length === analysis.input.members.length)
     : analysis.nodes.length === analysis.input.nodes.length && analysis.members.length === analysis.input.members.length));

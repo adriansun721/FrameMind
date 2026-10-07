@@ -7,7 +7,7 @@ import type { FrameProject } from "../domain/project";
 import { isAnalysisResultCurrent } from "../domain/analysis";
 
 function displayReference(ref: ResultReference, u: ReturnType<typeof unitPresentation>): string {
-  return resultReferenceLabel({ ...ref, value: u.value(ref.value, ref.unit), unit: u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
+  return resultReferenceLabel({ ...ref, value: ref.unit === "归一化幅值" ? ref.value : u.value(ref.value, ref.unit), unit: ref.unit === "归一化幅值" ? ref.unit : u.unit(ref.unit), position: undefined }) + (ref.position === undefined ? "" : ` · x=${u.quantity(ref.position, "m")}`);
 }
 
 export function AiResultExplanation({ project, result, onLocate, onCompare }: { project: FrameProject; result: Pick<AiTaskResult, "assistant" | "records">; onLocate(ref: ResultReference): void; onCompare(pair: AnalysisPairIds): void }) {
@@ -44,10 +44,12 @@ export function ResultReferenceDetails({ reference, current, exists, onClose }: 
       <div><dt>分析身份</dt><dd>{ref.analysisId}</dd></div>
       <div><dt>冻结输入</dt><dd>R{ref.inputRevision} · {ref.createdAt}</dd></div>
       <div><dt>来源{ref.source.kind === "combination" ? "组合" : "工况"}</dt><dd>{ref.source.id} · {ref.source.name}</dd></div>
+      {ref.method && <div><dt>方法 / 含义</dt><dd>{ref.method} · {ref.meaning}</dd></div>}
+      {ref.modeNumber !== undefined && <div><dt>形态阶次</dt><dd>第 {ref.modeNumber} 阶 · 归一化形态，不是实际位移</dd></div>}
       <div><dt>稳定对象</dt><dd>{ref.object.id}</dd></div>
       <div><dt>输入坐标</dt><dd>{vector(ref.object.position)}{ref.object.endPosition && ` → ${vector(ref.object.endPosition)}`}</dd></div>
-      <div><dt>坐标与符号</dt><dd>{ref.coordinateSystem} · {ref.quantity === "sectionForces" ? "正局部 x 面截面内力" : ref.object.kind === "member" ? "杆端节点作用力" : "全局分量"}</dd></div>
-      <div><dt>原始数值</dt><dd>{u.quantity(ref.value, ref.unit, 12)}</dd></div>
+      <div><dt>坐标与符号</dt><dd>{ref.coordinateSystem} · {ref.modeNumber !== undefined ? "归一化形态 / 特征值，符号不表示受载方向" : ref.quantity === "sectionForces" ? "正局部 x 面截面内力" : ref.object.kind === "member" && ref.quantity !== "displacement" ? "杆端节点作用力" : "全局分量"}</dd></div>
+      <div><dt>原始数值</dt><dd>{ref.unit === "归一化幅值" ? `${ref.value.toPrecision(12)} ${ref.unit}` : u.quantity(ref.value, ref.unit, 12)}</dd></div>
     </dl>
     {ref.source.terms && <p>用户自定义组合：{ref.source.terms.map((term) => `${term.loadCaseId} × ${term.factor}`).join(" + ")}</p>}
     <p className="ai-result-note">{current ? "引用分析与当前模型输入一致。" : "历史输入结果；当前模型需重新计算。"}{!exists && " 对象已从当前模型删除，保留冻结输入位置。"}</p>

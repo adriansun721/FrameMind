@@ -27,7 +27,7 @@ export function ModalResultPanel({ project, onDampingChange, onIncrease, result,
     <section className="property-section"><h3>频率与振型</h3>
       <label className="field"><span>当前振型</span><select aria-label="当前振型" value={mode.number} onChange={(e) => { onModeChange(Number(e.target.value)); onShowShape(); }}>{modal.modes.map((m) => <option key={m.number} value={m.number}>第 {m.number} 阶 · {m.frequencyHz.toPrecision(6)} Hz{m.kind === "zero-energy" ? " · 零能模态" : ""}</option>)}</select></label>
       <button className="button ghost" onClick={onShowShape}>显示振型</button>
-      <label className="result-scale-field"><span>振型显示幅值</span><input aria-label="振型显示幅值" type="range" min="1" max="1000" value={scale} onChange={(e) => onScaleChange(Number(e.target.value))} /><output>{scale / 1000} m</output></label>
+      <label className="result-scale-field"><span>振型显示幅值</span><input aria-label="振型显示幅值" type="range" min="1" max="1000" value={scale} onChange={(e) => onScaleChange(Number(e.target.value))} /><output>{u.quantity(scale / 1000, "m")}</output></label>
       <p>幅值仅用于显示缩放，不代表受载实际位移。原振型按单位广义质量归一化，符号可相反；重根应比较整个振型子空间。</p>
       {modal.zeroEnergyModes > 0 && <p role="status">检测到 {modal.zeroEnergyModes} 个零能模态，可能是自由刚体运动或释放机构，请核查支座与连接。</p>}
       <div className="load-case-table-scroll"><table aria-label="模态频率表"><thead><tr><th>阶次</th><th>频率 (Hz)</th><th>归一化残差</th><th>类型</th></tr></thead><tbody>{modal.modes.map((m) => <tr key={m.number}><td>{m.number}</td><td>{m.frequencyHz.toPrecision(7)}</td><td>{m.residual.toExponential(2)}</td><td>{m.kind === "zero-energy" ? "零能" : "弹性"}</td></tr>)}</tbody></table></div>

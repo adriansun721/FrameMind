@@ -5,6 +5,7 @@ import { bucklingDisplayResult } from "./domain/buckling";
 import { SecondOrderResultSummary } from "./components/SecondOrderResultSummary";
 import { SecondOrderFailureProcess } from "./components/SecondOrderFailureProcess";
 import { ModalResultPanel } from "./components/ModalResultPanel";
+import { ResultInspection } from "./components/ResultInspection";
 import { updateAnalysisCase } from "./domain/project";
 import { modalDisplayResult } from "./domain/modal";
 import { AdditionalMassEditor } from "./components/AdditionalMassEditor";
@@ -171,6 +172,7 @@ export function App() {
   const [analysisCaseManagerOpen, setAnalysisCaseManagerOpen] = useState(false);
   const [psdManagerOpen, setPsdManagerOpen] = useState(false);
   const [historyAnalysisId, setHistoryAnalysisId] = useState<string>();
+  const [resultLocation, setResultLocation] = useState<{ analysisId: string; kind: "node" | "member"; id: string; position?: number } | null>(null);
   const [loadCaseManagerOpen, setLoadCaseManagerOpen] = useState(false);
   const [loadCombinationManagerOpen, setLoadCombinationManagerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -203,6 +205,13 @@ export function App() {
   const caseResult = project.analysisResults.find((r) => r.id === historyAnalysisId) ?? referenceAnalysis ?? getActiveAnalysisResult(project);
   const [modeNumber, setModeNumber] = useState(1);
   const displayedResult = useMemo(() => caseResult?.random ? undefined : caseResult?.buckling ? bucklingDisplayResult(caseResult, modeNumber) : caseResult?.modal ? modalDisplayResult(caseResult, modeNumber) : caseResult, [caseResult, modeNumber]);
+  const frozenScene = !drawingEnabled && caseResult && (resultView !== "model" || caseResult.random || resultReference || historyAnalysisId || resultLocation?.analysisId === caseResult.id) ? caseResult.input : undefined;
+  useEffect(() => {
+    // A result owns its view state. A citation deliberately restores its own station/mode.
+    if (resultReference && resultReference.analysisId === caseResult?.id) return;
+    setResultFocus(null); setResultLocation(null); setForceComponent("N"); setModeNumber(1);
+    setResultView(caseResult && !caseResult.random ? "deformation" : "model");
+  }, [caseResult?.id]);
   const resultCurrency = useMemo(() => new Map(project.analysisResults.map((result) => [result.id, isAnalysisResultCurrent(project, result)])), [project]);
   const resultIsCurrent = (result: AnalysisResult) => resultCurrency.get(result.id) ?? false;
   const resultSources = [
@@ -283,7 +292,7 @@ export function App() {
     setStatus({ tone: "neutral", text: direction === "undo" ? "已撤销上一组变更" : "已重做上一组变更" });
   };
   const selectObject = (next: Selection, sourceProject = project) => {
-    setSelection(next); setFormError(null); if (!next) return;
+    setResultLocation(null); setSelection(next); setFormError(null); if (!next) return;
     if (next.kind === "node") { const item = sourceProject.nodes.find((node) => node.id === next.id); if (item) setNodeDraft({ x: String(item.position.x), y: String(item.position.y), z: String(item.position.z) }); }
     if (next.kind === "member") { const item = sourceProject.members.find((member) => member.id === next.id); if (item) setMemberDraft({ startNodeId: item.startNodeId, endNodeId: item.endNodeId, materialId: item.materialId, sectionId: item.sectionId, rotationDegrees: String(item.rotationDegrees), endReleases: item.endReleases }); }
     if (next.kind === "material") { const item = sourceProject.materials.find((material) => material.id === next.id); if (item) setMaterialDraft({ name: item.name, elasticModulusGPa: String(item.elasticModulusGPa), poissonRatio: String(item.poissonRatio), densityKgM3: String(item.densityKgM3) }); }
@@ -757,8 +766,8 @@ export function App() {
             </li>;
           })}</ul>
         </section>}
-        <SceneViewport randomSettings={caseResult?.random ? caseResult.input.analysisCase!.settings.random : activeAnalysisCase?.method === "random" ? activeAnalysisCase.settings.random : undefined} theme={theme} supports={project.supports} nodalLoads={caseResult?.random || caseResult?.modal || caseResult?.buckling || activeAnalysisCase?.method === "random" || activeAnalysisCase?.method === "modal" || activeAnalysisCase?.method === "buckling" ? [] : activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
-          selfWeight={caseResult?.random || caseResult?.modal || caseResult?.buckling || activeAnalysisCase?.method === "random" || activeAnalysisCase?.method === "modal" || activeAnalysisCase?.method === "buckling" ? undefined : activeCombination ? combinationInput?.selfWeight : caseSelfWeightEnabled ? project.selfWeight : undefined} selfWeightLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 组合加权" : ""}`}
+        <SceneViewport randomSettings={caseResult?.random ? caseResult.input.analysisCase!.settings.random : activeAnalysisCase?.method === "random" ? activeAnalysisCase.settings.random : undefined} theme={theme} supports={frozenScene?.supports ?? project.supports} nodalLoads={frozenScene ? frozenScene.nodalLoads : caseResult?.random || caseResult?.modal || caseResult?.buckling || activeAnalysisCase?.method === "random" || activeAnalysisCase?.method === "modal" || activeAnalysisCase?.method === "buckling" ? [] : activeCombination ? combinationInput?.nodalLoads ?? [] : caseLoads} conditionSelection={selection?.kind === "support" || selection?.kind === "load" ? selection : null} onSelectCondition={(next) => { if (next.kind === "support" || !activeCombination) selectObject(next); }}
+          selfWeight={frozenScene ? frozenScene.selfWeight : caseResult?.random || caseResult?.modal || caseResult?.buckling || activeAnalysisCase?.method === "random" || activeAnalysisCase?.method === "modal" || activeAnalysisCase?.method === "buckling" ? undefined : activeCombination ? combinationInput?.selfWeight : caseSelfWeightEnabled ? project.selfWeight : undefined} selfWeightLabel={`${activeSource.id} · ${activeSource.name}${activeCombination ? " · 组合加权" : ""}`}
           drawingEnabled={drawingEnabled} drawingReset={drawingReset} onExitDrawing={() => setDrawingEnabled(false)} onDrawSegment={(input) => {
             const updated = applyProjectEdits(project, prepareDrawnMemberEdits(project, input)).project;
             activateProject(updated, false);
@@ -766,7 +775,7 @@ export function App() {
             setStatus({ tone: "success", text: `已绘制 ${member.label} · 可整体撤销` });
             return updated.nodes.find((node) => node.id === member.endNodeId)!;
           }}
-          preview={aiPreview} projectId={project.id} nodes={project.nodes} members={project.members} materials={project.materials} sections={project.sections} analysis={displayedResult} resultView={(caseResult?.random || caseResult?.modal || caseResult?.buckling) && resultView === "forces" ? "model" : resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={caseResult?.random || caseResult?.modal || caseResult?.buckling || activeAnalysisCase?.method === "random" || activeAnalysisCase?.method === "modal" || activeAnalysisCase?.method === "buckling" ? [] : activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${caseResult ? analysisSourceLabel(caseResult) : `${activeSource.id} · ${activeSource.name}`} · ${caseResult ? resultIsCurrent(caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={selectObject} />
+          preview={aiPreview} projectId={project.id} nodes={frozenScene?.nodes ?? project.nodes} members={frozenScene?.members ?? project.members} materials={frozenScene?.materials ?? project.materials} sections={frozenScene?.sections ?? project.sections} analysis={displayedResult} resultView={(caseResult?.random || caseResult?.modal || caseResult?.buckling) && resultView === "forces" ? "model" : resultView} forceComponent={forceComponent} deformationScale={deformationScale} resultFocus={resultFocus} uniformLoads={frozenScene ? frozenScene.uniformLoads ?? [] : caseResult?.random || caseResult?.modal || caseResult?.buckling || activeAnalysisCase?.method === "random" || activeAnalysisCase?.method === "modal" || activeAnalysisCase?.method === "buckling" ? [] : activeCombination ? combinationInput?.uniformLoads ?? [] : caseUniformLoads} sourceLabel={`${caseResult ? analysisSourceLabel(caseResult) : `${activeSource.id} · ${activeSource.name}`} · ${caseResult ? resultIsCurrent(caseResult) ? "结果当前" : "结果已过期" : "未计算"}`} selectedUniformLoadId={activeCombination ? undefined : selectedUniform?.id} onSelectUniformLoad={activeCombination ? undefined : (id) => selectObject({ kind: "uniform-load", id })} fitRequest={diagnosticFitRequest} selection={resultLocation && resultLocation.analysisId === caseResult?.id ? { kind: resultLocation!.kind, id: resultLocation!.id } as { kind: "node"; id: NodeId } | { kind: "member"; id: MemberId } : resultReference ? { kind: resultReference.object.kind, id: resultReference.object.id } as { kind: "node"; id: NodeId } | { kind: "member"; id: MemberId } : selection?.kind === "node" || selection?.kind === "member" ? selection : selectedUniform ? { kind: "member", id: selectedUniform.memberId } : selectedSupport || selectedLoad ? { kind: "node", id: (selectedSupport ?? selectedLoad)!.nodeId } : null} onSelect={(next) => { if (!next || (next.kind === "node" ? project.nodes : project.members).some((item) => item.id === next.id)) selectObject(next); }} />
         <BottomProperties open={propertyPanelOpen} label={currentSelectionLabel} onClose={() => setPropertyPanelOpen(false)}>
           {(selectedNodeIds.size > 0 || selectedMemberIds.size > 0) && <div className="property-selection-actions">{(["node", "member"] as const).map((kind) => {
             const count = kind === "node" ? selectedNodeIds.size : selectedMemberIds.size;
@@ -775,6 +784,14 @@ export function App() {
           {resultReference && referenceAnalysis && <ResultReferenceDetails reference={resultReference} current={resultIsCurrent(referenceAnalysis)}
             exists={(resultReference.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === resultReference.object.id)}
             onClose={() => { setResultReference(null); setResultFocus(null); }} />}
+          {caseResult && <ResultInspection key={`inspection:${caseResult.id}`} modeNumber={modeNumber} result={caseResult} current={resultIsCurrent(caseResult)} onLocate={(kind, id, position) => {
+            const exists = (kind === "node" ? project.nodes : project.members).some((item) => item.id === id);
+            selectObject(exists ? { kind, id } as Selection : null);
+            setResultLocation({ analysisId: caseResult.id, kind, id, position });
+            if (kind === "member") { setResultFocus({ memberId: id, position: position ?? 0 }); if (!caseResult.random) setResultView("deformation"); }
+            if (!exists) setStatus({ tone: "neutral", text: "对象已删除；保留本次冻结工程身份、坐标与沿杆位置。" });
+            setDiagnosticFitRequest((value) => value + 1);
+          }} />}
           {selectedNode && <Inspector title="空间节点" label={selectedNode.label} icon={<CircleDot size={15} />} id={selectedNode.id}>
             <AdditionalMassEditor key={`${selectedNode.id}:${selectedNode.additionalMassKg ?? 0}`} kind="point" value={selectedNode.additionalMassKg ?? 0} onCommit={(massKg) => {
               const next = applyProjectEdits(project, [{ type: "set_node_mass", id: selectedNode.id, massKg }]).project;
@@ -806,8 +823,8 @@ export function App() {
           </form></Inspector>}
           {selectedUniform && <Inspector title="杆件均布荷载" label={selectedUniform.label} icon={<ArrowDownToLine size={15} />} id={selectedUniform.id}><section className="property-section"><h3>已应用荷载</h3><dl><div><dt>所属工况</dt><dd>{selectedUniform.loadCaseId}</dd></div><div><dt>作用范围</dt><dd>整根杆件</dd></div><div><dt>坐标系</dt><dd>{selectedUniform.coordinateSystem === "global" ? "全局 XYZ" : "杆件局部 xyz"}</dd></div><div><dt>q ({u.unit("kN/m")})</dt><dd>{u.vector(selectedUniform.intensity, "kN/m")}</dd></div></dl></section><form className="property-form" onSubmit={(event) => submitUniform(event, true)}><UniformFields project={project} draft={uniformDraft} onChange={setUniformDraft} /><FormFeedback error={formError} /><button className="button primary" type="submit">保存均布荷载属性</button><button className="button ghost" type="button" onClick={removeUniform}><Trash2 size={14} />删除均布荷载</button></form></Inspector>}
           {caseResult?.random && <RandomResultPanel onLocateMember={(id) => selectObject({ kind: "member", id: id as MemberId })} key={caseResult.id} result={caseResult} current={resultIsCurrent(caseResult)} onLocate={(id) => selectObject({ kind: "node", id: id as NodeId })} />}
-          {caseResult?.buckling && !selection && <BucklingResultPanel result={caseResult} current={resultIsCurrent(caseResult)} modeNumber={modeNumber} onModeChange={setModeNumber} scale={deformationScale} onScaleChange={setDeformationScale} onShowShape={() => setResultView("deformation")} onLocate={(next) => selectObject(next as Selection)} />}
-          {caseResult?.modal && !selection && <ModalResultPanel project={project} onDampingChange={(properties) => {
+          {caseResult?.buckling && !selection && <BucklingResultPanel key={caseResult.id} result={caseResult} current={resultIsCurrent(caseResult)} modeNumber={modeNumber} onModeChange={setModeNumber} scale={deformationScale} onScaleChange={setDeformationScale} onShowShape={() => setResultView("deformation")} onLocate={(next) => selectObject(next as Selection)} />}
+          {caseResult?.modal && !selection && <ModalResultPanel key={caseResult.id} project={project} onDampingChange={(properties) => {
             const next = applyProjectEdits(activeProjectRef.current, [{ type: "set_modal_damping", id: caseResult.input.analysisCase!.id, analysisId: caseResult.id, properties }]).project;
             activateProject(next, false); setStatus({ tone: "success", text: "模态阻尼与截断设置已保存" });
           }} onIncrease={(modeCount) => {
@@ -816,7 +833,7 @@ export function App() {
             activateProject(updateAnalysisCase(current, definition.id, { ...definition, settings: { ...definition.settings, modal: { ...definition.settings.modal!, modeCount } } }), false);
             setStatus({ tone: "neutral", text: `已准备 ${modeCount} 阶，请运行分析并重新核对阻尼` });
           }} result={caseResult} current={resultIsCurrent(caseResult)} modeNumber={modeNumber} onModeChange={setModeNumber} scale={deformationScale} onScaleChange={setDeformationScale} onShowShape={() => setResultView("deformation")} />}
-          {caseResult && !caseResult.random && !caseResult.modal && !caseResult.buckling && !selection && <AnalysisResultPanel result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onOpenComparison={() => setComparisonOpen(true)} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
+          {caseResult && !caseResult.random && !caseResult.modal && !caseResult.buckling && !selection && <AnalysisResultPanel key={caseResult.id} result={caseResult} project={project} view={resultView} forceComponent={forceComponent} deformationScale={deformationScale} onViewChange={setResultView} onForceComponentChange={setForceComponent} onDeformationScaleChange={setDeformationScale} onOpenComparison={() => setComparisonOpen(true)} onSelect={(next, focus, preferredView) => { selectObject(next); setResultFocus(focus ?? null); if (focus) setResultView(preferredView ?? "deformation"); }} />}
           {!selection && !caseResult && <div className="inspector-empty"><strong>未选择对象</strong><p>{activeCase.id} · 尚无分析结果</p></div>}
         </BottomProperties>
       </section>
@@ -881,14 +898,17 @@ export function App() {
             activateProject(next, false, "restore");
           }
           setResultReference(ref); setPropertyPanelOpen(true);
+          setResultLocation(null);
+          if (ref.modeNumber !== undefined) setModeNumber(ref.modeNumber);
           const exists = (ref.object.kind === "node" ? project.nodes : project.members).some((item) => item.id === ref.object.id);
           selectObject(exists ? { kind: ref.object.kind, id: ref.object.id } as Selection : null);
           setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set());
           if (ref.object.kind === "member") {
-            setResultView(ref.quantity === "sectionForces" ? "forces" : "model"); setForceComponent(ref.component as ForceComponent);
-            const member = result.members.find((item) => item.memberId === ref.object.id)!;
-            setResultFocus({ memberId: ref.object.id, position: ref.position ?? (ref.quantity === "endEndForces" ? member.length : 0) });
-          } else { setResultView(ref.quantity === "displacement" ? "deformation" : "model"); setResultFocus(null); }
+            setResultView(ref.modeNumber !== undefined || ref.quantity === "displacement" ? "deformation" : ref.quantity === "sectionForces" ? "forces" : "model");
+            if (ref.quantity === "sectionForces") setForceComponent(ref.component as ForceComponent);
+            const member = result.members.find((item) => item.memberId === ref.object.id);
+            setResultFocus({ memberId: ref.object.id, position: ref.position ?? (ref.quantity === "endEndForces" ? member?.length ?? 0 : 0) });
+          } else { setResultView(ref.modeNumber !== undefined || ref.quantity === "displacement" ? "deformation" : "model"); setResultFocus(null); }
           setDiagnosticFitRequest((value) => value + 1);
         }}
         analysisBusy={analysisBusy} scheduler={analysisSchedulerRef.current} onAnalyze={(sourceId) => runAnalysis(true, sourceId)} onCancelAnalysis={cancelAnalysis}
@@ -926,7 +946,7 @@ export function App() {
     {nodeMergeOpen && <NodeMergeEditor key={project.id} project={project} onClose={() => setNodeMergeOpen(false)} onCommit={(next) => { activateProject(next, false); selectObject(null); setStatus({ tone: "success", text: "节点合并已成组应用，可撤销；相关任务需重读目标身份" }); }} />}
     {settingsDialogOpen && <Dialog id="settings-dialog" title="设置" copy="FrameMind" onClose={() => setSettingsDialogOpen(false)}><section className="settings-general" aria-label="常规设置"><h3>外观</h3><div className="theme-options" role="group" aria-label="主题">{(["dark", "light"] as const).map((value) => <button key={value} className="button ghost" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === "dark" ? <Moon size={15} /> : <Sun size={15} />}{value === "dark" ? "深色" : "浅色"}</button>)}</div></section><DeepSeekSettingsPanel /></Dialog>}
     {psdManagerOpen && <PsdSpectrumManager key={`${project.id}:${activeSessionRef.current}`} project={project} onChange={(next) => activateProject(next, false)} onClose={() => setPsdManagerOpen(false)} />}
-    {analysisCaseManagerOpen && <AnalysisCaseManager project={project} onChange={(next) => { activateProject(next, false); setHistoryAnalysisId(undefined); setSelection(null); }} onAnalyze={(id) => { setAnalysisCaseManagerOpen(false); void runAnalysis(true, id); }} onViewHistory={(id) => { setHistoryAnalysisId(id); setResultReference(null); setPropertyPanelOpen(true); setAnalysisCaseManagerOpen(false); }} onLoads={() => { setAnalysisCaseManagerOpen(false); setLoadCaseManagerOpen(true); }} onCombinations={() => { setAnalysisCaseManagerOpen(false); setLoadCombinationManagerOpen(true); }} onPsd={() => { setAnalysisCaseManagerOpen(false); setPsdManagerOpen(true); }} onClose={() => setAnalysisCaseManagerOpen(false)} />}
+    {analysisCaseManagerOpen && <AnalysisCaseManager project={project} onChange={(next) => { activateProject(next, false); setHistoryAnalysisId(undefined); setSelection(null); }} onAnalyze={(id) => { setAnalysisCaseManagerOpen(false); void runAnalysis(true, id); }} onViewHistory={(id) => { setHistoryAnalysisId(id); setSelection(null); setResultReference(null); setPropertyPanelOpen(true); setAnalysisCaseManagerOpen(false); }} onLoads={() => { setAnalysisCaseManagerOpen(false); setLoadCaseManagerOpen(true); }} onCombinations={() => { setAnalysisCaseManagerOpen(false); setLoadCombinationManagerOpen(true); }} onPsd={() => { setAnalysisCaseManagerOpen(false); setPsdManagerOpen(true); }} onClose={() => setAnalysisCaseManagerOpen(false)} />}
     {loadCaseManagerOpen && <LoadCaseManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onSelfWeight={(loadCaseId) => { setLoadCaseManagerOpen(false); openSelfWeightDialog(loadCaseId); }} onClose={() => setLoadCaseManagerOpen(false)} />}
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
     {comparisonOpen && <AnalysisComparisonDialog key={`${comparisonPair?.beforeId ?? ""}:${comparisonPair?.afterId ?? ""}`} project={project} pair={comparisonPair} onPairChange={setComparisonPair} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}

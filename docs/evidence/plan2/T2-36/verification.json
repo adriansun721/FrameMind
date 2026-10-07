@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "method": "second-order",
+      "analysisId": "analysis_5b6f688e-450b-470f-9b1b-6d4c63e72dab",
+      "inputRevision": 12,
+      "current": true,
+      "completion": "converged"
+    },
+    {
+      "method": "modal",
+      "analysisId": "analysis_94083f96-d8a7-4bd8-9c5e-91a56d781f87",
+      "inputRevision": 13,
+      "current": true,
+      "completion": "converged"
+    },
+    {
+      "method": "static",
+      "analysisId": "analysis_6906a010-ce97-42c4-ae84-74d174740e52",
+      "inputRevision": 14,
+      "current": true,
+      "completion": "converged"
+    },
+    {
+      "method": "buckling",
+      "analysisId": "analysis_924e88b6-be4c-446f-b2c8-8f8e28c16252",
+      "inputRevision": 15,
+      "current": true,
+      "completion": "converged"
+    },
+    {
+      "method": "random",
+      "analysisId": "analysis_79b26051-9062-4a54-ab1b-e5a76d770333",
+      "inputRevision": 19,
+      "current": true,
+      "completion": "converged"
+    }
+  ],
+  "actualProcessPages": true,
+  "frozenModalMatrices": true,
+  "localCitationEquality": true,
+  "staleSharedGeometry": true,
+  "deletedMemberHistory": true,
+  "obsoleteModalIdentity": true,
+  "prohibitedComparisons": true,
+  "numericalAlgorithmChanged": false,
+  "realAi": false
+}

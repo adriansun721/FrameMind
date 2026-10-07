@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "switching": [
+    "AC5",
+    "AC2",
+    "AC4",
+    "AC1",
+    "AC3",
+    "AC5"
+  ],
+  "citationMode": 2,
+  "frozenStation": 1.5,
+  "normalizedUnits": true,
+  "actualMissingRecord": true,
+  "widths": [
+    1080,
+    1440
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "realAi": false
+}

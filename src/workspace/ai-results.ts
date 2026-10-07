@@ -1,5 +1,5 @@
 import { RANDOM_RESPONSE_MEANING, randomResponseFrame, randomSpectra } from "../domain/random-response";
-import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
+import { getMemberSectionForces, memberResponsesAt, type AnalysisResult } from "../domain/analysis";
 import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
 import { selectedMeshLevel } from "../domain/analysis-mesh";
@@ -7,6 +7,7 @@ import type { FrameProject, Vector3 } from "../domain/project";
 import { BUCKLING_MEANING } from "../domain/buckling";
 import { SECOND_ORDER_MEANING } from "../domain/second-order";
 import { modalDampingStatus, modalTruncationCheck } from "../domain/modal-damping";
+import { PROCESS_SECTIONS, readRecordedProcess, resultIdentity, type ProcessSection } from "../domain/result-inspection";
 
 export interface ResultReference {
   token: string;
@@ -23,6 +24,9 @@ export interface ResultReference {
   position?: number;
   value: number;
   unit: string;
+  method?: string;
+  meaning?: string;
+  modeNumber?: number;
 }
 
 interface ResultQuery { field: string; equals?: string | number | boolean; min?: number; max?: number; }
@@ -63,7 +67,7 @@ function filterResults(items: readonly unknown[], fields: unknown, query: unknow
 
 export function analysisProvenance(result: AnalysisResult, current: boolean) {
   const combination = result.input.combination?.definition;
-  return { analysisId: result.id, inputRevision: result.input.projectRevision, createdAt: result.createdAt, current,
+  return { ...resultIdentity(result, current), analysisId: result.id, inputRevision: result.input.projectRevision, createdAt: result.createdAt, current,
     source: result.input.analysisCase ? { id: result.input.analysisCase.id, name: result.input.analysisCase.name, kind: "case" as const }
       : combination ? { id: combination.id, name: combination.name, kind: "combination" as const, terms: combination.terms }
       : { id: result.input.loadCase?.id ?? "LC1", name: result.input.loadCase?.name ?? "旧版工况", kind: "case" as const },
@@ -77,13 +81,27 @@ function fields(input: Record<string, unknown>, allowed: string[]) {
 }
 
 export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>, project?: FrameProject) {
-  fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query"]);
+  fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query", "section"]);
   const collection = input.collection;
-  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh", "modes", "mass", "psd", "input-psd"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members、mesh、modes、mass、psd 或 input-psd");
+  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh", "modes", "mass", "psd", "input-psd", "process", "frozen-input"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members、mesh、modes、mass、psd、input-psd、process 或 frozen-input");
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
   const provenance = { ...analysisProvenance(result, current), ...(result.secondOrder ? { method: "second-order", meaning: SECOND_ORDER_MEANING, completion: result.secondOrder.status } : {}), ...(result.modal ? { damping: project ? modalDampingStatus(project, result) : { status: "missing", message: "需读取项目阻尼配置", truncation: modalTruncationCheck(result) } } : {}) };
+  if (collection === "process" || collection === "frozen-input") {
+    if (input.fields !== undefined || input.query !== undefined) throw new Error("过程与冻结输入只支持完整条目分页");
+    if (collection === "process") {
+      if (!PROCESS_SECTIONS.includes(input.section as ProcessSection)) throw new Error(`process.section 须为 ${PROCESS_SECTIONS.join("、")}`);
+      return { ...provenance, collection, process: readRecordedProcess(result, input.section as ProcessSection, offset, limit) };
+    }
+    const sections = ["nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads"] as const;
+    if (!sections.includes(input.section as typeof sections[number])) throw new Error(`frozen-input.section 须为 ${sections.join("、")}`);
+    const items = result.input[input.section as typeof sections[number]] ?? [];
+    const pageItems = items.slice(offset, offset + limit);
+    return { ...provenance, collection, section: input.section, total: items.length, offset, limit, items: pageItems,
+      page: { empty: !pageItems.length, hasMore: offset + pageItems.length < items.length, nextOffset: offset + pageItems.length } };
+  }
+  if (input.section !== undefined) throw new Error("section 仅用于 process 或 frozen-input");
   if (result.random) {
     if (input.fields !== undefined || input.query !== undefined || !["summary", "psd", "input-psd"].includes(collection)) throw new Error("随机结果仅支持 summary、psd 与 input-psd；统计量不是静力位移、内力或振型");
     const r = result.random, s = result.input.analysisCase!.settings.random!, basis = result.input.randomBasis!;
@@ -165,16 +183,55 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
 }
 
 export function readResult(result: AnalysisResult, current: boolean, input: Record<string, unknown>, callId: string): ResultReference {
-  fields(input, ["analysisId", "kind", "id", "quantity", "component", "position"]);
+  fields(input, ["analysisId", "kind", "id", "quantity", "component", "position", "modeNumber"]);
   if (typeof input.id !== "string" || typeof input.component !== "string" || typeof input.quantity !== "string") throw new Error("结果项需提供稳定对象身份、类型与分量");
   const provenance = analysisProvenance(result, current);
   const quantity = input.quantity; const component = input.component;
+  if (result.modal || result.buckling) {
+    if (!Number.isSafeInteger(input.modeNumber) || (input.modeNumber as number) < 1) throw new Error("振型／屈曲引用须提供 modeNumber");
+    const mode = (result.modal?.modes ?? result.buckling!.modes).find((item) => item.number === input.modeNumber);
+    if (!mode) throw new Error("本结果未提取此阶次");
+    const node = result.input.nodes.find((item) => item.id === input.id);
+    const member = result.input.members.find((item) => item.id === input.id);
+    let object: ResultReference["object"], value: number, unit: string;
+    if (input.kind === "node" && node) object = { kind: "node", id: node.id, label: node.label, position: node.position };
+    else if (input.kind === "member" && member) object = { kind: "member", id: member.id, label: member.label,
+      position: result.input.nodes.find((n) => n.id === member.startNodeId)!.position, endPosition: result.input.nodes.find((n) => n.id === member.endNodeId)!.position };
+    else throw new Error("引用须绑定冻结工程节点或杆件；内部计算身份不可用");
+    if (quantity === "frequency" || quantity === "bucklingFactor") {
+      if (input.position !== undefined || component !== "scalar") throw new Error("频率／因子使用 scalar 分量，不接受沿杆位置");
+      if (quantity === "frequency" && "frequencyHz" in mode) { value = mode.frequencyHz; unit = "Hz"; }
+      else if (quantity === "bucklingFactor" && "factor" in mode) { value = mode.factor; unit = "无"; }
+      else throw new Error("本分析不支持此频率／因子类型");
+    } else if (quantity === "shapeTranslation" || quantity === "shapeRotation") {
+      if (!["x", "y", "z"].includes(component)) throw new Error("形态分量须为全局 x、y、z");
+      const axis = component as keyof Vector3;
+      if (object.kind === "node") {
+        if (input.position !== undefined) throw new Error("节点形态不接受沿杆位置");
+        const gauges = (result.modal?.eigenproblem ?? result.buckling!.eigenproblem).releaseNullRotations;
+        if (quantity === "shapeRotation" && gauges.some((record) => record.nodeId === object.id && Math.abs(record.direction[axis]) > 1e-9)) throw new Error("此节点转角含脱开方向，仅为坐标参考，不能引用为实际形态分量");
+        const shape = mode.nodes.find((n) => n.nodeId === object.id)!;
+        value = (quantity === "shapeTranslation" ? shape.translation : shape.rotation)[axis];
+      } else {
+        if (quantity !== "shapeTranslation") throw new Error("沿杆只保存平移形态样本");
+        const sample = mode.members.find((m) => m.memberId === object.id)?.samples.find((s) => s.position === input.position);
+        if (!sample) throw new Error("沿杆形态引用须使用 modes 中已保存样本的准确 position（m）");
+        value = sample.translation[axis];
+      }
+      unit = "归一化幅值";
+    } else throw new Error("振型／屈曲形态不能引用为实际位移、内力或 RMS");
+    if (!Number.isFinite(value)) throw new Error("结果包含非有限数值");
+    return { token: `[[result:${callId}]]`, analysisId: result.id, inputRevision: provenance.inputRevision, createdAt: result.createdAt, current,
+      source: provenance.source, method: provenance.method, meaning: provenance.meaning, modeNumber: mode.number, object, quantity, component,
+      coordinateSystem: "global XYZ", ...(input.position === undefined ? {} : { position: input.position as number }), value, unit };
+  }
+  if (input.modeNumber !== undefined) throw new Error("modeNumber 仅用于振型或屈曲形态引用");
   if (result.random) {
     const r = result.random;
     if (input.kind !== "node" || input.id !== r.response.nodeId || component !== r.response.component || quantity !== "rms" || input.position !== undefined) throw new Error("随机结果只提供所选节点平移分量的统计 RMS；PSD 使用 read_results psd 分页读取");
     const node = result.input.nodes.find((n) => n.id === r.response.nodeId)!;
     return { token: `[[result:${callId}]]`, analysisId: result.id, inputRevision: provenance.inputRevision, createdAt: result.createdAt, current,
-      source: provenance.source, object: { kind: "node", id: node.id, label: node.label, position: node.position }, quantity: "rms", component, coordinateSystem: "global XYZ", referenceFrame: randomResponseFrame(result.input.analysisCase!.settings.random!), value: r.rms, unit: "m" };
+      source: provenance.source, method: provenance.method, meaning: provenance.meaning, object: { kind: "node", id: node.id, label: node.label, position: node.position }, quantity: "rms", component, coordinateSystem: "global XYZ", referenceFrame: randomResponseFrame(result.input.analysisCase!.settings.random!), value: r.rms, unit: "m" };
   }
   let object: ResultReference["object"]; let value: number; let unit: string;
   if (input.kind === "node") {
@@ -193,28 +250,33 @@ export function readResult(result: AnalysisResult, current: boolean, input: Reco
     const member = result.input.members.find((item) => item.id === input.id);
     const response = result.members.find((item) => item.memberId === input.id);
     if (!member || !response) throw new Error("本次分析无此杆件");
-    const index = ANALYSIS_FORCE_COMPONENTS.findIndex((item) => item.label === component);
-    if (index < 0) throw new Error("杆件分量须为 N、Vy、Vz、T、My、Mz");
-    if (quantity === "sectionForces") {
-      if (typeof input.position !== "number") throw new Error("截面内力需指定距起点位置（m）");
-      value = getMemberSectionForces(result, member.id, input.position).forces[index];
-    } else if (quantity === "startEndForces" || quantity === "endEndForces") {
-      if (input.position !== undefined) throw new Error("杆端作用力不接受截面位置");
-      value = response.localEndForces[quantity === "startEndForces" ? "start" : "end"][index];
-    } else throw new Error("无效杆件结果类型");
-    unit = ANALYSIS_FORCE_COMPONENTS[index].unit;
+    if (quantity === "displacement") {
+      if (!["x", "y", "z"].includes(component) || typeof input.position !== "number") throw new Error("沿杆位移须给全局 x/y/z 分量和 position（m）");
+      value = memberResponsesAt(result, member.id, [input.position])[0].globalDisplacement[component as keyof Vector3]; unit = "m";
+    } else {
+      const index = ANALYSIS_FORCE_COMPONENTS.findIndex((item) => item.label === component);
+      if (index < 0) throw new Error("杆件分量须为 N、Vy、Vz、T、My、Mz");
+      if (quantity === "sectionForces") {
+        if (typeof input.position !== "number") throw new Error("截面内力需指定距起点位置（m）");
+        value = getMemberSectionForces(result, member.id, input.position).forces[index];
+      } else if (quantity === "startEndForces" || quantity === "endEndForces") {
+        if (input.position !== undefined) throw new Error("杆端作用力不接受截面位置");
+        value = response.localEndForces[quantity === "startEndForces" ? "start" : "end"][index];
+      } else throw new Error("无效杆件结果类型");
+      unit = ANALYSIS_FORCE_COMPONENTS[index].unit;
+    }
     object = { kind: "member", id: member.id, label: member.label,
       position: result.input.nodes.find((node) => node.id === member.startNodeId)!.position,
       endPosition: result.input.nodes.find((node) => node.id === member.endNodeId)!.position };
   } else throw new Error("结果对象须为 node 或 member");
   if (!Number.isFinite(value)) throw new Error("结果包含非有限数值");
   return { token: `[[result:${callId}]]`, analysisId: result.id, inputRevision: provenance.inputRevision, createdAt: result.createdAt, current,
-    source: provenance.source, object, quantity, component, coordinateSystem: input.kind === "node" ? "global XYZ" : "local xyz",
-    ...(quantity === "sectionForces" ? { position: input.position as number } : {}), value, unit };
+    source: provenance.source, method: provenance.method, meaning: provenance.meaning, object, quantity, component, coordinateSystem: input.kind === "node" || quantity === "displacement" ? "global XYZ" : "local xyz",
+    ...(quantity === "sectionForces" || input.kind === "member" && quantity === "displacement" ? { position: input.position as number } : {}), value, unit };
 }
 
-export const RESULT_QUANTITY_LABELS: Record<string, string> = { rms: "平移 RMS（统计均方根，非瞬时峰值）", displacement: "位移", rotation: "转角", reaction: "反力", reactionMoment: "反力矩",
+export const RESULT_QUANTITY_LABELS: Record<string, string> = { frequency: "模态频率", bucklingFactor: "屈曲因子", shapeTranslation: "归一化平移形态", shapeRotation: "归一化转角形态", rms: "平移 RMS（统计均方根，非瞬时峰值）", displacement: "位移", rotation: "转角", reaction: "反力", reactionMoment: "反力矩",
   sectionForces: "截面内力（正局部 x 面）", startEndForces: "起点杆端作用力", endEndForces: "终点杆端作用力" };
 export function resultReferenceLabel(ref: ResultReference): string {
-  return `${ref.object.label} · ${RESULT_QUANTITY_LABELS[ref.quantity]} ${ref.component}${ref.referenceFrame === "relative-to-base" ? " · 相对整体平动基底" : ""}${ref.position !== undefined ? ` @ ${ref.position} m` : ""} = ${ref.value.toPrecision(8)} ${ref.unit}`;
+  return `${ref.object.label}${ref.modeNumber === undefined ? "" : ` · 第 ${ref.modeNumber} 阶`} · ${RESULT_QUANTITY_LABELS[ref.quantity]} ${ref.component}${ref.referenceFrame === "relative-to-base" ? " · 相对整体平动基底" : ""}${ref.position !== undefined ? ` @ ${ref.position} m` : ""} = ${ref.value.toPrecision(8)} ${ref.unit}`;
 }

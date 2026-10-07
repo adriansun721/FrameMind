@@ -37,7 +37,7 @@ export function convertToolQuantities(value: unknown, convert: (n: number, dimen
         : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, a]) => [k, forces(a)])) : v;
       result[key] = forces(child); continue;
     }
-    const explicit = key === "rms" && typeof record.rmsUnit === "string" ? unitDimension(record.rmsUnit) : key === "variance" && record.varianceUnit === "m²" ? "area" : ["value", "delta"].includes(key) && typeof record.unit === "string" ? unitDimension(record.unit)
+    const explicit = key === "rms" && typeof record.rmsUnit === "string" ? unitDimension(record.rmsUnit) : key === "variance" && record.varianceUnit === "m²" ? "area" : ["value", "delta"].includes(key) && typeof record.unit === "string" ? record.unit === "归一化幅值" ? "dimensionless" : unitDimension(record.unit)
       : ["min", "max", "equals"].includes(key) && typeof record.field === "string" ? toolFieldDimension(record.field) : undefined;
     result[key] = convertToolQuantities(child, convert, (key === "density" && typeof record.densityUnit === "string" ? unitDimension(record.densityUnit) : undefined) ?? explicit ?? toolFieldDimension(key) ?? dimension);
   }
