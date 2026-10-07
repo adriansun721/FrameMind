@@ -5,7 +5,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 
-it.each(["准备带限白噪声输入谱，先确认", "导入 PSD CSV，保存为随机输入谱", "修改 PSD1 的谱密度", "删除输入谱 PSD1", "Create a PSD spectrum"])("exposes spectrum preparation and reviewed edits for %s", async (prompt) => {
+it.each(["准备带限白噪声输入谱，先确认", "导入 PSD CSV，保存为随机输入谱", "修改 PSD1 的谱密度", "删除输入谱 PSD1", "Create a PSD spectrum", "对杆件施加随机力", "同源节点作用与独立源组合", "Create random force sources"])("exposes spectrum preparation and reviewed edits for %s", async (prompt) => {
   const directory = await mkdtemp(join(tmpdir(), "psd-tools-"));
   try {
     const bodies: unknown[] = [];

@@ -9,10 +9,10 @@ export function randomTransferData(input: AnalysisInputSnapshot) {
     const response = m.nodes.find((n) => n.nodeId === s.response.nodeId)!.translation[s.response.component];
     const coefficients = randomSources(s).map((source) => {
       const generalized = source.actions.reduce((sum, action) => {
-      const force = randomActionShape(basis.modal, modeIndex, action);
-      const projection = force.x * action.direction.x + force.y * action.direction.y + force.z * action.direction.z;
-      const scale = action.kind === "node" ? action.scale : action.scalePerM, contribution = scale * projection;
-      if (!Number.isFinite(contribution) || (contribution === 0 && scale !== 0 && projection !== 0)) throw new Error("随机空间作用或响应超出有限数值范围");
+        const force = randomActionShape(basis.modal, modeIndex, action);
+        const projection = force.x * action.direction.x + force.y * action.direction.y + force.z * action.direction.z;
+        const scale = action.kind === "node" ? action.scale : action.scalePerM, contribution = scale * projection;
+        if (!Number.isFinite(contribution) || (contribution === 0 && scale !== 0 && projection !== 0)) throw new Error("随机空间作用或响应超出有限数值范围");
         if (!Number.isFinite(sum + contribution)) throw new Error("随机广义力求和溢出");
         return sum + contribution;
       }, 0);
