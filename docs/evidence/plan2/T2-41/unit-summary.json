@@ -55,6 +55,19 @@
       "failed": 0,
       "success": true,
       "startedAt": "2026-10-07T10:19:55.225Z"
+    },
+    {
+      "file": "full-unit-v7-online.json",
+      "archive": "full-unit-v7-online.json.gz",
+      "command": "npm test -- --maxWorkers=2 --reporter=json --outputFile=.scratch/t241-full-unit.json",
+      "sha256": "b5c81f87d1f3c1fb6285dee2131923569055b4c03ae34f4b466c7b84705675be",
+      "files": 87,
+      "total": 686,
+      "passed": 686,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "startedAt": "2026-10-07T10:42:45.669Z"
     }
   ]
 }
