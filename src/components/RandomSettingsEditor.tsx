@@ -1,6 +1,21 @@
+import { useEffect, useRef, useState } from "react";
 import type { FrameProject } from "../domain/project";
+import { parsePsdNumber } from "../domain/psd";
 import { isAnalysisResultCurrent } from "../domain/analysis";
 import type { RandomSettings } from "../domain/random-response";
+
+function RandomNumericInput({ value, onChange, ...props }: { value: number; onChange(value: number): void; "aria-label": string }) {
+  const [text, setText] = useState(String(value)), last = useRef(value);
+  useEffect(() => {
+    if (!Object.is(value, last.current)) { last.current = value; setText(Number.isFinite(value) ? String(value) : ""); }
+  }, [value]);
+  return <input {...props} type="text" inputMode="decimal" value={text} onChange={(e) => {
+    const next = e.target.value; setText(next);
+    let parsed: number;
+    try { parsed = parsePsdNumber(next); } catch { parsed = Number.NaN; }
+    last.current = parsed; onChange(parsed);
+  }} />;
+}
 
 export function RandomSettingsEditor({ project, value: s, onChange }: { project: FrameProject; value: RandomSettings; onChange(value: RandomSettings): void }) {
   const modal = project.analysisResults.filter((r) => r.modal);
@@ -10,13 +25,13 @@ export function RandomSettingsEditor({ project, value: s, onChange }: { project:
     <label className="field"><span>绑定模态结果</span><select aria-label="绑定模态结果" value={s.modalAnalysisId} onChange={(e) => onChange({ ...s, modalAnalysisId: e.target.value })}><option value="">选择并核对模态及阻尼</option>{modal.map((r) => <option key={r.id} value={r.id}>{r.input.analysisCase?.id} · {r.modal!.modes.length} 阶 · {isAnalysisResultCurrent(project, r) ? "当前" : "过期"} · {r.id}</option>)}</select></label>
     <label className="field"><span>随机力输入谱</span><select aria-label="随机力输入谱" value={s.psdSpectrumId} onChange={(e) => { const spectrum = project.psdSpectra.find((p) => p.id === e.target.value); onChange({ ...s, psdSpectrumId: e.target.value, bandHz: spectrum ? [...spectrum.band] : s.bandHz }); }}><option value="">选择力自谱</option>{project.psdSpectra.filter((p) => p.quantity === "force").map((p) => <option key={p.id} value={p.id}>{p.id} · {p.name} · {p.band.join("–")} Hz · kN²/Hz</option>)}</select></label>
     {nodeSelect("excitation", "随机力作用节点")}
-    <div className="psd-fields">{(["x", "y", "z"] as const).map((axis) => <label className="field" key={axis}><span>方向 {axis.toUpperCase()}</span><input aria-label={`随机力方向 ${axis}`} type="number" step="any" value={s.excitation.direction[axis]} onChange={(e) => onChange({ ...s, excitation: { ...s.excitation, direction: { ...s.excitation.direction, [axis]: Number(e.target.value) } } })} /></label>)}</div>
-    <label className="field"><span>空间幅值（无量纲）</span><input aria-label="随机力空间幅值" type="number" step="any" value={s.excitation.scale} onChange={(e) => onChange({ ...s, excitation: { ...s.excitation, scale: Number(e.target.value) } })} /></label>
+    <div className="psd-fields">{(["x", "y", "z"] as const).map((axis) => <label className="field" key={axis}><span>方向 {axis.toUpperCase()}</span><RandomNumericInput aria-label={`随机力方向 ${axis}`} value={s.excitation.direction[axis]} onChange={(number) => onChange({ ...s, excitation: { ...s.excitation, direction: { ...s.excitation.direction, [axis]: number } } })} /></label>)}</div>
+    <label className="field"><span>空间幅值（无量纲）</span><RandomNumericInput aria-label="随机力空间幅值" value={s.excitation.scale} onChange={(number) => onChange({ ...s, excitation: { ...s.excitation, scale: number } })} /></label>
     {nodeSelect("response", "随机响应节点")}
     <label className="field"><span>平移响应分量</span><select aria-label="平移响应分量" value={s.response.component} onChange={(e) => onChange({ ...s, response: { ...s.response, component: e.target.value as typeof s.response.component } })}>{["x", "y", "z"].map((axis) => <option key={axis}>{axis}</option>)}</select></label>
-    <div className="psd-fields">{([0, 1] as const).map((i) => <label className="field" key={i}><span>响应频段{i ? "上限" : "下限"} Hz</span><input aria-label={`响应频段${i ? "上限" : "下限"} Hz`} type="number" step="any" value={s.bandHz[i]} onChange={(e) => { const bandHz: [number, number] = [...s.bandHz]; bandHz[i] = Number(e.target.value); onChange({ ...s, bandHz }); }} /></label>)}</div>
+    <div className="psd-fields">{([0, 1] as const).map((i) => <label className="field" key={i}><span>响应频段{i ? "上限" : "下限"} Hz</span><RandomNumericInput aria-label={`响应频段${i ? "上限" : "下限"} Hz`} value={s.bandHz[i]} onChange={(number) => { const bandHz: [number, number] = [...s.bandHz]; bandHz[i] = number; onChange({ ...s, bandHz }); }} /></label>)}</div>
     <details><summary>频点、积分与模态截断精度</summary><p>梯形积分，加入谱折点与阻尼共振峰附近频点后逐次二分。误差与预算初值是软件建议，可编辑；频段须等于完整输入谱频段。</p>
-      {([['frequencyPoints', '初始均匀频点数'], ['maxFrequencyPoints', '最大频点数'], ['maxRefinements', '最大加密轮数'], ['modeIncrement', '截断比较模态步长'], ['relativeTolerance', '随机响应相对误差'], ['absolutePsdTolerance', 'PSD 绝对误差 m²/Hz'], ['absoluteVarianceTolerance', '积分绝对误差 m²'], ['absoluteRmsTolerance', 'RMS 绝对误差 m']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input aria-label={label} type="number" step="any" value={s[key]} onChange={(e) => onChange({ ...s, [key]: Number(e.target.value) })} /></label>)}
+      {([['frequencyPoints', '初始均匀频点数'], ['maxFrequencyPoints', '最大频点数'], ['maxRefinements', '最大加密轮数'], ['modeIncrement', '截断比较模态步长'], ['relativeTolerance', '随机响应相对误差'], ['absolutePsdTolerance', 'PSD 绝对误差 m²/Hz'], ['absoluteVarianceTolerance', '积分绝对误差 m²'], ['absoluteRmsTolerance', 'RMS 绝对误差 m']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><RandomNumericInput aria-label={label} value={s[key]} onChange={(number) => onChange({ ...s, [key]: number })} /></label>)}
     </details>
   </section>;
 }

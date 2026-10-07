@@ -111,8 +111,9 @@ static Json calculateRandom(const Json& request, Json& stages, std::string& stag
         sourceProjection=std::max(sourceProjection,std::abs(force.dot(direction))); sourceShapeScale=std::max(sourceShapeScale,force.norm());
         const int mode=static_cast<int>(i+1); modes.push_back({frequency,omega,coefficient,overrides.count(mode) ? overrides[mode] : uniform});
     }
-    bool sourceFree=false; for (int axis=0;axis<3;++axis) if (direction[axis]!=0) { bool restrained=false; for (const auto& support:input.at("supports")) if (support.at("nodeId")==excitation.at("nodeId") && support.at("restraints")[axis]==true) restrained=true; sourceFree|=!restrained; }
-    if (scale!=0 && sourceFree && sourceProjection<=1e-10*std::max(1e-30,sourceShapeScale)) throw Failure("random-modal-participation","Extracted modes do not cover the node force direction; increase extraction instead of accepting zero participation",nullptr,"modeCount");
+    Vec3 freeDirection=direction; for (int axis=0;axis<3;++axis) for (const auto& support:input.at("supports")) if (support.at("nodeId")==excitation.at("nodeId") && support.at("restraints")[axis]==true) freeDirection[axis]=0;
+    const double freeDirectionNorm=std::hypot(freeDirection[0],freeDirection[1],freeDirection[2]);
+    if (scale!=0 && freeDirectionNorm>0 && sourceProjection/freeDirectionNorm<=1e-10*std::max(1e-30,sourceShapeScale)) throw Failure("random-modal-participation","Extracted modes do not cover the node force direction; increase extraction instead of accepting zero participation",nullptr,"modeCount");
     std::set<double> seeded; for (const auto& p:points) seeded.insert(number(p.at("frequency")));
     for (int i=1;i<initialPoints-1;++i) seeded.insert(lo+(hi-lo)*i/(initialPoints-1));
     for (const auto& m:modes) for (int n:{0,-1,1,-2,2,-4,4,-8,8}) { const double f=m.frequency+n*m.damping*m.frequency; if (f>lo && f<hi) seeded.insert(f); }

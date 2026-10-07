@@ -72,10 +72,10 @@ export function validateRandomBasis(input: AnalysisInputSnapshot): RandomBasis {
   if (m.modes.length < m.counts.equations && m.modes.length <= s.modeIncrement) throw new Error("模态数不足以比较截断误差，请增阶或调整登记步长");
   if (![s.excitation.nodeId, s.response.nodeId].every((id) => input.nodes.some((n) => n.id === id))) throw new Error("随机作用或响应节点已删除");
   const sourceShapes = m.modes.map((mode) => mode.nodes.find((n) => n.nodeId === s.excitation.nodeId)!.translation);
-  const sourceFree = ["x", "y", "z"].some((axis, i) => s.excitation.direction[axis as keyof Vector3] !== 0 && !input.supports.some((support) => support.nodeId === s.excitation.nodeId && support.restraints[i]));
+  const freeDirectionNorm = Math.hypot(...(["x", "y", "z"] as const).map((axis, i) => input.supports.some((support) => support.nodeId === s.excitation.nodeId && support.restraints[i]) ? 0 : s.excitation.direction[axis]));
   const projection = Math.max(...sourceShapes.map((v) => Math.abs(v.x * s.excitation.direction.x + v.y * s.excitation.direction.y + v.z * s.excitation.direction.z)));
   const shapeScale = Math.max(...sourceShapes.map((v) => Math.hypot(v.x, v.y, v.z)));
-  if (s.excitation.scale !== 0 && sourceFree && projection <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error("已提取模态未覆盖该节点力方向，不能把零参与误判为收敛，请增阶");
+  if (s.excitation.scale !== 0 && freeDirectionNorm > 0 && projection / freeDirectionNorm <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error("已提取模态未覆盖该节点力方向，不能把零参与误判为收敛，请增阶");
   const equivalent = { ...input, analysisCase: basis.modal.input.analysisCase, solver: basis.modal.input.solver, randomBasis: undefined };
   if (!sameInputValue(analysisInputDependencies(equivalent), analysisInputDependencies(basis.modal.input))) throw new Error("冻结模态与随机工况的结构、质量或边界不一致");
   return { modal: basis.modal, damping, spectrum };

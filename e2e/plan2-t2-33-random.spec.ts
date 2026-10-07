@@ -27,6 +27,12 @@ test("T2-33 manual binding, PSD/RMS, units, source location, budgets, stale hist
     await dialog.getByLabel("随机力作用节点", { exact: true }).selectOption(fixture.nodes[1].id);
     await dialog.getByLabel("随机力方向 y", { exact: true }).fill("1"); await dialog.getByLabel("随机力方向 z", { exact: true }).fill("0");
     await dialog.getByLabel("随机响应节点", { exact: true }).selectOption(fixture.nodes[1].id); await dialog.getByLabel("平移响应分量", { exact: true }).selectOption("y");
+    for (const invalid of ["", "1e-400"]) {
+      await dialog.getByLabel("随机力空间幅值", { exact: true }).fill(invalid);
+      await dialog.getByRole("button", { name: "创建分析工况", exact: true }).click(); await expect(dialog.getByRole("alert")).toBeVisible();
+      await expect(dialog.getByLabel("随机力空间幅值", { exact: true })).toHaveValue(invalid);
+    }
+    await dialog.getByLabel("随机力空间幅值", { exact: true }).fill("1");
     await dialog.getByRole("button", { name: "创建分析工况", exact: true }).click(); await expect(dialog.getByRole("alert")).toHaveCount(0);
     await dialog.getByRole("button", { name: "计算此分析工况", exact: true }).click();
     const panel = () => page.getByTestId("random-results");

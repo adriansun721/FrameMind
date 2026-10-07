@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 import { modalCantilever } from "../validation/modal-fixtures";
-import { addAnalysisCase, attachAnalysisResult, selectAnalysisCase, updateAnalysisCase, setNodeMass, updateNodalLoad, deleteAnalysisCase } from "./project";
+import { addAnalysisCase, addSupport, attachAnalysisResult, selectAnalysisCase, updateAnalysisCase, setNodeMass, updateNodalLoad, deleteAnalysisCase } from "./project";
 import { captureAnalysisInput, isAnalysisResultCurrent, type AnalysisResult } from "./analysis";
 import { createAnalysisRequest } from "./analysis-service";
 import { decodeAnalysisResult, decodeProject, encodeProject } from "./project-file";
@@ -23,8 +23,10 @@ const native = (project: ReturnType<typeof modalCantilever>): AnalysisResult => 
   expect(terminal.kind, JSON.stringify(terminal)).toBe("result");
   return decodeAnalysisResult(terminal.result);
 };
-function prepared() {
-  let project = modalCantilever(), modal = native(project);
+function prepared(restrainedX = false) {
+  let project = modalCantilever();
+  if (restrainedX) project = addSupport(project, project.nodes[1].id, [true, false, false, false, false, false]);
+  const modal = native(project);
   project = attachAnalysisResult(project, modal);
   project = setModalDamping(project, "AC1", modal.id, { uniform: { ratio: .02, source: "suggestion", basis: "待用户核对的试验建议" }, overrides: [], truncation: { upperFrequencyHz: 25, modeIncrement: 2, maxModeCount: 50 } });
   project = addPsdSpectrum(project, bandLimitedWhiteNoise("White force", canonicalPsdConvention("force"), [0, 25], 1));
@@ -37,6 +39,9 @@ const call = (name: string, input: unknown) => ({ id: "random-call", type: "func
 it("manual and agent-confirmed random cases share frozen modal, damping and spectrum and survive undo/reopening", () => {
   const { project, properties } = prepared(), history = new ProjectHistory();
   const proposed = executeAiTool(captureAiSnapshot(project, []), call("propose_model_edits", { operations: [{ type: "create_analysis_case", properties }] }));
+  const raw = call("propose_model_edits", { operations: [{ type: "create_analysis_case", properties }] });
+  raw.function.arguments = raw.function.arguments.replace('"scale":1', '"scale":1e-400');
+  expect(executeAiTool(captureAiSnapshot(project, []), raw).status).toBe("failed");
   expect(proposed.status).toBe("awaiting-confirmation"); expect(project.analysisCases).toHaveLength(1);
   const confirmation = prepareModelEditConfirmation(project, proposed.modelEdits!), applied = new ModelEditConfirmation().confirm(project, confirmation);
   expect(applied.result.status).toBe("applied"); history.record(project, applied.project);
@@ -48,6 +53,17 @@ it("manual and agent-confirmed random cases share frozen modal, damping and spec
   const reopened = decodeProject(encodeProject(completed)); expect(reopened.latestAnalysis!.random).toEqual(result.random); expect(isAnalysisResultCurrent(reopened, reopened.latestAnalysis!)).toBe(true);
   expect(history.undo(applied.project)!.analysisCases).toHaveLength(1); expect(history.redo(project)!.analysisCases).toHaveLength(2);
   expect(() => captureEngineeringReport(completed, result.id)).toThrow(/T2-38/);
+});
+
+it("a small free component mixed with a restrained force direction is equivalent to a scaled free force", () => {
+  const { project, properties } = prepared(true), s = properties.settings.random;
+  const solve = (direction: typeof s.excitation.direction, scale: number) => native(selectAnalysisCase(addAnalysisCase(project, { ...properties,
+    settings: { ...properties.settings, random: { ...s, excitation: { ...s.excitation, direction, scale } } } }), "AC2"));
+  const mixed = solve({ x: 1, y: 1e-11, z: 0 }, 1), free = solve({ x: 0, y: 1, z: 0 }, 1e-11);
+  expect(mixed.random!.rms).toBeGreaterThan(0);
+  expect(mixed.random!.rms / free.random!.rms).toBeCloseTo(1, 10);
+  expect(mixed.random!.points.map((p) => p.frequencyHz)).toEqual(free.random!.points.map((p) => p.frequencyHz));
+  mixed.random!.points.forEach((point, i) => expect(point.density / free.random!.points[i].density).toBeCloseTo(1, 10));
 });
 
 it("agent reads bounded response PSD and creates a statistical RMS reference in equivalent display units", () => {

@@ -361,7 +361,8 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
     }
     if (call.function.name === "propose_model_edits" || MODEL_EDIT_TOOLS.has(call.function.name) || call.function.name === "apply_model_changes") {
       if (Array.isArray(input.operations) && input.operations.some((operation) =>
-        operation?.type === "create_psd_spectrum" || operation?.type === "update_psd_spectrum")) {
+        operation?.type === "create_psd_spectrum" || operation?.type === "update_psd_spectrum"
+        || operation?.properties?.settings?.random !== undefined)) {
         validatePsdJsonNumbers(call.function.arguments);
       }
       try {
