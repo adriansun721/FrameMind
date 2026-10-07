@@ -111,20 +111,14 @@ export function validateRandomBasis(input: AnalysisInputSnapshot): RandomBasis {
   if (m.modes.length < m.counts.equations && m.modes.length <= s.modeIncrement) throw new Error("模态数不足以比较截断误差，请增阶或调整登记步长");
   if (!input.nodes.some((n) => n.id === s.response.nodeId)) throw new Error("随机响应节点已删除");
   for (const source of sources) for (const action of source.actions) {
-    if (action.kind === "member-uniform") {
-      if (!input.members.some((member) => member.id === action.memberId)) throw new Error("随机作用杆件已删除");
-      const shapes = m.modes.map((_, i) => randomActionShape(basis.modal, i, action));
-      const projection = Math.max(...shapes.map((v) => Math.abs(v.x * action.direction.x + v.y * action.direction.y + v.z * action.direction.z)));
-      const shapeScale = Math.max(...shapes.map((v) => Math.hypot(v.x, v.y, v.z)));
-      if (action.scalePerM !== 0 && projection <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error("已提取模态未覆盖杆件均布力方向，请增阶");
-      continue;
-    }
-    if (!input.nodes.some((n) => n.id === action.nodeId)) throw new Error("随机作用节点已删除");
-    const sourceShapes = m.modes.map((mode) => mode.nodes.find((n) => n.nodeId === action.nodeId)!.translation);
-    const freeDirectionNorm = Math.hypot(...(["x", "y", "z"] as const).map((axis, i) => input.supports.some((support) => support.nodeId === action.nodeId && support.restraints[i]) ? 0 : action.direction[axis]));
-    const projection = Math.max(...sourceShapes.map((v) => Math.abs(v.x * action.direction.x + v.y * action.direction.y + v.z * action.direction.z)));
-    const shapeScale = Math.max(...sourceShapes.map((v) => Math.hypot(v.x, v.y, v.z)));
-    if (action.scale !== 0 && freeDirectionNorm > 0 && projection / freeDirectionNorm <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error("已提取模态未覆盖该节点力方向，不能把零参与误判为收敛，请增阶");
+    const node = action.kind === "node";
+    if (node ? !input.nodes.some((n) => n.id === action.nodeId) : !input.members.some((member) => member.id === action.memberId)) throw new Error(node ? "随机作用节点已删除" : "随机作用杆件已删除");
+    const shapes = m.modes.map((_, i) => randomActionShape(basis.modal, i, action));
+    const projection = Math.max(...shapes.map((v) => Math.abs(v.x * action.direction.x + v.y * action.direction.y + v.z * action.direction.z)));
+    const shapeScale = Math.max(...shapes.map((v) => Math.hypot(v.x, v.y, v.z)));
+    const freeDirectionNorm = node ? Math.hypot(...(["x", "y", "z"] as const).map((axis, i) => input.supports.some((support) => support.nodeId === action.nodeId && support.restraints[i]) ? 0 : action.direction[axis])) : 1;
+    const scale = node ? action.scale : action.scalePerM;
+    if (scale !== 0 && freeDirectionNorm > 0 && projection / freeDirectionNorm <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error(node ? "已提取模态未覆盖该节点力方向，不能把零参与误判为收敛，请增阶" : "已提取模态未覆盖杆件均布力方向，请增阶");
   }
   const equivalent = { ...input, analysisCase: basis.modal.input.analysisCase, solver: basis.modal.input.solver, randomBasis: undefined };
   if (!sameInputValue(analysisInputDependencies(equivalent), analysisInputDependencies(basis.modal.input))) throw new Error("冻结模态与随机工况的结构、质量或边界不一致");
