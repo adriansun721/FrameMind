@@ -122,9 +122,11 @@ export function validateRandomBasis(input: AnalysisInputSnapshot): RandomBasis {
   for (const source of sources) for (const action of source.actions) {
     if (action.kind === "base-translation") {
       if (!input.supports.length || input.supports.some((support) => (["x", "y", "z"] as const).some((axis, i) => action.direction[axis] !== 0 && !support.restraints[i]))) throw new Error("整体一致基底要求所有支承约束每个非零平动方向；不支持差动支座或转动输入");
-      const shapes = m.modes.flatMap((mode) => mode.members.flatMap((member) => member.samples.map((sample) => sample.translation)));
-      const projection = Math.max(...shapes.map((v) => Math.abs(v.x * action.direction.x + v.y * action.direction.y + v.z * action.direction.z)));
-      const shapeScale = Math.max(...shapes.map((v) => Math.hypot(v.x, v.y, v.z)));
+      let projection = 0, shapeScale = 0;
+      for (const mode of m.modes) for (const member of mode.members) for (const { translation: v } of member.samples) {
+        projection = Math.max(projection, Math.abs(v.x * action.direction.x + v.y * action.direction.y + v.z * action.direction.z));
+        shapeScale = Math.max(shapeScale, Math.hypot(v.x, v.y, v.z));
+      }
       if (action.scale !== 0 && projection <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error("已提取模态未覆盖基底平动方向，请增阶；不能把零参与误判为收敛");
       continue;
     }
