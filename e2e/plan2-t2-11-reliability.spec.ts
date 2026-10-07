@@ -1,3 +1,4 @@
+import { NATIVE_MESH_STATIC_SOLVER } from "../src/domain/analysis";
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -57,7 +58,7 @@ test("T2-11 whole-task confirmation, restart and requested local solve", async (
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("本地分析完成");
     const after = await save(page, path);
     check("taskCompletion", after.analysisResults.length === 2 && after.nodalLoads.every((load: any) => load.force.x === 10) && Math.abs(after.analysisResults[1].nodes[1].displacement.x - 0.010666666666666666) < 1e-10);
-    check("nativeFormalEntry", after.analysisResults[1].input.solver?.implementation === "framemind-native/2");
+    check("nativeFormalEntry", after.analysisResults[1].input.solver?.implementation === NATIVE_MESH_STATIC_SOLVER.implementation && after.analysisResults[1].service?.solver.implementation === NATIVE_MESH_STATIC_SOLVER.implementation);
     check("noDuplicateApplication", after.confirmedOperations.length === 1 && after.nodes.length === 4 && after.nodalLoads.length === 2);
     const expected = structuredClone(project);
     expected.nodalLoads.forEach((load) => { load.force.x = 10; });
@@ -86,7 +87,7 @@ test("T2-11 evidence-based diagnostic trial stays separate from formal results",
     check("diagnosticSource", result.diagnosticCopy?.id !== project.id && result.diagnosticCopy?.source.projectId === project.id
       && result.diagnosticTrial?.result?.projectId === result.diagnosticCopy?.id && result.diagnosticTrial?.result?.input.projectId === result.diagnosticCopy?.id
       && result.diagnosticTrial?.engineeringValidity === "numerically-solved-not-engineering-validated");
-    check("nativeDiagnosticEntry", result.diagnosticTrial?.result?.input.solver?.implementation === "framemind-native/2");
+    check("nativeDiagnosticEntry", result.diagnosticTrial?.result?.input.solver?.implementation === NATIVE_MESH_STATIC_SOLVER.implementation && result.diagnosticTrial?.result?.service?.solver.implementation === NATIVE_MESH_STATIC_SOLVER.implementation);
     check("noUnintendedMutation", JSON.stringify(engineeringContent(after)) === JSON.stringify(engineeringContent(project)) && JSON.stringify(after.analysisResults) === JSON.stringify(project.analysisResults));
   });
 });

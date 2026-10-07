@@ -131,7 +131,7 @@ describe("AI conversation task boundary", () => {
     const task = startAiTask(snapshot, "说明方法", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, onOutput });
     await vi.runAllTimersAsync();
     expect((await task.promise).assistant).toBe(content);
-    expect(onOutput.mock.calls.length).toBeLessThanOrEqual(80);
+    expect(onOutput.mock.calls.length).toBeLessThanOrEqual(16);
     expect(onOutput.mock.calls.at(-1)?.[0].assistant).toBe(content);
     vi.useRealTimers();
   });

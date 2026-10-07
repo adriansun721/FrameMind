@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "registeredDate": "2026-10-07",
   "timezone": "Asia/Taipei",
   "repetitions": 2,
@@ -220,5 +220,5 @@
       ]
     }
   },
-  "registrationNote": "Version 4 retains all version 3 physics inputs and gates, adds native frozen-input recovery contracts and original T2-11 desktop regression, and rejects source/build drift. Versions 2 and 3 failure runs remain archived; version 3 exposed legacy Worker fault injection and incomplete native solver/mesh checkpoints."
+  "registrationNote": "Version 5 retains version 4 samples, repetitions and gates. Original T2-11 regression now checks the declared production native mesh-static solver (/4) in both input and service provenance rather than the retired /2, retaining all numerical tolerances. Output rendering is bounded to 16 batches. All earlier failed runs remain archived; source/build drift still rejects a run."
 }

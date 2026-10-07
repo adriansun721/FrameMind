@@ -314,7 +314,7 @@ export function startAiTask(snapshot: AiSnapshot, prompt: string, options: AiTas
         // Reveal only validated text. Keep reference tokens and Unicode characters intact.
         if (options.onOutput && assistant.content) {
           const units = assistant.content.match(/\[\[(?:result|comparison):[^\]\r\n]+\]\]|[^]/gu) ?? [];
-          const chunkSize = Math.max(2, Math.ceil(units.length / 80));
+          const chunkSize = Math.max(2, Math.ceil(units.length / 16));
           let visible = "";
           for (let index = 0; index < units.length; index += chunkSize) {
             if (index > 0) await new Promise<void>((resolve) => setTimeout(resolve, 32));
