@@ -56,7 +56,8 @@
     "evidence:plan2:t230": "npm run build:native && npm run build && node scripts/verify-plan2-t230.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-30-buckling.spec.ts",
     "evidence:plan2:t231": "npm run build:native && npm run build && node scripts/verify-plan2-t231.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-31-second-order.spec.ts",
     "evidence:plan2:t232": "npm run build && npx vitest run src/domain/psd.test.ts src/workspace/psd-tools.test.ts src/components/PsdSpectrumManager.test.tsx electron/psd-tools.test.ts && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-32-psd.spec.ts",
-    "evidence:plan2:t233": "npm run build:native && npm run build && npx vitest run src/domain/random-response.test.ts src/domain/modal.test.ts src/workspace/psd-tools.test.ts electron/psd-tools.test.ts --maxWorkers=2 && node scripts/verify-plan2-t233.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-33-random.spec.ts"
+    "evidence:plan2:t233": "npm run build:native && npm run build && npx vitest run src/domain/random-response.test.ts src/domain/modal.test.ts src/workspace/psd-tools.test.ts electron/psd-tools.test.ts --maxWorkers=2 && node scripts/verify-plan2-t233.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-33-random.spec.ts",
+    "evidence:plan2:t234": "npm run build:native && npm run build && node scripts/verify-plan2-t234.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-34-random-sources.spec.ts"
   },
   "dependencies": {
     "docx": "^9.7.1",

@@ -1,0 +1,239 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "single-node-source",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.04943718810549465,
+      "rmsM": 0.049438481464073064,
+      "curveError": 0.0000503191802246097,
+      "rmsError": 0.000026161653362170965,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "same-source-aligned-node-pair",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.0988743762109893,
+      "rmsM": 0.09887696292814613,
+      "curveError": 0.0000503191802246097,
+      "rmsError": 0.000026161653362170965,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "same-source-opposite-node-pair",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0,
+      "rmsM": 0,
+      "curveError": 0,
+      "rmsError": 0,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "independent-identical-spectrum-node-sources",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.06991474190438038,
+      "rmsM": 0.069916570989623,
+      "curveError": 0.0000503191802246097,
+      "rmsError": 0.00002616165336244575,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "whole-member-uniform-force",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.05804078693090016,
+      "rmsM": 0.058043152482828105,
+      "curveError": 0.0000036140679204409276,
+      "rmsError": 0.00004075671700939035,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "same-source-node-plus-uniform",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.10747598600004404,
+      "rmsM": 0.10747975523010662,
+      "curveError": 0.000021902038154980787,
+      "rmsError": 0.00003507043948012016,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "independent-node-and-member-distinct-spectra",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.11465110212584248,
+      "rmsM": 0.11465453042962949,
+      "curveError": 0.000036827931011311066,
+      "rmsError": 0.00002990205696624052,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    },
+    {
+      "name": "agent-confirmed-unit-equivalence-undo-and-frozen-reopening",
+      "passed": true,
+      "realAi": false
+    },
+    {
+      "name": "same-source-distinct-node-aligned",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.06620877342706123,
+      "rmsM": 0.0662105178621671,
+      "curveError": 0.00005654616462875709,
+      "rmsError": 0.000026347491662683118,
+      "tolerance": 0.005,
+      "selectedDivisions": 8
+    },
+    {
+      "name": "same-source-distinct-node-opposed",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.032669055902243255,
+      "rmsM": 0.03266994639322718,
+      "curveError": 0.00003765018618162421,
+      "rmsError": 0.000027257934437659364,
+      "tolerance": 0.005,
+      "selectedDivisions": 8
+    },
+    {
+      "name": "two-engineering-members-one-uniform-process",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.05804078693090016,
+      "rmsM": 0.05804315247744049,
+      "curveError": 0.000003613448170606379,
+      "rmsError": 0.00004075662418477079,
+      "tolerance": 0.005,
+      "selectedDivisions": 8
+    },
+    {
+      "name": "uniform-force-eight-division-budget",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.05804078693090016,
+      "rmsM": 0.05804320712324806,
+      "curveError": 0.00006437699475159466,
+      "rmsError": 0.000041698131191413133,
+      "tolerance": 0.005,
+      "selectedDivisions": 8
+    },
+    {
+      "name": "uniform-force-with-independent-released-tip-rotation",
+      "reference": "continuous EB cantilever, five analytical bending modes and exact spatial integrals",
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 100000,
+        "fineIntervals": 200000
+      },
+      "referenceRms": 0.05804078693090016,
+      "rmsM": 0.05804315247832289,
+      "curveError": 0.000003613555342486027,
+      "rmsError": 0.0000407566393878438,
+      "tolerance": 0.005,
+      "selectedDivisions": 16
+    }
+  ],
+  "failures": [
+    {
+      "name": "partial-correlation",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "cross-spectrum",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "undeclared-phase",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "duplicate-source",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "partial-member",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "local-direction",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "missing-member",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "different-source-bands",
+      "rendererRejects": true
+    },
+    {
+      "name": "forged-frozen-second-source",
+      "decoderRejects": true
+    },
+    {
+      "name": "forged-internal-modal-coordinate",
+      "nativeRejects": true
+    }
+  ]
+}

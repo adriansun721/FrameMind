@@ -1,7 +1,7 @@
 import { CANONICAL_UNITS, convertQuantity, requireUnitPreset, UNIT_CONTRACT, unitDimension, unitPresentation, type QuantityDimension, type UnitPresetId } from "../domain/units";
 
 const FIELD_DIMENSIONS: Record<string, QuantityDimension> = {
-  bandHz: "frequency", frequencyHz: "frequency", absoluteRmsTolerance: "length", absoluteVarianceTolerance: "area", absolutePsdTolerance: "displacementPSD",
+  scalePerM: "inverseLength", bandHz: "frequency", frequencyHz: "frequency", absoluteRmsTolerance: "length", absoluteVarianceTolerance: "area", absolutePsdTolerance: "displacementPSD",
   additionalMassKg: "mass", structuralMassKg: "mass", additionalLineMassKgM: "lineMass", massPerLengthKgM: "lineMass", lengthM: "length",
   rootRadiusM: "length", width: "length", height: "length", diameter: "length", thickness: "length", webThickness: "length", flangeThickness: "length",
   position: "length", endPosition: "length", origin: "length", xSpans: "length", ySpans: "length", storeyHeights: "length", length: "length", tolerance: "length", distance: "length", targetPosition: "length",

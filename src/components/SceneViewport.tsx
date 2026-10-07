@@ -1,4 +1,5 @@
 import { useUnits } from "./UnitPresentation";
+import { randomSources, type RandomSettings } from "../domain/random-response";
 import { releaseLabel, hasMemberReleases } from "../domain/member-releases";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Scan, Weight } from "lucide-react";
@@ -31,6 +32,7 @@ interface SceneViewportProps {
   theme?: AppTheme;
   supports?: FrameSupport[];
   nodalLoads?: FrameNodalLoad[];
+  randomSettings?: RandomSettings;
   conditionSelection?: SceneConditionSelection | null;
   onSelectCondition?(selection: SceneConditionSelection): void;
   projectId: ProjectId;
@@ -87,6 +89,7 @@ interface SceneRuntime {
   loads: THREE.Group;
   results: THREE.Group;
   conditions: THREE.Group;
+  randomLoads: THREE.Group;
   preview: THREE.Group;
   drawing: THREE.Group;
 }
@@ -302,7 +305,7 @@ export function SceneViewport(props: SceneViewportProps) {
   return <SceneViewportScene {...props} nodes={nodes} preview={preview} analysis={analysis} worldNodes={props.nodes} origin={origin} />;
 }
 
-function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin, drawingEnabled = false, drawingReset = 0, onExitDrawing, onDrawSegment }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
+function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, randomSettings, conditionSelection, onSelectCondition, projectId, nodes, members, materials, sections, selection, onSelect, uniformLoads, selfWeight, selfWeightLabel, sourceLabel, selectedUniformLoadId, onSelectUniformLoad, analysis, resultView = "model", forceComponent = "N", deformationScale = 100, resultFocus, fitRequest = 0, worldNodes, origin, drawingEnabled = false, drawingReset = 0, onExitDrawing, onDrawSegment }: SceneViewportProps & { worldNodes: FrameNode[]; origin: Vector3 }) {
   const u = useUnits();
   const [displayMode, setDisplayMode] = useState<MemberDisplayMode>("solid");
   const drawing = useWorkPlaneDrawing(worldNodes, materials, sections, (input) => onDrawSegment?.(input) ?? null);
@@ -351,9 +354,10 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     const loads = new THREE.Group(); scene.add(loads);
     const results = new THREE.Group(); results.name = "analysis-results"; scene.add(results);
     const conditions = new THREE.Group(); scene.add(conditions);
+    const randomLoads = new THREE.Group(); randomLoads.name = "random-spatial-actions"; scene.add(randomLoads);
     const previewGroup = new THREE.Group(); previewGroup.name = "unapplied-frame-preview"; scene.add(previewGroup);
     const drawingGroup = new THREE.Group(); drawingGroup.name = "uncommitted-drawing"; scene.add(drawingGroup);
-    runtimeRef.current = { drawing: drawingGroup, scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, preview: previewGroup, projectId: null, hasFramedModel: false };
+    runtimeRef.current = { drawing: drawingGroup, scene, grid, axes, camera, controls, model, renderer, loads, results, conditions, randomLoads, preview: previewGroup, projectId: null, hasFramedModel: false };
 
     const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = GEOMETRY_CONTRACT.picking.lineThreshold;
     const pointer = new THREE.Vector2(); let pointerStart: THREE.Vector2 | null = null;
@@ -540,6 +544,33 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
     renderUniformLoads(group, nodes, members, uniformLoads, readScenePalette(), selectedUniformLoadId, sections);
   }, [uniformLoads, nodes, members, selectedUniformLoadId, sections, theme]);
   useEffect(() => {
+    const group = runtimeRef.current?.randomLoads; if (!group) return;
+    for (const child of [...group.children]) disposeObjectTree(child);
+    if (!randomSettings) return;
+    const palette = readScenePalette();
+    const colors = [palette.load, palette.axisY, palette.axisZ];
+    randomSources(randomSettings).forEach((source, sourceIndex) => source.actions.forEach((action) => {
+      const scale = action.kind === "node" ? action.scale : action.scalePerM;
+      if (!Number.isFinite(scale) || scale === 0 || !Object.values(action.direction).every(Number.isFinite)) return;
+      const direction = new THREE.Vector3(action.direction.x, action.direction.y, action.direction.z).multiplyScalar(Math.sign(scale)).normalize();
+      const member = action.kind === "member-uniform" ? members.find((m) => m.id === action.memberId) : undefined;
+      const start = nodes.find((n) => n.id === (action.kind === "node" ? action.nodeId : member?.startNodeId));
+      const end = member ? nodes.find((n) => n.id === member.endNodeId) : undefined;
+      if (!start || (member && !end)) return;
+      const positions = member ? [.15, .5, .85] : [0];
+      positions.forEach((t, station) => {
+        const head = new THREE.Vector3(start.position.x, start.position.y, start.position.z);
+        if (end) head.lerp(new THREE.Vector3(end.position.x, end.position.y, end.position.z), t);
+        const tail = head.clone().addScaledVector(direction, -.6 - sourceIndex * .12);
+        group.add(makeArrow(direction, tail, .6, colors[sourceIndex % colors.length]));
+        if (station === 0) {
+          const label = makeLabel(source.sourceId + " · " + (action.kind === "node" ? String(scale) : u.quantity(scale, "1/m")), palette);
+          label.userData.labelPriority = 20; label.position.copy(tail).addScaledVector(direction, -.2); group.add(label);
+        }
+      });
+    }));
+  }, [randomSettings, nodes, members, theme, u.preset]);
+  useEffect(() => {
     const group = runtimeRef.current?.results;
     if (!group) return;
     for (const child of [...group.children]) disposeObjectTree(child);
@@ -645,6 +676,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, con
       {preview && (!!preview.nodes.length || !!preview.supports?.length || !!preview.nodalLoads?.length || !!preview.loadStageSummary) && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.sectionChange ? `${preview.members.length} 根选中柱 · 截面修改 · 虚线` : preview.conditionNodes ? `${preview.supports?.length ?? 0} 支座 / ${preview.nodalLoads?.length ?? 0} 节点荷载${preview.loadStageSummary ? ` / ${preview.loadStageSummary}` : ""} · 半透明` : `${preview.nodes.length} 节点 / ${preview.members.length} 杆件 · 虚线`}</div>}
       {sourceLabel && <div className="viewport-case-source" aria-label="视图工况来源">{sourceLabel}</div>}
       <div className="viewport-legend-stack">
+      {randomSettings && <div className="viewport-result-legend" aria-label="随机作用标记">随机空间系数箭头 · 非瞬时力 · {randomSources(randomSettings).map((source) => source.sourceId + ": " + source.actions.map((a) => a.kind === "node" ? a.nodeId : a.memberId).join(", ")).join(" / ")} · 源间独立</div>}
       {displayedWeight && <div className={`viewport-weight-marker${weightPending ? " pending" : ""}`} aria-label={weightPending ? "待确认自重标记" : "自重标记"}>
         <Weight size={16} /><div><strong>{displayedWeight.enabled ? "结构自重" : "关闭自重"}{weightPending ? " · 待确认" : " · 已启用"}</strong>
           <span>{weightPending ? preview!.selfWeight!.caseLabel : selfWeightLabel ?? displayedWeight.loadCaseId} · 全结构</span>

@@ -1,6 +1,6 @@
 const identity = { type: "string", minLength: 1 };
 const number = { type: "number" };
-export const RANDOM_SETTINGS_SCHEMA = { type: "object", additionalProperties: false,
+const legacySettings = { type: "object", additionalProperties: false,
   required: ["modalAnalysisId", "psdSpectrumId", "excitation", "response", "bandHz", "frequencyPoints", "maxFrequencyPoints", "maxRefinements", "modeIncrement", "relativeTolerance", "absolutePsdTolerance", "absoluteVarianceTolerance", "absoluteRmsTolerance", "integration"],
   description: "One stationary node force source, global XYZ unit direction and dimensionless spatial scale. Bind latest current converged modal analysis with reviewed damping and a canonical one-sided force PSD. Full band required. RMS is statistical, never a peak/displacement shape. Frozen modal/damping/spectrum dependencies expire on change. Accuracy defaults are suggestions, budgets fail without partial results.",
   properties: {
@@ -14,3 +14,19 @@ export const RANDOM_SETTINGS_SCHEMA = { type: "object", additionalProperties: fa
     integration: { const: "trapezoidal" },
   },
 };
+
+const direction = legacySettings.properties.excitation.properties.direction;
+const source = { type: "object", additionalProperties: false, required: ["sourceId", "psdSpectrumId", "actions"], properties: {
+  sourceId: { ...identity, maxLength: 200 }, psdSpectrumId: identity,
+  actions: { type: "array", minItems: 1, maxItems: 128, items: { oneOf: [
+    { type: "object", additionalProperties: false, required: ["kind", "nodeId", "direction", "scale"], properties: { kind: { const: "node" }, nodeId: identity, direction, scale: number } },
+    { type: "object", additionalProperties: false, required: ["kind", "memberId", "direction", "scalePerM"], properties: { kind: { const: "member-uniform" }, memberId: identity, direction, scalePerM: { ...number, description: "Signed coefficient in canonical 1/m. Whole engineering member, uniform in global XYZ. Source process is force (kN); line force is process times coefficient. Explicit inputUnits.inverseLength may convert 1/mm." } } },
+  ] } },
+} };
+const { excitation: _excitation, psdSpectrumId: _spectrum, ...common } = legacySettings.properties;
+export const RANDOM_SETTINGS_SCHEMA = { oneOf: [legacySettings, {
+  type: "object", additionalProperties: false,
+  required: [...legacySettings.required.filter((key) => !["excitation", "psdSpectrumId"].includes(key)), "sourceRelationship", "sources"],
+  description: "Stationary force sources. All actions within one source share the same random process: sum signed spatial modal forces before magnitude squared. Different sourceIds are independent even if bound to the same PSD table: sum response PSD, never RMS. Reject partial correlation, cross spectra and phase. Max 16 sources and 128 total actions. All spectra must use the same full band. Frozen sources/actions/spectra expire on any dependency change. Legacy single-node format remains supported separately.",
+  properties: { ...common, sourceRelationship: { const: "independent" }, sources: { type: "array", minItems: 1, maxItems: 16, items: source } },
+}] };

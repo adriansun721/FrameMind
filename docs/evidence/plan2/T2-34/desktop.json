@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "manualSources": true,
+  "signedSameSource": true,
+  "duplicateRejected": true,
+  "numericUnderflowRejected": true,
+  "markers": true,
+  "memberLocated": true,
+  "inverseLengthUnits": true,
+  "actionEditStale": true,
+  "undo": true,
+  "reopenedCurrent": true,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ]
+}

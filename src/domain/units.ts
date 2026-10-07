@@ -4,13 +4,13 @@ export const CANONICAL_UNITS = {
   modulus: "GPa", density: "kg/m³", area: "m²", inertia: "m⁴",
   orientation: "°", rotation: "rad", acceleration: "m/s²", mass: "kg", lineMass: "kg/m",
   frequency: "Hz", displacementPSD: "m²/Hz", accelerationPSD: "(m/s²)²/Hz",
-  forcePSD: "kN²/Hz", dimensionless: "无",
+  forcePSD: "kN²/Hz", inverseLength: "1/m", dimensionless: "无",
 } as const;
 export type QuantityDimension = keyof typeof CANONICAL_UNITS;
 export const UNIT_PRESETS = {
   "m-kN": { label: "m · kN · GPa", units: { ...CANONICAL_UNITS } },
-  "mm-N": { label: "mm · N · MPa", units: { ...CANONICAL_UNITS, length: "mm", lineMass: "kg/mm", force: "N", moment: "N·mm", distributedForce: "N/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz", forcePSD: "N²/Hz" } },
-  "mm-kN": { label: "mm · kN · MPa", units: { ...CANONICAL_UNITS, length: "mm", lineMass: "kg/mm", moment: "kN·mm", distributedForce: "kN/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz" } },
+  "mm-N": { label: "mm · N · MPa", units: { ...CANONICAL_UNITS, length: "mm", inverseLength: "1/mm", lineMass: "kg/mm", force: "N", moment: "N·mm", distributedForce: "N/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz", forcePSD: "N²/Hz" } },
+  "mm-kN": { label: "mm · kN · MPa", units: { ...CANONICAL_UNITS, length: "mm", inverseLength: "1/mm", lineMass: "kg/mm", moment: "kN·mm", distributedForce: "kN/mm", modulus: "MPa", density: "kg/mm³", area: "mm²", inertia: "mm⁴", acceleration: "mm/s²", displacementPSD: "mm²/Hz", accelerationPSD: "(mm/s²)²/Hz" } },
 } as const;
 export type UnitPresetId = keyof typeof UNIT_PRESETS;
 // Factors multiply a value to obtain that dimension's canonical numeric value.
@@ -28,7 +28,7 @@ const UNIT_FACTORS: Record<QuantityDimension, Readonly<Record<string, number>>> 
   frequency: { Hz: 1, "rad/s": 1 / (2 * Math.PI) },
   displacementPSD: { "m²/Hz": 1, "mm²/Hz": 1e-6 },
   accelerationPSD: { "(m/s²)²/Hz": 1, "(mm/s²)²/Hz": 1e-6, "(m/s²)²/(rad/s)": 2 * Math.PI, "(mm/s²)²/(rad/s)": 2 * Math.PI * 1e-6 },
-  forcePSD: { "kN²/Hz": 1, "N²/Hz": 1e-6, "kN²/(rad/s)": 2 * Math.PI, "N²/(rad/s)": 2 * Math.PI * 1e-6 }, dimensionless: { "无": 1, "1": 1 },
+  forcePSD: { "kN²/Hz": 1, "N²/Hz": 1e-6, "kN²/(rad/s)": 2 * Math.PI, "N²/(rad/s)": 2 * Math.PI * 1e-6 }, inverseLength: { "1/m": 1, "1/mm": 1e3 }, dimensionless: { "无": 1, "1": 1 },
 };
 export function requireUnitPreset(value: unknown): UnitPresetId {
   if (typeof value !== "string" || !Object.hasOwn(UNIT_PRESETS, value)) throw new Error("单位预设无效；请选择 m-kN、mm-N 或 mm-kN");

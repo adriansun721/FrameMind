@@ -1,21 +1,33 @@
 import type { AnalysisInputSnapshot } from "./analysis";
-import type { RandomConvergenceRun, RandomSettings } from "./random-response";
+import { randomSources, randomSpectra, type RandomConvergenceRun, type RandomSettings } from "./random-response";
+import { randomActionShape } from "./random-spatial-load";
 
 /** Verification of frozen native records; this is never the desktop solver. */
 export function randomTransferData(input: AnalysisInputSnapshot) {
   const basis = input.randomBasis!, s = input.analysisCase!.settings.random!;
-  return basis.modal.modal!.modes.map((m) => {
-    const force = m.nodes.find((n) => n.nodeId === s.excitation.nodeId)!.translation;
+  return basis.modal.modal!.modes.map((m, modeIndex) => {
     const response = m.nodes.find((n) => n.nodeId === s.response.nodeId)!.translation[s.response.component];
-    const projection = force.x * s.excitation.direction.x + force.y * s.excitation.direction.y + force.z * s.excitation.direction.z, coefficient = response * s.excitation.scale * projection;
-    if (!Number.isFinite(coefficient) || (coefficient === 0 && response !== 0 && s.excitation.scale !== 0 && projection !== 0)) throw new Error("随机模态空间系数溢出或非零下溢");
-    return { frequency: m.frequencyHz, omega: Math.sqrt(m.eigenvalue), coefficient,
+    const coefficients = randomSources(s).map((source) => {
+      const generalized = source.actions.reduce((sum, action) => {
+      const force = randomActionShape(basis.modal, modeIndex, action);
+      const projection = force.x * action.direction.x + force.y * action.direction.y + force.z * action.direction.z;
+      const scale = action.kind === "node" ? action.scale : action.scalePerM, contribution = scale * projection;
+      if (!Number.isFinite(contribution) || (contribution === 0 && scale !== 0 && projection !== 0)) throw new Error("随机空间作用或响应超出有限数值范围");
+        if (!Number.isFinite(sum + contribution)) throw new Error("随机广义力求和溢出");
+        return sum + contribution;
+      }, 0);
+      const coefficient = generalized * response;
+      if (coefficient === 0 && generalized !== 0 && response !== 0) throw new Error("随机源模态系数非零下溢");
+      return coefficient;
+    });
+    if (!coefficients.every(Number.isFinite)) throw new Error("随机空间作用或响应超出有限数值范围");
+    return { frequency: m.frequencyHz, omega: Math.sqrt(m.eigenvalue), coefficients,
       damping: basis.damping.overrides.find((o) => o.modeNumber === m.number)?.value.ratio ?? basis.damping.uniform.ratio };
   });
 }
 export function initialRandomGrid(input: AnalysisInputSnapshot): number[] {
   const s = input.analysisCase!.settings.random!, [lo, hi] = s.bandHz;
-  const points = input.randomBasis!.spectrum.points.map((p) => p.frequency);
+  const points = randomSpectra(input.randomBasis!).flatMap(({ spectrum }) => spectrum.points.map((p) => p.frequency));
   for (let i = 1; i < s.frequencyPoints - 1; i++) points.push(lo + (hi - lo) * i / (s.frequencyPoints - 1));
   for (const m of randomTransferData(input)) for (const n of [0, -1, 1, -2, 2, -4, 4, -8, 8]) {
     const f = m.frequency + n * m.damping * m.frequency;
@@ -33,8 +45,8 @@ export function refineRandomGrid(grid: number[]): number[] {
   return result;
 }
 export function randomDensities(input: AnalysisInputSnapshot, grid: number[], count = input.randomBasis!.modal.modal!.modes.length): number[] {
-  const modes = randomTransferData(input).slice(0, count), spectrum = input.randomBasis!.spectrum;
-  return grid.map((f) => {
+  const modes = randomTransferData(input).slice(0, count), spectra = randomSpectra(input.randomBasis!);
+  return grid.map((f) => spectra.reduce((total, { spectrum }, sourceIndex) => {
     let lo = 0, hi = spectrum.points.length - 1;
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (spectrum.points[mid].frequency < f) lo = mid; else hi = mid; }
     const a = spectrum.points[lo], b = spectrum.points[hi], t = (f - a.frequency) / (b.frequency - a.frequency);
@@ -43,13 +55,13 @@ export function randomDensities(input: AnalysisInputSnapshot, grid: number[], co
     const omega = 2 * Math.PI * f;
     for (const m of modes) {
       const re = m.omega ** 2 - omega ** 2, im = 2 * m.damping * m.omega * omega, denominator = re ** 2 + im ** 2;
-      if (!(denominator > 0) || !Number.isFinite(denominator)) throw new Error("随机频响分母超出有限精度");
-      real += m.coefficient * re / denominator; imaginary -= m.coefficient * im / denominator;
+      if (!(denominator > 0) || !Number.isFinite(denominator)) throw new Error("随机空间作用或响应超出有限数值范围");
+      real += m.coefficients[sourceIndex] * re / denominator; imaginary -= m.coefficients[sourceIndex] * im / denominator;
     }
     const result = (real ** 2 + imaginary ** 2) * density;
-    if (!Number.isFinite(result) || result < 0 || (result === 0 && density > 0 && (real !== 0 || imaginary !== 0))) throw new Error("随机响应 PSD 溢出或非零下溢");
-    return result;
-  });
+    if (!Number.isFinite(result) || result < 0 || (result === 0 && density > 0 && (real !== 0 || imaginary !== 0)) || !Number.isFinite(total + result)) throw new Error("随机空间作用或响应超出有限数值范围");
+    return total + result;
+  }, 0));
 }
 export function randomVariance(grid: number[], density: number[]): number {
   let sum = 0;

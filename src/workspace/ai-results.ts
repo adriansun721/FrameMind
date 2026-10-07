@@ -1,4 +1,4 @@
-import { RANDOM_RESPONSE_MEANING } from "../domain/random-response";
+import { RANDOM_RESPONSE_MEANING, randomSpectra } from "../domain/random-response";
 import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
 import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
@@ -86,14 +86,16 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
   if (result.random) {
     if (input.fields !== undefined || input.query !== undefined || !["summary", "psd", "input-psd"].includes(collection)) throw new Error("随机结果仅支持 summary、psd 与 input-psd；统计量不是静力位移、内力或振型");
     const r = result.random, s = result.input.analysisCase!.settings.random!, basis = result.input.randomBasis!;
-    const { points: spectrumPoints, ...spectrumMetadata } = basis.spectrum;
+    const spectra = randomSpectra(basis);
+    const { points: _points, ...spectrumMetadata } = spectra[0].spectrum;
+    const spectrumPoints = spectra.flatMap(({ sourceId, spectrum }) => spectrum.points.map((point) => ({ ...point, sourceId, psdSpectrumId: spectrum.id })));
     if (collection === "summary") return { ...provenance, method: "random", meaning: RANDOM_RESPONSE_MEANING, response: r.response, coordinateSystem: r.coordinateSystem,
       rms: r.rms, rmsUnit: "m", variance: r.variance, varianceUnit: "m²", densityUnit: "m²/Hz", sidedness: r.sidedness, frequencyUnit: "Hz", bandHz: s.bandHz,
       frozenRandomSettings: s, modalAnalysisId: basis.modal.id, modalCreatedAt: basis.modal.createdAt, modeCount: r.modeCount,
-      damping: basis.damping, inputSpectrum: { ...spectrumMetadata, totalPoints: spectrumPoints.length }, convergence: { ...r.convergence, runs: r.convergence.runs.map((run) => ({ ...run, rmsUnit: "m", varianceUnit: "m²" })) }, totalPoints: r.points.length };
+      damping: basis.damping, inputSources: spectra.map(({ sourceId, spectrum: { points, ...metadata } }) => ({ sourceId, ...metadata, totalPoints: points.length })), ...("spectrum" in basis ? { inputSpectrum: { ...spectrumMetadata, totalPoints: _points.length } } : {}), convergence: { ...r.convergence, runs: r.convergence.runs.map((run) => ({ ...run, rmsUnit: "m", varianceUnit: "m²" })) }, totalPoints: r.points.length };
     if (collection === "input-psd") {
-      const items = spectrumPoints.slice(offset, offset + limit).map((p) => ({ frequencyHz: p.frequency, density: p.density, densityUnit: "kN²/Hz", frequencyUnit: "Hz" }));
-      return { ...provenance, method: "random", collection, inputSpectrum: spectrumMetadata, total: spectrumPoints.length, offset, limit, items,
+      const items = spectrumPoints.slice(offset, offset + limit).map((p) => ({ sourceId: p.sourceId, psdSpectrumId: p.psdSpectrumId, frequencyHz: p.frequency, density: p.density, densityUnit: "kN²/Hz", frequencyUnit: "Hz" }));
+      return { ...provenance, method: "random", collection, ...("spectrum" in basis ? { inputSpectrum: spectrumMetadata } : {}), inputSources: spectra.map(({ sourceId, spectrum: { points, ...metadata } }) => ({ sourceId, ...metadata, totalPoints: points.length })), total: spectrumPoints.length, offset, limit, items,
         page: { empty: !items.length, hasMore: offset + items.length < spectrumPoints.length, nextOffset: offset + items.length } };
     }
     const items = r.points.slice(offset, offset + limit).map((p) => ({ ...p, densityUnit: "m²/Hz", frequencyUnit: "Hz", response: r.response, coordinateSystem: r.coordinateSystem }));
