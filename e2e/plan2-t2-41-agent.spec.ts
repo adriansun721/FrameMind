@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { decodeProject } from "../src/domain/project-file";
 import { selectAnalysisCase, updateAnalysisCase } from "../src/domain/project";
+import { NATIVE_SECOND_ORDER_SOLVER } from "../src/domain/analysis";
 import { engineeringContent } from "../src/workspace/draft-coordination";
 import { agentFixture } from "./agent-integration";
 import { save } from "./frame-proposal-actions";
@@ -72,7 +73,9 @@ test("T2-41 failed second-order trial preserves formal results and diagnostics",
     const result = await ask(page, "当前 AC1 二阶 maxIterations=1。请读取设置，在诊断副本中按原输入试算 AC1，核查是否收敛。失败时保留诊断并说明不能发布正式成功结果；不要改工程、自动增加迭代预算、自动优化截面或作规范结论。", [[{ name: "read_model", input: { collection: "analysis-cases" } }], [{ name: "create_diagnostic_copy", input: {} }], [{ name: "run_diagnostic_trial", input: { label: "二阶失败核查", sourceId: "AC1", operations: [] } }]], "诊断副本二阶试算失败，未收敛；不能发布正式成功结果，也不能据此作规范结论。");
     const trial = result.diagnosticTrial;
     check("trial", uses(result, "run_diagnostic_trial") && trial?.status === "failed" && !trial.result);
-    check("source", result.diagnosticCopy?.source.projectId === project.id && result.diagnosticCopy.id !== project.id);
+    check("source", result.diagnosticCopy?.source.projectId === project.id && result.diagnosticCopy.id !== project.id
+      && trial?.evidence.sourceId === "AC1" && trial.evidence.service?.sourceId === "AC1"
+      && trial.evidence.service?.solver.implementation === NATIVE_SECOND_ORDER_SOLVER.implementation);
     check("evidence", Boolean(trial?.evidence.diagnostics.length) && /失败|未收敛/.test(result.assistant ?? ""));
     const after = await save(page, path);
     check("isolation", JSON.stringify(engineeringContent(after)) === JSON.stringify(engineeringContent(project)) && JSON.stringify(after.analysisResults) === JSON.stringify(project.analysisResults));
@@ -116,7 +119,10 @@ test("T2-41 real citations bind all five saved methods to frozen engineering ide
       const input = { kind: "node", id: "node_0002", quantity, component, ...(["AC2", "AC4"].includes(id) ? { modeNumber: 1 } : {}) };
       const result = await ask(page, `读取当前 ${id} 的真实结果摘要，再核对 N2 的 ${quantity}/${component}${"modeNumber" in input ? "，第1阶" : ""}，给出真实引用 token；说明分析身份、冻结输入与方法含义，不做规范或安全结论。不修改模型。`, [[{ name: "read_results", input: { collection: "summary" } }], [{ name: "read_result", input }]], "计算事实 [[result:t211-2-0]]；该引用绑定冻结输入，不构成安全或规范结论。");
       const references = result.records.flatMap((r) => r.result.reference ? [r.result.reference] : []);
-      check(`${id}:citation`, result.status === "completed" && references.some((ref) => ref.analysisId === analysis.id && ref.object.id === "node_0002" && result.assistant?.includes(ref.token)));
+      check(`${id}:citation`, result.status === "completed" && references.some((ref) => ref.analysisId === analysis.id
+        && ref.inputRevision === analysis.input.projectRevision && ref.source.id === id && ref.object.id === "node_0002"
+        && ref.quantity === quantity && ref.component === component && ref.modeNumber === ("modeNumber" in input ? input.modeNumber : undefined)
+        && result.assistant?.includes(ref.token)));
     }
     check("unchanged", JSON.stringify(engineeringContent(await save(page, path))) === JSON.stringify(engineeringContent(project)));
   });

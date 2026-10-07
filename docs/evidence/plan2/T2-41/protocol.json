@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "registeredDate": "2026-10-07",
   "timezone": "Asia/Taipei",
   "repetitions": 2,
@@ -220,5 +220,5 @@
       ]
     }
   },
-  "registrationNote": "Version 6 retains every version 5 sample, repetition and gate. Version 5 online exposed an agent using readonly inspect_diagnostics instead of the requested retained-copy trial, failing trial/source/evidence checks. Guidance now distinguishes readonly inspection from creating or continuing a valid copy and explicitly running the requested source, without discarding valid trial history. Qualitative shape descriptions must match frozen geometry. Previous failures and source drift remain recorded. Frozen object labels must be resolved to the actual read stable ids before object/result calls; v5 label-as-id failure and its blocked following request are retained. No gate, scenario or physics threshold is relaxed."
+  "registrationNote": "Version 7 retains all version 6 scenarios, repetitions, gates and physics tolerances. Version 6 revealed an obsolete diagnostic source schema describing only LC/CB while AC is supported; passing LC1 instead of requested AC1 selected static solving. Schema and guidance distinguish diagnostic-copy AC definitions from static load sources. Existing source check now also requires AC1 in trial evidence and service and the actual native second-order solver. Existing citation checks additionally require the requested quantity, component, mode and frozen input revision. No check is removed or relaxed. Version 6 online also exhausted the existing DeepSeek account balance; every failed service attempt is retained, with no automatic retries. A complete new online round is still required after connection recovery."
 }
