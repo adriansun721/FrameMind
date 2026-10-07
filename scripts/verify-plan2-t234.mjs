@@ -1,10 +1,11 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 
-const evidence = "docs/evidence/plan2/T2-34";
+const evidence = numericalEvidenceDirectory("T2-34");
 const server = await createServer({ server: { middlewareMode: true, watch: null }, appType: "custom" });
 try {
   const { modalCantilever } = await server.ssrLoadModule("/src/validation/modal-fixtures.ts");
@@ -100,7 +101,7 @@ try {
     assert.ok(Math.abs(coarse - fine) <= 1e-8 * Math.max(1e-30, fine), name + " independent integral convergence");
     assert.ok(curveError < .005, name + " PSD error " + curveError);
     assert.ok(rmsError < .005, name + " RMS error " + rmsError);
-    checks.push({ name, reference: "continuous EB cantilever, five analytical bending modes and exact spatial integrals", independentIntegration: { method: "composite Simpson", coarseIntervals: 100000, fineIntervals: 200000 }, referenceRms, rmsM: r.rms, curveError, rmsError, tolerance: .005, selectedDivisions: r && completed.latestAnalysis.input.randomBasis.modal.modal.selectedDivisions });
+    checks.push({ name, reference: "continuous EB cantilever, five analytical bending modes and exact spatial integrals", independentIntegration: { method: "composite Simpson", coarseIntervals: 100000, fineIntervals: 200000, coarseVarianceM2: coarse, fineVarianceM2: fine, relativeChange: Math.abs(coarse - fine) / Math.max(1e-30, fine) }, referencePeakPsd: referencePeak, maxAbsolutePsdError: curveError * referencePeak, referenceRms, rmsM: r.rms, curveError, rmsError, tolerance: .005, selectedDivisions: r && completed.latestAnalysis.input.randomBasis.modal.modal.selectedDivisions, convergence: r.convergence });
     return completed;
   };
 

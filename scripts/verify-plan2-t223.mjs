@@ -1,10 +1,11 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createServer } from "vite";
 
-const directory = "docs/evidence/plan2/T2-23";
+const directory = numericalEvidenceDirectory("T2-23");
 const server = await createServer({ server: { middlewareMode: true }, appType: "custom" });
 try {
   const { sectionCantilever } = await server.ssrLoadModule("/src/validation/section-fixtures.ts");

@@ -62,7 +62,9 @@
     "evidence:plan2:t236": "npm run build:native && npm run build && npx vitest run src/workspace/result-inspection.test.ts --maxWorkers=2 && node scripts/verify-plan2-t236.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-36-results.spec.ts",
     "evidence:plan2:t237": "npm run build:native && npm run build && npx vitest run src/workspace/stability-report.test.ts src/domain/engineering-report.test.ts src/workspace/report-word.test.ts src/workspace/report-pdf.test.ts --maxWorkers=2 && node scripts/verify-plan2-t237.mjs && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-37-reports.spec.ts",
     "evidence:plan2:t238": "npm run build:native && node scripts/verify-plan2-t238.mjs && npm run build && npx vitest run src/workspace/random-report.test.ts --maxWorkers=2 && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-38-random-reports.spec.ts",
-    "evidence:plan2:t239": "npm run build && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-39-workbench.spec.ts"
+    "evidence:plan2:t239": "npm run build && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-39-workbench.spec.ts",
+    "test:numerical-acceptance": "node --test scripts/numerical-acceptance.test.mjs",
+    "evidence:plan2:t240": "npm run build:native && npm run typecheck && npm run test:numerical-acceptance && node scripts/verify-plan2-t240.mjs"
   },
   "dependencies": {
     "docx": "^9.7.1",

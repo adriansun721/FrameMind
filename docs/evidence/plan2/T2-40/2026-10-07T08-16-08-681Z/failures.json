@@ -1,0 +1,2650 @@
+[
+  {
+    "task": "T2-14",
+    "name": "missing-parameter",
+    "evidence": {
+      "id": "missing-parameter",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_d356f03e-661a-4db6-9a14-4d2b9ef858cf",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:10.775Z",
+        "updatedAt": "2026-10-07T08:16:10.775Z",
+        "revision": 7,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 3,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 2,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "model-check",
+        "code": "invalid-parameter",
+        "field": "elasticModulusGPa"
+      },
+      "actual": {
+        "stage": "model-check",
+        "diagnostics": [
+          {
+            "code": "invalid-parameter",
+            "field": "elasticModulusGPa",
+            "message": "Missing or invalid elasticModulusGPa",
+            "target": {
+              "id": "material_0001",
+              "kind": "material"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "zero-length",
+    "evidence": {
+      "id": "zero-length",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_3d11619c-f132-4089-bb3b-178201ed52e5",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:10.819Z",
+        "updatedAt": "2026-10-07T08:16:10.819Z",
+        "revision": 7,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "elasticModulusGPa": 200,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 3,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 2,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "model-check",
+        "code": "invalid-geometry",
+        "field": "endNodeId"
+      },
+      "actual": {
+        "stage": "model-check",
+        "diagnostics": [
+          {
+            "code": "invalid-geometry",
+            "field": "endNodeId",
+            "message": "Invalid member length",
+            "target": {
+              "id": "member_0001",
+              "kind": "member"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-reference",
+    "evidence": {
+      "id": "invalid-reference",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_58be71d0-f39a-43eb-84ba-d9fc5246b7ac",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:10.854Z",
+        "updatedAt": "2026-10-07T08:16:10.854Z",
+        "revision": 7,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 3,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 2,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "model-check",
+        "code": "invalid-reference",
+        "field": "materialId"
+      },
+      "actual": {
+        "stage": "model-check",
+        "diagnostics": [
+          {
+            "code": "invalid-reference",
+            "field": "materialId",
+            "message": "Missing referenced object",
+            "target": {
+              "id": "member_0001",
+              "kind": "member"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "isolated-node",
+    "evidence": {
+      "id": "isolated-node",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_983c2e4e-29c9-415b-8eda-7c8748b21961",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:10.893Z",
+        "updatedAt": "2026-10-07T08:16:10.893Z",
+        "revision": 8,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0003",
+            "label": "N3",
+            "position": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "elasticModulusGPa": 200,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 4,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 2,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "model-check",
+        "code": "isolated-node",
+        "field": "connectivity"
+      },
+      "actual": {
+        "stage": "model-check",
+        "diagnostics": [
+          {
+            "code": "isolated-node",
+            "field": "connectivity",
+            "message": "Node is not connected to any member",
+            "target": {
+              "id": "node_0003",
+              "kind": "node"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "disconnected-unrestrained",
+    "evidence": {
+      "id": "disconnected-unrestrained",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_07da882b-d4fe-4ac5-b608-7ac09024b4db",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:10.926Z",
+        "updatedAt": "2026-10-07T08:16:10.927Z",
+        "revision": 10,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0003",
+            "label": "N3",
+            "position": {
+              "x": 0,
+              "y": 4,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0004",
+            "label": "N4",
+            "position": {
+              "x": 4,
+              "y": 4,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "elasticModulusGPa": 200,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          },
+          {
+            "id": "member_0002",
+            "label": "M2",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0,
+            "startNodeId": "node_0003",
+            "endNodeId": "node_0004"
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 5,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 3,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "model-check",
+        "code": "unrestrained-component"
+      },
+      "actual": {
+        "stage": "model-check",
+        "diagnostics": [
+          {
+            "code": "unrestrained-component",
+            "field": "restraints",
+            "message": "Connected component has no restrained DOFs",
+            "target": {
+              "id": "node_0003",
+              "kind": "node"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "no-support",
+    "evidence": {
+      "id": "no-support",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_563dc744-30e9-42e0-ba13-c5612165ce4e",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:10.964Z",
+        "updatedAt": "2026-10-07T08:16:10.964Z",
+        "revision": 7,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "elasticModulusGPa": 200,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "supports": [],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 3,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 2,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "model-check",
+        "code": "unrestrained-component"
+      },
+      "actual": {
+        "stage": "model-check",
+        "diagnostics": [
+          {
+            "code": "unrestrained-component",
+            "field": "restraints",
+            "message": "Connected component has no restrained DOFs",
+            "target": {
+              "id": "node_0001",
+              "kind": "node"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "rotational-mechanism",
+    "evidence": {
+      "id": "rotational-mechanism",
+      "passed": true,
+      "input": {
+        "format": "framemind-project",
+        "formatVersion": 2,
+        "id": "project_6b605aad-102c-48fd-bb88-3727d408b2a4",
+        "name": "T31 axial",
+        "createdAt": "2026-10-07T08:16:11.005Z",
+        "updatedAt": "2026-10-07T08:16:11.005Z",
+        "revision": 7,
+        "units": {
+          "length": "m",
+          "force": "kN",
+          "moment": "kN·m"
+        },
+        "nodes": [
+          {
+            "id": "node_0001",
+            "label": "N1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "node_0002",
+            "label": "N2",
+            "position": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "materials": [
+          {
+            "id": "material_0001",
+            "label": "M1",
+            "name": "Independent benchmark material",
+            "elasticModulusGPa": 200,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section_0001",
+            "label": "S1",
+            "name": "Independent benchmark section",
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.0002,
+            "secondMomentZM4": 0.0001,
+            "torsionalConstantM4": 0.00015,
+            "provenance": {
+              "kind": "custom"
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "member_0001",
+            "label": "M1",
+            "startNodeId": "node_0001",
+            "endNodeId": "node_0002",
+            "materialId": "material_0001",
+            "sectionId": "section_0001",
+            "rotationDegrees": 0
+          }
+        ],
+        "supports": [
+          {
+            "id": "support_0001",
+            "label": "B1",
+            "nodeId": "node_0001",
+            "restraints": [
+              true,
+              true,
+              true,
+              false,
+              false,
+              false
+            ]
+          }
+        ],
+        "nodalLoads": [
+          {
+            "id": "load_0001",
+            "label": "L1",
+            "nodeId": "node_0002",
+            "loadCaseId": "LC1",
+            "force": {
+              "x": 8,
+              "y": 0,
+              "z": 0
+            },
+            "moment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "uniformLoads": [],
+        "selfWeight": {
+          "enabled": false,
+          "loadCaseId": "LC1",
+          "gravity": {
+            "x": 0,
+            "y": 0,
+            "z": -9.81
+          }
+        },
+        "loadCases": [
+          {
+            "id": "LC1",
+            "name": "默认工况",
+            "description": ""
+          }
+        ],
+        "activeLoadCaseId": "LC1",
+        "nextLoadCaseNumber": 2,
+        "analysisResults": [],
+        "loadCombinations": [],
+        "nextLoadCombinationNumber": 1,
+        "analysisCases": [],
+        "nextAnalysisCaseNumber": 1,
+        "psdSpectra": [],
+        "nextPsdNumber": 1,
+        "nextNodeNumber": 3,
+        "nextMaterialNumber": 2,
+        "nextSectionNumber": 2,
+        "nextMemberNumber": 2,
+        "nextSupportNumber": 2,
+        "nextLoadNumber": 2,
+        "nextUniformLoadNumber": 1
+      },
+      "expected": {
+        "stage": "solve",
+        "code": "singular-system"
+      },
+      "actual": {
+        "stage": "solve",
+        "diagnostics": [
+          {
+            "code": "singular-system",
+            "dof": "rx",
+            "evidence": {
+              "globalDofIndex": 9,
+              "matrixScale": 500000,
+              "pivotMagnitude": 0,
+              "threshold": 5e-7
+            },
+            "field": "restraints",
+            "message": "Reduced stiffness is not positive definite above the registered pivot threshold",
+            "target": {
+              "id": "node_0002",
+              "kind": "node"
+            }
+          }
+        ]
+      },
+      "preserved": true
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "duplicate-member",
+    "evidence": {
+      "id": "duplicate-member",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "invalid-identity",
+          "field": "id",
+          "message": "Duplicate object identity",
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "missing-load-node",
+    "evidence": {
+      "id": "missing-load-node",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "invalid-reference",
+          "field": "nodeId",
+          "message": "Missing load node",
+          "target": {
+            "id": "load_0001",
+            "kind": "load"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-support-node",
+    "evidence": {
+      "id": "invalid-support-node",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "invalid-reference",
+          "field": "nodeId",
+          "message": "Missing support node",
+          "target": {
+            "id": "support_0001",
+            "kind": "support"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-material",
+    "evidence": {
+      "id": "invalid-material",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "invalid-parameter",
+          "field": "densityKgM3",
+          "message": "Invalid densityKgM3",
+          "target": {
+            "id": "material_0001",
+            "kind": "material"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-section",
+    "evidence": {
+      "id": "invalid-section",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "invalid-parameter",
+          "field": "secondMomentYM4",
+          "message": "Invalid secondMomentYM4",
+          "target": {
+            "id": "section_0001",
+            "kind": "section"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "nonfinite-load",
+    "evidence": {
+      "id": "nonfinite-load",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "force.x",
+          "message": "Missing or invalid force.x",
+          "target": {
+            "id": "load_0001",
+            "kind": "load"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-uniform-reference",
+    "evidence": {
+      "id": "invalid-uniform-reference",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "invalid-reference",
+          "field": "memberId",
+          "message": "Missing loaded member",
+          "target": {
+            "id": "uniform_load_0001",
+            "kind": "uniform-load"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-uniform-axis",
+    "evidence": {
+      "id": "invalid-uniform-axis",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "coordinateSystem",
+          "message": "Invalid uniform load coordinates",
+          "target": {
+            "id": "uniform_load_0001",
+            "kind": "uniform-load"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "effective-combination-mismatch",
+    "evidence": {
+      "id": "effective-combination-mismatch",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "intensity.x",
+          "message": "Combination effective distributed loads mismatch",
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "effective-combination-node-mismatch",
+    "evidence": {
+      "id": "effective-combination-node-mismatch",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "dof": "ux",
+          "field": "force.x",
+          "message": "Combination effective nodal loads mismatch",
+          "target": {
+            "id": "node_0002",
+            "kind": "node"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "effective-combination-case-mismatch",
+    "evidence": {
+      "id": "effective-combination-case-mismatch",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "combination.cases[0].loadCase.id",
+          "message": "Invalid combination case order or duplicate",
+          "target": {
+            "id": "CB1",
+            "kind": "load-combination"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "invalid-combination-factor",
+    "evidence": {
+      "id": "invalid-combination-factor",
+      "passed": true,
+      "stage": "model-check",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "combination.definition.terms[0].factor",
+          "message": "Invalid combination coefficient",
+          "target": {
+            "id": "CB1",
+            "kind": "load-combination"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-14",
+    "name": "overflow",
+    "evidence": {
+      "id": "overflow",
+      "passed": true,
+      "stage": "assembly",
+      "diagnostics": [
+        {
+          "code": "native-computation-error",
+          "field": "stiffness",
+          "message": "Nonfinite element assembly",
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-26",
+    "name": "failure-0",
+    "evidence": {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "singular-system",
+            "dof": "uz",
+            "evidence": {
+              "globalDofIndex": 8,
+              "matrixScale": 4000000.000000001,
+              "pivotMagnitude": 2.7284841053187847e-12,
+              "threshold": 0.000004000000000000001
+            },
+            "field": "restraints",
+            "message": "Reduced stiffness is not positive definite above the registered pivot threshold",
+            "target": {
+              "id": "node_0002",
+              "kind": "node"
+            }
+          }
+        ],
+        "message": "Reduced stiffness is not positive definite above the registered pivot threshold",
+        "name": "AnalysisFailure",
+        "stage": "solve"
+      },
+      "kind": "error",
+      "requestId": "request_a4002ee7-e192-4a89-a881-db3560acc9af"
+    }
+  },
+  {
+    "task": "T2-26",
+    "name": "failure-1",
+    "evidence": {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "mesh-budget-exhausted",
+            "field": "meshPlan",
+            "message": "Equation budget prevents even the initial mesh"
+          }
+        ],
+        "message": "Equation budget prevents even the initial mesh",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      },
+      "kind": "error",
+      "requestId": "request_a257b7d9-71a7-40fb-ae8f-92c7078d118d"
+    }
+  },
+  {
+    "task": "T2-27",
+    "name": "zero-density",
+    "evidence": {
+      "name": "zero-density",
+      "terminal": {
+        "error": {
+          "diagnostics": [
+            {
+              "code": "invalid-parameter",
+              "field": "densityKgM3",
+              "message": "Invalid densityKgM3",
+              "target": {
+                "id": "material_0001",
+                "kind": "material"
+              }
+            }
+          ],
+          "message": "Invalid densityKgM3",
+          "name": "AnalysisFailure",
+          "stage": "model-check"
+        },
+        "kind": "error",
+        "requestId": "request_8017d3d9-9ce7-4998-87e4-b40050b4992f"
+      }
+    }
+  },
+  {
+    "task": "T2-27",
+    "name": "missing-density",
+    "evidence": {
+      "name": "missing-density",
+      "terminal": {
+        "error": {
+          "diagnostics": [
+            {
+              "code": "invalid-parameter",
+              "field": "densityKgM3",
+              "message": "Missing or invalid densityKgM3",
+              "target": {
+                "id": "material_0001",
+                "kind": "material"
+              }
+            }
+          ],
+          "message": "Missing or invalid densityKgM3",
+          "name": "AnalysisFailure",
+          "stage": "model-check"
+        },
+        "kind": "error",
+        "requestId": "request_b531b34d-b112-498d-8f0f-e545226d67a6"
+      }
+    }
+  },
+  {
+    "task": "T2-27",
+    "name": "malformed-load",
+    "evidence": {
+      "name": "malformed-load",
+      "terminal": {
+        "error": {
+          "diagnostics": [
+            {
+              "code": "native-input-error",
+              "field": "input",
+              "message": "Static loads are not modal mass"
+            }
+          ],
+          "message": "Static loads are not modal mass",
+          "name": "AnalysisFailure",
+          "stage": "model-check"
+        },
+        "kind": "error",
+        "requestId": "request_f0e41ad2-a7f6-42bc-a23c-2cae958afe4e"
+      }
+    }
+  },
+  {
+    "task": "T2-27",
+    "name": "initial-equation-budget",
+    "evidence": {
+      "name": "initial-equation-budget",
+      "terminal": {
+        "error": {
+          "diagnostics": [
+            {
+              "code": "modal-budget-exhausted",
+              "field": "modal",
+              "message": "Equation budget prevents even the initial modal mesh"
+            }
+          ],
+          "message": "Equation budget prevents even the initial modal mesh",
+          "name": "AnalysisFailure",
+          "stage": "model-check"
+        },
+        "kind": "error",
+        "requestId": "request_145c1709-c60e-45d0-8127-4b191ebfd66e"
+      }
+    }
+  },
+  {
+    "task": "T2-27",
+    "name": "singular-mass",
+    "evidence": {
+      "name": "singular-mass",
+      "terminal": {
+        "error": {
+          "diagnostics": [
+            {
+              "code": "modal-singular-mass",
+              "field": "densityKgM3",
+              "message": "Missing positive inertia at a free coordinate"
+            }
+          ],
+          "message": "Missing positive inertia at a free coordinate",
+          "name": "AnalysisFailure",
+          "stage": "assembly"
+        },
+        "kind": "error",
+        "requestId": "request_e9cce50f-1411-418f-9b37-54a45c237f1e"
+      }
+    }
+  },
+  {
+    "task": "T2-28",
+    "name": "negative-point",
+    "evidence": {
+      "name": "negative-point",
+      "diagnostic": {
+        "diagnostics": [
+          {
+            "code": "native-input-error",
+            "field": "additionalMassKg",
+            "message": "Added mass must be a nonnegative finite scalar",
+            "target": {
+              "id": "node_0001",
+              "kind": "node"
+            }
+          }
+        ],
+        "message": "Added mass must be a nonnegative finite scalar",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      }
+    }
+  },
+  {
+    "task": "T2-28",
+    "name": "nonscalar-point",
+    "evidence": {
+      "name": "nonscalar-point",
+      "diagnostic": {
+        "diagnostics": [
+          {
+            "code": "native-input-error",
+            "field": "additionalMassKg",
+            "message": "Added mass must be a nonnegative finite scalar",
+            "target": {
+              "id": "node_0001",
+              "kind": "node"
+            }
+          }
+        ],
+        "message": "Added mass must be a nonnegative finite scalar",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      }
+    }
+  },
+  {
+    "task": "T2-28",
+    "name": "negative-line",
+    "evidence": {
+      "name": "negative-line",
+      "diagnostic": {
+        "diagnostics": [
+          {
+            "code": "native-input-error",
+            "field": "additionalLineMassKgM",
+            "message": "Added mass must be a nonnegative finite scalar",
+            "target": {
+              "id": "member_0001",
+              "kind": "member"
+            }
+          }
+        ],
+        "message": "Added mass must be a nonnegative finite scalar",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      }
+    }
+  },
+  {
+    "task": "T2-28",
+    "name": "nonfinite-line",
+    "evidence": {
+      "name": "nonfinite-line",
+      "diagnostic": {
+        "diagnostics": [
+          {
+            "code": "native-input-error",
+            "field": "additionalLineMassKgM",
+            "message": "Added mass must be a nonnegative finite scalar",
+            "target": {
+              "id": "member_0001",
+              "kind": "member"
+            }
+          }
+        ],
+        "message": "Added mass must be a nonnegative finite scalar",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      }
+    }
+  },
+  {
+    "task": "T2-28",
+    "name": "derived-mass-overflow",
+    "evidence": {
+      "name": "derived-mass-overflow",
+      "diagnostic": {
+        "diagnostics": [
+          {
+            "code": "modal-nonfinite-matrices",
+            "field": "modal",
+            "message": "Nonfinite stiffness or mass"
+          }
+        ],
+        "message": "Nonfinite stiffness or mass",
+        "name": "AnalysisFailure",
+        "stage": "assembly"
+      }
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "coarse-unconverged",
+    "evidence": {
+      "name": "coarse-unconverged",
+      "diagnostics": [
+        {
+          "code": "buckling-not-converged",
+          "field": "max-divisions",
+          "message": "Buckling factors did not converge within the mesh/equation budget; increase the budget or reduce the requested modes"
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "equation-budget",
+    "evidence": {
+      "name": "equation-budget",
+      "diagnostics": [
+        {
+          "code": "buckling-not-converged",
+          "field": "equation-budget",
+          "message": "Buckling factors did not converge within the mesh/equation budget; increase the budget or reduce the requested modes"
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "tension-reference",
+    "evidence": {
+      "name": "tension-reference",
+      "diagnostics": [
+        {
+          "code": "buckling-no-positive-factor",
+          "field": "reference",
+          "message": "No finite positive buckling factor for the reference load direction; check reference axial forces"
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "unstable-fixed",
+    "evidence": {
+      "name": "unstable-fixed",
+      "diagnostics": [
+        {
+          "code": "buckling-unstable-preload",
+          "field": "fixed",
+          "message": "Fixed preload tangent is not positive definite; reduce fixed loads and check supports/releases"
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "initial-budget",
+    "evidence": {
+      "name": "initial-budget",
+      "diagnostics": [
+        {
+          "code": "buckling-budget-exhausted",
+          "field": "buckling",
+          "message": "Equation budget prevents initial buckling mesh"
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "mechanism",
+    "evidence": {
+      "name": "mechanism",
+      "diagnostics": [
+        {
+          "code": "unrestrained-component",
+          "field": "restraints",
+          "message": "Connected component has no restrained DOFs",
+          "target": {
+            "id": "node_0001",
+            "kind": "node"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-30",
+    "name": "tampered-source",
+    "evidence": {
+      "name": "tampered-source",
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "input",
+          "message": "Frozen buckling pattern mismatch"
+        }
+      ]
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "unexcited-overcritical-saved-column",
+    "evidence": {
+      "name": "unexcited-overcritical-saved-column",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "over-matrix-limit-overcritical-saved-columns",
+    "evidence": {
+      "name": "over-matrix-limit-overcritical-saved-columns",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "iteration-limit",
+    "evidence": {
+      "name": "iteration-limit",
+      "code": "second-order-not-converged"
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "over-critical",
+    "evidence": {
+      "name": "over-critical",
+      "code": "second-order-unstable-tangent"
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "scope-limit",
+    "evidence": {
+      "name": "scope-limit",
+      "code": "second-order-scope-exceeded"
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "mesh-limit",
+    "evidence": {
+      "name": "mesh-limit",
+      "code": "second-order-mesh-not-converged"
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "equation-limit",
+    "evidence": {
+      "name": "equation-limit",
+      "code": "second-order-budget-exhausted"
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "fabricated-zero-correction",
+    "evidence": {
+      "name": "fabricated-zero-correction",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "forged-iteration",
+    "evidence": {
+      "name": "forged-iteration",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "forged-linear-load",
+    "evidence": {
+      "name": "forged-linear-load",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "forged-geometric",
+    "evidence": {
+      "name": "forged-geometric",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "forged-response",
+    "evidence": {
+      "name": "forged-response",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-31",
+    "name": "forged-mesh-error",
+    "evidence": {
+      "name": "forged-mesh-error",
+      "rejected": true
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "frequency-budget",
+    "evidence": {
+      "name": "frequency-budget",
+      "code": "random-frequency-budget",
+      "publishedPartialResult": false,
+      "evidence": {
+        "attemptedPoints": 83,
+        "detail": {
+          "nextPoints": 165
+        },
+        "pointBudget": 100,
+        "refinementBudget": 10,
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.0499604398995798,
+            "variance": 0.0024960455549595255
+          }
+        ],
+        "status": "failed"
+      }
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "integration-budget",
+    "evidence": {
+      "name": "integration-budget",
+      "code": "random-integration-budget",
+      "publishedPartialResult": false,
+      "evidence": {
+        "attemptedPoints": 165,
+        "detail": {},
+        "pointBudget": 20001,
+        "refinementBudget": 1,
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.0499604398995798,
+            "variance": 0.0024960455549595255
+          },
+          {
+            "curveError": 0.04277751556628362,
+            "points": 165,
+            "rms": 0.049560087742157366,
+            "rmsError": 0.008013383353452079,
+            "variance": 0.0024562022970103367,
+            "varianceError": 0.01596255239413485
+          }
+        ],
+        "status": "failed"
+      }
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "modal-truncation",
+    "evidence": {
+      "name": "modal-truncation",
+      "code": "random-modal-truncation",
+      "publishedPartialResult": false,
+      "evidence": {
+        "attemptedPoints": 141,
+        "detail": {
+          "curveError": 0.9927543224138571,
+          "lowerModeCount": 4,
+          "rmsError": 0.8661462793253174,
+          "upperModeCount": 6
+        },
+        "pointBudget": 20001,
+        "refinementBudget": 10,
+        "runs": [
+          {
+            "points": 71,
+            "rms": 0.000607473037430076,
+            "variance": 3.690234912045226e-7
+          },
+          {
+            "curveError": 0.002388017712946271,
+            "points": 141,
+            "rms": 0.0006074784099183724,
+            "rmsError": 0.000008843916439901903,
+            "variance": 3.690300185169541e-7,
+            "varianceError": 0.00001768775466487834
+          }
+        ],
+        "status": "failed"
+      }
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "cropped-band",
+    "evidence": {
+      "name": "cropped-band",
+      "publicInputRejected": true
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "uncovered-band",
+    "evidence": {
+      "name": "uncovered-band",
+      "publicInputRejected": true
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "zero-direction",
+    "evidence": {
+      "name": "zero-direction",
+      "publicInputRejected": true
+    }
+  },
+  {
+    "task": "T2-33",
+    "name": "missing-force-participation",
+    "evidence": {
+      "name": "missing-force-participation",
+      "publicInputRejected": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "partial-correlation",
+    "evidence": {
+      "name": "partial-correlation",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "cross-spectrum",
+    "evidence": {
+      "name": "cross-spectrum",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "undeclared-phase",
+    "evidence": {
+      "name": "undeclared-phase",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "duplicate-source",
+    "evidence": {
+      "name": "duplicate-source",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "partial-member",
+    "evidence": {
+      "name": "partial-member",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "local-direction",
+    "evidence": {
+      "name": "local-direction",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "missing-member",
+    "evidence": {
+      "name": "missing-member",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "different-source-bands",
+    "evidence": {
+      "name": "different-source-bands",
+      "rendererRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "forged-frozen-second-source",
+    "evidence": {
+      "name": "forged-frozen-second-source",
+      "decoderRejects": true
+    }
+  },
+  {
+    "task": "T2-34",
+    "name": "forged-internal-modal-coordinate",
+    "evidence": {
+      "name": "forged-internal-modal-coordinate",
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "differential-target",
+    "evidence": {
+      "name": "differential-target",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "base-rotation",
+    "evidence": {
+      "name": "base-rotation",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "correlated-force-and-base",
+    "evidence": {
+      "name": "correlated-force-and-base",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "partial-correlation",
+    "evidence": {
+      "name": "partial-correlation",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "wrong-force-spectrum",
+    "evidence": {
+      "name": "wrong-force-spectrum",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "uncovered-axial-direction",
+    "evidence": {
+      "name": "uncovered-axial-direction",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "unsupported-support-restraint",
+    "evidence": {
+      "name": "unsupported-support-restraint",
+      "rendererRejects": true,
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "missing-relative-frame",
+    "evidence": {
+      "name": "missing-relative-frame",
+      "decoderRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "forged-absolute-frame",
+    "evidence": {
+      "name": "forged-absolute-frame",
+      "decoderRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "forged-acceleration-spectrum",
+    "evidence": {
+      "name": "forged-acceleration-spectrum",
+      "decoderRejects": true
+    }
+  },
+  {
+    "task": "T2-35",
+    "name": "base-frequency-budget-no-partial-result",
+    "evidence": {
+      "name": "base-frequency-budget-no-partial-result",
+      "nativeRejects": true
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-nan",
+    "evidence": {
+      "method": "static",
+      "name": "nonfinite-result-nan",
+      "passed": true,
+      "error": "Error: 分析结果位移无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-infinity",
+    "evidence": {
+      "method": "static",
+      "name": "nonfinite-result-infinity",
+      "passed": true,
+      "error": "Error: 分析结果位移无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-json-null",
+    "evidence": {
+      "method": "static",
+      "name": "nonfinite-result-json-null",
+      "passed": true,
+      "error": "Error: 分析结果位移无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "incomplete-marked-success",
+    "evidence": {
+      "method": "static",
+      "name": "incomplete-marked-success",
+      "passed": true,
+      "error": "Error: 分析结果对象引用无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "null-input",
+    "evidence": {
+      "method": "static",
+      "name": "null-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "invalid-parameter",
+          "field": "elasticModulusGPa",
+          "message": "Missing or invalid elasticModulusGPa",
+          "target": {
+            "id": "material_0001",
+            "kind": "material"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "overflow-input",
+    "evidence": {
+      "method": "static",
+      "name": "overflow-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "native-computation-error",
+          "field": "stiffness",
+          "message": "Nonfinite element assembly",
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-nan",
+    "evidence": {
+      "method": "modal",
+      "name": "nonfinite-result-nan",
+      "passed": true,
+      "error": "Error: 模态结果、质量来源或冻结映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-infinity",
+    "evidence": {
+      "method": "modal",
+      "name": "nonfinite-result-infinity",
+      "passed": true,
+      "error": "Error: 模态结果、质量来源或冻结映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-json-null",
+    "evidence": {
+      "method": "modal",
+      "name": "nonfinite-result-json-null",
+      "passed": true,
+      "error": "Error: 模态结果、质量来源或冻结映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "incomplete-marked-success",
+    "evidence": {
+      "method": "modal",
+      "name": "incomplete-marked-success",
+      "passed": true,
+      "error": "Error: 模态结果、质量来源或冻结映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "null-input",
+    "evidence": {
+      "method": "modal",
+      "name": "null-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "invalid-parameter",
+          "field": "elasticModulusGPa",
+          "message": "Missing or invalid elasticModulusGPa",
+          "target": {
+            "id": "material_0001",
+            "kind": "material"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "overflow-input",
+    "evidence": {
+      "method": "modal",
+      "name": "overflow-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "native-computation-error",
+          "field": "stiffness",
+          "message": "Nonfinite element assembly",
+          "position": 0,
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-nan",
+    "evidence": {
+      "method": "buckling",
+      "name": "nonfinite-result-nan",
+      "passed": true,
+      "error": "Error: 屈曲结果、预应力或冻结形态映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-infinity",
+    "evidence": {
+      "method": "buckling",
+      "name": "nonfinite-result-infinity",
+      "passed": true,
+      "error": "Error: 屈曲结果、预应力或冻结形态映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-json-null",
+    "evidence": {
+      "method": "buckling",
+      "name": "nonfinite-result-json-null",
+      "passed": true,
+      "error": "Error: 屈曲结果、预应力或冻结形态映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "incomplete-marked-success",
+    "evidence": {
+      "method": "buckling",
+      "name": "incomplete-marked-success",
+      "passed": true,
+      "error": "Error: 屈曲结果、预应力或冻结形态映射无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "null-input",
+    "evidence": {
+      "method": "buckling",
+      "name": "null-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "invalid-parameter",
+          "field": "elasticModulusGPa",
+          "message": "Missing or invalid elasticModulusGPa",
+          "target": {
+            "id": "material_0001",
+            "kind": "material"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "overflow-input",
+    "evidence": {
+      "method": "buckling",
+      "name": "overflow-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "native-computation-error",
+          "field": "stiffness",
+          "message": "Nonfinite element assembly",
+          "position": 0,
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-nan",
+    "evidence": {
+      "method": "second-order",
+      "name": "nonfinite-result-nan",
+      "passed": true,
+      "error": "Error: 二阶实际加载／平衡、响应或冻结输入不一致"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-infinity",
+    "evidence": {
+      "method": "second-order",
+      "name": "nonfinite-result-infinity",
+      "passed": true,
+      "error": "Error: 二阶实际加载／平衡、响应或冻结输入不一致"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-json-null",
+    "evidence": {
+      "method": "second-order",
+      "name": "nonfinite-result-json-null",
+      "passed": true,
+      "error": "Error: 二阶实际加载／平衡、响应或冻结输入不一致"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "incomplete-marked-success",
+    "evidence": {
+      "method": "second-order",
+      "name": "incomplete-marked-success",
+      "passed": true,
+      "error": "Error: 二阶实际加载／平衡、响应或冻结输入不一致"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "null-input",
+    "evidence": {
+      "method": "second-order",
+      "name": "null-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "invalid-parameter",
+          "field": "elasticModulusGPa",
+          "message": "Missing or invalid elasticModulusGPa",
+          "target": {
+            "id": "material_0001",
+            "kind": "material"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "overflow-input",
+    "evidence": {
+      "method": "second-order",
+      "name": "overflow-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "native-computation-error",
+          "field": "stiffness",
+          "message": "Nonfinite element assembly",
+          "position": 0,
+          "target": {
+            "id": "member_0001",
+            "kind": "member"
+          }
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-nan",
+    "evidence": {
+      "method": "random",
+      "name": "nonfinite-result-nan",
+      "passed": true,
+      "error": "Error: 随机响应结果、冻结来源或收敛记录无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-infinity",
+    "evidence": {
+      "method": "random",
+      "name": "nonfinite-result-infinity",
+      "passed": true,
+      "error": "Error: 随机响应结果、冻结来源或收敛记录无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "nonfinite-result-json-null",
+    "evidence": {
+      "method": "random",
+      "name": "nonfinite-result-json-null",
+      "passed": true,
+      "error": "Error: 随机响应结果、冻结来源或收敛记录无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "incomplete-marked-success",
+    "evidence": {
+      "method": "random",
+      "name": "incomplete-marked-success",
+      "passed": true,
+      "error": "Error: 随机响应结果、冻结来源或收敛记录无效"
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "null-input",
+    "evidence": {
+      "method": "random",
+      "name": "null-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "input",
+          "message": "Random modal structural/mass basis mismatch"
+        }
+      ],
+      "publishedResult": false
+    }
+  },
+  {
+    "task": "T2-40-guards",
+    "name": "overflow-input",
+    "evidence": {
+      "method": "random",
+      "name": "overflow-input",
+      "passed": true,
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "code": "native-input-error",
+          "field": "input",
+          "message": "Random modal structural/mass basis mismatch"
+        }
+      ],
+      "publishedResult": false
+    }
+  }
+]

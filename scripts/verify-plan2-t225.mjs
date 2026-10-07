@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -28,7 +29,7 @@ try {
     // Actual process residual on every free DOF, including reference-eliminated rotations.
     const u = result.nodes.flatMap((n) => [...Object.values(n.displacement), ...Object.values(n.rotation)]);
     const residual = result.process.freeDofs.map((i) => result.process.assembledStiffness[i].reduce((sum, k, j) => sum + k * u[j], 0) - result.process.loadVector[i]);
-    for (const [i, value] of residual.entries()) near(`${name}:residual:${i}`, value, 0);
+    for (const [i, value] of residual.entries()) near(`${name}:residual:${i}`, value, 0, result.process.freeDofs[i] % 6 < 3 ? "kN" : "kN·m");
     return result;
   };
   // Independent two-plane fixed/hinged EB beam references registered in ADR-0058.
@@ -53,7 +54,7 @@ try {
   for (const n of portal.nodes.slice(2)) { near(`portal:${n.nodeId}:Rz`, n.reaction.z, 4); for (const a of ["x", "y", "z"]) near(`portal:${n.nodeId}:M${a}`, n.reactionMoment[a], 0, "kN·m"); }
   for (const m of portal.members.slice(1)) near(`portal:${m.memberId}:compression`, m.localEndForces.start[0], 4);
   for (const position of [0, 16]) near(`portal:beam-end:${position}`, portal.members[0].nativeResponses[position].forces[4], 0, "kN·m");
-  await mkdir("docs/evidence/plan2/T2-25", { recursive: true });
-  await writeFile("docs/evidence/plan2/T2-25/numerical-results.json", JSON.stringify({ passed: true, registeredBasis: "docs/decisions/0058-local-member-end-releases.md", solver: NATIVE_RELEASE_STATIC_SOLVER, checks, samples }, null, 2));
+  await mkdir(numericalEvidenceDirectory("T2-25"), { recursive: true });
+  await writeFile(`${numericalEvidenceDirectory("T2-25")}/numerical-results.json`, JSON.stringify({ passed: true, registeredBasis: "docs/decisions/0058-local-member-end-releases.md", solver: NATIVE_RELEASE_STATIC_SOLVER, checks, samples }, null, 2));
   console.log(`T2-25: ${samples.length} independent native cases, ${checks.length} checks passed`);
 } finally { await server.close(); }

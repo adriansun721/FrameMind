@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -132,7 +133,7 @@ try {
   }
   const overflow = packet(project, (r) => { r.input.members[0].additionalLineMassKgM = 1e308; });
   assert.equal(overflow.kind, "error"); failures.push({ name: "derived-mass-overflow", diagnostic: overflow.error });
-  const evidence = resolve("docs/evidence/plan2/T2-28"); await mkdir(evidence, { recursive: true });
+  const evidence = resolve(numericalEvidenceDirectory("T2-28")); await mkdir(evidence, { recursive: true });
   await writeFile(resolve(evidence, "numerics.json"), JSON.stringify({ passed: true, reference: "ADR-0061 continuous EB tip-mass boundary determinant and uniform-line formulas", tipRoot: root, caseCount: cases.length, checkCount: checks.length, failureCount: failures.length, cases, checks, failures }, null, 2));
   await writeFile(resolve(evidence, "point-and-line.framemind"), encodeProject(p.attachAnalysisResult(mixedProject, mixed)));
   console.log(JSON.stringify({ passed: true, cases: cases.length, checks: checks.length, failures: failures.length, tipRoot: root, tipFrequencyHz: referenceTipFrequency }));

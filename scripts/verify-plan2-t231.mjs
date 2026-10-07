@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -173,7 +174,8 @@ try {
     ["forged-response",(r)=>{r.nodes[1].displacement.y+=.001;}],
     ["forged-mesh-error",(r)=>{r.secondOrder.runs.at(-1).error.sectionForce=0;}],
   ]) { const changed=structuredClone(original); mutate(changed); assert.throws(()=>decodeAnalysisResult(changed)); failures.push({name,rejected:true}); }
-  const directory = "docs/evidence/plan2/T2-31"; await mkdir(directory, { recursive: true });
+  const directory = numericalEvidenceDirectory("T2-31"); await mkdir(directory, { recursive: true });
+  await writeFile(`${directory}/baseline.framemind`, encodeProject(p.attachAnalysisResult(base, original)));
   await writeFile(`${directory}/numerics.json`, JSON.stringify({ cases, checks, failures, passed: true }, null, 2));
   console.log(JSON.stringify({ cases: cases.length, checks: checks.length, failures: failures.length, passed: true }));
 } finally { await server.close(); }

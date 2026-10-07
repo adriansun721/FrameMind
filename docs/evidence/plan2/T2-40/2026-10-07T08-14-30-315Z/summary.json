@@ -1,0 +1,404 @@
+{
+  "task": "T2-40",
+  "startedAt": "2026-10-07T08:14:30.315Z",
+  "completedAt": "2026-10-07T08:15:43.800Z",
+  "runId": "2026-10-07T08-14-30-315Z",
+  "registration": "registration.json",
+  "passed": true,
+  "checks": 5639,
+  "failed": [],
+  "byUnit": {
+    "1": {
+      "required": 1052,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 0.008556683394999709,
+      "maxRelativeError": 0.00003387823463822037,
+      "worstToleranceRatio": 0.016939117309527636,
+      "maxAbsoluteQuantity": "T2-30/cantilever-factor:2",
+      "worstToleranceQuantity": "T2-30/portal-continuum-factor",
+      "maxRelativeQuantity": "T2-30/portal-continuum-factor"
+    },
+    "m": {
+      "required": 348,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 0.0037647155285291944,
+      "maxRelativeError": 0.0026328728457914756,
+      "worstToleranceRatio": 0.5265745691582951,
+      "maxAbsoluteQuantity": "T2-35/mass-dominated-sdof/rms",
+      "worstToleranceQuantity": "T2-33/coherent-modal-antiresonance/rms",
+      "maxRelativeQuantity": "T2-33/coherent-modal-antiresonance/rms"
+    },
+    "rad": {
+      "required": 193,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 3.3219954564955856e-15,
+      "maxRelativeError": 1.6740770754342306e-12,
+      "worstToleranceRatio": 0.00005084957247878847,
+      "maxAbsoluteQuantity": "T2-14/node_0004.rotation.x",
+      "worstToleranceQuantity": "T2-14/node_0002.rotation.x",
+      "maxRelativeQuantity": "T2-14/node_0003.rotation.z"
+    },
+    "kN": {
+      "required": 2155,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 2.8848035071860068e-12,
+      "maxRelativeError": 9.813715745641294e-12,
+      "worstToleranceRatio": 0.0028848035071860068,
+      "maxAbsoluteQuantity": "T2-14/equilibrium.2",
+      "maxRelativeQuantity": "T2-14/member_0006.section@2.0",
+      "worstToleranceQuantity": "T2-14/equilibrium.2"
+    },
+    "kN·m": {
+      "required": 1727,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 4.0121834143924673e-7,
+      "maxRelativeError": 6.733498388501478e-7,
+      "worstToleranceRatio": 0.011503686891956022,
+      "maxAbsoluteQuantity": "T2-31/moment-500",
+      "worstToleranceQuantity": "T2-14/equilibrium.4",
+      "maxRelativeQuantity": "T2-31/moment-500"
+    },
+    "m²": {
+      "required": 5,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 1.3877787807814457e-17,
+      "maxRelativeError": 1.7437251543111364e-15,
+      "worstToleranceRatio": 0.0017437251543111364,
+      "maxAbsoluteQuantity": "T2-22/rectangle:areaM2",
+      "maxRelativeQuantity": "T2-22/circular-tube:areaM2",
+      "worstToleranceQuantity": "T2-22/circular-tube:areaM2"
+    },
+    "m⁴": {
+      "required": 15,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 2.168404344971009e-19,
+      "maxRelativeError": 1.0035250657867963e-15,
+      "worstToleranceRatio": 0.0010035250657867963,
+      "maxAbsoluteQuantity": "T2-22/rectangle:secondMomentYM4",
+      "maxRelativeQuantity": "T2-22/circular-tube:torsionalConstantM4",
+      "worstToleranceQuantity": "T2-22/circular-tube:torsionalConstantM4"
+    },
+    "Hz": {
+      "required": 55,
+      "informational": 1,
+      "failed": 0,
+      "maxAbsoluteError": 0.6214515019407827,
+      "maxRelativeError": 0.001607145719688235,
+      "worstToleranceRatio": 0.8035728597402109,
+      "maxAbsoluteQuantity": "T2-27/fixed-frequency:5",
+      "maxRelativeQuantity": "T2-27/fixed-frequency:5",
+      "worstToleranceQuantity": "T2-27/fixed-frequency:5"
+    },
+    "kg": {
+      "required": 59,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 1.1368683772161603e-13,
+      "maxRelativeError": 2.4137332849600006e-16,
+      "worstToleranceRatio": 0.0001991012919818144,
+      "maxAbsoluteQuantity": "T2-28/fixed-node:total",
+      "maxRelativeQuantity": "T2-28/line:structural",
+      "worstToleranceQuantity": "T2-28/line:structural"
+    },
+    "m²/Hz": {
+      "required": 29,
+      "informational": 0,
+      "failed": 0,
+      "maxAbsoluteError": 9.228542090932024,
+      "maxRelativeError": null,
+      "worstToleranceRatio": 0.5813777997761246,
+      "maxAbsoluteQuantity": "T2-35/mass-dominated-sdof/psd-max-error",
+      "worstToleranceQuantity": "T2-33/coherent-modal-antiresonance/psd-max-error"
+    }
+  },
+  "suites": [
+    {
+      "task": "T2-14",
+      "basis": "docs/decisions/0032-t31-independent-numerical-benchmarks.md",
+      "coverage": "Full 22-case static regression: spatial frame, axes, distributed loads, self-weight and combinations; equilibrium and actual process residuals; 7 invalid models and raw protocol failures.",
+      "elapsedMs": 1847.729,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"cases\":22,\"failureCases\":7,\"checks\":2322,\"failed\":[],\"errors\":[],\"failures\":[]}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-14-numerical-results.json.gz",
+      "artifactSha256": "7178c1b9b5b930a17947b5fb7d8a2fe7e8d187318d443295632fd87efd930f7d",
+      "sourceChecks": 2322,
+      "quantities": 2322,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-22",
+      "basis": "docs/decisions/0055-parametric-sections.md",
+      "coverage": "Five idealized section reference property tables and 15 rotated analytical cantilevers.",
+      "elapsedMs": 9554.6798,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "T2-22: 172 independent native checks passed; 15 shape/orientation solves plus edit/recompute",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-22-native-verification.json.gz",
+      "artifactSha256": "302fd2ca5fbc778f6e00afb8049a6f2e05efdbed9048737fc196992dea7b5e7e",
+      "sourceChecks": 172,
+      "quantities": 172,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-23",
+      "basis": "docs/decisions/0056-catalog-sections-and-legacy-properties.md",
+      "coverage": "Original catalog property transcriptions and legacy property-section compatibility.",
+      "elapsedMs": 16228.1348,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "T2-23: 94 native reference checks passed; 9 catalog/orientation solves and legacy migration solve",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-23-native-verification.json.gz",
+      "artifactSha256": "324f62415172cb3c95d59a6edec41d42d7a8eaa0814ffb340a727e75c0550f98",
+      "sourceChecks": 94,
+      "quantities": 94,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-25",
+      "basis": "docs/decisions/0058-local-member-end-releases.md",
+      "coverage": "All 16 end-release combinations and portal; residual DOF units distinguish forces and moments.",
+      "elapsedMs": 1912.1196000000018,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "T2-25: 17 independent native cases, 152 checks passed",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-25-numerical-results.json.gz",
+      "artifactSha256": "d2dedddf60dfba0d2ae03ad03077a6ef560e4595a8f3beadd41a12d69709d645",
+      "sourceChecks": 152,
+      "quantities": 152,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-26",
+      "basis": "docs/decisions/0059-internal-mesh-and-static-convergence.md",
+      "coverage": "Internal subdivision and engineering-object mapping; analytical midpoint deflection, mesh histories, equilibrium, mechanism and budgets.",
+      "elapsedMs": 4977.510400000003,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "T2-26: 35 native cases, 1647 independent checks, 2 explicit failures passed",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-26-numerical-results.json.gz",
+      "artifactSha256": "70ddc9a1f474559396bdedda239f144c98c5211db3252d82e9b628e424bcc83d",
+      "sourceChecks": 1647,
+      "quantities": 1647,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-27",
+      "basis": "docs/decisions/0060-structural-mass-and-modal-analysis.md",
+      "coverage": "Continuum cantilever/pinned/fixed frequencies and shapes, mass-normalized residuals, arbitrary sign and four-dimensional repeated-root subspace.",
+      "elapsedMs": 2078.491000000002,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"cases\":11,\"checks\":347,\"diagnosticCases\":5}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-27-numerics.json.gz",
+      "artifactSha256": "f1ac458571a312b0e6601a8b69ed39f9b9906d671d440d1d8d7bebb49149d05d",
+      "sourceChecks": 347,
+      "quantities": 346,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-28",
+      "basis": "docs/decisions/0061-explicit-point-and-line-mass.md",
+      "coverage": "Independent tip-mass boundary determinant, uniform line mass, mass balance, self-weight separation and released mass coordinates.",
+      "elapsedMs": 2929.1574000000037,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"cases\":14,\"checks\":334,\"failures\":5,\"tipRoot\":1.2479174096064694,\"tipFrequencyHz\":4.012719992884193}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-28-numerics.json.gz",
+      "artifactSha256": "8852d5149e210dbb047c1e43ff0ba0c808c23bd5a26d5c83303b4fdbb406f8ba",
+      "sourceChecks": 334,
+      "quantities": 333,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-29",
+      "basis": "docs/decisions/0062-modal-damping-and-truncation.md",
+      "coverage": "Uniform/per-mode damping and modal sufficiency; damping response independently checked by T2-33.",
+      "elapsedMs": 1571.1006999999954,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "T2-29: 4 native runs, 4 damping/truncation scenarios passed",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-29-numerics.json.gz",
+      "artifactSha256": "e68b71293ab524ef97b3c61ea0717c0d88682c6bb3a2d77029c6577653abd1c6",
+      "sourceChecks": 4,
+      "quantities": 4,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-30",
+      "basis": "docs/decisions/0063-fixed-preload-eigenvalue-buckling.md",
+      "coverage": "Euler column and portal, fixed preload not scaled, shape sign/normalization, repeated-root subspace, actual eigen residuals and instability failures.",
+      "elapsedMs": 5449.630799999999,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"nativeRuns\":11,\"checks\":64,\"evidence\":\"D:\\\\FrameMind\\\\.scratch\\\\t240-MrJOYM\\\\T2-30\"}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-30-numerics.json.gz",
+      "artifactSha256": "59a28849eb02816311355a373d8ac7a39d3ef2632054762e0432f611ed87eea8",
+      "sourceChecks": 64,
+      "quantities": 56,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-31",
+      "basis": "docs/decisions/0064-initial-stress-elastic-second-order.md",
+      "coverage": "Continuous tan/tanh column and independent RK4 variable-axial-force reference, portal, mesh convergence, actual correction residuals, instability and nonconvergence.",
+      "elapsedMs": 6740.854200000002,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"cases\":17,\"checks\":28,\"failures\":13,\"passed\":true}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-31-numerics.json.gz",
+      "artifactSha256": "100dd212bbd00390ec87d6ac3383edb7f73eb8fa885cab1aedf69cc1e1ef70c7",
+      "sourceChecks": 28,
+      "quantities": 23,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-33",
+      "basis": "docs/decisions/0066-single-node-random-response.md",
+      "coverage": "20 continuous analytical modes, scalar oscillator, damping, narrow peak, antiresonance, piecewise spectrum, modal/frequency/integration budgets.",
+      "elapsedMs": 5819.6586000000025,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "T2-33: 11 numeric scenarios, 7 failure scenarios passed",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-33-numerics.json.gz",
+      "artifactSha256": "47a07f3419cb55e96276b22174aa72809bf08546a025030108dcb874d60a7ab2",
+      "sourceChecks": 11,
+      "quantities": 14,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-34",
+      "basis": "docs/decisions/0067-distributed-random-sources.md",
+      "coverage": "Analytical spatial integrals, same-source coherence/cancellation and independent-source PSD summation.",
+      "elapsedMs": 4379.1875999999975,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"checks\":13,\"failures\":10,\"evidence\":\"D:\\\\FrameMind\\\\.scratch\\\\t240-MrJOYM\\\\T2-34\"}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-34-numerics.json.gz",
+      "artifactSha256": "f81559c66f7b13b06efb34407d99bb6ca6699a6e12ee43272fce1611c21c4839",
+      "sourceChecks": 13,
+      "quantities": 24,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-35",
+      "basis": "docs/decisions/0068-whole-base-random-excitation.md",
+      "coverage": "Continuous whole-base participation, tip-mass SDOF limit, force/base independence, PSD unit conversion, modal extraction comparison.",
+      "elapsedMs": 7521.179299999996,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"checks\":16,\"failures\":11,\"evidence\":\"D:\\\\FrameMind\\\\.scratch\\\\t240-MrJOYM\\\\T2-35\"}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-35-numerics.json.gz",
+      "artifactSha256": "c09f812b35750c88a6360c5014e873f309d18864e3b0cf194c1bd6784fe17c82",
+      "sourceChecks": 16,
+      "quantities": 20,
+      "failedQuantities": []
+    },
+    {
+      "task": "T2-40-guards",
+      "basis": "src/validation/t240-protocol.json",
+      "coverage": "Five methods reject nonfinite and incomplete saved success records; native invalid/overflow requests publish error diagnostics and no successful result.",
+      "elapsedMs": 1998.2685999999958,
+      "execution": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "stdout": "{\"passed\":true,\"checks\":30}",
+        "stderr": ""
+      },
+      "passed": true,
+      "artifact": "T2-40-guards-numerics.json.gz",
+      "artifactSha256": "8696dbb9c7b8c12ae84c94c90096e944399425c0c4531f99cc37a26722e77032",
+      "sourceChecks": 30
+    }
+  ],
+  "convergenceChecks": {
+    "mesh": true,
+    "modal": true,
+    "frequency": true,
+    "integration": true
+  },
+  "convergenceCounts": {
+    "mesh": 91,
+    "modal": 30,
+    "frequency": 29,
+    "integration": 58
+  },
+  "quantities": "quantities.json.gz",
+  "convergence": "convergence.json",
+  "failureCases": "failures.json",
+  "failureCaseCount": 110,
+  "limitsChanged": false
+}

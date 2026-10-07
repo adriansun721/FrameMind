@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -114,8 +115,9 @@ try {
   const summary=readResults(result,true,{collection:"summary"}), modes=readResults(result,true,{collection:"modes",offset:1,limit:2}), mass=readResults(result,true,{collection:"mass"});
   assert.equal(summary.method,"modal"); assert.equal(modes.items.length,2); near("tool-mass",mass.items[0].massKg,471,1e-12);
   assert.throws(()=>readResults(result,true,{collection:"nodes"}));
-  await mkdir("docs/evidence/plan2/T2-27",{recursive:true});
-  await writeFile("docs/evidence/plan2/T2-27/numerics.json",JSON.stringify({passed:true,cases,checks,diagnosticCases:5},null,2));
-  await writeFile("docs/evidence/plan2/T2-27/cantilever.framemind",encodeProject(p.attachAnalysisResult(project,result)));
+  await mkdir(numericalEvidenceDirectory("T2-27"),{recursive:true});
+  const failures = [["zero-density", badDensity], ["missing-density", missing], ["malformed-load", badMass], ["initial-equation-budget", initialBudget], ["singular-mass", singularMass]].map(([name, output]) => ({ name, terminal: output.terminal }));
+  await writeFile(`${numericalEvidenceDirectory("T2-27")}/numerics.json`,JSON.stringify({passed:true,cases,checks,diagnosticCases:5,failures},null,2));
+  await writeFile(`${numericalEvidenceDirectory("T2-27")}/cantilever.framemind`,encodeProject(p.attachAnalysisResult(project,result)));
   console.log(JSON.stringify({passed:true,cases:cases.length,checks:checks.length,diagnosticCases:5}));
 } finally { await server.close(); }

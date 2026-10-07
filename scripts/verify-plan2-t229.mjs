@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -59,7 +60,7 @@ try {
   const stopped = d.modalDampingStatus(budget, budget.latestAnalysis);
   assert.equal(stopped.truncation.frequencyConverged, false); assert.equal(stopped.truncation.responseAccuracy, "not-verified");
   cases.push({ name: "mesh-budget-not-converged", status: stopped });
-  const directory = "docs/evidence/plan2/T2-29";
+  const directory = numericalEvidenceDirectory("T2-29");
   await mkdir(directory, { recursive: true });
   await writeFile(`${directory}/numerics.json`, JSON.stringify({ task: "T2-29", passed: true, solver: "framemind-native/5", nativeRuns: checks.length, checks, cases, scope: "Frequency reference, effective damping and identity/truncation checks only. Damping response effects belong to T2-33." }, null, 2));
   console.log(`T2-29: ${checks.length} native runs, ${cases.length} damping/truncation scenarios passed`);

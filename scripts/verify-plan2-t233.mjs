@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -70,16 +71,16 @@ try {
     const rmsError = Math.abs(result.rms / referenceRms - 1);
     assert.ok(curveError < curveTolerance, `${name} PSD error ${curveError}`); assert.ok(rmsError < .005, `${name} RMS error ${rmsError}`);
     checks.push({ name, reference: singleMode ? "independent scalar oscillator: M=rho*A*L/4, K=M*omega1²" : "continuous EB cantilever, 20 analytic bending modes", firstFrequencyHz: frequencies[0], referenceRms, rmsM: result.rms,
-      independentIntegration: { method: "composite Simpson", coarseIntervals: 200000, fineIntervals: 400000, relativeChange: Math.abs(coarse - fine) / fine }, curveTolerance, curveError, rmsTolerance: .005, rmsError, convergence: result.convergence });
+      independentIntegration: { method: "composite Simpson", coarseIntervals: 200000, fineIntervals: 400000, coarseVarianceM2: coarse, fineVarianceM2: fine, relativeChange: Math.abs(coarse - fine) / fine }, referencePeakPsd: referencePeak, maxAbsolutePsdError: curveError * referencePeak, curveTolerance, curveError, rmsTolerance: .005, rmsError, convergence: result.convergence });
   };
   let project = solve(prepare());
   const r = project.latestAnalysis;
   independentCheck("continuous-cantilever", project, .02, [0, 25]);
   assert.equal(a.isAnalysisResultCurrent(project, r), true);
   assert.deepEqual(decodeProject(encodeProject(project)).latestAnalysis.random, r.random);
-  await mkdir("docs/evidence/plan2/T2-33", { recursive: true });
-  await writeFile("docs/evidence/plan2/T2-33/random.framemind", encodeProject(project));
-  await writeFile("docs/evidence/plan2/T2-33/prepared.framemind", encodeProject(p.deleteAnalysisCase(prepare(), "AC2")));
+  await mkdir(numericalEvidenceDirectory("T2-33"), { recursive: true });
+  await writeFile(`${numericalEvidenceDirectory("T2-33")}/random.framemind`, encodeProject(project));
+  await writeFile(`${numericalEvidenceDirectory("T2-33")}/prepared.framemind`, encodeProject(p.deleteAnalysisCase(prepare(), "AC2")));
   const scalar = solve(prepare(.02, [8, 10]));
   independentCheck("dominant-simple-oscillator", scalar, .02, [8, 10], [], { singleMode: true });
   const highDamping = solve(prepare(.04));
@@ -130,6 +131,6 @@ try {
   assert.equal(a.isAnalysisResultCurrent(unrelated, r), true);
   const mass = p.setNodeMass(project, project.nodes[1].id, 1); assert.equal(a.isAnalysisResultCurrent(mass, r), false);
   checks.push({ name: "precise-load-and-mass-dependencies", unrelatedStaticLoadCurrent: true, massChangeCurrent: false });
-  await writeFile("docs/evidence/plan2/T2-33/numerics.json", JSON.stringify({ task: "T2-33", passed: true, checks, failures }, null, 2));
+  await writeFile(`${numericalEvidenceDirectory("T2-33")}/numerics.json`, JSON.stringify({ task: "T2-33", passed: true, checks, failures }, null, 2));
   console.log(`T2-33: ${checks.length} numeric scenarios, ${failures.length} failure scenarios passed`);
 } finally { await server.close(); }

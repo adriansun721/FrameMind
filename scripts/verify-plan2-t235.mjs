@@ -1,10 +1,11 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 
-const evidence = "docs/evidence/plan2/T2-35";
+const evidence = numericalEvidenceDirectory("T2-35");
 const server = await createServer({ server: { middlewareMode: true, watch: null }, appType: "custom" });
 try {
   const load = (path) => server.ssrLoadModule('/src/' + path + '.ts');
@@ -87,7 +88,7 @@ try {
     assert.ok(Math.abs(coarse / fine - 1) < 1e-8, name + ' oracle integration convergence');
     assert.ok(curveError < .005, name + ' PSD ' + curveError); assert.ok(rmsError < .005, name + ' RMS ' + rmsError);
     assert.equal(r.referenceFrame, 'relative-to-base');
-    checks.push({ name, referenceRms, rmsM: r.rms, curveError, rmsError, tolerance: .005, oracleIntervals: [100000, 200000], convergence: r.convergence });
+    checks.push({ name, referenceRms, rmsM: r.rms, referencePeakPsd: peak, maxAbsolutePsdError: curveError * peak, curveError, rmsError, tolerance: .005, independentIntegration: { method: "composite Simpson", coarseIntervals: 100000, fineIntervals: 200000, coarseVarianceM2: coarse, fineVarianceM2: fine, relativeChange: Math.abs(coarse / fine - 1) }, convergence: r.convergence });
     return completed;
   };
   await mkdir(evidence, { recursive: true });
@@ -161,6 +162,7 @@ try {
   failures.push({ name: 'base-frequency-budget-no-partial-result', nativeRejects: true });
   const fewer = verify('increased-modal-extraction', prepare({ modeCount: 8, tolerance: .01 }), oracle(.157));
   assert.ok(Math.abs(fewer.latestAnalysis.random.rms / single.latestAnalysis.random.rms - 1) < .005);
+  checks.push({ name: 'modal-extraction-convergence', modeCounts: [single.latestAnalysis.random.modeCount, fewer.latestAnalysis.random.modeCount], rmsM: [single.latestAnalysis.random.rms, fewer.latestAnalysis.random.rms], relativeChange: Math.abs(fewer.latestAnalysis.random.rms / single.latestAnalysis.random.rms - 1), tolerance: .005 });
   await writeFile(evidence + '/numerics.json', JSON.stringify({ passed: true, reference: 'continuous EB analytical eigenfunctions; mass-dominated SDOF', checks, failures }, null, 2));
   console.log(JSON.stringify({ passed: true, checks: checks.length, failures: failures.length, evidence }));
 } finally { await server.close(); }

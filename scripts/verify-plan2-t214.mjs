@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
@@ -5,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 
-const directory = "docs/evidence/plan2/T2-14";
+const directory = numericalEvidenceDirectory("T2-14");
 const bytes = await readFile("src/validation/t31-references.json");
 const references = JSON.parse(bytes);
 const server = await createServer({ server: { middlewareMode: true, watch: null }, appType: "custom" });

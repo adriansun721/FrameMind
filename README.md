@@ -63,4 +63,6 @@ T18 的整体过程面板展示本次运行快照中的自由度编号、成员�
 
 T31 提供 22 个独立数值算例、7 个无效/不稳定模型和逐分量误差、整体平衡及真实过程证据。运行 `npm run evidence:t31` 离线复跑公开分析入口；参考重建使用 `python scripts/generate-t31-references.py`（开发验收需 SymPy，产品不依赖 Python）。教材例 2-1 的符号换算与荷载简化差异已通过连续力法独立复核，见 [T31 验收记录](docs/evidence/T31-validation.md) 和 [ADR-0032](docs/decisions/0032-t31-independent-numerical-benchmarks.md)。
 
+T2-40 提供统一全分析独立数值验收。运行 `npm run evidence:plan2:t240` 离线复跑静力、截面、释放、细分、质量、模态、屈曲、二阶、随机外力和整体基底激励；逐量误差、残差、四类收敛和失败分支在独立运行目录归档。需要本仓库原生构建环境，产品本身不依赖这些验收工具。参考及原门槛保持不变，见 [T2-40 验收记录](docs/evidence/plan2/T2-40/acceptance.md) 和 [ADR-0072](docs/decisions/0072-all-analysis-independent-numerical-acceptance.md)。
+
 T32 在固定 Windows 11 / i7-14650HX / 16 GB 环境验证 58、399、1,120 杆模型各 3 次，九轮均通过预登记的交互、真实 Worker 求解、取消、过程及 Word/PDF 导出指标。项目树/结果分页、过程按展开构建，密集场景保留全部图形并仅标注选中条件，报告后台生成及分批排版降低内存。1,120 杆最慢求解 4.16 秒、PDF 22.11 秒，Electron 全进程采样工作集峰值 1.96 GiB。运行 `npm run evidence:t32` 离线复跑；机器条件、失败迭代、完整样本和边界见 [T32 验收记录](docs/evidence/T32-validation.md)。报告附录测首杆过程、全部自由度及约束向量，未承诺其他硬件、更大模型或全部杆件矩阵附录的表现。

@@ -1,10 +1,11 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createServer } from "vite";
 
-const directory = "docs/evidence/plan2/T2-22";
+const directory = numericalEvidenceDirectory("T2-22");
 const server = await createServer({ server: { middlewareMode: true }, appType: "custom" });
 try {
   const { SECTION_REFERENCES, sectionCantilever } = await server.ssrLoadModule("/src/validation/section-fixtures.ts");
@@ -30,6 +31,12 @@ try {
     return decodeAnalysisResult(terminal.result);
   };
   for (const { geometry, expected: [a, iy, iz, j] } of SECTION_REFERENCES) {
+    const referenceSection = sectionCantilever(geometry).sections[0];
+    for (const [field, expected, unit] of [["areaM2", a, "m²"], ["secondMomentYM4", iy, "m⁴"], ["secondMomentZM4", iz, "m⁴"], ["torsionalConstantM4", j, "m⁴"]]) {
+      const actual = referenceSection[field], tolerance = Math.abs(expected) * 1e-12;
+      assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance, `${geometry.shape}:${field}`);
+      checks.push({ id: `${geometry.shape}:${field}`, actual, expected, unit, tolerance, passed: true });
+    }
     for (const angle of [0, 90, 30]) {
       const p = sectionCantilever(geometry, angle), result = solve(p), tip = result.nodes[1];
       // Independent EB compliance rotated by R diag(Cy,Cz) R^T. E=200e6 kN/m²,

@@ -1,3 +1,4 @@
+import { numericalEvidenceDirectory } from "./numerical-evidence.mjs";
 import { createServer } from "vite";
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -120,7 +121,7 @@ try {
   assert.equal(a.isAnalysisResultCurrent(p.updateMaterial(axialWeight,axialWeight.materials[0].id,{...axialWeight.materials[0],densityKgM3:8000}),weightResult),false);
   const distributed=p.addUniformLoad(fixedProject,{kind:"uniform",memberId:fixedProject.members[0].id,coordinateSystem:"local",loadCaseId:"LC2",intensity:{x:-2,y:0,z:0}});
   const uniformResult=solve("fixed-distributed-axial",distributed);near("uniform-root-prestress",uniformResult.buckling.prestress[0].fixedAxialStartKN,-36,1e-9);near("uniform-tip-prestress",uniformResult.buckling.prestress.at(-1).fixedAxialEndKN,-30,1e-9);
-  const evidence=resolve("docs/evidence/plan2/T2-30"); await mkdir(evidence,{recursive:true});
+  const evidence=resolve(numericalEvidenceDirectory("T2-30")); await mkdir(evidence,{recursive:true});
   await writeFile(resolve(evidence,"nonzero-fixed.framemind"),encodeProject(p.attachAnalysisResult(fixedProject,fixed)));
   await writeFile(resolve(evidence,"numerics.json"),JSON.stringify({passed:true,registeredToleranceADR:"0063",cases,checks},null,2));
   console.log(JSON.stringify({passed:true,nativeRuns:cases.length,checks:checks.length,evidence}));
