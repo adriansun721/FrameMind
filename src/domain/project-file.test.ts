@@ -20,6 +20,25 @@ describe("FrameMind project file", () => {
     expect(reopened.latestAnalysis?.members[0].memberId).toBe("member_0001");
   });
 
+  it("stores a large latest result once with a compact reference", () => {
+    let project = createProject("Large result persistence");
+    project = addNode(project, { x: 0, y: 0, z: 0 }); project = addNode(project, { x: 2, y: 0, z: 0 });
+    project = addMaterial(project, { name: "Steel", elasticModulusGPa: 200, poissonRatio: 0.3, densityKgM3: 7850 });
+    project = addSection(project, { name: "Box", areaM2: 0.01, secondMomentYM4: 0.0001, secondMomentZM4: 0.0001, torsionalConstantM4: 0.0001 });
+    project = addMember(project, { startNodeId: project.nodes[0].id, endNodeId: project.nodes[1].id, materialId: project.materials[0].id, sectionId: project.sections[0].id, rotationDegrees: 0 });
+    project = addSupport(project, project.nodes[0].id, [true, true, true, true, true, true]);
+    project = addNodalLoad(project, project.nodes[1].id, { x: 2, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const result = solveFrame(project);
+    const largeResult = {
+      ...result,
+      nodes: Array.from({ length: 513 }, (_, index) => ({ ...result.nodes[0], nodeId: `node_${String(index + 1).padStart(4, "0")}` })),
+      members: Array.from({ length: 257 }, (_, index) => ({ ...result.members[0], memberId: `member_${String(index + 1).padStart(4, "0")}` })),
+    } as typeof result;
+    const encoded = JSON.parse(encodeProject({ ...project, latestAnalysis: largeResult, analysisResults: [largeResult] }));
+    expect(encoded.latestAnalysis).toBeUndefined();
+    expect(encoded.latestAnalysisRef).toBe(largeResult.id);
+  });
+
   it("rejects malformed analysis assumptions and object references", () => {
     let project = createProject("Invalid analysis");
     project = addNode(project, { x: 0, y: 0, z: 0 }); project = addNode(project, { x: 1, y: 0, z: 0 });

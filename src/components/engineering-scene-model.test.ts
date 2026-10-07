@@ -124,6 +124,9 @@ describe("engineering scene model", () => {
     const meshes: THREE.InstancedMesh[] = [];
     parent.traverse((object) => { if (object instanceof THREE.InstancedMesh) meshes.push(object); });
     expect(meshes).toHaveLength(1); expect(meshes[0].count).toBe(120);
+    const individualSolids: THREE.Mesh[] = [];
+    parent.traverse((object) => { if (object instanceof THREE.Mesh && object.name.startsWith("member-display:")) individualSolids.push(object); });
+    expect(individualSolids).toHaveLength(0);
     const matrix = new THREE.Matrix4(); meshes[0].getMatrixAt(1, matrix);
     const bounds = new THREE.Box3().setFromBufferAttribute(meshes[0].geometry.getAttribute("position") as THREE.BufferAttribute).applyMatrix4(matrix).getSize(new THREE.Vector3());
     expect(bounds.toArray()).toEqual(expect.arrayContaining([expect.closeTo(3, 6), expect.closeTo(.4, 6), expect.closeTo(.2, 6)]));
@@ -131,6 +134,20 @@ describe("engineering scene model", () => {
     const color = new THREE.Color(); meshes[0].getColorAt(37, color); expect(color.getHexString()).toBe("7891ad");
     expect(model.getHitTargets().filter((target) => target.userData.kind === "member")).toHaveLength(120);
     const dispose = vi.spyOn(meshes[0], "dispose"); model.dispose(); expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("rebuilds member displays when crossing the batch threshold", () => {
+    const p = sectionCantilever(), parent = new THREE.Group();
+    const model = new EngineeringSceneModel(parent, palette, () => new THREE.Sprite(new THREE.SpriteMaterial()));
+    const members = Array.from({ length: 120 }, (_, i) => ({ ...p.members[0], id: `member_${i}` as FrameMember["id"], label: `M${i}` }));
+    model.sync(p.nodes, members, p.sections);
+    expect(parent.getObjectByName("member-display:member_0")).toBeInstanceOf(THREE.Object3D);
+    model.sync(p.nodes, members.slice(0, 1), p.sections);
+    expect(parent.getObjectByName("member-display:member_0")).toBeInstanceOf(THREE.Mesh);
+    model.sync(p.nodes, members, p.sections);
+    expect(parent.getObjectByName("member-display:member_0")).toEqual(expect.any(THREE.Object3D));
+    expect(parent.getObjectByName("member-display:member_0")).not.toBeInstanceOf(THREE.Mesh);
+    model.dispose();
   });
 
   it("keeps selected annotations when unrelated geometry is added", () => {

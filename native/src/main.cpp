@@ -17,6 +17,8 @@
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
+#include <psapi.h>
+#pragma comment(lib, "Psapi.lib")
 #endif
 
 using Json = nlohmann::json;
@@ -39,21 +41,35 @@ struct Failure : std::runtime_error {
 // is useful for constrained machines and reproducible resource-failure tests.
 class RuntimeMemoryBudget {
     const std::chrono::steady_clock::time_point started=std::chrono::steady_clock::now();
+    std::size_t configuredMiB=512;
 #ifdef _WIN32
     HANDLE job=nullptr;
 #endif
 public:
     RuntimeMemoryBudget() {
 #ifdef _WIN32
-        SIZE_T mib=512;
         char configured[16]{};
         const auto length=GetEnvironmentVariableA("FRAMEMIND_NATIVE_MEMORY_MIB",configured,sizeof(configured));
         if (length>=sizeof(configured)) throw Failure("native-resource-limit","Invalid native memory budget",nullptr,"native-core");
         if (length) {
             char* end=nullptr; const auto value=std::strtoul(configured,&end,10);
             if (!end || *end || value<16 || value>512) throw Failure("native-resource-limit","Memory budget must be between 16 and 512 MiB",nullptr, "native-core");
-            mib=value;
+            configuredMiB=value;
         }
+    }
+#endif
+
+    // A Windows process has a non-zero startup footprint before it can read
+    // the request. Applying a 16 MiB Job limit in the constructor therefore
+    // lets the OS kill the process before the JSON error protocol can run.
+    // Preflight those deliberately tiny budgets and report a normal failure;
+    // real budgets continue to use a Job object for hard enforcement.
+    void enforce() {
+#ifdef _WIN32
+        if (configuredMiB < 64) {
+            throw Failure("native-resource-limit", "Native memory budget is below the core startup footprint; analysis was not started", nullptr, "native-core");
+        }
+        const SIZE_T mib=static_cast<SIZE_T>(configuredMiB);
         job=CreateJobObjectW(nullptr,nullptr);
         JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
         limits.BasicLimitInformation.LimitFlags=JOB_OBJECT_LIMIT_PROCESS_MEMORY;
@@ -78,6 +94,10 @@ public:
 #ifdef _WIN32
         JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
         if (job && QueryInformationJobObject(job,JobObjectExtendedLimitInformation,&limits,sizeof(limits),nullptr)) return limits.PeakProcessMemoryUsed;
+        PROCESS_MEMORY_COUNTERS_EX counters{};
+        // PeakPagefileUsage is the process peak committed/private allocation;
+        // PrivateUsage would only describe the final sample and is not a peak.
+        if (GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters), sizeof(counters))) return counters.PeakPagefileUsage;
 #endif
         return 0;
     }
@@ -385,6 +405,7 @@ int main() {
         std::string bytes; char c;
         while (std::cin.get(c)) { if (bytes.size()>=16*1024*1024) throw Failure("native-resource-limit", "Input exceeds 16 MiB"); bytes.push_back(c); }
         request=Json::parse(bytes);
+        budget.enforce();
         Json result=request.at("input").at("solver").at("implementation")=="framemind-native/8" ? calculateRandom(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/7" ? calculateSecondOrder(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/6" ? calculateBuckling(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/5" ? calculateModal(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/4" ? calculateMeshStatic(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         Json terminal={{"kind","result"},{"requestId",request.at("requestId")}};

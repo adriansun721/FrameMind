@@ -431,8 +431,17 @@ function decodeCounter(value: unknown, fallback: number, label: string, highest:
 
 export function encodeProject(project: FrameProject): string {
   // Compact JSON avoids repeating indentation across every captured 12×12 matrix.
-  // The schema and legacy latestAnalysis field remain compatible.
-  return `${JSON.stringify(redactPersistence(project))}\n`;
+  // Keep the legacy latestAnalysis payload for small files, where compatibility
+  // with older readers matters more than a few bytes. Large target-scale
+  // results already live in analysisResults; writing the same immutable result
+  // twice needlessly doubles the transient JSON/string memory during save.
+  const latest = project.latestAnalysis;
+  const compactLatest = latest && project.analysisResults.some((result) => result.id === latest.id)
+    && (latest.nodes.length > 512 || latest.members.length > 256);
+  const persisted = compactLatest
+    ? { ...project, latestAnalysis: undefined, latestAnalysisRef: latest.id }
+    : project;
+  return `${JSON.stringify(redactPersistence(persisted))}\n`;
 }
 
 export function decodeProject(source: string): FrameProject {
@@ -486,9 +495,12 @@ export function decodeProject(source: string): FrameProject {
   const nextMemberNumber = decodeCounter(value.nextMemberNumber, 1, "杆件", highestNumber(members, /^member_(\d+)$/, /^M(\d+)$/), true);
   const nextSupportNumber = decodeCounter(value.nextSupportNumber, 1, "支座", highestNumber(supports, /^support_(\d+)$/, /^B(\d+)$/), true);
   const nextLoadNumber = decodeCounter(value.nextLoadNumber, 1, "节点荷载", highestNumber(nodalLoads, /^load_(\d+)$/, /^L(\d+)$/), true);
-  const latestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
-  const analysisResults = value.analysisResults === undefined ? (latestAnalysis ? [latestAnalysis] : []) : decodeOptionalArray(value.analysisResults, "工况结果", decodeAnalysisResult);
+  const legacyLatestAnalysis = value.latestAnalysis === undefined ? undefined : decodeAnalysisResult(value.latestAnalysis);
+  const analysisResults = value.analysisResults === undefined ? (legacyLatestAnalysis ? [legacyLatestAnalysis] : []) : decodeOptionalArray(value.analysisResults, "工况结果", decodeAnalysisResult);
   if (new Set(analysisResults.map((result) => result.id)).size !== analysisResults.length) throw new Error("分析结果稳定标识重复");
+  const latestAnalysisRef = value.latestAnalysisRef === undefined ? undefined : requireString(value.latestAnalysisRef, "最新分析结果引用无效");
+  const latestAnalysis = legacyLatestAnalysis ?? (latestAnalysisRef ? analysisResults.find((result) => result.id === latestAnalysisRef) : undefined);
+  if (latestAnalysisRef && !latestAnalysis) throw new Error("最新分析结果引用不存在");
   const nextUniformLoadNumber = decodeCounter(value.nextUniformLoadNumber, 1, "均布荷载", highestNumber(uniformLoads, /^uniform_load_(\d+)$/, /^Q(\d+)$/), true);
   const project: FrameProject = {
     format: PROJECT_FORMAT, formatVersion: PROJECT_FORMAT_VERSION,

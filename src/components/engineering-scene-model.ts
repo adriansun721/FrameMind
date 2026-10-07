@@ -34,7 +34,10 @@ interface NodeRecord {
 
 interface MemberRecord {
   fingerprint: string;
-  display: THREE.Line | THREE.Mesh;
+  // Dense scenes render visible members through the shared batch. The record
+  // keeps a stable Object3D for lifecycle and selection bookkeeping without
+  // allocating a second solid geometry for every member.
+  display: THREE.Object3D;
   sectionGeometry?: SectionGeometry;
   batch?: { mesh: THREE.InstancedMesh; index: number };
   hitTarget: THREE.Mesh;
@@ -80,6 +83,10 @@ export class EngineeringSceneModel {
 
   sync(nodes: FrameNode[], members: FrameMember[], sections: FrameSection[] = [], displayMode: MemberDisplayMode = "solid"): void {
     this.displayMode = displayMode;
+    // Decide before creating records so dense solid scenes do not allocate
+    // thousands of individual extrusions and then duplicate them in the
+    // instanced batch.
+    this.batched = nodes.length + members.length > 100;
     const sectionsById = new Map(sections.map((section) => [section.id, section]));
     const nodesById = new Map(nodes.map((node) => [node.id, node]));
     const membersById = new Map(members.map((member) => [member.id, member]));
@@ -110,7 +117,7 @@ export class EngineeringSceneModel {
       const start = nodesById.get(member.startNodeId); const end = nodesById.get(member.endNodeId);
       if (!start || !end) continue;
       const sectionGeometry = sectionsById.get(member.sectionId)?.geometry;
-      const fingerprint = JSON.stringify([member.startNodeId, member.endNodeId, start.position, end.position, member.rotationDegrees, member.endReleases, sectionGeometry, displayMode]);
+      const fingerprint = JSON.stringify([member.startNodeId, member.endNodeId, start.position, end.position, member.rotationDegrees, member.endReleases, sectionGeometry, displayMode, this.batched]);
       const current = this.memberRecords.get(member.id);
       if (current?.fingerprint === fingerprint) {
         current.member = member; current.start = start; current.end = end;
@@ -120,7 +127,6 @@ export class EngineeringSceneModel {
       this.memberRecords.set(member.id, this.createMember(member, start, end, fingerprint, sectionGeometry));
     }
 
-    this.batched = nodes.length + members.length > 100;
     for (const record of this.nodeRecords.values()) record.display.visible = !this.batched;
     for (const record of this.memberRecords.values()) record.display.visible = !this.batched;
     this.rebuildBatch();
@@ -145,6 +151,9 @@ export class EngineeringSceneModel {
     const bounds = new THREE.Box3();
     for (const record of this.memberRecords.values()) bounds.expandByObject(record.display);
     for (const record of this.nodeRecords.values()) bounds.expandByPoint(new THREE.Vector3(record.node.position.x, record.node.position.y, record.node.position.z));
+    // Dense solid members have no per-member display object; include the
+    // instanced batches so fit-to-model still accounts for section thickness.
+    for (const child of this.batchGroup.children) bounds.expandByObject(child);
     return bounds;
   }
 
@@ -214,8 +223,9 @@ export class EngineeringSceneModel {
   private createMember(member: FrameMember, start: FrameNode, end: FrameNode, fingerprint: string, sectionGeometry?: SectionGeometry): MemberRecord {
     const startVector = new THREE.Vector3(start.position.x, start.position.y, start.position.z);
     const endVector = new THREE.Vector3(end.position.x, end.position.y, end.position.z);
-    const display = this.displayMode === "solid" && sectionGeometry ? new THREE.Mesh(
-      createSectionExtrusion(sectionGeometry), new THREE.MeshLambertMaterial({ color: this.palette.member }),
+    const renderedSectionGeometry = this.displayMode === "solid" ? sectionGeometry : undefined;
+    const display = this.batched ? new THREE.Object3D() : renderedSectionGeometry ? new THREE.Mesh(
+      createSectionExtrusion(renderedSectionGeometry), new THREE.MeshLambertMaterial({ color: this.palette.member }),
     ) : new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([startVector, endVector]),
       new THREE.LineBasicMaterial({ color: this.palette.member }),
@@ -238,7 +248,7 @@ export class EngineeringSceneModel {
     hitTarget.visible = false;
     hitTarget.userData = { kind: "member", id: member.id };
     this.parent.add(display, hitTarget);
-    return { fingerprint, display, hitTarget, member, start, end, sectionGeometry, pickingRadius: radius };
+    return { fingerprint, display, hitTarget, member, start, end, sectionGeometry: renderedSectionGeometry, pickingRadius: radius };
   }
 
   private removeNode(id: NodeId, record: NodeRecord): void {
@@ -260,7 +270,8 @@ export class EngineeringSceneModel {
     for (const record of this.memberRecords.values()) {
       const selected = this.selection?.kind === "member" && this.selection.id === record.member.id;
       const hovered = this.hover?.kind === "member" && this.hover.id === record.member.id;
-      (record.display.material as THREE.LineBasicMaterial).color.set(selected ? this.palette.selected : hovered ? this.palette.hovered : this.palette.member);
+      const material = "material" in record.display ? record.display.material : undefined;
+      if (material && !Array.isArray(material)) (material as THREE.LineBasicMaterial).color.set(selected ? this.palette.selected : hovered ? this.palette.hovered : this.palette.member);
     }
     if (this.batched) this.colorBatch();
     this.refreshAnnotations();
@@ -270,7 +281,7 @@ export class EngineeringSceneModel {
     for (const child of [...this.batchGroup.children]) disposeObjectTree(child);
     for (const record of this.memberRecords.values()) record.batch = undefined;
     if (!this.batched) return;
-    const lines = Array.from(this.memberRecords.values()).filter((record) => record.display instanceof THREE.Line);
+    const lines = Array.from(this.memberRecords.values()).filter((record) => !record.sectionGeometry);
     const memberPoints = lines.flatMap((record) => [record.start.position, record.end.position]).flatMap((p) => [p.x, p.y, p.z]);
     const nodePoints = Array.from(this.nodeRecords.values()).flatMap((record) => [record.node.position.x, record.node.position.y, record.node.position.z]);
     const geometry = (points: number[]) => {
@@ -285,14 +296,18 @@ export class EngineeringSceneModel {
     this.batchGroup.add(dots);
     const solids = new Map<string, MemberRecord[]>();
     for (const record of this.memberRecords.values()) {
-      if (!(record.display instanceof THREE.Mesh)) continue;
+      if (!record.sectionGeometry) continue;
+      if (!record.display.matrixAutoUpdate) record.display.updateMatrixWorld(true);
       const key = JSON.stringify(record.sectionGeometry);
       const group = solids.get(key) ?? []; group.push(record); solids.set(key, group);
     }
     for (const records of solids.values()) {
       const mesh = new THREE.InstancedMesh(createSectionExtrusion(records[0].sectionGeometry!), new THREE.MeshLambertMaterial(), records.length);
       records.forEach((record, index) => {
-        mesh.setMatrixAt(index, record.display.matrix);
+        const matrix = record.display instanceof THREE.Mesh
+          ? record.display.matrix
+          : memberSolidTransform(record.start.position, record.end.position, record.member.rotationDegrees);
+        mesh.setMatrixAt(index, matrix);
         record.batch = { mesh, index };
       });
       mesh.computeBoundingSphere(); this.batchGroup.add(mesh);

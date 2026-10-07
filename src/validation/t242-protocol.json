@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 4,
   "repetitions": 3,
   "window": { "width": 1440, "height": 900, "theme": "dark" },
   "displayModes": ["solid", "line"],
