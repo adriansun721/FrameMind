@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-07",
+  "timezone": "Asia/Taipei",
+  "platform": "win32",
+  "release": "10.0.26200",
+  "architecture": "x64",
+  "cpu": "Intel(R) Core(TM) i7-14650HX",
+  "logicalProcessors": 24,
+  "totalMemoryBytes": 16873545728,
+  "node": "v24.19.0",
+  "electron": "44.5.1",
+  "playwright": "1.63.0",
+  "displayScale": 1.5,
+  "windowsCssPixels": [
+    [
+      1440,
+      900
+    ],
+    [
+      1080,
+      680
+    ]
+  ],
+  "narrowSidebarCssPixels": 220,
+  "minimumModelCssPixels": 360
+}

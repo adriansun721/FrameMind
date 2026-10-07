@@ -1,0 +1,802 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "dark",
+    "narrow": false,
+    "window": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentFits": true,
+    "model": {
+      "left": 564,
+      "right": 924,
+      "top": 65,
+      "bottom": 877,
+      "width": 360
+    },
+    "assistant": {
+      "left": 924,
+      "right": 1440,
+      "top": 65,
+      "bottom": 877,
+      "width": 516
+    },
+    "composer": {
+      "left": 950.4271240234375,
+      "right": 1414.2396240234375,
+      "top": 781.6666870117188,
+      "bottom": 867.0000228881836,
+      "width": 463.8125
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 7.845649652541824
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.680301090608004
+      },
+      {
+        "selector": ".field input",
+        "ratio": 12.748548091712523
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 4.680471249350111
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.221004560389426
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 10.776509333044977
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 12.166474446210398
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 8.698190303627223
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 297,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "dark",
+    "narrow": true,
+    "window": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentFits": true,
+    "model": {
+      "left": 268,
+      "right": 1220,
+      "top": 65,
+      "bottom": 877,
+      "width": 952
+    },
+    "assistant": {
+      "left": 1220,
+      "right": 1440,
+      "top": 65,
+      "bottom": 877,
+      "width": 220
+    },
+    "composer": {
+      "left": 1240.666748046875,
+      "right": 1420.0000915527344,
+      "top": 763.6666870117188,
+      "bottom": 867.0000228881836,
+      "width": 179.33334350585938
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 7.845649652541824
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.680301090608004
+      },
+      {
+        "selector": ".field input",
+        "ratio": 12.748548091712523
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 4.680471249350111
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.221004560389426
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 10.776509333044977
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 12.166474446210398
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 8.698190303627223
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 182.5,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "light",
+    "narrow": false,
+    "window": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentFits": true,
+    "model": {
+      "left": 564,
+      "right": 924,
+      "top": 65,
+      "bottom": 877,
+      "width": 360
+    },
+    "assistant": {
+      "left": 924,
+      "right": 1440,
+      "top": 65,
+      "bottom": 877,
+      "width": 516
+    },
+    "composer": {
+      "left": 950.4271240234375,
+      "right": 1414.2396240234375,
+      "top": 781.6666870117188,
+      "bottom": 867.0000228881836,
+      "width": 463.8125
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 9.146081206980885
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.257343226063783
+      },
+      {
+        "selector": ".field input",
+        "ratio": 14.238184852550479
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 6.449733359102191
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.389122361558492
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 11.725786089779096
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 15.522910417680388
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 11.538116336132473
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 297,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "light",
+    "narrow": true,
+    "window": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentFits": true,
+    "model": {
+      "left": 268,
+      "right": 1220,
+      "top": 65,
+      "bottom": 877,
+      "width": 952
+    },
+    "assistant": {
+      "left": 1220,
+      "right": 1440,
+      "top": 65,
+      "bottom": 877,
+      "width": 220
+    },
+    "composer": {
+      "left": 1240.666748046875,
+      "right": 1420.0000915527344,
+      "top": 763.6666870117188,
+      "bottom": 867.0000228881836,
+      "width": 179.33334350585938
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 9.146081206980885
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.257343226063783
+      },
+      {
+        "selector": ".field input",
+        "ratio": 14.238184852550479
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 6.449733359102191
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.389122361558492
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 11.725786089779096
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 15.522910417680388
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 11.538116336132473
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 182.5,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1080,
+    "height": 680,
+    "theme": "dark",
+    "narrow": false,
+    "window": {
+      "width": 1080,
+      "height": 682
+    },
+    "documentFits": true,
+    "model": {
+      "left": 384,
+      "right": 744,
+      "top": 65,
+      "bottom": 659,
+      "width": 360
+    },
+    "assistant": {
+      "left": 744,
+      "right": 1080,
+      "top": 65,
+      "bottom": 659,
+      "width": 336
+    },
+    "composer": {
+      "left": 764.6666870117188,
+      "right": 1060.0000305175781,
+      "top": 563.6666870117188,
+      "bottom": 649.0000228881836,
+      "width": 295.3333435058594
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 7.845649652541824
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.680301090608004
+      },
+      {
+        "selector": ".field input",
+        "ratio": 12.748548091712523
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 4.680471249350111
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.221004560389426
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 10.776509333044977
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 12.166474446210398
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 8.698190303627223
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 297,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1080,
+    "height": 680,
+    "theme": "dark",
+    "narrow": true,
+    "window": {
+      "width": 1080,
+      "height": 682
+    },
+    "documentFits": true,
+    "model": {
+      "left": 268,
+      "right": 860,
+      "top": 65,
+      "bottom": 659,
+      "width": 592
+    },
+    "assistant": {
+      "left": 860,
+      "right": 1080,
+      "top": 65,
+      "bottom": 659,
+      "width": 220
+    },
+    "composer": {
+      "left": 880.6666870117188,
+      "right": 1060.0000305175781,
+      "top": 545.6666870117188,
+      "bottom": 649.0000228881836,
+      "width": 179.33334350585938
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 7.845649652541824
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.680301090608004
+      },
+      {
+        "selector": ".field input",
+        "ratio": 12.748548091712523
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 4.680471249350111
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.221004560389426
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 10.776509333044977
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 12.166474446210398
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 8.698190303627223
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 141,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1080,
+    "height": 680,
+    "theme": "light",
+    "narrow": false,
+    "window": {
+      "width": 1080,
+      "height": 682
+    },
+    "documentFits": true,
+    "model": {
+      "left": 384,
+      "right": 744,
+      "top": 65,
+      "bottom": 659,
+      "width": 360
+    },
+    "assistant": {
+      "left": 744,
+      "right": 1080,
+      "top": 65,
+      "bottom": 659,
+      "width": 336
+    },
+    "composer": {
+      "left": 764.6666870117188,
+      "right": 1060.0000305175781,
+      "top": 563.6666870117188,
+      "bottom": 649.0000228881836,
+      "width": 295.3333435058594
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 9.146081206980885
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.257343226063783
+      },
+      {
+        "selector": ".field input",
+        "ratio": 14.238184852550479
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 6.449733359102191
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.389122361558492
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 11.725786089779096
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 15.522910417680388
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 11.538116336132473
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 297,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  },
+  {
+    "width": 1080,
+    "height": 680,
+    "theme": "light",
+    "narrow": true,
+    "window": {
+      "width": 1080,
+      "height": 682
+    },
+    "documentFits": true,
+    "model": {
+      "left": 268,
+      "right": 860,
+      "top": 65,
+      "bottom": 659,
+      "width": 592
+    },
+    "assistant": {
+      "left": 860,
+      "right": 1080,
+      "top": 65,
+      "bottom": 659,
+      "width": 220
+    },
+    "composer": {
+      "left": 880.6666870117188,
+      "right": 1060.0000305175781,
+      "top": 545.6666870117188,
+      "bottom": 649.0000228881836,
+      "width": 179.33334350585938
+    },
+    "buttons": [
+      {
+        "label": "详情",
+        "fits": true
+      },
+      {
+        "label": "编辑",
+        "fits": true
+      },
+      {
+        "label": "确认建模",
+        "fits": true
+      },
+      {
+        "label": "添加附件或插件",
+        "fits": true
+      },
+      {
+        "label": "正常",
+        "fits": true
+      },
+      {
+        "label": "深度",
+        "fits": true
+      },
+      {
+        "label": "发送消息",
+        "fits": true
+      }
+    ],
+    "contrasts": [
+      {
+        "selector": ".field > span",
+        "ratio": 9.146081206980885
+      },
+      {
+        "selector": ".field em",
+        "ratio": 5.257343226063783
+      },
+      {
+        "selector": ".field input",
+        "ratio": 14.238184852550479
+      },
+      {
+        "selector": ".form-error",
+        "ratio": 6.449733359102191
+      },
+      {
+        "selector": ".proposal-summary dt",
+        "ratio": 8.389122361558492
+      },
+      {
+        "selector": ".proposal-confirm",
+        "ratio": 11.725786089779096
+      },
+      {
+        "selector": ".unit-preset-selector",
+        "ratio": 15.522910417680388
+      },
+      {
+        "selector": ".tree-item.selected",
+        "ratio": 11.538116336132473
+      }
+    ],
+    "overflow": [],
+    "numericInputWidth": 141,
+    "selectFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+    "bodyFont": "\"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif"
+  }
+]
