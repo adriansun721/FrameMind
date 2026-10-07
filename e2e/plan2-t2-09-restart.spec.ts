@@ -165,9 +165,10 @@ test("T2-09 freezes an interrupted local calculation and resumes it offline only
   try {
     await writeFile(path, encodeProject(columns()), "utf8");
     let page = await launch();
-    await page.evaluate(() => {
-      const NativeWorker = window.Worker;
-      window.Worker = class extends NativeWorker { postMessage() { /* Simulate exit while the numerical worker is still processing. */ } };
+    await app!.evaluate(({ ipcMain }) => {
+      // Hold the production IPC task pending; restart restores the real native handler.
+      ipcMain.removeHandler("analysis:native-run");
+      ipcMain.handle("analysis:native-run", () => new Promise(() => {}));
     });
     await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect(page.getByRole("button", { name: "取消计算", exact: true })).toBeVisible();

@@ -1,5 +1,5 @@
 const { spawn, execFileSync } = require("node:child_process");
-const { access, mkdir, readFile, writeFile } = require("node:fs/promises");
+const { access, mkdir, readFile, readdir, writeFile } = require("node:fs/promises");
 const { join, resolve } = require("node:path");
 const { createHash } = require("node:crypto");
 const { redactPersistence } = require("../dist-electron/persistence-redaction.js");
@@ -24,7 +24,8 @@ async function run() {
     environment: { platform: process.platform, arch: process.arch, node: process.version, electron: require("electron/package.json").version },
     status: "running", executions: [], coverage: {}, metrics: {}, samples: [], failures: [] };
   report.sourceHashes = {};
-  for (const file of [...new Set([...Object.values(protocol.unitCoverage).flat(), ...protocol.desktopFiles, ...(protocol.inputs?.project ? [protocol.inputs.project, "e2e/agent-integration.ts", "src/workspace/task-confirmation.ts", "src/workspace/task-draft.ts", "electron/model-edit-schema.ts"] : []), "src/workspace/ai-task.ts", "src/workspace/ai-tools.ts", "electron/deepseek.ts", "scripts/verify-plan2-t211.cjs", "package-lock.json"])]) {
+  const integrationFiles = extended ? ["native/bin/framemind-core.exe", "src/App.tsx", "src/components/AiConversationPanel.tsx", "src/components/TaskDraftCard.tsx", "src/domain/project-operations.ts", "src/domain/analysis-service.ts", "src/workspace/analysis-task.ts", "src/workspace/task-persistence.ts", "src/workspace/draft-coordination.ts", "src/workspace/model-edits.ts", "dist/index.html", "dist-electron/main.js", "dist-electron/deepseek.js", ...(await readdir(join(root, "dist/assets"))).filter((file) => /\.(js|css)$/.test(file)).map((file) => `dist/assets/${file}`)] : [];
+  for (const file of [...new Set([...Object.values(protocol.unitCoverage).flat(), ...protocol.desktopFiles, ...integrationFiles, ...(protocol.inputs?.project ? [protocol.inputs.project, "e2e/agent-integration.ts", "src/workspace/task-confirmation.ts", "src/workspace/task-draft.ts", "electron/model-edit-schema.ts"] : []), "src/workspace/ai-task.ts", "src/workspace/ai-tools.ts", "electron/deepseek.ts", "scripts/verify-plan2-t211.cjs", "package-lock.json"])]) {
     report.sourceHashes[file] = createHash("sha256").update(await readFile(join(root, file))).digest("hex");
   }
   const persist = async () => writeFile(join(output, "summary.json"), JSON.stringify(redactPersistence(report), null, 2) + "\n");
@@ -55,6 +56,7 @@ async function run() {
     ...(online ? (protocol.onlineFiles ?? ["e2e/plan2-t2-11-reliability.spec.ts"]) : protocol.desktopFiles),
     `--repeat-each=${protocol.repetitions}`, "--workers=1", "--retries=0", "--reporter=json", `--output=${join(output, "artifacts")}`], {
     [prefix + "_ONLINE"]: online ? "1" : "0", [prefix + "_OUTPUT"]: output,
+    ...(extended ? { FRAMEMIND_T211_OUTPUT: output, FRAMEMIND_T211_ONLINE: "0" } : {}),
     PLAYWRIGHT_JSON_OUTPUT_NAME: join(output, "desktop.json"),
   });
   if (!online) {
@@ -111,6 +113,12 @@ async function run() {
     } catch { report.failures.push({ reason: "reporter-read-redaction-or-write-failed", file }); }
   }
   report.status = covered && report.executions.every((e) => e.code === 0) && report.samples.every((s) => s.status === "passed") && !report.failures.length ? "passed" : "failed";
+  report.sourceDrift = [];
+  for (const [file, hash] of Object.entries(report.sourceHashes)) {
+    try { if (createHash("sha256").update(await readFile(join(root, file))).digest("hex") !== hash) report.sourceDrift.push(file); }
+    catch { report.sourceDrift.push(file); }
+  }
+  if (report.sourceDrift.length) { report.status = "failed"; report.failures.push({ reason: "source-or-build-changed-during-run", files: report.sourceDrift }); }
   report.endedAt = new Date().toISOString(); await persist();
   console.log(JSON.stringify({ mode, status: report.status, metrics: report.metrics, failures: report.failures.length, output }));
   if (report.status !== "passed") process.exitCode = 1;

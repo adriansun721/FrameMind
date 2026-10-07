@@ -66,7 +66,7 @@ import { ANALYSIS_FORCE_COMPONENTS, compareAnalysisResults, type AnalysisCompari
 import { ANALYSIS_FIELD_LABELS, ANALYSIS_STAGE_LABELS, AnalysisFailure, type AnalysisTarget } from "./domain/analysis-diagnostics";
 import { decodeProject, encodeProject } from "./domain/project-file";
 import { captureProjectCheckpoint, isProjectCheckpointCurrent } from "./workspace/async-guards";
-import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
+import { AnalysisCancelledError, prepareAnalysisTaskInput, startAnalysisTask, type AnalysisTask, type AnalysisTaskPhase } from "./workspace/analysis-task";
 import { AnalysisServiceFailure } from "./domain/analysis-service";
 import { TaskScheduler, type ScheduledTaskHandle, type TaskSchedulerSnapshot } from "./workspace/task-scheduler";
 import { RecoveryAutosave } from "./workspace/recovery-autosave";
@@ -432,7 +432,7 @@ export function App() {
     if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations, ...current.analysisCases].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
     const source = selectAnalysisSource(current, requestedSourceId);
     const context = captureAiSnapshot(source, []).context;
-    if (frozenInput && !sameInputValue(captureAnalysisInput(source), frozenInput)) return { status: "failed", message: "当前模型与保存的计算输入不一致，请核对后重新请求计算", context };
+    if (frozenInput && !sameInputValue(prepareAnalysisTaskInput(captureAnalysisInput(source)), frozenInput)) return { status: "failed", message: "当前模型与保存的计算输入不一致，请核对后重新请求计算", context };
     if (source !== current) activateProject(source, false, "restore");
     const projectId = current.id;
     const latestSource = () => {
@@ -448,7 +448,7 @@ export function App() {
       const handle = analysisSchedulerRef.current.submit({
         projectId, kind: "analysis", goal: requestedSourceId ? `计算 ${requestedSourceId}` : "计算当前模型", queuedRevision: current.revision, analysisSourceId: requestedSourceId,
         getInput: () => {
-          const input = captureAnalysisInput(latestSource());
+          const input = prepareAnalysisTaskInput(captureAnalysisInput(latestSource()));
           if (frozenInput && !sameInputValue(input, frozenInput)) throw new Error("当前模型与保存的计算输入不一致");
           return frozenInput ?? input;
         },

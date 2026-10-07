@@ -22,7 +22,7 @@ export class AnalysisServiceFailure extends AnalysisFailure {
   }
 }
 
-export function createAnalysisRequest(input: AnalysisInputSnapshot, origin: AnalysisOrigin = { kind: "formal-model" }): AnalysisServiceRequest {
+export function prepareAnalysisServiceInput(input: AnalysisInputSnapshot): AnalysisInputSnapshot {
   const snapshot = structuredClone(input);
   snapshot.solver ??= { ...ANALYSIS_SOLVER };
   if (snapshot.solver.implementation === "framemind-native/7") snapshot.meshPlan ??= createSecondOrderMesh(snapshot);
@@ -30,6 +30,11 @@ export function createAnalysisRequest(input: AnalysisInputSnapshot, origin: Anal
   if (snapshot.solver.implementation === "framemind-native/5") snapshot.meshPlan ??= createModalMesh(snapshot);
   if (snapshot.solver.implementation === "framemind-native/4") snapshot.meshPlan ??= createMeshPlan(snapshot, snapshot.analysisCase?.settings.mesh);
   if (snapshot.meshPlan && snapshot.analysisCase?.settings.mesh && !sameInputValue(snapshot.meshPlan.policy, snapshot.analysisCase.settings.mesh)) throw new Error("冻结细分策略与分析工况设置不一致");
+  return freezeAnalysisInput(snapshot);
+}
+
+export function createAnalysisRequest(input: AnalysisInputSnapshot, origin: AnalysisOrigin = { kind: "formal-model" }): AnalysisServiceRequest {
+  const snapshot = prepareAnalysisServiceInput(input);
   const request: AnalysisServiceRequest = {
     version: ANALYSIS_SERVICE_VERSION, requestId: `request_${crypto.randomUUID()}`,
     analysisId: `analysis_${crypto.randomUUID()}`, origin: structuredClone(origin), input: snapshot,

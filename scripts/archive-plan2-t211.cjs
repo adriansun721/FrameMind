@@ -6,7 +6,7 @@ const { createHash } = require("node:crypto");
 async function archive() {
   const extended = process.argv.includes("--t241");
   const root = resolve(__dirname, `../docs/evidence/plan2/${extended ? "T2-41" : "T2-11"}/runs`);
-  const names = extended ? /^(geometry-\d+|mass-\d+|buckling-\d+|second-order-\d+|spectrum-\d+|relationship-\d+|citations-\d+|contracts-\d+|desktop)\.json$/ : /^(state-\d+|confirmation-\d+|diagnostic-\d+|contracts-\d+|desktop)\.json$/;
+  const names = extended ? /^(geometry-\d+|mass-\d+|buckling-\d+|second-order-\d+|spectrum-\d+|relationship-\d+|citations-\d+|state-\d+|confirmation-\d+|diagnostic-\d+|contracts-\d+|desktop)\.json$/ : /^(state-\d+|confirmation-\d+|diagnostic-\d+|contracts-\d+|desktop)\.json$/;
   let count = 0;
   for (const entry of await readdir(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;

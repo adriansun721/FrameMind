@@ -1,5 +1,5 @@
 import { ANALYSIS_DOF_ORDER, NATIVE_RANDOM_SOLVER, NATIVE_SECOND_ORDER_SOLVER, NATIVE_BUCKLING_SOLVER, NATIVE_MODAL_SOLVER, NATIVE_ANALYSIS_SOLVER, NATIVE_MESH_STATIC_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
-import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
+import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest, prepareAnalysisServiceInput } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
 import { decodeAnalysisResult } from "../domain/project-file";
@@ -54,11 +54,16 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
   return true;
 }
 
+/** Persist the same solver identity that execution will use, before scheduling. */
+export function prepareAnalysisTaskInput(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisInputSnapshot {
+  const nativeSolver = input.analysisCase?.method === "random" ? NATIVE_RANDOM_SOLVER : input.analysisCase?.method === "second-order" ? NATIVE_SECOND_ORDER_SOLVER : input.analysisCase?.method === "buckling" ? NATIVE_BUCKLING_SOLVER : input.analysisCase?.method === "modal" ? NATIVE_MODAL_SOLVER : options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_MESH_STATIC_SOLVER;
+  return prepareAnalysisServiceInput(options.backend === "typescript-reference" ? input : { ...input, solver: { ...nativeSolver } });
+}
+
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
   const native = options.backend !== "typescript-reference";
-  const nativeSolver = input.analysisCase?.method === "random" ? NATIVE_RANDOM_SOLVER : input.analysisCase?.method === "second-order" ? NATIVE_SECOND_ORDER_SOLVER : input.analysisCase?.method === "buckling" ? NATIVE_BUCKLING_SOLVER : input.analysisCase?.method === "modal" ? NATIVE_MODAL_SOLVER : options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_MESH_STATIC_SOLVER;
-  const request = createAnalysisRequest(native ? { ...input, solver: { ...nativeSolver } } : input, options.origin);
+  const request = createAnalysisRequest(prepareAnalysisTaskInput(input, options), options.origin);
   const stages: AnalysisStageRecord[] = [];
   let settled = false;
   let worker: Worker | undefined;

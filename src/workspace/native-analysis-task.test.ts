@@ -3,7 +3,7 @@ import samples from "../../docs/evidence/plan2/T2-26/wire-samples.json";
 import { captureAnalysisInput, type AnalysisResult } from "../domain/analysis";
 import type { AnalysisServiceRequest } from "../domain/analysis-service";
 import { decodeProject } from "../domain/project-file";
-import { AnalysisCancelledError, startAnalysisTask } from "./analysis-task";
+import { AnalysisCancelledError, prepareAnalysisTaskInput, startAnalysisTask } from "./analysis-task";
 import { nativeMeshTranscript as nativeTranscript } from "../validation/native-mesh-transcript";
 import { createDiagnosticCopy } from "./diagnostic-trial";
 import { startDiagnosticTrialTask } from "./diagnostic-analysis-task";
@@ -11,6 +11,17 @@ import { startDiagnosticTrialTask } from "./diagnostic-analysis-task";
 const sample = samples.find((entry) => entry.id === "axial")!;
 const project = () => decodeProject(JSON.stringify(sample.project));
 afterEach(() => vi.unstubAllGlobals());
+
+it("freezes a resumable input with exactly the solver and engineering data sent to native IPC", async () => {
+  let request!: AnalysisServiceRequest;
+  vi.stubGlobal("window", { frameMind: { runNativeAnalysis: (packet: AnalysisServiceRequest) => { request = packet; return new Promise(() => {}); } } });
+  const saved = prepareAnalysisTaskInput(captureAnalysisInput(project()));
+  const task = startAnalysisTask(saved);
+  expect(request.input).toEqual(saved);
+  expect(prepareAnalysisTaskInput(saved)).toEqual(saved);
+  task.cancel();
+  await expect(task.promise).rejects.toBeInstanceOf(AnalysisCancelledError);
+});
 
 it("contains synchronous bridge startup failures as a structured native failure", async () => {
   vi.stubGlobal("window", { frameMind: { runNativeAnalysis: () => { throw new Error("IPC context lost"); } } });

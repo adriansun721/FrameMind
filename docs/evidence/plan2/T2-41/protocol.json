@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "registeredDate": "2026-10-07",
   "timezone": "Asia/Taipei",
   "repetitions": 2,
@@ -137,7 +137,9 @@
     "AC2-10": [
       "src/workspace/task-restart.test.ts",
       "src/domain/project-restart.test.ts",
-      "electron/recovery-store.test.ts"
+      "electron/recovery-store.test.ts",
+      "src/workspace/native-analysis-task.test.ts",
+      "src/domain/analysis-service.test.ts"
     ],
     "AC2-11": [
       "src/workspace/ai-task.test.ts",
@@ -158,7 +160,8 @@
     "e2e/plan2-t2-41-agent.spec.ts",
     "e2e/plan2-t2-05-coordination.spec.ts",
     "e2e/plan2-t2-09-restart.spec.ts",
-    "e2e/plan2-t2-10-recovery.spec.ts"
+    "e2e/plan2-t2-10-recovery.spec.ts",
+    "e2e/plan2-t2-11-reliability.spec.ts"
   ],
   "network": "Replay replaces only provider replies. Online never replaces fetch or chatDeepSeek; encrypted DeepSeek credentials and Local State are copied to an isolated temporary profile. Missing credentials or launch failure is blocked/failed, never skipped or counted as passed.",
   "failurePolicy": "No automatic retries. Archive each repetition, failed checks, missing observations, inputs, tool outputs, model/settings and reporter failures. Fixes require a new timestamped run; retain previous runs. Never change gates after observing a result.",
@@ -217,5 +220,5 @@
       ]
     }
   },
-  "registrationNote": "Version 3 adds confirmed native buckling solve with new result citation and user-directed second-order recovery to the version 2 gates, before any version 3 run. All version 2 online failures remain archived. No gates or physics inputs are relaxed."
+  "registrationNote": "Version 4 retains all version 3 physics inputs and gates, adds native frozen-input recovery contracts and original T2-11 desktop regression, and rejects source/build drift. Versions 2 and 3 failure runs remain archived; version 3 exposed legacy Worker fault injection and incomplete native solver/mesh checkpoints."
 }

@@ -223,14 +223,15 @@ for (const checkpoint of ["before-model-commit", "after-model-before-receipt", "
 });
 
 test("T2-10 restores a crashed local calculation from its automatic frozen-input snapshot offline", async () => {
-  await fixture(async (launch, crash, directory) => {
+  await fixture(async (launch, crash, directory, app) => {
     const path = join(directory, "中文正式工程.framemind"); await writeFile(path, encodeProject(columns()));
     let page = await launch();
     await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
-    await page.evaluate(() => {
-      const NativeWorker = window.Worker;
-      window.Worker = class extends NativeWorker { postMessage() { /* Keep the actual task in its pending numerical phase until the process is terminated. */ } };
+    await app().evaluate(({ ipcMain }) => {
+      // Hold the production IPC task pending; restart restores the real native handler.
+      ipcMain.removeHandler("analysis:native-run");
+      ipcMain.handle("analysis:native-run", () => new Promise(() => {}));
     });
     await page.getByRole("button", { name: "运行分析", exact: true }).click();
     await expect.poll(async () => (await latest(page))?.taskState?.analyses?.length).toBe(1);
