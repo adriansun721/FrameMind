@@ -1,7 +1,7 @@
 import { decodeAnalysisRun } from "./analysis-service-contract";
 import { freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "./analysis";
 import { initialRandomGrid, randomDensities, randomRefinementPassed, randomRefinementRun, randomVariance, refineRandomGrid } from "./random-response-evaluation";
-import { validateRandomBasis, type RandomRecord } from "./random-response";
+import { randomResponseFrame, validateRandomBasis, type RandomRecord } from "./random-response";
 
 export function decodeRandomResult(value: Record<string, unknown>, input: AnalysisInputSnapshot, decode: (value: unknown) => AnalysisResult): AnalysisResult {
   const fail = (): never => { throw new Error("随机响应结果、冻结来源或收敛记录无效"); };
@@ -10,6 +10,7 @@ export function decodeRandomResult(value: Record<string, unknown>, input: Analys
   input = freezeAnalysisInput({ ...input, randomBasis: { ...input.randomBasis!, modal } });
   validateRandomBasis(input);
   const s = input.analysisCase!.settings.random!, r = value.random as RandomRecord;
+  if (randomResponseFrame(s) === "relative-to-base" ? r?.referenceFrame !== "relative-to-base" : r?.referenceFrame !== undefined) fail();
   if (!r || r.coordinateSystem !== "global XYZ" || r.sidedness !== "one-sided" || r.frequencyUnit !== "Hz" || r.densityUnit !== "m²/Hz" || r.rmsUnit !== "m"
     || !sameInputValue(r.response, s.response) || r.modalAnalysisId !== modal.id || r.modeCount !== modal.modal!.modes.length
     || !Array.isArray(r.points) || r.points.length < 3 || r.points.length > s.maxFrequencyPoints || r.convergence?.status !== "converged"

@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "manualBase": true,
+  "accelerationSpectrum": true,
+  "relativeFrame": true,
+  "markers": true,
+  "supportLocated": true,
+  "units": true,
+  "stale": true,
+  "undo": true,
+  "reopened": true,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ]
+}

@@ -6,6 +6,23 @@ import type { RandomAction } from "./random-response";
  * including independent end rotations at releases. Never uses display samples. */
 export function randomActionShape(modal: AnalysisResult, modeIndex: number, action: RandomAction): Vector3 {
   const record = modal.modal!, mode = record.modes[modeIndex];
+  if (action.kind === "base-translation") {
+    // -phi^T M r: exact consistent EB rigid-translation load, including
+    // constrained endpoint coupling, structural/line mass and point masses.
+    const participation = { x: 0, y: 0, z: 0 };
+    for (const member of modal.input.members) {
+      const mass = record.sources.find((s) => s.memberId === member.id)!;
+      const shape = randomActionShape(modal, modeIndex, { kind: "member-uniform", memberId: member.id, direction: action.direction, scalePerM: 1 });
+      const lineMass = (mass.densityKgM3 * modal.input.sections.find((s) => s.id === member.sectionId)!.areaM2 + (member.additionalLineMassKgM ?? 0)) / 1000;
+      for (const axis of ["x", "y", "z"] as const) participation[axis] -= lineMass * shape[axis];
+    }
+    for (const node of modal.input.nodes) {
+      const shape = mode.nodes.find((n) => n.nodeId === node.id)!.translation;
+      for (const axis of ["x", "y", "z"] as const) participation[axis] -= (node.additionalMassKg ?? 0) / 1000 * shape[axis];
+    }
+    if (!Object.values(participation).every(Number.isFinite)) throw new Error("基底质量参与超出有限数值范围");
+    return participation;
+  }
   if (action.kind === "node") return mode.nodes.find((n) => n.nodeId === action.nodeId)!.translation;
   const input = modal.input, level = input.meshPlan!.levels.find((l) => l.divisions === record.selectedDivisions)!;
   const values = new Map(record.eigenproblem.coordinates.map((c, i) => [`${c.kind}:${c.id}:${c.dof}`, record.eigenproblem.vectors[modeIndex][i]]));

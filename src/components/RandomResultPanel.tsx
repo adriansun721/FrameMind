@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { AnalysisResult } from "../domain/analysis";
-import { RANDOM_RESPONSE_MEANING, randomSources } from "../domain/random-response";
+import { RANDOM_RESPONSE_MEANING, randomSources, randomSourceQuantity, randomResponseFrame } from "../domain/random-response";
 import { useUnits } from "./UnitPresentation";
 
 export function RandomResultPanel({ result, current, onLocate, onLocateMember }: { result: AnalysisResult; current: boolean; onLocate(id: string): void; onLocateMember(id: string): void }) {
@@ -23,7 +23,8 @@ export function RandomResultPanel({ result, current, onLocate, onLocateMember }:
       <button className="button ghost" onClick={() => onLocate(s.response.nodeId)}>定位响应节点</button>
       <svg viewBox="0 0 620 210" role="img" aria-label="节点平移响应 PSD 曲线"><path d="M36 24V176H584" fill="none" stroke="currentColor" opacity=".4" /><polyline points={curve} fill="none" stroke="var(--accent, #519edb)" strokeWidth="2" /><text x="36" y="202" fill="currentColor" fontSize="18">{lo} Hz</text><text x="542" y="202" fill="currentColor" fontSize="18">{hi} Hz</text><text x="40" y="20" fill="currentColor" fontSize="18">{u.quantity(peak, "m²/Hz")}（曲线最大 PSD）</text></svg>
       <p>输入源间关系：独立；同源空间作用相干相加。</p>
-      {randomSources(s).map((source) => <div key={source.sourceId}><p>源 {source.sourceId} · {source.psdSpectrumId} · kN²/Hz（规范力自谱）</p>{source.actions.map((action, i) => <p key={i}>{action.kind === "node" ? '节点 ' + action.nodeId : '整杆均布 ' + action.memberId} · 全局方向 ({Object.values(action.direction).join(", ")}) · 系数 {action.kind === "node" ? action.scale : u.quantity(action.scalePerM, "1/m")} <button className="button ghost" onClick={() => action.kind === "node" ? onLocate(action.nodeId) : onLocateMember(action.memberId)}>定位作用 {source.sourceId} / {i + 1}</button></p>)}</div>)}
+      <p>响应参考系：{randomResponseFrame(s) === "relative-to-base" ? "全局 XYZ · 相对整体平动基底（不含基底位移）" : "全局 XYZ · 固定参考系"}。仅输出选定节点平移 PSD / RMS。</p>
+      {randomSources(s).map((source) => <div key={source.sourceId}><p>源 {source.sourceId} · {source.psdSpectrumId} · {randomSourceQuantity(source) === "acceleration" ? "(m/s²)²/Hz（基底加速度自谱）" : "kN²/Hz（规范力自谱）"}</p>{source.actions.map((action, i) => <p key={i}>{action.kind === "base-translation" ? "整体一致平动基底 · 适用支承 " + result.input.supports.map((support) => support.nodeId).join(", ") : action.kind === "node" ? '节点 ' + action.nodeId : '整杆均布 ' + action.memberId} · 全局方向 ({Object.values(action.direction).join(", ")}) · 系数 {action.kind === "member-uniform" ? u.quantity(action.scalePerM, "1/m") : action.scale} {action.kind === "base-translation" ? result.input.supports.map((support) => <button key={support.id} className="button ghost" onClick={() => onLocate(support.nodeId)}>定位基底支承 {support.nodeId}</button>) : <button className="button ghost" onClick={() => action.kind === "node" ? onLocate(action.nodeId) : onLocateMember(action.memberId)}>定位作用 {source.sourceId} / {i + 1}</button>}</p>)}</div>)}
       <p>积分频段 {s.bandHz.join("–")} Hz · 梯形积分 · {r.points.length} 个实际频点。曲线超过 1000 点时仅显示分桶极值，原始数值完整保存。</p>
     </section>
     <details className="property-section"><summary>模态、阻尼和精度来源</summary><p>模态结果：{basis.modal.id} · {basis.modal.createdAt} · {r.modeCount} 阶 · 每杆 {basis.modal.modal!.selectedDivisions} 单元。</p>

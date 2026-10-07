@@ -14,8 +14,15 @@ export interface LegacyRandomSettings {
   integration: "trapezoidal";
 }
 export type RandomAction = { direction: Vector3 } & (
-  { kind: "node"; nodeId: string; scale: number } | { kind: "member-uniform"; memberId: string; scalePerM: number });
+  { kind: "node"; nodeId: string; scale: number } | { kind: "member-uniform"; memberId: string; scalePerM: number }
+  | { kind: "base-translation"; scale: number });
 export interface RandomSource { sourceId: string; psdSpectrumId: string; actions: RandomAction[] }
+export function randomSourceQuantity(source: RandomSource): "force" | "acceleration" {
+  return source.actions.some((a) => a.kind === "base-translation") ? "acceleration" : "force";
+}
+export function randomResponseFrame(s: RandomSettings): "relative-to-base" | "fixed-global" {
+  return randomSources(s).some((source) => randomSourceQuantity(source) === "acceleration") ? "relative-to-base" : "fixed-global";
+}
 export interface DistributedRandomSettings extends Omit<LegacyRandomSettings, "psdSpectrumId" | "excitation"> {
   sourceRelationship: "independent"; sources: RandomSource[];
 }
@@ -44,13 +51,14 @@ export function validateRandomSettings(value: unknown): RandomSettings {
     if (!identity(source.sourceId) || ids.has(source.sourceId) || typeof source.psdSpectrumId !== "string" || !/^PSD[1-9]\d*$/.test(source.psdSpectrumId)
       || !Array.isArray(source.actions) || !source.actions.length) throw new Error("随机源身份必须唯一，且须明确力谱和空间作用");
     ids.add(source.sourceId);
+    if (randomSourceQuantity(source) === "acceleration" && source.actions.some((a) => a.kind !== "base-translation")) throw new Error("同一源不能混用力与加速度过程；基底与外力须声明为独立源");
     for (const action of source.actions) {
-      const node = action?.kind === "node";
-      exact(action, ["kind", "direction", ...(node ? ["nodeId", "scale"] : ["memberId", "scalePerM"])]);
+      const node = action?.kind === "node", base = action?.kind === "base-translation";
+      exact(action, ["kind", "direction", ...(base ? ["scale"] : node ? ["nodeId", "scale"] : ["memberId", "scalePerM"])]);
       exact(action.direction, ["x", "y", "z"]);
-      if ((!node && action.kind !== "member-uniform") || !identity(node ? action.nodeId : action.memberId)
-        || !Number.isFinite(node ? action.scale : action.scalePerM) || !Object.values(action.direction).every(Number.isFinite)
-        || Math.abs(Math.hypot(...Object.values(action.direction) as number[]) - 1) > 1e-10) throw new Error("随机作用须为节点力或整杆均布力，使用全局单位方向和有限有符号空间系数（节点无量纲，杆件 1/m）");
+      if ((!node && !base && action.kind !== "member-uniform") || (!base && !identity(node ? action.nodeId : (action as Extract<RandomAction, { kind: "member-uniform" }>).memberId))
+        || !Number.isFinite(action.kind === "member-uniform" ? action.scalePerM : action.scale) || !Object.values(action.direction).every(Number.isFinite)
+        || Math.abs(Math.hypot(...Object.values(action.direction) as number[]) - 1) > 1e-10) throw new Error("随机作用须为节点力、整杆均布力或整体平动基底，使用全局单位方向和有限有符号系数（节点／基底无量纲，杆件 1/m）");
     }
   }
   if (!identity(s.modalAnalysisId) || !identity(s.response.nodeId) || !["x", "y", "z"].includes(s.response.component)
@@ -72,6 +80,7 @@ export function randomSpectra(basis: RandomBasis): Array<{ sourceId: string; spe
 }
 export interface RandomConvergenceRun { points: number; variance: number; rms: number; curveError?: number; varianceError?: number; rmsError?: number }
 export interface RandomRecord {
+  referenceFrame?: "relative-to-base";
   coordinateSystem: "global XYZ"; sidedness: "one-sided"; frequencyUnit: "Hz"; densityUnit: "m²/Hz"; rmsUnit: "m";
   response: RandomSettings["response"]; modalAnalysisId: string; modeCount: number;
   points: Array<{ frequencyHz: number; density: number }>; variance: number; rms: number;
@@ -102,7 +111,7 @@ export function validateRandomBasis(input: AnalysisInputSnapshot): RandomBasis {
   spectra.forEach((item, i) => {
     exact(item, ["sourceId", "spectrum"]);
     const spectrum = decodePsdSpectrum(item.spectrum);
-    if (item.sourceId !== sources[i].sourceId || spectrum.id !== sources[i].psdSpectrumId || spectrum.quantity !== "force") throw new Error("随机源必须绑定对应的力自谱");
+    if (item.sourceId !== sources[i].sourceId || spectrum.id !== sources[i].psdSpectrumId || spectrum.quantity !== randomSourceQuantity(sources[i])) throw new Error("随机源须绑定对应量纲自谱：外力使用力谱，整体基底使用加速度谱");
     if (!sameInputValue(s.bandHz, spectrum.band)) throw new Error("各独立源须使用相同的完整有效频段，禁止截去随机能量");
   });
   const m = basis.modal.modal;
@@ -111,6 +120,14 @@ export function validateRandomBasis(input: AnalysisInputSnapshot): RandomBasis {
   if (m.modes.length < m.counts.equations && m.modes.length <= s.modeIncrement) throw new Error("模态数不足以比较截断误差，请增阶或调整登记步长");
   if (!input.nodes.some((n) => n.id === s.response.nodeId)) throw new Error("随机响应节点已删除");
   for (const source of sources) for (const action of source.actions) {
+    if (action.kind === "base-translation") {
+      if (!input.supports.length || input.supports.some((support) => (["x", "y", "z"] as const).some((axis, i) => action.direction[axis] !== 0 && !support.restraints[i]))) throw new Error("整体一致基底要求所有支承约束每个非零平动方向；不支持差动支座或转动输入");
+      const shapes = m.modes.flatMap((mode) => mode.members.flatMap((member) => member.samples.map((sample) => sample.translation)));
+      const projection = Math.max(...shapes.map((v) => Math.abs(v.x * action.direction.x + v.y * action.direction.y + v.z * action.direction.z)));
+      const shapeScale = Math.max(...shapes.map((v) => Math.hypot(v.x, v.y, v.z)));
+      if (action.scale !== 0 && projection <= 1e-10 * Math.max(1e-30, shapeScale)) throw new Error("已提取模态未覆盖基底平动方向，请增阶；不能把零参与误判为收敛");
+      continue;
+    }
     const node = action.kind === "node";
     if (node ? !input.nodes.some((n) => n.id === action.nodeId) : !input.members.some((member) => member.id === action.memberId)) throw new Error(node ? "随机作用节点已删除" : "随机作用杆件已删除");
     const shapes = m.modes.map((_, i) => randomActionShape(basis.modal, i, action));

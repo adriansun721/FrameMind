@@ -550,10 +550,21 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, ran
     const palette = readScenePalette();
     const colors = [palette.load, palette.axisY, palette.axisZ];
     randomSources(randomSettings).forEach((source, sourceIndex) => source.actions.forEach((action) => {
-      const scale = action.kind === "node" ? action.scale : action.scalePerM;
+      const scale = action.kind === "member-uniform" ? action.scalePerM : action.scale;
       if (!Number.isFinite(scale) || scale === 0 || !Object.values(action.direction).every(Number.isFinite)) return;
       const direction = new THREE.Vector3(action.direction.x, action.direction.y, action.direction.z).multiplyScalar(Math.sign(scale)).normalize();
       const member = action.kind === "member-uniform" ? members.find((m) => m.id === action.memberId) : undefined;
+      if (action.kind === "base-translation") {
+        for (const support of supports ?? []) {
+          const node = nodes.find((n) => n.id === support.nodeId);
+          if (!node) continue;
+          const tail = new THREE.Vector3(node.position.x, node.position.y, node.position.z).addScaledVector(direction, -.8);
+          group.add(makeArrow(direction, tail, .6, colors[sourceIndex % colors.length]));
+          const label = makeLabel(source.sourceId + " · 基底加速度系数 " + scale, palette);
+          label.position.copy(tail); label.userData.labelPriority = 20; group.add(label);
+        }
+        return;
+      }
       const start = nodes.find((n) => n.id === (action.kind === "node" ? action.nodeId : member?.startNodeId));
       const end = member ? nodes.find((n) => n.id === member.endNodeId) : undefined;
       if (!start || (member && !end)) return;
@@ -569,7 +580,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, ran
         }
       });
     }));
-  }, [randomSettings, nodes, members, theme, u.preset]);
+  }, [randomSettings, nodes, members, supports, theme, u.preset]);
   useEffect(() => {
     const group = runtimeRef.current?.results;
     if (!group) return;
@@ -676,7 +687,7 @@ function SceneViewportScene({ preview, theme = "dark", supports, nodalLoads, ran
       {preview && (!!preview.nodes.length || !!preview.supports?.length || !!preview.nodalLoads?.length || !!preview.loadStageSummary) && <div className="viewport-preview-legend" aria-label="未应用三维方案"><span />未应用预览 · {preview.sectionChange ? `${preview.members.length} 根选中柱 · 截面修改 · 虚线` : preview.conditionNodes ? `${preview.supports?.length ?? 0} 支座 / ${preview.nodalLoads?.length ?? 0} 节点荷载${preview.loadStageSummary ? ` / ${preview.loadStageSummary}` : ""} · 半透明` : `${preview.nodes.length} 节点 / ${preview.members.length} 杆件 · 虚线`}</div>}
       {sourceLabel && <div className="viewport-case-source" aria-label="视图工况来源">{sourceLabel}</div>}
       <div className="viewport-legend-stack">
-      {randomSettings && <div className="viewport-result-legend" aria-label="随机作用标记">随机空间系数箭头 · 非瞬时力 · {randomSources(randomSettings).map((source) => source.sourceId + ": " + source.actions.map((a) => a.kind === "node" ? a.nodeId : a.memberId).join(", ")).join(" / ")} · 源间独立</div>}
+      {randomSettings && <div className="viewport-result-legend" aria-label="随机作用标记">随机空间系数箭头 · 非瞬时力 · {randomSources(randomSettings).map((source) => source.sourceId + ": " + source.actions.map((a) => a.kind === "base-translation" ? "全部支承基底加速度" : a.kind === "node" ? a.nodeId : a.memberId).join(", ")).join(" / ")} · 源间独立</div>}
       {displayedWeight && <div className={`viewport-weight-marker${weightPending ? " pending" : ""}`} aria-label={weightPending ? "待确认自重标记" : "自重标记"}>
         <Weight size={16} /><div><strong>{displayedWeight.enabled ? "结构自重" : "关闭自重"}{weightPending ? " · 待确认" : " · 已启用"}</strong>
           <span>{weightPending ? preview!.selfWeight!.caseLabel : selfWeightLabel ?? displayedWeight.loadCaseId} · 全结构</span>

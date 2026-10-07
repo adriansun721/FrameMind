@@ -42,6 +42,19 @@ static std::vector<double> randomDensities(const std::vector<RandomMode>& modes,
 }
 // Exact EB shape integral on the actual frozen mesh, including release coordinates.
 static Vec3 randomActionShape(const Json& modalInput, const Json& modal, const Json& level, size_t mode, const Json& action) {
+    if (action.at("kind")=="base-translation") {
+        Vec3 participation=Vec3::Zero();
+        for (const auto& member:modalInput.at("members")) {
+            double density=0, area=0;
+            for (const auto& material:modalInput.at("materials")) if (material.at("id")==member.at("materialId")) density=number(material.at("densityKgM3"));
+            for (const auto& section:modalInput.at("sections")) if (section.at("id")==member.at("sectionId")) area=number(section.at("areaM2"));
+            Json line={{"kind","member-uniform"},{"memberId",member.at("id")}};
+            participation-=(density*area+member.value("additionalLineMassKgM",0.0))/1000*randomActionShape(modalInput,modal,level,mode,line);
+        }
+        for (const auto& node:modalInput.at("nodes")) for (const auto& shape:modal.at("modes")[mode].at("nodes")) if (shape.at("nodeId")==node.at("id")) participation-=node.value("additionalMassKg",0.0)/1000*vector3(shape.at("translation"),nullptr,"translation");
+        require(participation.allFinite(),"Base mass participation exceeds finite precision",nullptr,"random");
+        return participation;
+    }
     if (action.at("kind")=="node") {
         for (const auto& n:modal.at("modes")[mode].at("nodes")) if (n.at("nodeId")==action.at("nodeId")) return vector3(n.at("translation"),nullptr,"translation");
         throw Failure("random-missing-node","Random source node is missing",nullptr,"random");
@@ -104,10 +117,17 @@ static Json calculateRandom(const Json& request, Json& stages, std::string& stag
         require(source.is_object() && source.size()==3 && sourceIds.insert(sourceId).second && source.at("actions").is_array() && !source.at("actions").empty(),"Random source identity must be unique with explicit actions");
         actionCount+=source.at("actions").size(); require(actionCount<=128,"Random spatial action budget exceeded");
         for (const auto& action:source.at("actions")) {
-            const bool node=action.at("kind")=="node"; const auto target=action.at(node ? "nodeId" : "memberId");
-            require(action.is_object() && action.size()==4 && (node || action.at("kind")=="member-uniform") && action.at("direction").is_object() && action.at("direction").size()==3,"Only node and whole-member uniform global forces are supported");
-            const auto direction=vector3(action.at("direction"),nullptr,"direction"); number(action.at(node ? "scale" : "scalePerM"));
+            const bool node=action.at("kind")=="node", base=action.at("kind")=="base-translation";
+            require(action.is_object() && action.size()==(base ? 3 : 4) && (node || base || action.at("kind")=="member-uniform") && action.at("direction").is_object() && action.at("direction").size()==3,"Only node force, uniform member force and whole-base translation are supported");
+            const auto direction=vector3(action.at("direction"),nullptr,"direction"); number(action.at(action.at("kind")=="member-uniform" ? "scalePerM" : "scale"));
             require(std::abs(direction.norm()-1)<=1e-10,"Random direction must be a global unit vector");
+            require(base==(source.at("actions")[0].at("kind")=="base-translation"),"A source cannot mix force and acceleration processes");
+            if (base) {
+                require(!input.at("supports").empty(),"Base excitation needs constrained supports");
+                for (const auto& support:input.at("supports")) for (int axis=0;axis<3;++axis) require(direction[axis]==0 || support.at("restraints")[axis]==true,"Every support must restrain each nonzero base translation direction; differential/rotational bases are unsupported");
+                continue;
+            }
+            const auto target=action.at(node ? "nodeId" : "memberId");
             bool exists=false; for (const auto& object:input.at(node ? "nodes" : "members")) exists|=object.at("id")==target;
             require(exists,"Random spatial target is missing");
         }
@@ -136,7 +156,8 @@ static Json calculateRandom(const Json& request, Json& stages, std::string& stag
     const double lo=number(settings.at("bandHz")[0]), hi=number(settings.at("bandHz")[1]); require(lo>=0 && hi>lo && number(damping.at("truncation").at("upperFrequencyHz"))>=hi,"Invalid random band or damping band coverage");
     for (size_t i=0;i<spectra.size();++i) {
         const auto& item=spectra[i]; const auto& spectrum=item.at("spectrum");
-        require(item.size()==2 && item.at("sourceId")==sources[i].at("sourceId") && spectrum.at("id")==sources[i].at("psdSpectrumId") && spectrum.at("quantity")=="force" && spectrum.at("excitationUnit")=="kN" && spectrum.at("frequencyUnit")=="Hz" && spectrum.at("densityUnit")=="kN\u00b2/Hz" && spectrum.at("sidedness")=="one-sided" && spectrum.at("interpolation")=="linear" && spectrum.at("outsideBand")=="zero","Random response requires corresponding canonical one-sided force PSD");
+        const bool base=sources[i].at("actions")[0].at("kind")=="base-translation";
+        require(item.size()==2 && item.at("sourceId")==sources[i].at("sourceId") && spectrum.at("id")==sources[i].at("psdSpectrumId") && spectrum.at("quantity")== (base ? "acceleration" : "force") && spectrum.at("excitationUnit")== (base ? "m/s²" : "kN") && spectrum.at("frequencyUnit")=="Hz" && spectrum.at("densityUnit")== (base ? "(m/s²)²/Hz" : "kN\u00b2/Hz") && spectrum.at("sidedness")=="one-sided" && spectrum.at("interpolation")=="linear" && spectrum.at("outsideBand")=="zero","Random response requires corresponding canonical one-sided force or base acceleration PSD");
         require(settings.at("bandHz")==spectrum.at("band"),"Independent sources must share the full PSD band");
         const auto& points=spectrum.at("points"); require(points.is_array() && points.size()>=2 && points.size()<=10000 && points.front().at("frequency")==lo && points.back().at("frequency")==hi,"Invalid PSD table/band");
         double previousFrequency=-1; for (const auto& p:points) { const double f=number(p.at("frequency")), density=number(p.at("density")); require(p.size()==2 && f>previousFrequency && density>=0,"PSD points must increase strictly with nonnegative density"); previousFrequency=f; }
@@ -164,6 +185,14 @@ static Json calculateRandom(const Json& request, Json& stages, std::string& stag
     // opposite pair is valid, but missing directional modes must not look converged.
     for (const auto& source:sources) for (const auto& action:source.at("actions")) {
         const Vec3 direction=vector3(action.at("direction"),nullptr,"direction"); const bool node=action.at("kind")=="node";
+        if (action.at("kind")=="base-translation") {
+            double projection=0, shapeScale=0;
+            for (const auto& mode:modal.at("modes")) for (const auto& member:mode.at("members")) for (const auto& sample:member.at("samples")) {
+                const auto shape=vector3(sample.at("translation"),nullptr,"translation"); projection=std::max(projection,std::abs(shape.dot(direction))); shapeScale=std::max(shapeScale,shape.norm());
+            }
+            if (number(action.at("scale"))!=0 && projection<=1e-10*std::max(1e-30,shapeScale)) throw Failure("random-modal-participation","Extracted modes do not cover the base translation direction; increase extraction",nullptr,"modeCount");
+            continue;
+        }
         const double scale=number(action.at(node ? "scale" : "scalePerM")); double projection=0, shapeScale=0;
         for (size_t i=0;i<count;++i) { const auto shape=randomActionShape(modalInput,modal,selected,i,action); projection=std::max(projection,std::abs(shape.dot(direction))); shapeScale=std::max(shapeScale,shape.norm()); }
         Vec3 freeDirection=direction;
@@ -180,7 +209,7 @@ static Json calculateRandom(const Json& request, Json& stages, std::string& stag
             double generalized=0;
             for (const auto& action:source.at("actions")) {
                 const double projection=randomActionShape(modalInput,modal,selected,i,action).dot(vector3(action.at("direction"),nullptr,"direction"));
-                const double scale=number(action.at(action.at("kind")=="node" ? "scale" : "scalePerM")), contribution=scale*projection;
+                const double scale=number(action.at(action.at("kind")=="member-uniform" ? "scalePerM" : "scale")), contribution=scale*projection;
                 require(std::isfinite(contribution) && !(contribution==0 && scale!=0 && projection!=0),"Random modal spatial coefficient overflows or underflows"); generalized+=contribution;
             }
             const double coefficient=output*generalized; require(std::isfinite(coefficient) && !(coefficient==0 && output!=0 && generalized!=0),"Random modal source coefficient overflows or underflows"); coefficients.push_back(coefficient);
@@ -221,6 +250,8 @@ static Json calculateRandom(const Json& request, Json& stages, std::string& stag
     phase("recovery"); Json output=Json::array(); for (size_t i=0;i<grid.size();++i) output.push_back({{"frequencyHz",grid[i]},{"density",density[i]}});
     Json record={{"coordinateSystem","global XYZ"},{"sidedness","one-sided"},{"frequencyUnit","Hz"},{"densityUnit","m²/Hz"},{"rmsUnit","m"},{"response",response},{"modalAnalysisId",modalResult.at("id")},{"modeCount",count},{"points",output},{"variance",previousRun.variance},{"rms",previousRun.rms},
         {"convergence",{{"status","converged"},{"runs",runs},{"modal",{{"status",complete ? "complete-basis" : "converged"},{"lowerModeCount",lower},{"upperModeCount",count},{"curveError",difference/std::max(1e-30,peak)},{"rmsError",rmsDifference/std::max(1e-30,rmsScale)}}}}}};
+    bool hasBase=false; for (const auto& source:sources) for (const auto& action:source.at("actions")) hasBase|=action.at("kind")=="base-translation";
+    if (hasBase) record["referenceFrame"]="relative-to-base";
     Json service={{"version",request["version"]},{"requestId",request["requestId"]},{"analysisId",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"origin",request["origin"]},{"sourceId",request["sourceId"]},{"dependencies",Json::array()},{"solver",randomSolver},{"status","complete"},{"stages",stages}};
     return {{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input},{"nodes",Json::array()},{"members",Json::array()},{"random",record},{"service",service}};
 }

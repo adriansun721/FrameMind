@@ -1,0 +1,690 @@
+{
+  "passed": true,
+  "reference": "continuous EB analytical eigenfunctions; mass-dominated SDOF",
+  "checks": [
+    {
+      "name": "continuous-cantilever-base",
+      "referenceRms": 0.009112403548151345,
+      "rmsM": 0.009112774939804008,
+      "curveError": 0.0000036140679206298896,
+      "rmsError": 0.0000407567170066514,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.00004323989520268491,
+          "lowerModeCount": 4,
+          "rmsError": 0.000009006665531034032,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.009208793676567347,
+            "variance": 0.00008480188097758676
+          },
+          {
+            "curveError": 0.043290142767628374,
+            "points": 165,
+            "rms": 0.009135153879486838,
+            "rmsError": 0.007996682265549402,
+            "variance": 0.00008345103640190342,
+            "varianceError": 0.015929417603842592
+          },
+          {
+            "curveError": 0.03925154280659543,
+            "points": 329,
+            "rms": 0.00911815147229641,
+            "rmsError": 0.0018612064355704807,
+            "variance": 0.0000831406862717412,
+            "varianceError": 0.0037189487817450954
+          },
+          {
+            "curveError": 0.013700859796410248,
+            "points": 657,
+            "rms": 0.009113853083149291,
+            "rmsError": 0.0004714101493245202,
+            "variance": 0.00008306231802122983,
+            "varianceError": 0.0009425980711203399
+          },
+          {
+            "curveError": 0.0037536504776372764,
+            "points": 1313,
+            "rms": 0.009112774939804008,
+            "rmsError": 0.00011829720486462465,
+            "variance": 0.00008304266710351994,
+            "varianceError": 0.00023658041550049955
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "global-z-direction",
+      "referenceRms": 0.0032093295392586142,
+      "rmsM": 0.0032092891761953688,
+      "curveError": 0.00004083621776511728,
+      "rmsError": 0.000012576789872098537,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0,
+          "lowerModeCount": 4,
+          "rmsError": 0,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.003216338023708112,
+            "variance": 0.000010344830282750602
+          },
+          {
+            "curveError": 0.05011813029391546,
+            "points": 165,
+            "rms": 0.0032110030227222703,
+            "rmsError": 0.001658718998599182,
+            "variance": 0.000010310540411931557,
+            "varianceError": 0.0033146866484820145
+          },
+          {
+            "curveError": 0.022003219486372027,
+            "points": 329,
+            "rms": 0.0032096980426476367,
+            "rmsError": 0.000406408858976166,
+            "variance": 0.00001030216152497607,
+            "varianceError": 0.0008126525497917135
+          },
+          {
+            "curveError": 0.006421091818290809,
+            "points": 657,
+            "rms": 0.0032093709969968727,
+            "rmsError": 0.0001018929651383226,
+            "variance": 0.000010300062196364701,
+            "varianceError": 0.00020377554810017425
+          },
+          {
+            "curveError": 0.001675268678198292,
+            "points": 1313,
+            "rms": 0.0032092891761953688,
+            "rmsError": 0.00002549434190701235,
+            "variance": 0.000010299537016444748,
+            "varianceError": 0.00005098803385272137
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "double-structural-density",
+      "referenceRms": 0.015328583069576376,
+      "rmsM": 0.015329208118072472,
+      "curveError": 0.0000036139582454171367,
+      "rmsError": 0.000040776664957276054,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.000043254990317482895,
+          "lowerModeCount": 4,
+          "rmsError": 0.000005112877796488033,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.01549119422102632,
+            "variance": 0.00023997709839355925
+          },
+          {
+            "curveError": 0.05676662948854048,
+            "points": 165,
+            "rms": 0.015366194322179604,
+            "rmsError": 0.008069093774387845,
+            "variance": 0.00023611992794698468,
+            "varianceError": 0.01607307727443582
+          },
+          {
+            "curveError": 0.04304434244477877,
+            "points": 329,
+            "rms": 0.015338299020458029,
+            "rmsError": 0.0018153682777075559,
+            "variance": 0.00023526341684098373,
+            "varianceError": 0.003627440993431369
+          },
+          {
+            "curveError": 0.014324373546688621,
+            "points": 657,
+            "rms": 0.01533104211721177,
+            "rmsError": 0.00047312307815752547,
+            "variance": 0.00023504085239972115,
+            "varianceError": 0.0009460223108678826
+          },
+          {
+            "curveError": 0.0038389747799393867,
+            "points": 1313,
+            "rms": 0.015329208118072472,
+            "rmsError": 0.00011962651496717572,
+            "variance": 0.000234984621527179,
+            "varianceError": 0.00023923871943131578
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "additional-line-mass",
+      "referenceRms": 0.015328583069576376,
+      "rmsM": 0.015329208121063365,
+      "curveError": 0.000003615283407870904,
+      "rmsError": 0.00004077686007586401,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.00004325499030627781,
+          "lowerModeCount": 4,
+          "rmsError": 0.0000051128777946983045,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.01549119422572863,
+            "variance": 0.00023997709853924805
+          },
+          {
+            "curveError": 0.056766629488584554,
+            "points": 165,
+            "rms": 0.01536619432560148,
+            "rmsError": 0.008069093854594103,
+            "variance": 0.00023611992805214711,
+            "varianceError": 0.016073077433553913
+          },
+          {
+            "curveError": 0.0430443424447854,
+            "points": 329,
+            "rms": 0.01533829902355192,
+            "rmsError": 0.0018153682986478223,
+            "variance": 0.00023526341693589378,
+            "varianceError": 0.003627441035236006
+          },
+          {
+            "curveError": 0.014324373546691511,
+            "points": 657,
+            "rms": 0.015331042120223274,
+            "rmsError": 0.0004731230834334319,
+            "variance": 0.00023504085249206015,
+            "varianceError": 0.000946022321414626
+          },
+          {
+            "curveError": 0.003838974779939376,
+            "points": 1313,
+            "rms": 0.015329208121063365,
+            "rmsError": 0.00011962651628813801,
+            "variance": 0.00023498462161887498,
+            "varianceError": 0.0002392387220730784
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "released-tip-rotation",
+      "referenceRms": 0.009112403548151345,
+      "rmsM": 0.009112774939096705,
+      "curveError": 0.0000036135553424442646,
+      "rmsError": 0.000040756639386962945,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.00004323989520731645,
+          "lowerModeCount": 4,
+          "rmsError": 0.000009006665535540332,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.00920879367526017,
+            "variance": 0.00008480188095351171
+          },
+          {
+            "curveError": 0.04329014276764807,
+            "points": 165,
+            "rms": 0.009135153878630183,
+            "rmsError": 0.007996682217761548,
+            "variance": 0.00008345103638625207,
+            "varianceError": 0.01592941750903109
+          },
+          {
+            "curveError": 0.03925154280659647,
+            "points": 329,
+            "rms": 0.009118151471553352,
+            "rmsError": 0.0018612064233099078,
+            "variance": 0.00008314068625819057,
+            "varianceError": 0.0037189487572694686
+          },
+          {
+            "curveError": 0.013700859796410447,
+            "points": 657,
+            "rms": 0.009113853082434816,
+            "rmsError": 0.00047141014622819596,
+            "variance": 0.0000830623180082066,
+            "varianceError": 0.000942598064930545
+          },
+          {
+            "curveError": 0.0037536504776467423,
+            "points": 1313,
+            "rms": 0.009112774939096705,
+            "rmsError": 0.00011829720408684592,
+            "variance": 0.00008304266709062897,
+            "varianceError": 0.00023658041394514177
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "two-engineering-members",
+      "referenceRms": 0.009112403548151345,
+      "rmsM": 0.009112774938958155,
+      "curveError": 0.000003613448170458454,
+      "rmsError": 0.00004075662418223658,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.00004323989520818227,
+          "lowerModeCount": 4,
+          "rmsError": 0.000009006665533202567,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.009208793674995663,
+            "variance": 0.00008480188094864014
+          },
+          {
+            "curveError": 0.04329014276765071,
+            "points": 165,
+            "rms": 0.009135153878460277,
+            "rmsError": 0.007996682207718295,
+            "variance": 0.00008345103638314782,
+            "varianceError": 0.015929417489105636
+          },
+          {
+            "curveError": 0.03925154280660082,
+            "points": 329,
+            "rms": 0.009118151471407302,
+            "rmsError": 0.0018612064207330834,
+            "variance": 0.00008314068625552713,
+            "varianceError": 0.0037189487521255542
+          },
+          {
+            "curveError": 0.013700859796410425,
+            "points": 657,
+            "rms": 0.00911385308229477,
+            "rmsError": 0.0004714101455772934,
+            "variance": 0.00008306231800565389,
+            "varianceError": 0.0009425980636289729
+          },
+          {
+            "curveError": 0.003753650477647662,
+            "points": 1313,
+            "rms": 0.009112774938958155,
+            "rmsError": 0.00011829720392459132,
+            "variance": 0.00008304266708810381,
+            "varianceError": 0.00023658041362070628
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "two-supports-share-one-base-process",
+      "referenceRms": 0.009112403548151345,
+      "rmsM": 0.009112774939969186,
+      "curveError": 0.0000036142163363815604,
+      "rmsError": 0.00004075673513348477,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0,
+          "lowerModeCount": 10,
+          "rmsError": 0,
+          "status": "converged",
+          "upperModeCount": 12
+        },
+        "runs": [
+          {
+            "points": 101,
+            "rms": 0.009208793676718726,
+            "variance": 0.00008480188098037478
+          },
+          {
+            "curveError": 0.043290142304076844,
+            "points": 201,
+            "rms": 0.009135153879674672,
+            "rmsError": 0.007996682261459208,
+            "variance": 0.0000834510364053352,
+            "varianceError": 0.01592941759572756
+          },
+          {
+            "curveError": 0.03925154241522,
+            "points": 401,
+            "rms": 0.009118151472465903,
+            "rmsError": 0.001861206437539975,
+            "variance": 0.00008314068627483212,
+            "varianceError": 0.003718948785676706
+          },
+          {
+            "curveError": 0.013700859671109575,
+            "points": 801,
+            "rms": 0.009113853083315278,
+            "rmsError": 0.0004714101497002516,
+            "variance": 0.0000830623180242554,
+            "varianceError": 0.0009425980718714805
+          },
+          {
+            "curveError": 0.0037536504467510093,
+            "points": 1601,
+            "rms": 0.009112774939969186,
+            "rmsError": 0.00011829720495116822,
+            "variance": 0.0000830426671065304,
+            "varianceError": 0.0002365804156736434
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "eight-divisions",
+      "referenceRms": 0.009112403548151345,
+      "rmsM": 0.009112783518349953,
+      "curveError": 0.000064376994751635,
+      "rmsError": 0.00004169813118992671,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.000043236467888444966,
+          "lowerModeCount": 4,
+          "rmsError": 0.000009006224040423425,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.00920877980600548,
+            "variance": 0.00008480162551549432
+          },
+          {
+            "curveError": 0.043290142484143895,
+            "points": 165,
+            "rms": 0.0091351568631647,
+            "rmsError": 0.007994864074474561,
+            "variance": 0.00008345109091462512,
+            "varianceError": 0.01592581029737967
+          },
+          {
+            "curveError": 0.039251542743215934,
+            "points": 329,
+            "rms": 0.009118158711720344,
+            "rmsError": 0.0018607399630866705,
+            "variance": 0.00008314081829212161,
+            "varianceError": 0.0037180175729630465
+          },
+          {
+            "curveError": 0.013700859787531466,
+            "points": 657,
+            "rms": 0.009113861393453035,
+            "rmsError": 0.00047129233030183623,
+            "variance": 0.00008306246949907369,
+            "varianceError": 0.0009423625441432963
+          },
+          {
+            "curveError": 0.003753650773705277,
+            "points": 1313,
+            "rms": 0.009112783518349953,
+            "rmsError": 0.00011826766466480126,
+            "variance": 0.00008304282345231055,
+            "varianceError": 0.00023652134208889392
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "mass-dominated-sdof",
+      "referenceRms": 5.265781467171886,
+      "rmsM": 5.269546182700415,
+      "curveError": 0.002025260133794593,
+      "rmsError": 0.0007149395682291004,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 6.163926302160047e-13,
+          "lowerModeCount": 4,
+          "rmsError": 1.3483945507352546e-15,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 92,
+            "rms": 5.656728102215274,
+            "variance": 31.99857282239201
+          },
+          {
+            "curveError": 0.056927891382783806,
+            "points": 183,
+            "rms": 5.401180242750965,
+            "rmsError": 0.045175913504527744,
+            "variance": 29.17274801468338,
+            "varianceError": 0.08831096384808673
+          },
+          {
+            "curveError": 0.04308129581489161,
+            "points": 365,
+            "rms": 5.308153170272088,
+            "rmsError": 0.01722347122255934,
+            "variance": 28.176490079069616,
+            "varianceError": 0.03415029448416449
+          },
+          {
+            "curveError": 0.014329798817777744,
+            "points": 729,
+            "rms": 5.278067111284724,
+            "rmsError": 0.005667895786402486,
+            "variance": 27.85799243122547,
+            "varianceError": 0.011303666530159379
+          },
+          {
+            "curveError": 0.0038396306940723063,
+            "points": 1457,
+            "rms": 5.269546182700415,
+            "rmsError": 0.0016144032284263244,
+            "variance": 27.768116971612518,
+            "varianceError": 0.003226200159068598
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "same-source-aligned",
+      "passed": true
+    },
+    {
+      "name": "same-source-cancelled",
+      "passed": true
+    },
+    {
+      "name": "independent-base-sources",
+      "passed": true
+    },
+    {
+      "name": "units-independent-force-provenance-confirmation-undo-history",
+      "passed": true,
+      "realAi": false
+    },
+    {
+      "name": "moving-support-relative-translation-is-zero",
+      "passed": true
+    },
+    {
+      "name": "increased-modal-extraction",
+      "referenceRms": 0.009112403548151345,
+      "rmsM": 0.009112759414722577,
+      "curveError": 0.000006285943291841365,
+      "rmsError": 0.000039052986333665274,
+      "tolerance": 0.005,
+      "oracleIntervals": [
+        100000,
+        200000
+      ],
+      "convergence": {
+        "modal": {
+          "curveError": 0.000008023312439878192,
+          "lowerModeCount": 6,
+          "rmsError": 0.0000017036612374449223,
+          "status": "converged",
+          "upperModeCount": 8
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.009208777113325064,
+            "variance": 0.00008480157592289952
+          },
+          {
+            "curveError": 0.043292498373766856,
+            "points": 165,
+            "rms": 0.009135138151248286,
+            "rmsError": 0.007996605973905396,
+            "variance": 0.00008345074904239194,
+            "varianceError": 0.015929266240709176
+          },
+          {
+            "curveError": 0.039252111578708435,
+            "points": 329,
+            "rms": 0.009118135901904299,
+            "rmsError": 0.0018611923610223088,
+            "variance": 0.00008314040232559613,
+            "varianceError": 0.003718920685039672
+          },
+          {
+            "curveError": 0.013700951175590226,
+            "points": 657,
+            "rms": 0.009113837549138484,
+            "rmsError": 0.00047140696432446523,
+            "variance": 0.00008306203487208657,
+            "varianceError": 0.0009425917041230969
+          },
+          {
+            "curveError": 0.0037536650274784416,
+            "points": 1313,
+            "rms": 0.009112759414722577,
+            "rmsError": 0.00011829642673507839,
+            "variance": 0.00008304238415061497,
+            "varianceError": 0.00023657885942543976
+          }
+        ],
+        "status": "converged"
+      }
+    }
+  ],
+  "failures": [
+    {
+      "name": "differential-target",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "base-rotation",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "correlated-force-and-base",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "partial-correlation",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "wrong-force-spectrum",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "uncovered-axial-direction",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "unsupported-support-restraint",
+      "rendererRejects": true,
+      "nativeRejects": true
+    },
+    {
+      "name": "missing-relative-frame",
+      "decoderRejects": true
+    },
+    {
+      "name": "forged-absolute-frame",
+      "decoderRejects": true
+    },
+    {
+      "name": "forged-acceleration-spectrum",
+      "decoderRejects": true
+    },
+    {
+      "name": "base-frequency-budget-no-partial-result",
+      "nativeRejects": true
+    }
+  ]
+}

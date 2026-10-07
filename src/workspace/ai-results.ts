@@ -1,4 +1,4 @@
-import { RANDOM_RESPONSE_MEANING, randomSpectra } from "../domain/random-response";
+import { RANDOM_RESPONSE_MEANING, randomResponseFrame, randomSpectra } from "../domain/random-response";
 import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
 import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
@@ -19,6 +19,7 @@ export interface ResultReference {
   quantity: string;
   component: string;
   coordinateSystem: "global XYZ" | "local xyz";
+  referenceFrame?: "relative-to-base" | "fixed-global";
   position?: number;
   value: number;
   unit: string;
@@ -89,17 +90,17 @@ export function readResults(result: AnalysisResult, current: boolean, input: Rec
     const spectra = randomSpectra(basis);
     const inputSources = spectra.map(({ sourceId, spectrum: { points, ...metadata } }) => ({ sourceId, ...metadata, totalPoints: points.length }));
     const { points: _points, ...spectrumMetadata } = spectra[0].spectrum;
-    const spectrumPoints = spectra.flatMap(({ sourceId, spectrum }) => spectrum.points.map((point) => ({ ...point, sourceId, psdSpectrumId: spectrum.id })));
-    if (collection === "summary") return { ...provenance, method: "random", meaning: RANDOM_RESPONSE_MEANING, response: r.response, coordinateSystem: r.coordinateSystem,
+    const spectrumPoints = spectra.flatMap(({ sourceId, spectrum }) => spectrum.points.map((point) => ({ ...point, sourceId, psdSpectrumId: spectrum.id, densityUnit: spectrum.densityUnit })));
+    if (collection === "summary") return { ...provenance, method: "random", meaning: RANDOM_RESPONSE_MEANING, response: r.response, coordinateSystem: r.coordinateSystem, referenceFrame: randomResponseFrame(s),
       rms: r.rms, rmsUnit: "m", variance: r.variance, varianceUnit: "m²", densityUnit: "m²/Hz", sidedness: r.sidedness, frequencyUnit: "Hz", bandHz: s.bandHz,
       frozenRandomSettings: s, modalAnalysisId: basis.modal.id, modalCreatedAt: basis.modal.createdAt, modeCount: r.modeCount,
       damping: basis.damping, inputSources, ...("spectrum" in basis ? { inputSpectrum: { ...spectrumMetadata, totalPoints: _points.length } } : {}), convergence: { ...r.convergence, runs: r.convergence.runs.map((run) => ({ ...run, rmsUnit: "m", varianceUnit: "m²" })) }, totalPoints: r.points.length };
     if (collection === "input-psd") {
-      const items = spectrumPoints.slice(offset, offset + limit).map((p) => ({ sourceId: p.sourceId, psdSpectrumId: p.psdSpectrumId, frequencyHz: p.frequency, density: p.density, densityUnit: "kN²/Hz", frequencyUnit: "Hz" }));
+      const items = spectrumPoints.slice(offset, offset + limit).map((p) => ({ sourceId: p.sourceId, psdSpectrumId: p.psdSpectrumId, frequencyHz: p.frequency, density: p.density, densityUnit: p.densityUnit, frequencyUnit: "Hz" }));
       return { ...provenance, method: "random", collection, ...("spectrum" in basis ? { inputSpectrum: spectrumMetadata } : {}), inputSources, total: spectrumPoints.length, offset, limit, items,
         page: { empty: !items.length, hasMore: offset + items.length < spectrumPoints.length, nextOffset: offset + items.length } };
     }
-    const items = r.points.slice(offset, offset + limit).map((p) => ({ ...p, densityUnit: "m²/Hz", frequencyUnit: "Hz", response: r.response, coordinateSystem: r.coordinateSystem }));
+    const items = r.points.slice(offset, offset + limit).map((p) => ({ ...p, densityUnit: "m²/Hz", frequencyUnit: "Hz", response: r.response, coordinateSystem: r.coordinateSystem, referenceFrame: randomResponseFrame(s) }));
     return { ...provenance, method: "random", meaning: RANDOM_RESPONSE_MEANING, collection, total: r.points.length, offset, limit, items,
       page: { empty: !items.length, hasMore: offset + items.length < r.points.length, nextOffset: offset + items.length } };
   }
@@ -173,7 +174,7 @@ export function readResult(result: AnalysisResult, current: boolean, input: Reco
     if (input.kind !== "node" || input.id !== r.response.nodeId || component !== r.response.component || quantity !== "rms" || input.position !== undefined) throw new Error("随机结果只提供所选节点平移分量的统计 RMS；PSD 使用 read_results psd 分页读取");
     const node = result.input.nodes.find((n) => n.id === r.response.nodeId)!;
     return { token: `[[result:${callId}]]`, analysisId: result.id, inputRevision: provenance.inputRevision, createdAt: result.createdAt, current,
-      source: provenance.source, object: { kind: "node", id: node.id, label: node.label, position: node.position }, quantity: "rms", component, coordinateSystem: "global XYZ", value: r.rms, unit: "m" };
+      source: provenance.source, object: { kind: "node", id: node.id, label: node.label, position: node.position }, quantity: "rms", component, coordinateSystem: "global XYZ", referenceFrame: randomResponseFrame(result.input.analysisCase!.settings.random!), value: r.rms, unit: "m" };
   }
   let object: ResultReference["object"]; let value: number; let unit: string;
   if (input.kind === "node") {
@@ -215,5 +216,5 @@ export function readResult(result: AnalysisResult, current: boolean, input: Reco
 export const RESULT_QUANTITY_LABELS: Record<string, string> = { rms: "平移 RMS（统计均方根，非瞬时峰值）", displacement: "位移", rotation: "转角", reaction: "反力", reactionMoment: "反力矩",
   sectionForces: "截面内力（正局部 x 面）", startEndForces: "起点杆端作用力", endEndForces: "终点杆端作用力" };
 export function resultReferenceLabel(ref: ResultReference): string {
-  return `${ref.object.label} · ${RESULT_QUANTITY_LABELS[ref.quantity]} ${ref.component}${ref.position !== undefined ? ` @ ${ref.position} m` : ""} = ${ref.value.toPrecision(8)} ${ref.unit}`;
+  return `${ref.object.label} · ${RESULT_QUANTITY_LABELS[ref.quantity]} ${ref.component}${ref.referenceFrame === "relative-to-base" ? " · 相对整体平动基底" : ""}${ref.position !== undefined ? ` @ ${ref.position} m` : ""} = ${ref.value.toPrecision(8)} ${ref.unit}`;
 }
