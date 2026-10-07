@@ -82,6 +82,9 @@ try {
   await mkdir(evidence, { recursive: true });
   await writeFile(evidence + '/all-methods.framemind', encodeProject(project));
   await writeFile(evidence + '/deleted-history.framemind', encodeProject(deleted));
+  const weightedHistory = solve(p.selectAnalysisCase(p.updateSelfWeight(project, { enabled: true, loadCaseId: 'LC1', gravity: { x: 0, y: 0, z: -9.81 } }), 'AC3'));
+  assert.equal(weightedHistory.latestAnalysis.input.selfWeight.enabled, true);
+  await writeFile(evidence + '/weighted-history.framemind', encodeProject(p.selectAnalysisCase(weightedHistory, 'AC5')));
   await writeFile(evidence + '/verification.json', JSON.stringify({ passed: true, checks, actualProcessPages: true, frozenModalMatrices: true, localCitationEquality: true, staleSharedGeometry: true, deletedMemberHistory: true, obsoleteModalIdentity: true, prohibitedComparisons: true, numericalAlgorithmChanged: false, realAi: false }, null, 2));
   console.log('T2-36: five native methods, actual records, frozen citations, dependency history and comparison refusals passed.');
 } finally { await server.close(); }

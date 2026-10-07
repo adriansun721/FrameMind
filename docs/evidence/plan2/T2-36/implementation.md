@@ -10,7 +10,7 @@
 
 | PLAN2.0 条目 | 证据 |
 | --- | --- |
-| 方法、工况、版本、单位、完成／过期统一；切换不串用 | verification.json 的五方法摘要；desktop.json 的 AC5→AC2→AC4→AC1→AC3→AC5 切换与对应图表／图例 |
+| 方法、工况、版本、单位、完成／过期统一；切换不串用 | verification.json 的五方法摘要；desktop.json 的 AC5→AC2→AC4→AC1→AC3→AC5 切换与对应图表／图例；historical-overlays.json 的随机工况激活下浏览静力／模态历史 |
 | 工程对象与沿杆定位，内部身份拒绝 | result-inspection.test.ts 的原生样本／内部节点拒绝；沿杆实际位移表；第2阶形态工具回放；historical-desktop.json |
 | 变形、特征形态、随机统计区分与禁止叠加 | 共享语义及能力矩阵；verification.json 的模态／屈曲／随机比较拒绝；归一化引用在 mm-N 下保持系数 |
 | 原运行实际过程与缺失记录 | 各方法最多2项的实际过程分页；静力内部轮次矩阵、二阶实际迭代、随机冻结模态矩阵的精确一致；静力质量矩阵缺失桌面核查 |
@@ -21,8 +21,8 @@
 - 类型检查与生产构建通过；已有的大包体积提示仍存在，本任务未改分包策略。
 - 完整单元测试：85 个文件、658 项通过；新增跨分析公开入口专项 4 项通过。新增测试采用常规实现后验收流程，未采用 TDD。
 - [verification.json](verification.json)：真实 C++ 五方法计算、来源、实际过程分页、冻结模态矩阵、沿杆位移／形态／RMS 本地引用一致、共享输入变化、旧模态、保存删除历史及禁止比较通过。没有改变数值算法，不重复宣称新增数值方法已独立验收。
-- [desktop.json](desktop.json)、[historical-desktop.json](historical-desktop.json)：2 项 Electron 流程通过；覆盖来源切换、图表／图例清理、实际位移表定位、缺失记录、模态第2阶沿杆引用、mm-N 单位、浅色／深色 1080／1440、删除对象的冻结场景与正式模型隔离。
-- 可复核输入：[all-methods.framemind](all-methods.framemind)、[deleted-history.framemind](deleted-history.framemind)。截图 citation-* 与 deleted-citation.png；视觉核查来源、引用与冻结场景可读。
+- [desktop.json](desktop.json)、[historical-desktop.json](historical-desktop.json)、[historical-overlays.json](historical-overlays.json)：3 项 Electron 流程通过；覆盖来源切换、图表／图例清理、实际位移表定位、缺失记录、模态第2阶沿杆引用、mm-N 单位、浅色／深色 1080／1440、删除对象的冻结场景与正式模型隔离；AC5 随机工况激活下查看 AC3 静力自重及 AC2 模态历史，自重标签来自冻结来源，随机箭头／图例不串入。
+- 可复核输入：[all-methods.framemind](all-methods.framemind)、[deleted-history.framemind](deleted-history.framemind)、[weighted-history.framemind](weighted-history.framemind)。截图 citation-*、deleted-citation.png 与 historical-overlays.png；视觉核查来源、引用与冻结场景可读。
 - 双轴审查另见 [review.md](review.md)，提交基点为实施开始的 `2cb3954`。
 
 复验命令：`npm run evidence:plan2:t236`。现有工作区其他任务的证据改动未纳入本任务提交。

@@ -95,3 +95,35 @@ test("T2-36 deleted engineering members remain locatable through historical cita
     await writeFile(join(evidence, "historical-desktop.json"), JSON.stringify({ passed: true, deletedMember: member.memberId, sourceAnalysisId: modal.id, frozenSceneMembers: 1, currentMembers: 0, realAi: false }, null, 2));
   });
 });
+
+test("T2-36 historical overlays follow the frozen source while a random case remains active", async () => {
+  test.setTimeout(90000);
+  await desktop(async (_app, page, path) => {
+    const rendererErrors: string[] = [];
+    page.on("pageerror", (error) => rendererErrors.push(error.message));
+    const fixture = JSON.parse(await readFile(join(evidence, "weighted-history.framemind"), "utf8"));
+    await writeFile(path, JSON.stringify(fixture));
+    await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: /打开项目/ }).click();
+    const selector = page.getByLabel("当前分析工况", { exact: true });
+    await expect(selector).toHaveValue("AC5");
+    await expect(page.getByLabel("随机作用标记", { exact: true })).toBeVisible();
+    const weighted = fixture.analysisResults.findLast((r: { input: { analysisCase: { id: string }; selfWeight: { enabled: boolean } } }) => r.input.analysisCase.id === "AC3" && r.input.selfWeight.enabled);
+    const modal = fixture.analysisResults.find((r: { modal?: unknown }) => r.modal);
+    for (const result of [weighted, modal]) {
+      await page.getByRole("button", { name: "管理分析工况", exact: true }).click();
+      await page.getByRole("region", { name: "历史分析来源", exact: true }).getByRole("button").filter({ hasText: result.id }).click();
+      await expect(selector).toHaveValue("AC5");
+      await expect(page.getByRole("region", { name: "统一结果来源", exact: true })).toContainText(result.id);
+      await expect(page.getByLabel("随机作用标记", { exact: true })).toHaveCount(0);
+      if (result === weighted) {
+        const weight = page.getByLabel("自重标记", { exact: true });
+        await expect(weight).toContainText("AC3 · Static");
+        await expect(weight).not.toContainText("AC5");
+        await expect(weight).not.toContainText("组合加权");
+        await page.screenshot({ path: join(evidence, "historical-overlays.png") });
+      } else await expect(page.getByLabel("自重标记", { exact: true })).toHaveCount(0);
+    }
+    expect(rendererErrors).toEqual([]);
+    await writeFile(join(evidence, "historical-overlays.json"), JSON.stringify({ passed: true, activeCase: "AC5", historicalStatic: weighted.id, historicalModal: modal.id, frozenSelfWeightSource: "AC3", randomOverlayAbsent: true, realAi: false }, null, 2));
+  });
+});

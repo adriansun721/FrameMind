@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "activeCase": "AC5",
+  "historicalStatic": "analysis_61fe2f25-9cf1-450a-8a0e-b06d256d519e",
+  "historicalModal": "analysis_829cfcbb-6d24-42db-9306-50015c581f2c",
+  "frozenSelfWeightSource": "AC3",
+  "randomOverlayAbsent": true,
+  "realAi": false
+}
