@@ -605,11 +605,17 @@ export function App() {
 
   useEffect(() => {
     if (!startupReady) return;
+    // Project updates are immutable. Retry already captured bytes separately;
+    // do not repeatedly serialize a large unchanged analysis on the 2 s timer.
+    let capturedProject: FrameProject | undefined;
+    let capturedFormalSave: typeof formalSaveRef.current | undefined;
     captureRecoveryRef.current = () => {
       const current = activeProjectRef.current;
       if (current.revision === 0 && !current.taskState?.conversations.length && !current.taskState?.scheduled.length && !current.taskState?.analyses.length) return;
+      if (current === capturedProject && formalSaveRef.current === capturedFormalSave) return;
       const request = { content: encodeProject(current), formalSave: formalSaveRef.current };
       recoveryAutosave.capture(current.id, request);
+      capturedProject = current; capturedFormalSave = formalSaveRef.current;
     };
     if (recoveryTimerRef.current === null) recoveryTimerRef.current = window.setTimeout(() => {
       recoveryTimerRef.current = null; captureRecoveryRef.current();

@@ -1,6 +1,6 @@
 import type { RecoverySaveRequest } from "../../electron/contracts";
 
-interface PendingSnapshot { key: string; request: RecoverySaveRequest; state: "saving" | "saved" | "failed"; failed: boolean; }
+interface PendingSnapshot { request: RecoverySaveRequest; state: "saving" | "saved" | "failed"; failed: boolean; }
 
 /** Retry the latest unsaved capture for each project, including projects no longer open. */
 export class RecoveryAutosave {
@@ -8,10 +8,9 @@ export class RecoveryAutosave {
   constructor(private save: (request: RecoverySaveRequest) => Promise<void>, private onFailureChange: (failed: boolean) => void) {}
 
   capture(projectId: string, request: RecoverySaveRequest): void {
-    const key = JSON.stringify(request);
     const previous = this.projects.get(projectId);
-    if (previous?.key === key) return;
-    const snapshot: PendingSnapshot = { key, request: { content: request.content, formalSave: request.formalSave ? { ...request.formalSave } : null }, state: "saving", failed: previous?.failed ?? false };
+    if (previous?.request.content === request.content && JSON.stringify(previous.request.formalSave) === JSON.stringify(request.formalSave)) return;
+    const snapshot: PendingSnapshot = { request: { content: request.content, formalSave: request.formalSave ? { ...request.formalSave } : null }, state: "saving", failed: previous?.failed ?? false };
     this.projects.set(projectId, snapshot);
     this.submit(projectId, snapshot);
   }

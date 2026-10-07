@@ -38,6 +38,7 @@ struct Failure : std::runtime_error {
 // Bound committed memory independently of topology size. A lower operator budget
 // is useful for constrained machines and reproducible resource-failure tests.
 class RuntimeMemoryBudget {
+    const std::chrono::steady_clock::time_point started=std::chrono::steady_clock::now();
 #ifdef _WIN32
     HANDLE job=nullptr;
 #endif
@@ -65,6 +66,10 @@ public:
 #endif
     }
     ~RuntimeMemoryBudget() {
+        // stderr telemetry is separate from the engineering result protocol.
+        // Preserve measured commitment for controlled failures as well as success.
+        std::cerr << "{\"kind\":\"native-resources\",\"peakCommittedBytes\":" << peakCommittedBytes()
+            << ",\"elapsedMs\":" << std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count() << "}\n";
 #ifdef _WIN32
         if (job) CloseHandle(job);
 #endif
@@ -375,7 +380,6 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
 
 int main() {
     Json request, stages=Json::array(); std::string stage="model-check";
-    const auto started=std::chrono::steady_clock::now();
     try {
         RuntimeMemoryBudget budget;
         std::string bytes; char c;
@@ -383,9 +387,8 @@ int main() {
         request=Json::parse(bytes);
         Json result=request.at("input").at("solver").at("implementation")=="framemind-native/8" ? calculateRandom(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/7" ? calculateSecondOrder(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/6" ? calculateBuckling(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/5" ? calculateModal(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/4" ? calculateMeshStatic(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
-        emit({{"kind","result"},{"requestId",request.at("requestId")},{"result",result}});
-        std::cerr << "{\"kind\":\"native-resources\",\"peakCommittedBytes\":" << budget.peakCommittedBytes()
-            << ",\"elapsedMs\":" << std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count() << "}\n";
+        Json terminal={{"kind","result"},{"requestId",request.at("requestId")}};
+        terminal["result"]=std::move(result); emit(terminal);
         return 0;
     } catch (const Failure& error) {
         emit({{"kind","error"},{"requestId",request.is_object() ? request.value("requestId",Json(nullptr)) : Json(nullptr)},

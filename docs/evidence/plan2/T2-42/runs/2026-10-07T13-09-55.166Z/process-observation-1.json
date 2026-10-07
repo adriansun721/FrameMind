@@ -1,0 +1,35 @@
+{
+    "observedAt":  "2026-10-07T13:17:46.2848339Z",
+    "processes":  [
+                      {
+                          "ProcessId":  30932,
+                          "ParentProcessId":  17944,
+                          "CreationDate":  "\/Date(1791378628243)\/",
+                          "CommandLine":  "\"D:\\FrameMind\\node_modules\\electron\\dist\\electron.exe\"  \"-r\" \"D:\\FrameMind\\node_modules\\playwright-core\\lib\\server\\electron\\loader.js\" \"--inspect=0\" \"--remote-debugging-port=0\" \".\""
+                      },
+                      {
+                          "ProcessId":  30600,
+                          "ParentProcessId":  30932,
+                          "CreationDate":  "\/Date(1791378628635)\/",
+                          "CommandLine":  "\"D:\\FrameMind\\node_modules\\electron\\dist\\electron.exe\" --type=gpu-process --disable-breakpad --user-data-dir=\"C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t242-OTyWfF\" --gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAAEAAAAAIAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --field-trial-handle=2064,i,1160763304499224667,17805099437680645234,262144 --enable-features=AllowWindowCaptureExclusionInRemoteSessions,CDPScreenshotNewSurface,PdfUseShowSaveFilePicker --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,DropInputEventsWhilePaintHolding,GlobalMediaControls,HttpsUpgrades,LensOverlay,LocalNetworkAccessChecks,MediaRouter,NetworkServiceSandbox,OptimizationHints,PaintHolding,ScreenAIOCREnabled,SpareRendererForSitePerProcess,ThirdPartyStoragePartitioning,TraceSiteInstanceGetProcessCreation,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=2068,i,10669244984408155954,701040167413997053,4 --trace-process-track-uuid=3190708988185955192 --mojo-platform-channel-handle=2056 /prefetch:2"
+                      },
+                      {
+                          "ProcessId":  4324,
+                          "ParentProcessId":  30932,
+                          "CreationDate":  "\/Date(1791378628695)\/",
+                          "CommandLine":  "\"D:\\FrameMind\\node_modules\\electron\\dist\\electron.exe\" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --user-data-dir=\"C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t242-OTyWfF\" --field-trial-handle=2064,i,1160763304499224667,17805099437680645234,262144 --enable-features=AllowWindowCaptureExclusionInRemoteSessions,CDPScreenshotNewSurface,PdfUseShowSaveFilePicker --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,DropInputEventsWhilePaintHolding,GlobalMediaControls,HttpsUpgrades,LensOverlay,LocalNetworkAccessChecks,MediaRouter,NetworkServiceSandbox,OptimizationHints,PaintHolding,ScreenAIOCREnabled,SpareRendererForSitePerProcess,ThirdPartyStoragePartitioning,TraceSiteInstanceGetProcessCreation,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=2068,i,10669244984408155954,701040167413997053,4 --trace-process-track-uuid=3190708989122997041 --mojo-platform-channel-handle=2556 /prefetch:11"
+                      },
+                      {
+                          "ProcessId":  4360,
+                          "ParentProcessId":  30932,
+                          "CreationDate":  "\/Date(1791378628740)\/",
+                          "CommandLine":  "\"D:\\FrameMind\\node_modules\\electron\\dist\\electron.exe\" --type=renderer --user-data-dir=\"C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t242-OTyWfF\" --app-path=\"D:\\FrameMind\" --enable-sandbox --disable-back-forward-cache --disable-background-timer-throttling --disable-breakpad --force-color-profile=srgb --remote-debugging-port=0 --allow-pre-commit-input --video-capture-use-gpu-memory-buffer --lang=zh-CN --device-scale-factor=1.5 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --launch-time-ticks=6098621728 --field-trial-handle=2064,i,1160763304499224667,17805099437680645234,262144 --enable-features=AllowWindowCaptureExclusionInRemoteSessions,CDPScreenshotNewSurface,PdfUseShowSaveFilePicker --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,DropInputEventsWhilePaintHolding,GlobalMediaControls,HttpsUpgrades,LensOverlay,LocalNetworkAccessChecks,MediaRouter,NetworkServiceSandbox,OptimizationHints,PaintHolding,ScreenAIOCREnabled,SpareRendererForSitePerProcess,ThirdPartyStoragePartitioning,TraceSiteInstanceGetProcessCreation,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=2068,i,10669244984408155954,701040167413997053,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=3344 /prefetch:1"
+                      },
+                      {
+                          "ProcessId":  22644,
+                          "ParentProcessId":  30932,
+                          "CreationDate":  "\/Date(1791379060809)\/",
+                          "CommandLine":  "D:\\FrameMind\\native\\bin\\framemind-core.exe"
+                      }
+                  ]
+}

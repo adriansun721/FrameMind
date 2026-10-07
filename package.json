@@ -66,7 +66,9 @@
     "test:numerical-acceptance": "node --test scripts/numerical-acceptance.test.mjs",
     "evidence:plan2:t240": "npm run build:native && npm run typecheck && npm run test:numerical-acceptance && node scripts/verify-plan2-t240.mjs",
     "evidence:plan2:t241": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241",
-    "evidence:plan2:t241:online": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241 --online"
+    "evidence:plan2:t241:online": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241 --online",
+    "evidence:plan2:t242:register": "npm run build:native && npm run build && node scripts/verify-plan2-t242.mjs --register",
+    "evidence:plan2:t242": "node scripts/verify-plan2-t242.mjs"
   },
   "dependencies": {
     "docx": "^9.7.1",

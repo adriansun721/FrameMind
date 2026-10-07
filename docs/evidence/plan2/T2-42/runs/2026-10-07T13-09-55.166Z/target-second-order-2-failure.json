@@ -1,0 +1,38 @@
+{
+  "ms": 398.85430000000633,
+  "exitCode": 1,
+  "signal": null,
+  "messages": [
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "model-check",
+        "startedAt": "2026-10-07T13:22:21Z"
+      },
+      "requestId": "request_c94241fd-fda8-4e70-b4e6-dfb59930a0dc"
+    },
+    {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "second-order-budget-exhausted",
+            "field": "maxEquations",
+            "message": "二阶初始网格需要 5400 个方程，超过当前 1200 方程预算。未开始求解；请使用可承载该规模的求解配置。"
+          }
+        ],
+        "message": "二阶初始网格需要 5400 个方程，超过当前 1200 方程预算。未开始求解；请使用可承载该规模的求解配置。",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      },
+      "kind": "error",
+      "requestId": "request_c94241fd-fda8-4e70-b4e6-dfb59930a0dc"
+    }
+  ],
+  "resources": {
+    "kind": "native-resources",
+    "peakCommittedBytes": 67043328,
+    "elapsedMs": 350.637
+  },
+  "outputBytes": 661,
+  "transportError": null
+}

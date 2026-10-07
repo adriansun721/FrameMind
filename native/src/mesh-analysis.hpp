@@ -77,7 +77,12 @@ static Json meshInput(const Json& input, const Json& level) {
 }
 
 static Json meshMappedResult(const Json& result, const Json& input, const Json& level) {
-    Json mapped=result; mapped["input"]=input; mapped.erase("process"); mapped["members"]=Json::array(); mapped["nodes"]=Json::array();
+    // The engineering view does not contain calculation process matrices.
+    // Select its fields before copying, rather than copying a full result and erasing it.
+    Json mapped;
+    for (const auto& field:result.items())
+        if (field.key()!="input" && field.key()!="process" && field.key()!="members" && field.key()!="nodes") mapped[field.key()]=field.value();
+    mapped["input"]=input; mapped["members"]=Json::array(); mapped["nodes"]=Json::array();
     for (size_t i=0;i<input.at("nodes").size();++i) mapped["nodes"].push_back(result.at("nodes")[i]);
     size_t offset=0; const int divisions=level.at("divisions").get<int>();
     for (const auto& m:input.at("members")) {
@@ -89,7 +94,7 @@ static Json meshMappedResult(const Json& result, const Json& input, const Json& 
             const int scaled=station*divisions, element=std::min(divisions-1,scaled/16), local=scaled-element*16;
             Json sample=result.at("members")[offset+element].at("nativeResponses")[local]; sample["position"]=length*station/16; samples.push_back(sample);
         }
-        member["nativeResponses"]=samples; mapped["members"].push_back(member); offset+=divisions;
+        member["nativeResponses"]=std::move(samples); mapped["members"].push_back(std::move(member)); offset+=divisions;
     }
     return mapped;
 }
@@ -121,11 +126,11 @@ static Json calculateMeshStatic(const Json& request, Json& stages, std::string& 
     require(meshNumbersMatch(plan.at("frames"),meshFrames(input)),"Frozen engineering frames mismatch",nullptr,"meshPlan");
     Json runs=Json::array(), previous, mapped, finalResult; std::string status="budget-exhausted",reason="max-divisions"; int selected=0;
     for (const auto& level:plan.at("levels")) {
-        Json calculation=meshInput(input,level);
         std::set<std::pair<std::string,int>> constrained; for (const auto& support:input.at("supports")) for (int d=0;d<6;++d) if (support.at("restraints")[d]==true) constrained.insert({id(support["nodeId"]),d});
         // Conservative pre-allocation bound includes disconnected rotation coordinates.
-        const size_t equations=calculation.at("nodes").size()*6-constrained.size();
+        const size_t equations=(input.at("nodes").size()+level.at("nodes").size())*6-constrained.size();
         if (equations>static_cast<size_t>(maxEquations)) { reason="equation-budget"; break; }
+        Json calculation=meshInput(input,level);
         Json packet=request; packet["input"]=calculation; Json runStages=Json::array();
         try { finalResult=calculateStatic(packet,runStages,stage,runs.empty(),true); }
         catch (Failure& failure) {
@@ -137,16 +142,19 @@ static Json calculateMeshStatic(const Json& request, Json& stages, std::string& 
             throw;
         }
         if (runs.empty()) stages=runStages;
-        mapped=meshMappedResult(finalResult,input,level); Json run={{"divisions",level["divisions"]},{"result",finalResult}}; selected=level["divisions"].get<int>();
+        mapped=meshMappedResult(finalResult,input,level); Json run={{"divisions",level["divisions"]}}; selected=level["divisions"].get<int>();
         if (!previous.is_null()) { run["error"]=meshErrors(previous,mapped,policy); bool converged=true; for (auto e=run["error"].begin();e!=run["error"].end();++e) converged=converged && number(e.value())<=1; if (converged) { status="converged"; reason="tolerance"; } }
-        runs.push_back(run); previous=mapped; if (status=="converged") break;
+        run["result"]=std::move(finalResult); runs.push_back(std::move(run)); previous=std::move(mapped); if (status=="converged") break;
     }
     if (runs.empty()) throw Failure("mesh-budget-exhausted","Equation budget prevents even the initial mesh",nullptr,"meshPlan");
-    const auto& process=finalResult.at("process");
+    mapped=std::move(previous);
+    const auto& finalCalculation=runs.back().at("result");
+    const auto& process=finalCalculation.at("process");
     mapped["service"]["solver"]=meshSolver; mapped["service"]["stages"]=stages;
-    mapped["discretization"]={{"status",status},{"reason",reason},{"selectedDivisions",selected},{"runs",runs},
+    mapped["discretization"]={{"status",status},{"reason",reason},{"selectedDivisions",selected},
         {"counts",{{"engineeringNodes",input.at("nodes").size()},{"engineeringMembers",input.at("members").size()},
-        {"calculationNodes",finalResult["nodes"].size()},{"calculationElements",finalResult["members"].size()},{"totalDofs",process["dofs"].size()},
+        {"calculationNodes",finalCalculation["nodes"].size()},{"calculationElements",finalCalculation["members"].size()},{"totalDofs",process["dofs"].size()},
         {"constrainedDofs",process["constrainedDofs"].size()},{"releaseGaugeDofs",process.value("releaseGaugeDofs",Json::array()).size()},{"equations",process["freeDofs"].size()}}}};
+    mapped["discretization"]["runs"]=std::move(runs);
     return mapped;
 }

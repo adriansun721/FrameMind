@@ -1,0 +1,38 @@
+{
+  "ms": 761.9272000000346,
+  "exitCode": 1,
+  "signal": null,
+  "messages": [
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "model-check",
+        "startedAt": "2026-10-07T13:56:31Z"
+      },
+      "requestId": "request_79b2bb59-8ed9-4545-8d37-73d32fad8b45"
+    },
+    {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "buckling-budget-exhausted",
+            "field": "buckling",
+            "message": "屈曲初始网格需要 7776 个方程，超过当前 1200 方程预算。未开始求解；请使用可承载该规模的求解配置。"
+          }
+        ],
+        "message": "屈曲初始网格需要 7776 个方程，超过当前 1200 方程预算。未开始求解；请使用可承载该规模的求解配置。",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      },
+      "kind": "error",
+      "requestId": "request_79b2bb59-8ed9-4545-8d37-73d32fad8b45"
+    }
+  ],
+  "resources": {
+    "kind": "native-resources",
+    "peakCommittedBytes": 126394368,
+    "elapsedMs": 692.297
+  },
+  "outputBytes": 653,
+  "transportError": null
+}

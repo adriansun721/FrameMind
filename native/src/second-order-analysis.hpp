@@ -126,7 +126,11 @@ static Json calculateSecondOrder(const Json& request, Json& stages, std::string&
         size_t restraints=0,releases=0; std::set<std::pair<std::string,int>> fixed;
         for (const auto& support:input["supports"]) for (int i=0;i<6;++i) if (support["restraints"][i]==true) fixed.insert({id(support["nodeId"]),i}); restraints=fixed.size();
         for (const auto& m:input["members"]) if (m.contains("endReleases")) for (const auto& end:{"start","end"}) for (const auto& component:{"my","mz"}) if (m["endReleases"][end][component]==true) ++releases;
-        if ((input["nodes"].size()+level["nodes"].size())*6-restraints+releases>budget) break;
+        const size_t estimate=(input["nodes"].size()+level["nodes"].size())*6-restraints+releases;
+        if (estimate>budget) {
+            if (runs.empty()) throw Failure("second-order-budget-exhausted","二阶初始网格需要 " + std::to_string(estimate) + " 个方程，超过当前 " + std::to_string(static_cast<int>(budget)) + " 方程预算。未开始求解；请使用可承载该规模的求解配置。",nullptr,"maxEquations");
+            break;
+        }
         Json calculation; try { calculation=secondOrderLevel(request,level,stage,runs.empty() ? std::function<void(const std::string&)>(phase) : std::function<void(const std::string&)>()); }
         catch (Failure& failure) { remapMeshFailure(failure,level); throw; }
         mapped=meshMappedResult(calculation,input,level); selected=level;

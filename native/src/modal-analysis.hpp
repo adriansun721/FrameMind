@@ -158,7 +158,10 @@ static Json calculateModal(const Json& request, Json& stages, std::string& stage
         int releases=0; for (const auto& m:input.at("members")) if (m.contains("endReleases")) for (const auto& end:{"start","end"}) for (const auto& component:{"my","mz"}) if (m["endReleases"][end][component]==true) ++releases;
         const size_t estimate=(input.at("nodes").size()+level.at("nodes").size())*6-constrained.size()+releases;
         if (!estimate) continue; // An all-fixed /1 mesh has no internal dynamic coordinates; refine it.
-        if (estimate>static_cast<size_t>(maxEquations)) { reason="equation-budget"; break; }
+        if (estimate>static_cast<size_t>(maxEquations)) {
+            if (runs.empty()) throw Failure("modal-budget-exhausted","模态初始网格需要 " + std::to_string(estimate) + " 个方程，超过当前 " + std::to_string(maxEquations) + " 方程预算。未开始求解；请使用可承载该规模的求解配置。",nullptr,"modal");
+            reason="equation-budget"; break;
+        }
         finalResult=solveModalLevel(request,level,modeCount,maxEquations,stage,runs.empty() ? std::function<void(const std::string&)>(phase) : std::function<void(const std::string&)>()); selectedLevel=level;
         Json frequencies=Json::array(); for (const auto& m:finalResult.modes) frequencies.push_back(m["frequencyHz"]);
         Json run={{"divisions",level["divisions"]},{"equations",finalResult.equations},{"frequenciesHz",frequencies}};

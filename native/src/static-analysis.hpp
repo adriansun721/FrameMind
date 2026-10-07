@@ -345,7 +345,9 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
             if (!actions.allFinite() || !sample.allFinite() || !globalSample.allFinite()) throw Failure("native-computation-error","Nonfinite station recovery");
             responses.push_back({{"position",x},{"forces",jsonVector(actions)},{"localDisplacement",json3(sample)},{"globalDisplacement",json3(globalSample)}});
         }
-        memberResults.push_back({{"memberId",e.member["id"]},{"length",e.length},{"localAxes",{{"x",json3(e.x)},{"y",json3(e.y)},{"z",json3(e.z)}}},{"localEndForces",{{"start",jsonVector(ends.head(6))},{"end",jsonVector(ends.tail(6))}}},{"nativeResponses",responses}});
+        Json memberResult={{"memberId",e.member["id"]},{"length",e.length},{"localAxes",{{"x",json3(e.x)},{"y",json3(e.y)},{"z",json3(e.z)}}},{"localEndForces",{{"start",jsonVector(ends.head(6))},{"end",jsonVector(ends.tail(6))}}}};
+        memberResult["nativeResponses"]=std::move(responses);
+        memberResults.push_back(std::move(memberResult));
         if (!e.released.empty()) memberResults.back()["nativeReleaseRecovery"]={
             {"originalLocalStiffness",jsonMatrix(e.original)},{"localStiffness",jsonMatrix(e.local)},
             {"transformation",jsonMatrix(e.transform)},{"recoveryTransformation",jsonMatrix(e.recovery)},
@@ -355,10 +357,14 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
         Json elementDofs=Json::array(); for (int index:e.indices) elementDofs.push_back(dofs[index]);
         contributions.push_back({{"memberId",e.member["id"]},{"dofs",elementDofs},{"globalDofIndices",e.indices},{"globalStiffness",jsonMatrix(e.global)},{"equivalentGlobalForces",jsonVector(equivalentGlobal[i])}});
     }
-    Json process={{"solver",staticSolver},{"dofOrder",dofOrder},{"dofs",dofs},{"loadVector",jsonVector(force)},{"freeDofs",free},{"constrainedDofs",constrained},
-        {"matrixLimit",72},{"assembledStiffness",size<=72 ? jsonMatrix(Matrix(global)) : Json(nullptr)},{"reducedStiffness",count<=72 ? jsonMatrix(Matrix(reduced)) : Json(nullptr)},{"members",contributions}};
+    Json process={{"solver",staticSolver},{"dofOrder",dofOrder},{"loadVector",jsonVector(force)},{"freeDofs",free},{"constrainedDofs",constrained},
+        {"matrixLimit",72},{"assembledStiffness",size<=72 ? jsonMatrix(Matrix(global)) : Json(nullptr)},{"reducedStiffness",count<=72 ? jsonMatrix(Matrix(reduced)) : Json(nullptr)}};
+    process["dofs"]=std::move(dofs); process["members"]=std::move(contributions);
     if (!releaseGaugeDofs.empty()) { process["releaseGaugeDofs"]=releaseGaugeDofs; process["releaseNullRotations"]=releaseNullRotations; }
     Json service={{"version",request["version"]},{"requestId",request["requestId"]},{"analysisId",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},
         {"origin",origin},{"sourceId",source},{"dependencies",dependencies},{"solver",staticSolver},{"status","complete"},{"stages",stages}};
-    return {{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input},{"nodes",nodeResults},{"members",memberResults},{"process",process},{"service",service}};
+    Json result={{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input}};
+    result["nodes"]=std::move(nodeResults); result["members"]=std::move(memberResults);
+    result["process"]=std::move(process); result["service"]=std::move(service);
+    return result;
 }

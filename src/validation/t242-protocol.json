@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "repetitions": 3,
+  "window": { "width": 1440, "height": 900, "theme": "dark" },
+  "displayModes": ["solid", "line"],
+  "methods": ["static", "second-order", "buckling", "modal", "random"],
+  "limitsMs": {
+    "model": 5000, "open": 5000, "rotate": 1000, "select": 1000,
+    "edit": 1000, "save": 5000, "reopen": 5000, "result": 2000,
+    "word": 60000, "pdf": 60000, "cancel": 500,
+    "static": 30000, "second-order": 60000, "buckling": 60000,
+    "modal": 60000, "random": 60000, "resourceFailure": 5000
+  },
+  "maxCallbackGapMs": 500,
+  "maxFrameP95Ms": 100,
+  "maxFrameMs": 500,
+  "maxAppWorkingSetBytes": 2147483648,
+  "maxNativeCommittedBytes": 536870912,
+  "nativeTimeoutMs": 120000,
+  "desktopWatchdogMs": 300000,
+  "random": {
+    "bandHz": [0, 25], "densityKN2PerHz": 1,
+    "frequencyPoints": 65, "maxFrequencyPoints": 20001,
+    "modeCount": 6, "maxModeCount": 50, "dampingRatio": 0.02
+  }
+}

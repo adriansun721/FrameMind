@@ -1,0 +1,38 @@
+{
+  "ms": 408.0518999998458,
+  "exitCode": 1,
+  "signal": null,
+  "messages": [
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "model-check",
+        "startedAt": "2026-10-07T13:47:32Z"
+      },
+      "requestId": "request_60e27e7a-fe7e-4a65-8b90-ec5f167015d3"
+    },
+    {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "modal-budget-exhausted",
+            "field": "modal",
+            "message": "模态初始网格需要 5400 个方程，超过当前 1200 方程预算。未开始求解；请使用可承载该规模的求解配置。"
+          }
+        ],
+        "message": "模态初始网格需要 5400 个方程，超过当前 1200 方程预算。未开始求解；请使用可承载该规模的求解配置。",
+        "name": "AnalysisFailure",
+        "stage": "model-check"
+      },
+      "kind": "error",
+      "requestId": "request_60e27e7a-fe7e-4a65-8b90-ec5f167015d3"
+    }
+  ],
+  "resources": {
+    "kind": "native-resources",
+    "peakCommittedBytes": 66674688,
+    "elapsedMs": 353.468
+  },
+  "outputBytes": 647,
+  "transportError": null
+}

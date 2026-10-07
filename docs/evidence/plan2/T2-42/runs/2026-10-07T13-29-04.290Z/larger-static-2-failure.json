@@ -1,0 +1,62 @@
+{
+  "ms": 3832.474099999992,
+  "exitCode": 1,
+  "signal": null,
+  "messages": [
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "model-check",
+        "startedAt": "2026-10-07T13:58:22Z"
+      },
+      "requestId": "request_103ad623-3847-44e0-a1de-67932420166f"
+    },
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "assembly",
+        "startedAt": "2026-10-07T13:58:22Z"
+      },
+      "requestId": "request_103ad623-3847-44e0-a1de-67932420166f"
+    },
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "solve",
+        "startedAt": "2026-10-07T13:58:22Z"
+      },
+      "requestId": "request_103ad623-3847-44e0-a1de-67932420166f"
+    },
+    {
+      "kind": "phase",
+      "record": {
+        "stage": "recovery",
+        "startedAt": "2026-10-07T13:58:24Z"
+      },
+      "requestId": "request_103ad623-3847-44e0-a1de-67932420166f"
+    },
+    {
+      "error": {
+        "diagnostics": [
+          {
+            "code": "native-resource-limit",
+            "field": "native-core",
+            "message": "Native memory budget exhausted"
+          }
+        ],
+        "message": "Native memory budget exhausted",
+        "name": "AnalysisFailure",
+        "stage": "recovery"
+      },
+      "kind": "error",
+      "requestId": "request_103ad623-3847-44e0-a1de-67932420166f"
+    }
+  ],
+  "resources": {
+    "kind": "native-resources",
+    "peakCommittedBytes": 528175104,
+    "elapsedMs": 3775.4
+  },
+  "outputBytes": 856,
+  "transportError": null
+}
