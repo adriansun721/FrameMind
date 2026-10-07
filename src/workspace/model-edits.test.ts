@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { addMaterial, addMember, addNode, addSection, addNodalLoad, addSupport, addUniformLoad, createProject, type NodeId } from "../domain/project";
+import { addLoadCase, addLoadCombination, addMaterial, addMember, addNode, addSection, addNodalLoad, addSupport, addUniformLoad, createProject, deleteLoadCase, type NodeId } from "../domain/project";
+import { MATERIAL_CATALOG } from "../domain/resource-library";
 import { applyProjectEdits, batchUpdateMembers, batchUpdateNodes, deleteNodes, duplicateMembers, duplicateNodes } from "../domain/project-operations";
 import { ProjectHistory } from "../domain/project-history";
 import { decodeProject, encodeProject } from "../domain/project-file";
@@ -13,6 +14,25 @@ function frame() {
   return addMember(project, { startNodeId: project.nodes[0].id, endNodeId: project.nodes[1].id, materialId: project.materials[0].id, sectionId: project.sections[0].id, rotationDegrees: 0 });
 }
 const call = (name: string, input: unknown) => ({ id: "edit-call", type: "function", function: { name, arguments: JSON.stringify(input) } });
+
+it("imports catalog material provenance and previews the same load-case cascade as manual deletion", () => {
+  const project = addLoadCombination(addLoadCase(frame(), "Alternate"), "Combination", [{ loadCaseId: "LC1", factor: 1 }]);
+  const catalog = MATERIAL_CATALOG[0];
+  const prepared = executeAiTool(captureAiSnapshot(project, []), call("propose_model_edits", { operations: [
+    { type: "create_material", properties: { catalogId: catalog.catalogId } },
+    { type: "delete_load_case", id: "LC1" },
+  ] }));
+  expect(prepared.status, prepared.message).toBe("awaiting-confirmation");
+  expect(prepared.modelEdits!.preview.changes).toEqual(expect.arrayContaining([
+    expect.objectContaining({ kind: "load-case", id: "LC1", after: undefined }),
+    expect.objectContaining({ kind: "load-combination", id: project.loadCombinations[0].id, after: undefined }),
+  ]));
+  const outcome = new ModelEditConfirmation().confirm(project, prepareModelEditConfirmation(project, prepared.modelEdits!));
+  expect(outcome.result.status, outcome.result.message).toBe("applied");
+  expect(outcome.project.materials.at(-1)?.provenance).toEqual({ kind: "catalog", catalogId: catalog.catalogId, source: catalog.source });
+  const manual = deleteLoadCase(project, "LC1", true);
+  for (const key of ["loadCases", "loadCombinations", "analysisCases", "analysisResults"] as const) expect(outcome.project[key]).toEqual(manual[key]);
+});
 
 it("reviews custom materials and condition removal through shared operations with protected referenced resources", () => {
   const base = frame();

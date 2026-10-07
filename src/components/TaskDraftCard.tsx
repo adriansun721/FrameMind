@@ -29,7 +29,12 @@ export function TaskDraftCard({ snapshot, draft, busy, current, onConfirm, onRej
   const preview = useMemo(() => buildTaskDraftPreview(snapshot, draft), [snapshot, draft]);
   const categoryCount = (category: string) => preview.changes.filter((change) => change.category === category).length;
   const frameCount = preview.frame ? `${preview.frame.nodes.length} 节点 / ${preview.frame.members.length} 杆件` : draft.edits ? `${draft.edits.operations.length} 项工程操作` : "保留已有几何";
-  const conditionCount = `${draft.conditions?.supports?.length ?? snapshot.model.supports.length} 支座 / ${draft.conditions?.nodalLoads?.length ?? snapshot.model.nodalLoads.length} 节点荷载 / ${draft.conditions?.uniformLoads?.length ?? snapshot.model.uniformLoads.length} 均布荷载 / ${draft.conditions?.loadCases?.length ?? snapshot.model.loadCases.length} 工况 / ${draft.conditions?.loadCombinations?.length ?? snapshot.model.loadCombinations.length} 组合`;
+  const count = (collection: "supports" | "nodalLoads" | "uniformLoads" | "loadCases" | "loadCombinations", kind: string) => {
+    const ids = new Set<string>(snapshot.model[collection].map((item) => item.id));
+    for (const change of preview.edits?.changes ?? []) if (change.kind === kind) { if (change.after) ids.add(change.id); else ids.delete(change.id); }
+    return ids.size + (draft.conditions?.[collection]?.filter((item) => !item.id).length ?? 0);
+  };
+  const conditionCount = `${count("supports", "support")} 支座 / ${count("nodalLoads", "nodal-load")} 节点荷载 / ${count("uniformLoads", "uniform-load")} 均布荷载 / ${count("loadCases", "load-case")} 工况 / ${count("loadCombinations", "load-combination")} 组合`;
   const changedIds: Record<"supports" | "nodalLoads" | "uniformLoads" | "loadCases" | "loadCombinations", Set<string>> = {
     supports: new Set((draft.conditions?.supports ?? []).flatMap((item) => item.id ? [item.id] : [])),
     nodalLoads: new Set((draft.conditions?.nodalLoads ?? []).flatMap((item) => item.id ? [item.id] : [])),
@@ -63,7 +68,8 @@ export function TaskDraftCard({ snapshot, draft, busy, current, onConfirm, onRej
     <details className="proposal-details"><summary>查看目标、差异与影响</summary>
       <p>对象：{preview.objectRefs.filter((item) => item.category === "new").length} 个新对象，{preview.objectRefs.filter((item) => item.category === "existing").length} 个已有对象可引用。</p>
       {retainedConditions.length > 0 && <p>确认后保留已有条件：{retainedConditions.join("；")}</p>}
-      <ol>{preview.changes.map((change, index) => <li key={`${change.category}:${change.label}:${index}`}><strong>{change.label}</strong> · {sourceLabel[change.source] ?? change.source}<br />{change.before === undefined ? "缺失" : changeText(change.label, change.before)} → {change.after === undefined ? "未改变" : changeText(change.label, change.after)}{change.impact ? ` · ${change.impact}` : ""}</li>)}</ol>
+      <ol>{preview.changes.map((change, index) => <li key={`${change.category}:${change.label}:${index}`}><strong>{change.label}</strong> · {change.provenance ? "逐项来源见下方" : sourceLabel[change.source] ?? change.source}<br />{change.before === undefined ? "缺失" : changeText(change.label, change.before)} → {change.after === undefined && change.before !== undefined ? "删除" : change.after === undefined ? "未改变" : changeText(change.label, change.after)}{change.impact ? ` · ${change.impact}` : ""}</li>)}</ol>
+      {preview.changes.find((change) => change.provenance)?.provenance?.map((item) => <p key={item.operationIndex}>第 {item.operationIndex + 1} 项 · {sourceLabel[item.source]} · {changeText("参数", item.values)}</p>)}
       {preview.edits?.affectedMemberIds.length ? <p>关联杆件：{preview.edits.affectedMemberIds.join("、")}</p> : null}
       {preview.edits?.topology && <TopologyImpact receipts={preview.edits.topology} />}
       {preview.edits?.nodeMerges?.map((impact, index) => <NodeMergeImpact key={index} impact={impact} />)}

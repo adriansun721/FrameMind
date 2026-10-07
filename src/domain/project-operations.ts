@@ -1,5 +1,5 @@
 import {
-  addMaterial, updateMaterial, deleteMaterial, deleteSection, deleteSupport, deleteNodalLoad, deleteUniformLoad, deleteLoadCase, deleteLoadCombination,
+  addMaterial, addCatalogMaterial, updateMaterial, deleteMaterial, deleteSection, deleteSupport, deleteNodalLoad, deleteUniformLoad, deleteLoadCase, deleteLoadCombination,
   type MaterialProperties, type MaterialId, type SupportId, type LoadId, type FrameMaterial, type FrameLoadCase, type FrameLoadCombination,
   addSection, updateSection,
   type SectionInput, type FrameSection, type SectionId,
@@ -27,6 +27,7 @@ import { addPsdSpectrum, updatePsdSpectrum, deletePsdSpectrum } from "./psd-proj
 import type { PsdInput, PsdSpectrum } from "./psd";
 import { changeTopology, type TopologyInput, type TopologyReceipt } from "./topology";
 import { mergeNodes, type NodeMergeInput, type NodeMergeReceipt } from "./node-merge";
+import { getMaterialCatalogEntry } from "./resource-library";
 
 export type ProjectMutation = (project: FrameProject) => FrameProject;
 
@@ -110,7 +111,7 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
-  | { type: "create_material"; properties: MaterialProperties }
+  | { type: "create_material"; properties: MaterialProperties | { name: string; catalogId: string } }
   | { type: "update_material"; id: MaterialId; properties: MaterialProperties }
   | { type: "duplicate_material" | "delete_material"; id: MaterialId }
   | { type: "delete_section"; id: SectionId }
@@ -176,7 +177,14 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
-      case "create_material": changed = addMaterial(current, operation.properties); created.push({ operationIndex, kind: "material", id: changed.materials.at(-1)!.id }); break;
+      case "create_material": {
+        if ("catalogId" in operation.properties) {
+          const entry = getMaterialCatalogEntry(operation.properties.catalogId);
+          if (!entry) throw new Error("材料目录身份不存在");
+          changed = addCatalogMaterial(current, { ...entry, name: operation.properties.name }, { kind: "catalog", catalogId: entry.catalogId, source: structuredClone(entry.source) });
+        } else changed = addMaterial(current, operation.properties);
+        created.push({ operationIndex, kind: "material", id: changed.materials.at(-1)!.id }); break;
+      }
       case "update_material": changed = updateMaterial(current, operation.id, operation.properties); break;
       case "duplicate_material": {
         const material = current.materials.find((m) => m.id === operation.id);
@@ -189,7 +197,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
       case "delete_support": changed = deleteSupport(current, operation.id); break;
       case "delete_nodal_load": changed = deleteNodalLoad(current, operation.id); break;
       case "delete_uniform_load": changed = deleteUniformLoad(current, operation.id); break;
-      case "delete_load_case": changed = deleteLoadCase(current, operation.id); break;
+      case "delete_load_case": changed = deleteLoadCase(current, operation.id, true); break;
       case "delete_load_combination": changed = deleteLoadCombination(current, operation.id); break;
       case "create_psd_spectrum": changed = addPsdSpectrum(current, operation.properties); break;
       case "update_psd_spectrum": changed = updatePsdSpectrum(current, operation.id, operation.properties); break;

@@ -3,7 +3,7 @@ import { validatePsdInput } from "../domain/psd";
 import { validateAdditionalMass } from "../domain/additional-mass";
 import { validateModalDampingInput } from "../domain/modal-damping";
 import { validateMaterial, validateSection, type SectionInput } from "../domain/project";
-import { getSectionCatalogEntry } from "../domain/resource-library";
+import { getSectionCatalogEntry, getMaterialCatalogEntry } from "../domain/resource-library";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
 import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
 import { prepareDrawnMemberEdits, type DrawingPoint } from "../domain/work-plane";
@@ -19,7 +19,7 @@ export interface ModelEditProposal {
   preview: ProjectEditReceipt;
 }
 
-interface ModelEditReadback {
+export interface ModelEditReadback {
   projectId: string;
   modelRevision: number;
   objects: { kind: ProjectEditReceipt["changes"][number]["kind"]; id: string; exists: boolean; object?: unknown }[];
@@ -60,7 +60,14 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
     switch (input.type) {
       case "create_material": case "update_material": {
         object(input, input.type === "create_material" ? ["type", "properties"] : ["type", "id", "properties"]);
-        const properties = object(input.properties, ["name", "elasticModulusGPa", "poissonRatio", "densityKgM3"]);
+        const properties = object(input.properties, ["name", "catalogId", "elasticModulusGPa", "poissonRatio", "densityKgM3"]);
+        if (input.type === "create_material" && properties.catalogId !== undefined) {
+          object(properties, ["name", "catalogId"]);
+          const entry = getMaterialCatalogEntry(identity(properties.catalogId));
+          if (!entry) throw new Error("材料目录身份不存在");
+          const validated = validateMaterial("目录材料", { ...entry, name: String(properties.name ?? entry.name) });
+          return { type: "create_material", properties: { name: validated.name, catalogId: entry.catalogId } };
+        }
         const validated = validateMaterial("草案材料", properties as unknown as Parameters<typeof validateMaterial>[1]);
         return { type: input.type, ...(input.type === "update_material" ? { id: identity(input.id) as MaterialId } : {}), properties: validated } as ProjectEditOperation;
       }
@@ -201,6 +208,29 @@ function reviewedEngineeringReceipt(receipt: ProjectEditReceipt) {
   return { ...receipt, ...(receipt.nodeMerges ? { nodeMerges: receipt.nodeMerges.map(({ taskReferences: _references, ...impact }) => impact) } : {}) };
 }
 
+export function readModelEditObjects(project: FrameProject, receipt: ProjectEditReceipt): ModelEditReadback {
+      const collections = {
+        material: project.materials, "load-case": project.loadCases, "load-combination": project.loadCombinations,
+        section: project.sections,
+        node: project.nodes,
+        member: project.members,
+        support: project.supports,
+        "nodal-load": project.nodalLoads,
+        "uniform-load": project.uniformLoads,
+        "analysis-case": project.analysisCases,
+        "psd-spectrum": project.psdSpectra,
+      } as const;
+      const readback: ModelEditReadback = {
+        projectId: project.id,
+        modelRevision: project.revision,
+        objects: receipt.changes.map(({ kind, id }) => {
+          const object = collections[kind].find((item) => item.id === id);
+          return { kind, id, exists: Boolean(object), ...(object ? { object } : {}) };
+        }),
+      };
+  return readback;
+}
+
 export class ModelEditConfirmation {
   private applied = new Map<string, AiToolResult>();
 
@@ -217,25 +247,7 @@ export class ModelEditConfirmation {
       const outcome = applyProjectEdits(project, parseProjectEditOperations(draft.operations));
       if (JSON.stringify(reviewedEngineeringReceipt(outcome.receipt)) !== JSON.stringify(reviewedEngineeringReceipt(draft.preview))) return failed("草案内容与预览不一致，请重新核对");
       const snapshot = captureAiSnapshot(outcome.project, []);
-      const collections = {
-        material: outcome.project.materials, "load-case": outcome.project.loadCases, "load-combination": outcome.project.loadCombinations,
-        section: outcome.project.sections,
-        node: outcome.project.nodes,
-        member: outcome.project.members,
-        support: outcome.project.supports,
-        "nodal-load": outcome.project.nodalLoads,
-        "uniform-load": outcome.project.uniformLoads,
-        "analysis-case": outcome.project.analysisCases,
-        "psd-spectrum": outcome.project.psdSpectra,
-      } as const;
-      const readback: ModelEditReadback = {
-        projectId: snapshot.context.projectId,
-        modelRevision: snapshot.context.modelRevision,
-        objects: outcome.receipt.changes.map(({ kind, id }) => {
-          const object = collections[kind].find((item) => item.id === id);
-          return { kind, id, exists: Boolean(object), ...(object ? { object } : {}) };
-        }),
-      };
+      const readback = readModelEditObjects(outcome.project, outcome.receipt);
       const result: AiToolResult = { status: "applied", message: "基础编辑已应用，可整组撤销和重做", context: snapshot.context,
         data: { requestId: confirmation.requestId, proposalId: draft.id, proposalVersion: draft.version, ...outcome.receipt, readback } };
       this.applied.set(key, result);

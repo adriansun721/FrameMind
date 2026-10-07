@@ -26,7 +26,7 @@ export interface TaskDraft {
   frame?: FrameProposal;
   conditions?: ConditionsProposal;
   analysis?: TaskAnalysisIntent;
-  edits?: { operations: ProjectEditOperation[]; source: TaskValueSource };
+  edits?: { operations: ProjectEditOperation[]; source: TaskValueSource; sources?: TaskValueSource[] };
 }
 
 export interface TaskChange {
@@ -34,8 +34,9 @@ export interface TaskChange {
   label: string;
   before?: unknown;
   after?: unknown;
-  source: TaskValueSource;
+  source: TaskValueSource | "mixed";
   impact?: string;
+  provenance?: { operationIndex: number; source: TaskValueSource; values: unknown }[];
 }
 
 export interface TaskDraftPreview {
@@ -71,6 +72,11 @@ function source(value: unknown): TaskValueSource {
   return value as TaskValueSource;
 }
 
+export function taskEditSources(edits: NonNullable<TaskDraft["edits"]>): TaskValueSource[] {
+  if (edits.sources !== undefined && (!Array.isArray(edits.sources) || edits.sources.length !== edits.operations.length)) throw new Error("逐项来源必须与工程操作一一对应");
+  return edits.operations.map((_, index) => source(edits.sources?.[index] ?? edits.source));
+}
+
 function mergeAnalysis(previous: TaskAnalysisIntent | undefined, value: unknown): TaskAnalysisIntent | undefined {
   if (value === undefined) return previous;
   const input = record(value, "analysis 必须是对象");
@@ -102,8 +108,8 @@ function replaceConditionRefs(conditions: ConditionsProposal, frame: FramePropos
     const raw = value.replace(/^draft:/, "");
     if (kind === "node" && raw.startsWith(nodePrefix)) return raw;
     if (kind === "member" && raw.startsWith(memberPrefix)) return raw;
-    if (value.startsWith("draft:node:")) return `${frame.id}:${value.slice("draft:node:".length)}`;
-    if (value.startsWith("draft:member:")) return `${frame.id}:${value.slice("draft:member:".length)}`;
+    if (value.startsWith("draft:node:")) return `${frame.id}:node:${value.slice("draft:node:".length)}`;
+    if (value.startsWith("draft:member:")) return `${frame.id}:member:${value.slice("draft:member:".length)}`;
     return value;
   };
   return {
@@ -119,10 +125,40 @@ function draftProject(project: FrameProject, frame: FramePreview | undefined): F
   return {
     ...project,
     nodes: [...project.nodes, ...frame.nodes],
-    members: [...project.members, ...frame.members],
-    materials: [...project.materials, ...frame.materials],
-    sections: [...project.sections, ...frame.sections],
+    members: [...project.members, ...frame.members.map(({ role: _role, ...member }) => member)],
+    materials: [...project.materials, ...frame.materials.map((material) => ({ id: material.id, label: material.label, name: material.name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3, provenance: material.provenance }))],
+    sections: [...project.sections, ...frame.sections.map((section) => ({ id: section.id, label: section.label, name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4, ...(section.geometry ? { geometry: section.geometry, parameterBasis: section.parameterBasis, ...(section.catalogBasis ? { catalogBasis: section.catalogBasis } : {}) } : {}), provenance: section.provenance }))],
+    nextNodeNumber: project.nextNodeNumber + frame.nodes.length,
+    nextMemberNumber: project.nextMemberNumber + frame.members.length,
+    nextMaterialNumber: project.nextMaterialNumber + frame.materials.length,
+    nextSectionNumber: project.nextSectionNumber + frame.sections.length,
   };
+}
+
+/** Resolve only explicit draft identities; never guess future formal IDs. */
+export function taskObjectId(draft: TaskDraft, value: string, mapping: Record<string, string> = {}): string {
+  const id = value.startsWith("draft:node:") || value.startsWith("draft:member:")
+    ? `${draft.frame?.id}:${value.slice("draft:".length)}` : value.replace(/^draft:/, "");
+  return mapping[id] ?? (value.startsWith("draft:") ? id : value);
+}
+
+export function taskEditOperations(draft: TaskDraft, mapping: Record<string, string> = {}): ProjectEditOperation[] {
+  const resolve = (value: unknown, key = ""): unknown => {
+    if (typeof value === "string") {
+      return /(?:^id$|Id$|Ids$)/.test(key) ? taskObjectId(draft, value, mapping) : value;
+    }
+    if (Array.isArray(value)) return value.map((child) => resolve(child, key));
+    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, resolve(child, key)]));
+    return value;
+  };
+  return draft.edits ? parseProjectEditOperations(resolve(draft.edits.operations)) : [];
+}
+
+export function taskEngineeringPreview(snapshot: AiSnapshot, draft: TaskDraft) {
+  const frame = draft.frame ? buildFramePreview(snapshot, draft.frame) : undefined;
+  const initial = draftProject(snapshot.editProject, frame);
+  const edited = draft.edits ? applyProjectEdits(initial, taskEditOperations(draft)) : undefined;
+  return { frame, initial, project: edited?.project ?? initial, edits: edited?.receipt };
 }
 
 function parameterSource(snapshot: AiSnapshot, frame: FrameProposal, field: keyof FrameProposal["parameters"]): TaskValueSource {
@@ -160,10 +196,10 @@ function changes(snapshot: AiSnapshot, frame: FrameProposal | undefined, conditi
 }
 
 export function buildTaskDraftPreview(snapshot: AiSnapshot, draft: TaskDraft): TaskDraftPreview {
-  const edited = draft.edits ? applyProjectEdits(snapshot.editProject, parseProjectEditOperations(draft.edits.operations)) : undefined;
-  const frame = draft.frame ? buildFramePreview(snapshot, draft.frame) : undefined;
+  const engineering = taskEngineeringPreview(snapshot, draft);
+  const frame = engineering.frame;
   const conditions = draft.conditions ? replaceConditionRefs(draft.conditions, draft.frame) : undefined;
-  const conditionProject = draftProject(edited?.project ?? snapshot.editProject, frame);
+  const conditionProject = engineering.project;
   const conditionPreview = conditions ? buildConditionsPreview(conditionProject, conditions) : undefined;
   const hasExistingLoad = snapshot.model.nodalLoads.length > 0 || snapshot.model.uniformLoads.length > 0 || snapshot.model.selfWeight.enabled
     || snapshot.model.loadCases.length > 1 || snapshot.model.loadCombinations.length > 0;
@@ -205,15 +241,19 @@ export function buildTaskDraftPreview(snapshot: AiSnapshot, draft: TaskDraft): T
   ];
   const allChanges = changes(snapshot, draft.frame, draft.conditions, draft.analysis);
   if (draft.edits) {
-    if (draft.edits.source === "unknown") missing.push({ category: "geometry", label: "工程操作来源", reason: "工程操作的来源未知，请补充或确认" });
+    const sources = taskEditSources(draft.edits);
+    if (sources.includes("unknown")) missing.push({ category: "geometry", label: "工程操作来源", reason: "工程操作的来源未知，请补充或确认" });
     const labels = { material: "材料", section: "截面", node: "节点", member: "杆件", support: "支座", "nodal-load": "节点荷载", "uniform-load": "均布荷载", "load-case": "荷载工况", "load-combination": "荷载组合", "analysis-case": "分析工况", "psd-spectrum": "输入谱" };
-    for (const change of edited!.receipt.changes) allChanges.push({ category: ["material", "section", "psd-spectrum"].includes(change.kind) ? "resource" : change.kind === "support" ? "support" : ["nodal-load", "uniform-load", "load-case", "load-combination"].includes(change.kind) ? "load" : change.kind === "analysis-case" ? "analysis" : "geometry", label: `${labels[change.kind]} ${change.id}`, before: change.before, after: change.after, source: draft.edits.source, impact: "与条件及分析意图一起确认；共享资源变化影响全部引用对象" });
+    for (const change of engineering.edits!.changes) allChanges.push({ category: ["material", "section", "psd-spectrum"].includes(change.kind) ? "resource" : change.kind === "support" ? "support" : ["nodal-load", "uniform-load", "load-case", "load-combination"].includes(change.kind) ? "load" : change.kind === "analysis-case" ? "analysis" : "geometry", label: `${labels[change.kind]} ${change.id}`, before: change.before, after: change.after, source: new Set(sources).size === 1 ? sources[0] : "mixed", provenance: draft.edits.sources ? draft.edits.operations.map((operation, operationIndex) => {
+      const { type: _type, ...values } = operation;
+      return { operationIndex, source: sources[operationIndex], values };
+    }) : undefined, impact: "与条件及分析意图一起确认；共享资源变化影响全部引用对象" });
   }
   if (draft.frame) {
     allChanges.push({ category: "resource", label: "材料来源", after: draft.frame.parameters.material?.value, source: parameterSource(snapshot, draft.frame, "material"), impact: "确认后复制到正式项目资源" });
     allChanges.push({ category: "resource", label: "柱/梁截面来源", after: { column: draft.frame.parameters.columnSection?.value, beam: draft.frame.parameters.beamSection?.value }, source: parameterSource(snapshot, draft.frame, "columnSection"), impact: "确认后绑定新杆件" });
   }
-  return { status: missing.length ? "missing-input" : "awaiting-confirmation", issues, missing, changes: allChanges, frame, conditions: conditionPreview, objectRefs, analysis: draft.analysis, edits: edited?.receipt };
+  return { status: missing.length ? "missing-input" : "awaiting-confirmation", issues, missing, changes: allChanges, frame, conditions: conditionPreview, objectRefs, analysis: draft.analysis, edits: engineering.edits };
 }
 
 /** Merge one natural-language task update. No project mutation occurs here. */
@@ -223,9 +263,10 @@ export function proposeTask(snapshot: AiSnapshot, input: unknown, previous?: Tas
   let edits = previous?.edits;
   if (request.edits !== undefined) {
     const input = record(request.edits, "工程操作必须是对象");
-    exact(input, ["operations", "source"]);
+    exact(input, ["operations", "source", "sources"]);
     if (!["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(String(input.source))) throw new Error("工程操作必须声明参数来源");
-    edits = { operations: parseProjectEditOperations(input.operations), source: input.source as TaskValueSource };
+    edits = { operations: parseProjectEditOperations(input.operations), source: input.source as TaskValueSource, ...(input.sources !== undefined ? { sources: input.sources as TaskValueSource[] } : {}) };
+    taskEditSources(edits);
   }
   const id = previous?.id ?? (typeof request.id === "string" && request.id.trim() ? text(request.id, "任务身份", 200) : `task_${crypto.randomUUID()}`);
   const frameInput = request.frame ?? (request.parameters === undefined ? undefined : { parameters: request.parameters });
@@ -240,7 +281,6 @@ export function proposeTask(snapshot: AiSnapshot, input: unknown, previous?: Tas
     ?? (conditions?.loadCases?.length === 1 && !conditions.loadCombinations?.length ? conditions.loadCases[0].ref : undefined)
     ?? snapshot.model.activeAnalysisCaseId ?? snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
   const goal = request.goal === undefined ? previous?.goal : text(request.goal, "任务目标");
-  if (frame && edits) throw new Error("参数框架生成与已有对象工程操作请分别准备整体草案，避免使用未应用身份");
   const next: TaskDraft = { id, version: (previous?.version ?? 0) + 1, projectId: snapshot.context.projectId, baseRevision: snapshot.context.modelRevision, ...(goal ? { goal } : {}), ...(frame ? { frame } : {}), ...(conditions ? { conditions } : {}), ...(analysis ? { analysis } : {}), ...(edits ? { edits } : {}) };
   // Validate the merged draft now so a tool reply can distinguish missing input
   // from a malformed request without ever changing the applied model.

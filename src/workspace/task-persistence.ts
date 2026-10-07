@@ -8,7 +8,7 @@ import { proposeFrame, type FrameProposal } from "./frame-proposal";
 import { proposeConditions, type ConditionsProposal } from "./analysis-conditions";
 import type { SectionChangeProposal } from "./section-stage";
 import { proposeModelEdits, type ModelEditProposal } from "./model-edits";
-import type { TaskDraft } from "./task-draft";
+import { taskEditSources, taskEngineeringPreview, type TaskDraft } from "./task-draft";
 import { parseProjectEditOperations } from "./model-edits";
 import type { StageResolution } from "../components/AiTaskTimeline";
 import type { ScheduledTaskDescriptor } from "./task-scheduler";
@@ -191,9 +191,10 @@ function draftContent(kind: string, draft: Record<string, unknown>, base: FrameP
     validateSection("恢复截面", draft.section as unknown as Parameters<typeof validateSection>[1]);
   } else if (kind === "taskDraft") {
     if (draft.edits !== undefined) {
-      assert(object(draft.edits) && ["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(String(draft.edits.source)) && draft.frame === undefined);
+      assert(object(draft.edits) && ["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(String(draft.edits.source)));
       draft.edits.operations = parseProjectEditOperations(draft.edits.operations);
-      proposeModelEdits(base, { operations: draft.edits.operations });
+      taskEditSources(draft.edits as unknown as NonNullable<TaskDraft["edits"]>);
+      taskEngineeringPreview(captureAiSnapshot(base, []), draft as unknown as TaskDraft);
     }
     assert(draft.goal === undefined || typeof draft.goal === "string");
     if (draft.frame !== undefined) { assert(object(draft.frame)); draftContent("frame", draft.frame, base); }

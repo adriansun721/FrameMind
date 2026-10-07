@@ -10,6 +10,11 @@ import { coordinateModelEdits, coordinateSection, coordinateTaskDraft } from "./
 import { prepareTaskDraftConfirmation, TaskDraftStageConfirmation } from "./task-confirmation";
 
 describe("task drafts during manual edits", () => {
+  it("reports deleted advanced targets without throwing during coordination", () => {
+    const base = columns();
+    const draft = proposeTask(captureAiSnapshot(base, []), { edits: { source: "user", operations: [{ type: "set_node_mass", id: base.nodes[1].id, massKg: 100 }] } });
+    expect(coordinateTaskDraft(base, deleteNode(base, base.nodes[1].id), draft).conflicts.join(" ")).toContain("删除");
+  });
   it("coordinates advanced whole-task operations against manual changes to the same mass", () => {
     const base = columns();
     const draft = proposeTask(captureAiSnapshot(base, []), { edits: { source: "user", operations: [{ type: "set_node_mass", id: base.nodes[1].id, massKg: 100 }] } });

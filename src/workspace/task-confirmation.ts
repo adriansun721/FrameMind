@@ -2,9 +2,9 @@ import { addMaterial, addMember, addNode, addSection, addNodalLoad, addSupport, 
 import { applyLoadStage, type LoadStage } from "./load-stage";
 import type { NodalLoadProposal, SupportProposal } from "./analysis-conditions";
 import { applyProjectTransaction, applyProjectEdits, type ProjectEditReceipt } from "../domain/project-operations";
-import { parseProjectEditOperations } from "./model-edits";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
-import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
+import { buildTaskDraftPreview, taskEditOperations, taskObjectId, taskEngineeringPreview, type TaskDraft } from "./task-draft";
+import { readModelEditObjects, type ModelEditReadback } from "./model-edits";
 import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
 
 export interface TaskDraftConfirmation {
@@ -38,6 +38,7 @@ interface TaskAppliedObjects {
 
 interface TaskApplicationVerification {
   edits?: ProjectEditReceipt;
+  readback?: ModelEditReadback;
   status: "verified";
   objects: TaskAppliedObjects;
 }
@@ -54,9 +55,10 @@ function same(value: unknown, expected: unknown): boolean {
 }
 
 function verifyTaskApplication(project: FrameProject, next: FrameProject, draft: TaskDraft, preview: ReturnType<typeof buildTaskDraftPreview>, mapping: Record<string, string>, references: Record<string, string>): TaskApplicationVerification {
+  const reviewed = taskEngineeringPreview(captureAiSnapshot(project, []), draft).project;
   const objects: TaskAppliedObjects = { nodes: [], members: [], materials: [], sections: [], supports: [], nodalLoads: [], uniformLoads: [], loadCases: [], loadCombinations: [] };
   const formal = (id: string) => mapping[id] ?? id;
-  const draftRef = (id: string) => formal(id.startsWith("draft:") ? id.slice("draft:".length) : id);
+  const draftRef = (id: string) => taskObjectId(draft, id, mapping);
   const sourceRef = (id: string) => references[id] ?? id;
   const requireObject = <T extends { id: string }>(items: readonly T[], id: string, label: string): T => {
     const item = items.find((value) => value.id === id);
@@ -70,26 +72,35 @@ function verifyTaskApplication(project: FrameProject, next: FrameProject, draft:
   const usedUniformLoadIds = new Set<string>();
 
   for (const node of preview.frame?.nodes ?? []) {
-    const id = formal(node.id); const actual = requireObject(next.nodes, id, "节点");
-    if (!same(actual.position, node.position)) throw new Error(`应用后核验失败：节点 ${id} 坐标不一致`);
+    const id = formal(node.id); const expected = reviewed.nodes.find((n) => n.id === node.id);
+    if (!expected) { if (next.nodes.some((n) => n.id === id)) throw new Error("应用后删除节点核验失败"); continue; }
+    const actual = requireObject(next.nodes, id, "节点");
+    if (!same(actual.position, expected.position) || actual.additionalMassKg !== expected.additionalMassKg) throw new Error(`应用后核验失败：节点 ${id} 坐标或质量不一致`);
     addObject("nodes", id);
   }
-  for (const material of preview.frame?.materials ?? []) {
+  for (const original of preview.frame?.materials ?? []) {
+    const material = reviewed.materials.find((item) => item.id === original.id);
+    if (!material) { if (next.materials.some((item) => item.id === formal(original.id))) throw new Error("应用后删除材料核验失败"); continue; }
     const id = formal(material.id); const actual = requireObject(next.materials, id, "材料");
     if (!same({ name: actual.name, elasticModulusGPa: actual.elasticModulusGPa, poissonRatio: actual.poissonRatio, densityKgM3: actual.densityKgM3, provenance: actual.provenance },
       { name: material.name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3, provenance: material.provenance })) throw new Error(`应用后核验失败：材料 ${id} 参数不一致`);
     addObject("materials", id);
   }
-  for (const section of preview.frame?.sections ?? []) {
+  for (const original of preview.frame?.sections ?? []) {
+    const section = reviewed.sections.find((item) => item.id === original.id);
+    if (!section) { if (next.sections.some((item) => item.id === formal(original.id))) throw new Error("应用后删除截面核验失败"); continue; }
     const id = formal(section.id); const actual = requireObject(next.sections, id, "截面");
     if (!same({ name: actual.name, areaM2: actual.areaM2, secondMomentYM4: actual.secondMomentYM4, secondMomentZM4: actual.secondMomentZM4, torsionalConstantM4: actual.torsionalConstantM4, ...(actual.geometry ? { geometry: actual.geometry, parameterBasis: actual.parameterBasis, ...(actual.catalogBasis ? { catalogBasis: actual.catalogBasis } : {}) } : {}), provenance: actual.provenance },
       { name: section.name, areaM2: section.areaM2, secondMomentYM4: section.secondMomentYM4, secondMomentZM4: section.secondMomentZM4, torsionalConstantM4: section.torsionalConstantM4, ...(section.geometry ? { geometry: section.geometry, parameterBasis: section.parameterBasis, ...(section.catalogBasis ? { catalogBasis: section.catalogBasis } : {}) } : {}), provenance: section.provenance })) throw new Error(`应用后核验失败：截面 ${id} 参数不一致`);
     addObject("sections", id);
   }
   for (const member of preview.frame?.members ?? []) {
+    const reviewedMember = reviewed.members.find((m) => m.id === member.id);
+    if (!reviewedMember) { if (next.members.some((m) => m.id === formal(member.id))) throw new Error("应用后删除杆件核验失败"); continue; }
     const id = formal(member.id); const actual = requireObject(next.members, id, "杆件");
-    const expected = { startNodeId: formal(member.startNodeId), endNodeId: formal(member.endNodeId), materialId: formal(member.materialId), sectionId: formal(member.sectionId), rotationDegrees: member.rotationDegrees };
+    const expected = { startNodeId: formal(reviewedMember.startNodeId), endNodeId: formal(reviewedMember.endNodeId), materialId: formal(reviewedMember.materialId), sectionId: formal(reviewedMember.sectionId), rotationDegrees: reviewedMember.rotationDegrees };
     if (!same({ startNodeId: actual.startNodeId, endNodeId: actual.endNodeId, materialId: actual.materialId, sectionId: actual.sectionId, rotationDegrees: actual.rotationDegrees }, expected)) throw new Error(`应用后核验失败：杆件 ${id} 引用不一致`);
+    if (!same(actual.endReleases, reviewedMember.endReleases) || actual.additionalLineMassKgM !== reviewedMember.additionalLineMassKgM) throw new Error(`应用后核验失败：杆件 ${id} 释放或质量不一致`);
     addObject("members", id);
   }
 
@@ -144,8 +155,9 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
   if (preview.status !== "awaiting-confirmation") throw new Error(preview.issues.concat(preview.missing.map((item) => item.reason)).join("；") || "完整任务草案尚未补齐");
   const mapping: Record<string, string> = {};
   let references: Record<string, string> = {};
+  let appliedEdits: ProjectEditReceipt | undefined;
   const next = applyProjectTransaction(project, (initial) => {
-    let current = draft.edits ? applyProjectEdits(initial, parseProjectEditOperations(draft.edits.operations)).project : initial;
+    let current = initial;
     const materials = new Map<string, MaterialId>();
     const sections = new Map<string, SectionId>();
     const nodes = new Map<string, NodeId>();
@@ -170,11 +182,14 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
       current = addMember(current, { startNodeId, endNodeId, materialId, sectionId, rotationDegrees: member.rotationDegrees });
       const id = current.members.at(-1)!.id; members.set(member.id, id); mapping[member.id] = id;
     }
+    if (draft.edits) {
+      const edited = applyProjectEdits(current, taskEditOperations(draft, mapping));
+      current = edited.project; appliedEdits = edited.receipt;
+    }
     const proposed = draft.conditions;
     if (proposed) {
-      const normalize = (id: string) => id.startsWith("draft:") ? id.slice("draft:".length) : id;
-      const mapNode = (id: string) => nodes.get(normalize(id)) ?? id as NodeId;
-      const mapMember = (id: string) => members.get(normalize(id)) ?? id as MemberId;
+      const mapNode = (id: string) => taskObjectId(draft, id, mapping) as NodeId;
+      const mapMember = (id: string) => taskObjectId(draft, id, mapping) as MemberId;
       const stage: LoadStage = {
         uniformLoads: proposed.uniformLoads?.map((item) => ({ ...item, memberId: mapMember(item.memberId) })),
         selfWeight: proposed.selfWeight,
@@ -203,7 +218,17 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
     if (draft.analysis?.sourceId && !draft.conditions) current = selectAnalysisSource(current, draft.analysis.sourceId);
     return current;
   });
-  return { project: next, mapping, references, verification: { ...verifyTaskApplication(project, next, draft, preview, mapping, references), edits: preview.edits } };
+  if (appliedEdits && preview.edits) {
+    const reviewed = (receipt: ProjectEditReceipt) => ({ changes: receipt.changes, created: receipt.created, affectedMemberIds: receipt.affectedMemberIds });
+    const normalize = (value: unknown, key = ""): unknown => {
+      if (typeof value === "string") return /(?:^id$|Id$|Ids$)/.test(key) ? mapping[value] ?? value : value;
+      if (Array.isArray(value)) return value.map((child) => normalize(child, key));
+      if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).filter(([field]) => field !== "label").sort(([a], [b]) => a.localeCompare(b)).map(([field, child]) => [field, normalize(child, field)]));
+      return value;
+    };
+    if (!same(normalize(reviewed(preview.edits)), normalize(reviewed(appliedEdits)))) throw new Error("应用后工程操作与已核对差异不一致，正式模型保留");
+  }
+  return { project: next, mapping, references, verification: { ...verifyTaskApplication(project, next, draft, preview, mapping, references), edits: appliedEdits ? { ...appliedEdits, baseRevision: project.revision, appliedRevision: next.revision } : undefined, readback: appliedEdits ? readModelEditObjects(next, appliedEdits) : undefined } };
 }
 
 export class TaskDraftStageConfirmation {

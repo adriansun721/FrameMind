@@ -29,6 +29,8 @@ export async function agentFixture(id: string, options: { task: "T2-11" | "T2-41
   let app: ElectronApplication | undefined;
   let settings: unknown;
   let failed = false;
+  let failure: string | undefined;
+  let activePage: Page | undefined;
   const env = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: path };
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.VITE_DEV_SERVER_URL;
@@ -38,6 +40,7 @@ export async function agentFixture(id: string, options: { task: "T2-11" | "T2-41
     await enterWorkbenchWithoutRecovery(page);
     await page.keyboard.press("Control+o");
     await expect(page.locator('footer[role="status"]')).toContainText("已打开");
+    activePage = page;
     return page;
   };
   try {
@@ -98,16 +101,21 @@ export async function agentFixture(id: string, options: { task: "T2-11" | "T2-41
     expect(Object.keys(checks).length).toBeGreaterThan(0);
   } catch (error) {
     failed = true;
+    failure = error instanceof Error ? error.message : String(error);
     throw error;
   } finally {
     try {
       const output = resolve(process.env[prefix + "_OUTPUT"] ?? `docs/evidence/plan2/${options.task}/${mode}`);
       await mkdir(output, { recursive: true });
+      let partialHistories: unknown;
+      if (failed && activePage && !activePage.isClosed()) {
+        try { partialHistories = await activePage.evaluate(async (id) => JSON.parse(await window.frameMind.loadChatHistory(id) ?? "[]"), project.id); } catch { /* A crashed renderer has no retrievable history. */ }
+      }
       let saved: unknown;
       try { saved = JSON.parse(await readFile(path, "utf8")); } catch { /* Preserve even launch failures. */ }
       await writeFile(join(output, `${id}-${test.info().repeatEachIndex}.json`), JSON.stringify(redactPersistence({
         id, mode, repeat: test.info().repeatEachIndex, startedAt, endedAt: new Date().toISOString(),
-        status: failed ? "failed" : "passed", settings, checks, turns, input: project, saved,
+        status: failed ? "failed" : "passed", failure, partialHistories, settings, checks, turns, input: project, saved,
         transport: online ? "actual DeepSeek HTTPS; no transport replacement" : "fixed tool responses; actual Electron application",
       }), null, 2) + "\n");
     } finally {

@@ -54,10 +54,18 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
   } },
 } };
 
+const customMaterial = {
+  type: "object", additionalProperties: false,
+  required: ["name", "elasticModulusGPa", "poissonRatio", "densityKgM3"],
+  properties: { name: { type: "string" }, elasticModulusGPa: { type: "number", exclusiveMinimum: 0 },
+    poissonRatio: { type: "number", exclusiveMinimum: -1, exclusiveMaximum: .5 }, densityKgM3: { type: "number", exclusiveMinimum: 0 } },
+};
+
 export const MODEL_EDIT_SCHEMA = {
   type: "object", additionalProperties: false, required: ["operations"], properties: {
     operations: { type: "array", minItems: 1, maxItems: 100, items: { anyOf: [
-      ...["create_material", "update_material"].map((type) => ({ type: "object", additionalProperties: false, required: type === "create_material" ? ["type", "properties"] : ["type", "id", "properties"], properties: { type: { const: type }, ...(type === "update_material" ? { id: identity } : {}), properties: { type: "object", additionalProperties: false, required: ["name", "elasticModulusGPa", "poissonRatio", "densityKgM3"], properties: { name: { type: "string" }, elasticModulusGPa: { type: "number", exclusiveMinimum: 0 }, poissonRatio: { type: "number", exclusiveMinimum: -1, exclusiveMaximum: .5 }, densityKgM3: { type: "number", exclusiveMinimum: 0 } } } } })),
+      { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_material" }, properties: { type: "object", additionalProperties: false, required: ["catalogId"], properties: { name: { type: "string" }, catalogId: identity } } } },
+      ...["create_material", "update_material"].map((type) => ({ type: "object", additionalProperties: false, required: type === "create_material" ? ["type", "properties"] : ["type", "id", "properties"], properties: { type: { const: type }, ...(type === "update_material" ? { id: identity } : {}), properties: customMaterial } })),
       ...["duplicate_material", "delete_material", "delete_section", "delete_support", "delete_nodal_load", "delete_uniform_load", "delete_load_case", "delete_load_combination"].map((type) => ({ type: "object", additionalProperties: false, required: ["type", "id"], properties: { type: { const: type }, id: identity } })),
       { type: "object", additionalProperties: false, required: ["type", "properties"], properties: { type: { const: "create_psd_spectrum" }, properties: PSD_INPUT_SCHEMA } },
       { type: "object", additionalProperties: false, required: ["type", "id", "properties"], properties: { type: { const: "update_psd_spectrum" }, id: identity, properties: PSD_INPUT_SCHEMA } },

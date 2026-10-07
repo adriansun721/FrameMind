@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "registeredDate": "2026-10-07",
   "timezone": "Asia/Taipei",
   "repetitions": 2,
@@ -56,7 +56,9 @@
       "confirmation",
       "unchanged",
       "budget",
-      "toolBoundary"
+      "toolBoundary",
+      "actualCompleted",
+      "newCitation"
     ],
     "second-order": [
       "trial",
@@ -64,7 +66,9 @@
       "evidence",
       "isolation",
       "budget",
-      "toolBoundary"
+      "toolBoundary",
+      "recoveryDraft",
+      "recovered"
     ],
     "spectrum": [
       "failure",
@@ -189,7 +193,8 @@
     },
     "secondOrder": {
       "caseId": "AC1",
-      "maxIterations": 1
+      "maxIterations": 1,
+      "recoveryMaxIterations": 20
     },
     "spectrum": {
       "bandHz": [
@@ -212,5 +217,5 @@
       ]
     }
   },
-  "registrationNote": "Version 2 freezes common budget and boundary observations before the first measured T2-41 runner/online execution. Earlier unmeasured development replay exposed incorrect test field access, polling races and nested task snapshots; gates and physics inputs are not relaxed."
+  "registrationNote": "Version 3 adds confirmed native buckling solve with new result citation and user-directed second-order recovery to the version 2 gates, before any version 3 run. All version 2 online failures remain archived. No gates or physics inputs are relaxed."
 }

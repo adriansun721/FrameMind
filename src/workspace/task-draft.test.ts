@@ -50,6 +50,22 @@ it("refuses unknown advanced provenance, unsafe commands and underflow through t
   expect(project.nodes[1].additionalMassKg).toBeUndefined();
 });
 
+it("keeps user and suggested values distinct within one advanced task", () => {
+  const project = columns(), snapshot = captureAiSnapshot(project, []);
+  const input = { edits: { source: "user", sources: ["user", "suggestion"], operations: [
+    { type: "set_node_mass", id: project.nodes[1].id, massKg: 125 },
+    { type: "update_member", id: project.members[0].id, changes: { additionalLineMassKgM: 10 } },
+  ] } };
+  const draft = proposeTask(snapshot, input);
+  const preview = buildTaskDraftPreview(snapshot, draft);
+  expect(preview.changes[0].source).toBe("mixed");
+  expect(preview.changes[0].provenance).toMatchObject([
+    { source: "user", values: { massKg: 125 } }, { source: "suggestion", values: { changes: { additionalLineMassKgM: 10 } } },
+  ]);
+  expect(() => proposeTask(snapshot, { edits: { ...input.edits, sources: ["user"] } })).toThrow("一一对应");
+  expect(buildTaskDraftPreview(snapshot, proposeTask(snapshot, { edits: { ...input.edits, sources: ["user", "unknown"] } })).status).toBe("missing-input");
+});
+
 const frame = {
   parameters: {
     storeys: { value: 1, source: "user" }, xSpans: { value: [4], source: "user" }, ySpans: { value: [3], source: "user" },
@@ -57,6 +73,57 @@ const frame = {
     material: { value: MATERIAL_CATALOG[0].catalogId, source: "suggestion" }, columnSection: { value: SECTION_CATALOG[0].catalogId, source: "suggestion" }, beamSection: { value: SECTION_CATALOG[1].catalogId, source: "suggestion" }, rotationDegrees: { value: 0, source: "suggestion" },
   },
 };
+
+it("confirms a new frame, draft-identity point mass and releases with its conditions in one transaction", () => {
+  const project = createProject();
+  const draft = proposeTask(captureAiSnapshot(project, []), { frame,
+    edits: { source: "user", operations: [
+      { type: "set_node_mass", id: "draft:node:0:0:0", massKg: 100 },
+      { type: "update_member", id: "draft:member:1", changes: { endReleases: { start: { my: true, mz: false }, end: { my: false, mz: false } } } },
+    ] }, supports: [], nodalLoads: [] });
+  const preview = buildTaskDraftPreview(captureAiSnapshot(project, []), draft);
+  expect(preview.status).toBe("awaiting-confirmation");
+  const result = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
+  expect(result.result.status, result.result.message).toBe("applied");
+  expect(result.project.nodes[0].additionalMassKg).toBe(100);
+  expect(result.project.members[0].endReleases?.start.my).toBe(true);
+  expect(result.project.revision).toBe(1);
+  expect(result.result.data).toMatchObject({ verification: { edits: { changes: [
+    { kind: "node", id: result.project.nodes[0].id }, { kind: "member", id: result.project.members[0].id },
+  ] } } });
+});
+
+it("resolves compact draft conditions and verifies resources edited in the same frame draft", () => {
+  const project = createProject();
+  const snapshot = captureAiSnapshot(project, []);
+  const first = proposeTask(snapshot, { frame });
+  const materialId = buildTaskDraftPreview(snapshot, first).frame!.materials[0].id;
+  const draft = proposeTask(snapshot, {
+    edits: { source: "user", operations: [{ type: "update_material", id: `draft:${materialId}`, properties: { name: "用户修订", elasticModulusGPa: 210, poissonRatio: 0.3, densityKgM3: 7850 } }] },
+    supports: [{ nodeId: "draft:node:0:0:0", restraints: [true, true, true, true, true, true], source: "user" }], nodalLoads: [],
+  }, first);
+  const outcome = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
+  expect(outcome.result.status, outcome.result.message).toBe("applied");
+  expect(outcome.project.supports[0].nodeId).toBe(outcome.project.nodes[0].id);
+  expect(outcome.project.materials[0].elasticModulusGPa).toBe(210);
+});
+
+it("reserves frame counters before previewing advanced creations and preserves their reviewed identities", () => {
+  const project = createProject();
+  const snapshot = captureAiSnapshot(project, []);
+  const draft = proposeTask(snapshot, { frame, supports: [], nodalLoads: [], edits: { source: "catalog", operations: [
+    { type: "create_material", properties: { catalogId: MATERIAL_CATALOG[1].catalogId, name: "Extra" } },
+    { type: "create_node", position: { x: 10, y: 10, z: 10 } },
+    { type: "split_member", memberIds: ["draft:member:1"], position: { x: 0, y: 0, z: 1.5 } },
+  ] } });
+  const preview = buildTaskDraftPreview(snapshot, draft);
+  const outcome = new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, draft));
+  expect(outcome.result.status, outcome.result.message).toBe("applied");
+  const material = preview.edits!.created.find((item) => item.kind === "material")!;
+  const node = preview.edits!.created.find((item) => item.kind === "node")!;
+  expect(outcome.project.materials.find((item) => item.id === material.id)?.name).toBe("Extra");
+  expect(outcome.project.nodes.find((item) => item.id === node.id)?.position).toEqual({ x: 10, y: 10, z: 10 });
+});
 
 describe("T2-03 complete task drafts", () => {
   it("merges geometry, resources, conditions and analysis intent under one version", () => {

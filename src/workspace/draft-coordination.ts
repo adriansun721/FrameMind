@@ -4,7 +4,7 @@ import { conditionsIssues, type ConditionsProposal } from "./analysis-conditions
 import { buildFramePreview, type FrameProposal } from "./frame-proposal";
 import { proposeModelEdits, type ModelEditProposal } from "./model-edits";
 import { selectedColumns, type SectionChangeProposal } from "./section-stage";
-import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
+import { buildTaskDraftPreview, taskEngineeringPreview, taskEditOperations, type TaskDraft } from "./task-draft";
 import type { ProjectEditOperation } from "../domain/project-operations";
 
 export interface DraftCoordination<T> { draft: T; conflicts: string[]; }
@@ -58,11 +58,11 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
   proposal?: FrameProposal | null;
 }, fallback: readonly AiObjectRef[]): readonly AiObjectRef[] {
   if (!Object.values(drafts).some(Boolean)) return fallback;
-  return [
-    ...(drafts.taskDraft?.edits ? engineeringDraftTargets(base, { modelEdits: proposeModelEdits(base, { operations: drafts.taskDraft.edits.operations }) }, []) : []),
+  const targets: AiObjectRef[] = [
+    ...(drafts.taskDraft?.edits ? engineeringDraftTargets(base, { modelEdits: proposeModelEdits(taskEngineeringPreview(captureAiSnapshot(base, []), drafts.taskDraft).initial, { operations: taskEditOperations(drafts.taskDraft) }) }, []) : []),
     ...conditionTargets(base, drafts.taskDraft?.conditions),
     ...conditionTargets(base, drafts.conditions ?? undefined),
-    ...(drafts.modelEdits?.preview.affectedMemberIds ?? []).map((id) => ({ kind: "member" as const, id })),
+    ...(drafts.modelEdits?.preview.affectedMemberIds ?? []).filter((id) => base.members.some((m) => m.id === id)).map((id) => ({ kind: "member" as const, id })),
     ...(drafts.sectionChange?.memberIds ?? []).map((id) => ({ kind: "member" as const, id })),
     ...(drafts.modelEdits?.operations ?? []).flatMap((item) => item.type === "merge_nodes"
       ? item.nodeIds.map((id) => ({ kind: "node" as const, id })) : "memberIds" in item
@@ -70,6 +70,7 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
       : "id" in item && (isNodeEdit(item.type) || item.type.endsWith("member"))
       ? [{ kind: isNodeEdit(item.type) ? "node" as const : "member" as const, id: item.id }] : []),
   ];
+  return targets.filter((target, index) => (target.kind === "node" ? base.nodes : base.members).some((item) => item.id === target.id) && targets.findIndex((item) => item.kind === target.kind && item.id === target.id) === index);
 }
 
 export function coordinateConditions(base: FrameProject, current: FrameProject, draft: ConditionsProposal): DraftCoordination<ConditionsProposal> {
@@ -95,7 +96,9 @@ export function coordinateTaskDraft(base: FrameProject, current: FrameProject, d
   if (sameEngineeringState(base, current)) return { draft, conflicts: [] };
   if (base.id !== current.id) return { draft, conflicts: ["项目已切换，旧任务不能提交"] };
   const coordinated = draft.conditions ? coordinateConditions(base, current, draft.conditions) : undefined;
-  const edited = draft.edits ? coordinateModelEdits(base, current, proposeModelEdits(base, { operations: draft.edits.operations })) : undefined;
+  const baseEngineering = draft.edits ? taskEngineeringPreview(captureAiSnapshot(base, []), { ...draft, edits: undefined }).initial : base;
+  const currentEngineering = draft.edits ? taskEngineeringPreview(captureAiSnapshot(current, []), { ...draft, edits: undefined }).initial : current;
+  const edited = draft.edits ? coordinateModelEdits(baseEngineering, currentEngineering, proposeModelEdits(baseEngineering, { operations: taskEditOperations(draft) })) : undefined;
   if (edited?.conflicts.length) return { draft, conflicts: edited.conflicts };
   const next = { ...draft, baseRevision: current.revision, version: draft.version + 1, ...(coordinated ? { conditions: coordinated.draft } : {}), ...(draft.edits && edited ? { edits: { ...draft.edits, operations: edited.draft.operations } } : {}) };
   const preview = buildTaskDraftPreview(captureAiSnapshot(current, []), next);

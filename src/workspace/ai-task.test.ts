@@ -123,6 +123,18 @@ describe("AI progressive output", () => {
 });
 
 describe("AI conversation task boundary", () => {
+  it("reveals long verified replies with bounded updates while preserving exact content", async () => {
+    vi.useFakeTimers();
+    const content = "详细说明".repeat(250);
+    const script = replay([{ status: "success", message: "完成", assistant: { role: "assistant", content } }]);
+    const snapshot = captureAiSnapshot(createProject(), []), onOutput = vi.fn();
+    const task = startAiTask(snapshot, "说明方法", { transport: script.transport, isCurrent: () => true, getCurrentSnapshot: () => snapshot, onOutput });
+    await vi.runAllTimersAsync();
+    expect((await task.promise).assistant).toBe(content);
+    expect(onOutput.mock.calls.length).toBeLessThanOrEqual(80);
+    expect(onOutput.mock.calls.at(-1)?.[0].assistant).toBe(content);
+    vi.useRealTimers();
+  });
   it("continues a condition draft when an unrelated submitted selection is deleted", async () => {
     let project = addNode(addNode(createProject(), { x: 0, y: 0, z: 0 }), { x: 0, y: 0, z: 4 });
     const selected = project.nodes[0].id;
