@@ -1,6 +1,7 @@
-import { HeadingLevel, Paragraph, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType } from "docx";
+import { HeadingLevel, LineRuleType, Paragraph, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType } from "docx";
 
-export const paragraph = (text: string) => new Paragraph({ children: [new TextRun(text)], spacing: { after: 130 } });
+export const paragraph = (text: string) => new Paragraph({ children: [new TextRun(text)], keepLines: true, spacing: { after: 130 } });
+export const tableSeparator = (trailing = false) => new Paragraph({ run: { size: trailing ? 1 : 2 }, spacing: { before: 0, after: 0, line: trailing ? 1 : 40, lineRule: LineRuleType.EXACT } });
 export const tableCaption = (text: string) => new Paragraph({ text, keepNext: true, spacing: { before: 160, after: 100 } });
 export const heading = (text: string) => new Paragraph({ text, heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 160 }, keepNext: true });
 export function table(headers: string[], rows: string[][]): Table {

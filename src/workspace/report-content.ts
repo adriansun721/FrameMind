@@ -8,6 +8,9 @@ import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "..
 import type { ResourceProvenance, Vector3 } from "../domain/project";
 import { createReportFigures } from "./report-figures";
 import { reportAppendixContent } from "./report-appendix-content";
+import { calculateMemberGeometry } from "../domain/member-geometry";
+import { resultIdentity, resultMeaning } from "../domain/result-inspection";
+import { stabilityReportSummary, stabilityReportTheory } from "./stability-report-content";
 import { heading, paragraph, table, tableCaption, title, image, type ReportBlock } from "./report-content-blocks";
 
 function provenance(label: string, value: ResourceProvenance): ReportBlock {
@@ -24,16 +27,22 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
   const figures = createReportFigures(report);
   const nodeLabel = (id: string) => input.nodes.find((item) => item.id === id)!.label;
   const memberLabel = (id: string) => input.members.find((item) => item.id === id)!.label;
-  const maxNode = result.nodes.reduce((maximum, item) => Math.hypot(item.displacement.x, item.displacement.y, item.displacement.z) > Math.hypot(maximum.displacement.x, maximum.displacement.y, maximum.displacement.z) ? item : maximum);
+  const eigen = Boolean(result.modal || result.buckling);
+  const identity = resultIdentity(result, report.current ?? false);
+  const geometry = (id: string) => {
+    const member = input.members.find((m) => m.id === id)!;
+    return calculateMemberGeometry(input.nodes.find((n) => n.id === member.startNodeId)!.position, input.nodes.find((n) => n.id === member.endNodeId)!.position, member.rotationDegrees);
+  };
+  const maxNode = result.nodes.length ? result.nodes.reduce((maximum, item) => Math.hypot(item.displacement.x, item.displacement.y, item.displacement.z) > Math.hypot(maximum.displacement.x, maximum.displacement.y, maximum.displacement.z) ? item : maximum) : undefined;
   const source = reportSourceLabel(result);
   const children: ReportBlock[] = [
     title(`${report.projectName} 工程计算书`),
     ...(result.discretization ? [paragraph(`内部细分：${result.discretization.status === "converged" ? "加密检查满足精度" : "预算内未满足精度，结果未收敛，仅供核查"}。工程节点／杆件 ${result.discretization.counts.engineeringNodes}/${result.discretization.counts.engineeringMembers}；计算节点／单元 ${result.discretization.counts.calculationNodes}/${result.discretization.counts.calculationElements}；实际自由度 ${result.discretization.counts.totalDofs}；约束后方程 ${result.discretization.counts.equations}。`),
       table(["每杆计算单元", "位移误差比", "反力误差比", "内力误差比"], result.discretization.runs.map((run) => [String(run.divisions), ...(["displacement", "reaction", "sectionForce"] as const).map((key) => run.error ? n(run.error[key]) : "基线")]))] : []),
-    paragraph(`本计算书记录 ${source} 的空间刚架线弹性分析模型、输入参数、荷载和响应，供计算结果复核。`),
+    paragraph(`本计算书记录 ${source} 的空间刚架${identity.methodName}模型、输入参数与结果，供计算结果复核。${resultMeaning(result)}`),
     heading("1 模型概况与来源"),
     paragraph(`项目 ${report.projectName}；项目 ID ${result.projectId}`),
-    paragraph(`分析 ID ${result.id}；输入修订 R${result.projectRevision}；状态 已完成`),
+    paragraph(`分析 ID ${result.id}；输入修订 R${result.projectRevision}；状态 已完成；收敛状态 ${identity.completion}；${report.current === undefined ? "有效性未记录" : report.current ? "结果当前" : "历史结果 已过期"}`),
     paragraph(`分析时间 ${result.createdAt}；报告生成时间 ${report.generatedAt}（ISO 8601）`),
     paragraph(result.service ? `运行来源 ${result.service.origin.kind}；请求 ${result.service.requestId}；实际阶段 ${result.service.stages.map((item) => `${ANALYSIS_STAGE_LABELS[item.stage]} (${item.startedAt})`).join(" → ")}。` : "历史结果未保存服务运行阶段；不重建或推测原始阶段时间。"),
     paragraph(`选定来源 ${source}；${input.nodes.length} 个节点，${input.members.length} 根杆件，${input.supports.length} 个支座。正文、表格及图片均使用本次分析的冻结输入与输出。`),
@@ -43,8 +52,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     ...(result.process?.releaseNullRotations?.length ? [paragraph("节点脱开方向的转角不可确定，节点结果表中相关数值只是坐标参考，不是物理转角。已释放梁端转角由原生恢复记录给出。")] : []),
     heading("2 理论假设与适用边界"),
     paragraph("空间 Euler–Bernoulli 直杆单元，每节点 ux、uy、uz、rx、ry、rz 六个自由度。线弹性、小变形，未释放分量为刚接，忽略剪切变形；支座采用零位移自由度约束。"),
-    paragraph("分析不包含几何非线性、材料非线性、屈曲、动力响应、截面强度或规范符合性验算。本报告给出分析响应，不据此判定结构满足设计规范。用户定义组合系数为输入值。"),
-    paragraph("整体方程 K · u = F；约束处理消除受限自由度，求解 Kff · uf = Ff；反力 R = K · u − F。局部转换 ul = T · ug，Kg = Tᵀ · Kl · T；G = E / [2(1 + ν)]。"),
+    ...stabilityReportTheory(result),
     paragraph("总体位移、转角、支座反力及反力矩按全局 XYZ。局部 x 由杆件起点指向终点，y、z 随截面转角；局部轴向量见表。杆端 N、Vy、Vz、T、My、Mz 为局部轴端部作用分量，两个端点分别记录，不能直接当作截面内力包络。"),
     paragraph(`求解器 ${input.solver?.implementation ?? "历史结果未记录版本"}；算法 ${input.solver?.algorithm ?? "未记录"}；约束 ${input.solver?.constraints ?? "未记录"}；相对主元阈值 ${input.solver ? n(input.solver.relativePivotTolerance) : "未记录"}。`),
     heading("3 材料截面与模型参数"),
@@ -65,11 +73,11 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     tableCaption("节点坐标与稳定标识"),
     table(["节点", "ID", `X (${u.unit("m")})`, `Y (${u.unit("m")})`, `Z (${u.unit("m")})`], input.nodes.map((item) => [item.label, item.id, ...vector(item.position, "m")])),
     tableCaption("杆件连接、分配与截面朝向"),
-    table(["杆件及 ID", "起点 → 终点", "材料 / 截面", `长度 (${u.unit("m")})`, `转角 (${u.unit("°")})`], input.members.map((item) => [item.label + "\n" + item.id, `${nodeLabel(item.startNodeId)} → ${nodeLabel(item.endNodeId)}`, `${input.materials.find((m) => m.id === item.materialId)!.label} / ${input.sections.find((s) => s.id === item.sectionId)!.label}`, q(result.members.find((m) => m.memberId === item.id)!.length, "m"), q(item.rotationDegrees, "°")])),
+    table(["杆件及 ID", "起点 → 终点", "材料 / 截面", `长度 (${u.unit("m")})`, `转角 (${u.unit("°")})`], input.members.map((item) => [item.label + "\n" + item.id, `${nodeLabel(item.startNodeId)} → ${nodeLabel(item.endNodeId)}`, `${input.materials.find((m) => m.id === item.materialId)!.label} / ${input.sections.find((s) => s.id === item.sectionId)!.label}`, q(geometry(item.id).length, "m"), q(item.rotationDegrees, "°")])),
     table(["Member / ID", "起点局部释放", "终点局部释放"], input.members.map((m) => [m.label + " / " + m.id, releaseLabel(m.endReleases?.start), releaseLabel(m.endReleases?.end)])),
     ...(input.members.some((m) => m.endReleases) ? [paragraph("杆端 My/Mz 释放按杆件局部轴解释，与全局节点支座独立。已释放杆端的梁转角由原生恢复记录提供。")] : []),
     tableCaption("局部单位轴向量按全局 XYZ 分量表示"),
-    table(["杆件", "局部 x", "局部 y", "局部 z"], result.members.map((item) => [memberLabel(item.memberId), vector(item.localAxes.x).join(", "), vector(item.localAxes.y).join(", "), vector(item.localAxes.z).join(", ")])),
+    table(["杆件", "局部 x", "局部 y", "局部 z"], input.members.map((item) => { const g = geometry(item.id); return [memberLabel(item.id), vector(g.localX).join(", "), vector(g.localY).join(", "), vector(g.localZ).join(", ")]; })),
     heading("4 支座与边界条件"),
     paragraph("约束表示该自由度位移或转角为零；自由表示未施加该约束。平移方向为全局 XYZ，转动方向为绕全局 XYZ。"),
     table(["支座 / 节点", "ux", "uy", "uz", "rx", "ry", "rz"], input.supports.map((item) => [`${item.label} / ${nodeLabel(item.nodeId)}`, ...item.restraints.map((value) => value ? "约束" : "自由")])),
@@ -77,7 +85,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     paragraph(`本次来源 ${source}。节点力和力矩按全局 XYZ；杆件均布荷载的坐标系逐项列示，作用于整根杆件。`),
   ];
   if (input.combination) {
-    children.push(paragraph("组合结果按用户定义系数线性叠加。下表和各分项工况保留未加权荷载；加权等效荷载见后续汇总表，避免自重和外荷载重复计入。"),
+    children.push(paragraph(`${result.secondOrder ? "组合系数作用于冻结荷载输入，二阶响应不作线性叠加。" : "组合结果按用户定义系数线性叠加。"}下表和各分项工况保留未加权荷载；加权等效荷载见后续汇总表，避免自重和外荷载重复计入。`),
       table(["工况", "名称", "系数"], input.combination.definition.terms.map((term) => [term.loadCaseId, input.combination!.cases.find((item) => item.loadCase.id === term.loadCaseId)!.loadCase.name, n(term.factor)])));
   }
   const loadTables = (label: string, loads: typeof input.nodalLoads, uniform: NonNullable<typeof input.uniformLoads>) => {
@@ -95,7 +103,18 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
   }
   loadTables(input.combination ? "本次组合加权等效荷载" : "本次工况荷载", input.nodalLoads, input.uniformLoads ?? []);
   selfWeightText(input.selfWeight, input.combination ? "本次组合等效自重" : "本次工况自重");
-  children.push(
+  if (result.buckling) for (const role of ["fixed", "reference"] as const) {
+    const pattern = input.bucklingLoads![role];
+    const label = role === "fixed" ? "固定预荷载 不随 λ 放大" : "参考荷载 仅此部分随 λ 放大";
+    children.push(heading(label));
+    if (!pattern) { children.push(paragraph("固定预荷载为零。")); continue; }
+    children.push(table(["冻结来源工况", "名称", "系数"], pattern.combination!.definition.terms.map((term) => [term.loadCaseId, pattern.combination!.cases.find((c) => c.loadCase.id === term.loadCaseId)!.loadCase.name, n(term.factor)])));
+    for (const c of pattern.combination!.cases) { loadTables(`${label} ${c.loadCase.id} 原始荷载`, c.nodalLoads, c.uniformLoads); selfWeightText(c.selfWeight, `${label} ${c.loadCase.id} 原始自重`); }
+    loadTables(`${label} 加权等效荷载`, pattern.nodalLoads, pattern.uniformLoads ?? []);
+    selfWeightText(pattern.selfWeight, `${label} 等效自重`);
+  }
+  children.push(...stabilityReportSummary(report, figures));
+  if (!eigen && maxNode) children.push(
     heading("6 关键响应与完整结果"),
     paragraph(`最大节点位移幅值 ${u.quantity(Math.hypot(maxNode.displacement.x, maxNode.displacement.y, maxNode.displacement.z), "m", 7)}，节点 ${nodeLabel(maxNode.nodeId)}；分量 (${vector(maxNode.displacement, "m").join(", ")}) ${u.unit("m")}。`),
     image(figures.displacement, `节点位移幅值 ${source}`, 100 + Math.min(12, result.nodes.length) * 18.5),

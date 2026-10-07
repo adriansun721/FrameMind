@@ -9,7 +9,7 @@ function svg(report: EngineeringReport, title: string, body: string, height = 66
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="${height}" viewBox="0 0 1200 ${height}"><rect width="1200" height="${height}" fill="white"/><g font-family="Microsoft YaHei,Arial,sans-serif" fill="#222">${text(30, 35, title, 28)}${text(30, 68, source.length > 65 ? source.slice(0, 62) + "…" : source)}${body}${text(30, height - 17, `分析 ${report.result.id}`, 22)}</g></svg>`;
 }
 
-export function createReportFigures(report: EngineeringReport): { model: string; displacement: string } {
+export function createReportFigures(report: EngineeringReport): Record<string, string> & { model: string; displacement: string } {
   const u = unitPresentation(report.displayUnitPreset);
   const { input, nodes } = report.result;
   const project = (p: Vector3) => ({ x: p.x - p.y * 0.6, y: -p.z + (p.x + p.y) * 0.3 });
@@ -56,7 +56,37 @@ export function createReportFigures(report: EngineeringReport): { model: string;
     chart += text(30, y + 20, item.label) + `<rect x="150" y="${y}" width="${760 * item.value / maximum}" height="25" fill="#245979"/>` + text(925, y + 20, u.quantity(item.value, "m", 7));
   });
   chart += text(30, chartHeight - 52, `蓝色条 |u| = √(ux² + uy² + uz²)  单位 ${u.unit("m")}  零值为空条`);
-  return { model: svg(report, "冻结输入模型", model), displacement: svg(report, "节点位移幅值", chart, chartHeight) };
+  const shapes = Object.fromEntries((report.result.modal?.modes ?? report.result.buckling?.modes ?? []).map((mode) => [`shape-${mode.number}`, createReportShapeFigure(report, mode.number)]));
+  return { model: svg(report, "冻结输入模型", model), displacement: svg(report, "节点位移幅值", chart, chartHeight), ...shapes };
+}
+
+/** Uses saved engineering-member samples; each mode has its own disclosed display scale. */
+export function createReportShapeFigure(report: EngineeringReport, modeNumber: number): string {
+  const { result } = report;
+  const mode = (result.modal?.modes ?? result.buckling?.modes ?? []).find((m) => m.number === modeNumber)!;
+  const input = result.input;
+  const positions = new Map(input.nodes.map((n) => [n.id, n.position]));
+  const span = Math.max(1e-9, ...(["x", "y", "z"] as const).map((k) => Math.max(...input.nodes.map((n) => n.position[k])) - Math.min(...input.nodes.map((n) => n.position[k]))));
+  const peak = Math.max(1e-30, ...mode.members.flatMap((m) => m.samples.map((s) => Math.hypot(s.translation.x, s.translation.y, s.translation.z))));
+  const factor = .12 * span / peak;
+  const project = (p: Vector3) => ({ x: p.x - .6 * p.y, y: -p.z + .3 * (p.x + p.y) });
+  const lines = mode.members.map((record) => {
+    const member = input.members.find((m) => m.id === record.memberId)!;
+    const a = positions.get(member.startNodeId)!, b = positions.get(member.endNodeId)!;
+    const length = input.meshPlan!.frames[member.id].length;
+    const base = record.samples.map((s) => ({ x: a.x + (b.x - a.x) * s.position / length, y: a.y + (b.y - a.y) * s.position / length, z: a.z + (b.z - a.z) * s.position / length }));
+    return { base: base.map(project), shape: base.map((p, i) => project({ x: p.x + factor * record.samples[i].translation.x, y: p.y + factor * record.samples[i].translation.y, z: p.z + factor * record.samples[i].translation.z })) };
+  });
+  const points = lines.flatMap((l) => [...l.base, ...l.shape]);
+  const minX = Math.min(...points.map((p) => p.x)), maxX = Math.max(...points.map((p) => p.x));
+  const minY = Math.min(...points.map((p) => p.y)), maxY = Math.max(...points.map((p) => p.y));
+  const scale = Math.min(1000 / Math.max(maxX - minX, 1e-9), 360 / Math.max(maxY - minY, 1e-9));
+  const path = (values: typeof points) => values.map((p) => `${600 + (p.x - (minX + maxX) / 2) * scale},${300 + (p.y - (minY + maxY) / 2) * scale}`).join(" ");
+  let body = lines.map((l) => `<polyline points="${path(l.base)}" fill="none" stroke="#999" stroke-dasharray="8 6" stroke-width="2"/><polyline points="${path(l.shape)}" fill="none" stroke="#245979" stroke-width="4"/>`).join("");
+  body += text(30, 510, "全局 XYZ 示意投影  蓝线 归一化形态  虚线 冻结分析线");
+  body += text(30, 545, "每阶单独缩放至模型跨度的 12%  不是实际位移  幅值不随显示单位换算");
+  const scalar = "frequencyHz" in mode ? `f = ${Number(mode.frequencyHz.toPrecision(7))} Hz` : `λ = ${Number(mode.factor.toPrecision(7))}`;
+  return svg(report, `${result.modal ? "振型" : "屈曲形态"} 第 ${modeNumber} 阶  ${scalar}`, body, 600);
 }
 
 /** PNG fallback keeps the document readable in Word and other OOXML readers. */

@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { createSupplementalAnalysisInput, isAnalysisResultCurrent, type AnalysisResult } from "../domain/analysis";
 import { captureEngineeringReport, reportSourceLabel, withSupplementalReportProcess } from "../domain/engineering-report";
 import type { FrameProject } from "../domain/project";
-import { REPORT_APPENDIX_STEPS, type ReportAppendixSelection, type ReportAppendixStep } from "../domain/report-appendix";
+import { REPORT_APPENDIX_STEPS, reportAppendixSteps, type ReportAppendixSelection, type ReportAppendixStep } from "../domain/report-appendix";
 import { AnalysisCancelledError, startAnalysisTask, type AnalysisTask } from "../workspace/analysis-task";
 import { prepareProjectReport } from "../workspace/report-task";
 
@@ -25,7 +25,8 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
       return supplemental ? withSupplementalReportProcess(report, supplemental).appendix : report.appendix;
     } catch { return null; } // Export displays source validation failures through the existing alert.
   }, [project, selected, selection, supplemental]);
-  const canSupplement = !supplemental && preview && (
+  const advanced = Boolean(selected?.modal || selected?.buckling || selected?.secondOrder);
+  const canSupplement = !advanced && !supplemental && preview && (
     (selection.steps.includes("member-process") && selection.memberIds.length > preview.members.length) ||
     (selection.steps.some((step) => step !== "member-process") && !preview.overall)
   );
@@ -86,22 +87,22 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
           {project.analysisResults.map((item) => <option key={item.id} value={item.id}>{reportSourceLabel(item)} · R{item.projectRevision} · {item.createdAt} · {item.id.slice(-8)}</option>)}
         </select></label>
         {selected && <section className="report-source"><strong>{reportSourceLabel(selected)} · R{selected.projectRevision}</strong><p>分析 ID {selected.id}</p><p>{isAnalysisResultCurrent(project, selected) ? "结果当前" : "历史结果 · 使用该次分析的原模型与荷载，不使用当前编辑值"}</p></section>}
-        <p className="dialog-copy">正文包含模型概况、理论假设与边界、材料截面、支座、工况组合与自重、节点响应及杆端内力，附模型图和位移幅值图。开始导出时冻结来源，后续编辑不改变本次报告。</p>
+        <p className="dialog-copy">正文包含冻结模型、材料截面、边界与分析方法摘要；静力与二阶输出荷载和响应，屈曲区分固定与参考荷载，模态列质量来源、频率和归一化振型。开始导出时冻结来源，后续编辑不改变本次报告。</p>
         {selected && <fieldset className="report-appendix" disabled={locked}>
           <legend>可选过程附录</legend>
-          <p>默认只导出正文。杆件过程与组装贡献使用下方所选杆件；整体步骤使用全部模型。</p>
-          <div className="report-step-list">{(Object.entries(REPORT_APPENDIX_STEPS) as [ReportAppendixStep, string][]).map(([step, label]) => <label key={step}><input type="checkbox" checked={selection.steps.includes(step)} onChange={() => toggleStep(step)} />{label}</label>)}</div>
+          <p>{advanced ? "默认只导出正文。附录读取所选分析的实际记录，缺少记录明确标注，不为补附录重新计算。" : "默认只导出正文。杆件过程与组装贡献使用下方所选杆件；整体步骤使用全部模型。"}</p>
+          <div className="report-step-list">{reportAppendixSteps(selected).map((step) => <label key={step}><input type="checkbox" checked={selection.steps.includes(step)} onChange={() => toggleStep(step)} />{REPORT_APPENDIX_STEPS[step]}</label>)}</div>
           <p>整体矩阵须单独勾选；超过采集上限时标记缺少记录，矩阵按列分块输出。</p>
-          <details className="report-member-picker" open={selection.steps.includes("member-process") || selection.steps.includes("assembly")}>
+          {!advanced && <details className="report-member-picker" open={selection.steps.includes("member-process") || selection.steps.includes("assembly")}>
             <summary>附录杆件 · 已选 {selection.memberIds.length} / {selected.input.members.length}</summary>
             <div className="report-member-actions"><button type="button" className="button ghost compact-button" onClick={() => setSelection((value) => ({ ...value, memberIds: selected.input.members.map((member) => member.id) }))}>选择全部杆件</button><button type="button" className="button ghost compact-button" onClick={() => setSelection((value) => ({ ...value, memberIds: [] }))}>清空杆件</button></div>
             <div className="report-member-list">{selected.input.members.map((member) => <label key={member.id}><input type="checkbox" aria-label={`附录杆件 ${member.label} · ${member.id}`} checked={selection.memberIds.includes(member.id)} onChange={() => toggleMember(member.id)} /><span>{member.label} · {member.id}<small>{member.startNodeId} → {member.endNodeId}</small></span></label>)}</div>
-          </details>
+          </details>}
         </fieldset>}
-        {preview?.missing.length ? <div className="report-missing" role="note">{preview.missing.map((message) => <p key={message}>{message}</p>)}<p>导出会保留缺少记录的提示，正文完整。补算使用所选分析的冻结输入并另记过程分析 ID。</p>{canSupplement && <button type="button" className="button ghost" disabled={locked} onClick={() => void supplementProcess()}>基于冻结输入补算附录过程</button>}</div> : null}
+        {preview?.missing.length ? <div className="report-missing" role="note">{preview.missing.map((message) => <p key={message}>{message}</p>)}<p>{advanced ? "导出保留缺少记录提示，只使用原运行记录。" : "导出会保留缺少记录的提示，正文完整。补算使用所选分析的冻结输入并另记过程分析 ID。"}</p>{canSupplement && <button type="button" className="button ghost" disabled={locked} onClick={() => void supplementProcess()}>基于冻结输入补算附录过程</button>}</div> : null}
         {supplementing && <p className="report-notice">正在补算附录过程… <button type="button" className="button ghost compact-button" onClick={() => { taskRef.current?.cancel(); taskRef.current = null; setSupplementing(false); setNotice("已取消附录过程补算，原结果保持可用。"); }}>取消补算</button></p>}
         {supplemental && <p className="report-notice">附录使用补算过程 {supplemental.id} · 来源分析 {analysisId}；正文保留原结果。</p>}
-        <p className="dialog-copy">此计算书记录线弹性分析响应，不给出未经验证的规范验算结论。</p>
+        <p className="dialog-copy">此计算书记录分析结果，不给出结构安全或规范合格结论。</p>
         {error && <p className="form-error" role="alert">{error}</p>}{notice && <p className="report-notice">{notice}</p>}
       </div>
       <div className="dialog-actions"><button className="button ghost" onClick={onClose}>关闭</button><button className="button ghost" disabled={!selected || locked} onClick={() => void exportReport("Word")}>{busy === "Word" ? "正在导出 Word…" : "导出 Word"}</button><button className="button primary" disabled={!selected || locked} onClick={() => void exportReport("PDF")}>{busy === "PDF" ? "正在导出 PDF…" : "导出 PDF"}</button></div>

@@ -1,0 +1,283 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "static",
+      "analysisId": "analysis_399bb03c-35e4-4a01-a854-0daa23fc4a9d",
+      "revision": 7,
+      "current": false,
+      "method": "static",
+      "appendix": [
+        "member-process",
+        "dof-mapping",
+        "assembly",
+        "constraints",
+        "assembled-stiffness",
+        "reduced-stiffness"
+      ],
+      "missing": [],
+      "numbers": {
+        "nodes": [
+          {
+            "nodeId": "node_0001",
+            "displacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reaction": {
+              "x": -10,
+              "y": 0,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "nodeId": "node_0002",
+            "displacement": {
+              "x": 0.00002,
+              "y": 0,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reaction": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "combination",
+      "analysisId": "analysis_e775916e-577d-4266-9de4-83c8431a5680",
+      "revision": 11,
+      "current": false,
+      "method": "static",
+      "appendix": [
+        "member-process",
+        "dof-mapping",
+        "assembly",
+        "constraints",
+        "assembled-stiffness",
+        "reduced-stiffness"
+      ],
+      "missing": [],
+      "numbers": {
+        "nodes": [
+          {
+            "nodeId": "node_0001",
+            "displacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reaction": {
+              "x": -15,
+              "y": -6,
+              "z": 4.6205099999999995
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": -9.24102,
+              "z": -12
+            }
+          },
+          {
+            "nodeId": "node_0002",
+            "displacement": {
+              "x": 0.00003,
+              "y": 0.0024,
+              "z": -0.0009241020000000001
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0.00030803400000000005,
+              "z": 0.0008
+            },
+            "reaction": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "modal",
+      "analysisId": "analysis_9c239a01-4118-4308-98aa-b831396ddfb3",
+      "revision": 10,
+      "current": false,
+      "method": "modal",
+      "appendix": [
+        "analysis-settings",
+        "analysis-mesh",
+        "analysis-coordinates",
+        "analysis-stiffness",
+        "analysis-mass",
+        "analysis-shapes"
+      ],
+      "missing": [],
+      "numbers": {
+        "massKg": 721.0000000000001,
+        "frequenciesHz": [
+          6.139974833789313,
+          12.279949667585006
+        ]
+      }
+    },
+    {
+      "name": "buckling",
+      "analysisId": "analysis_157fd6ce-5aec-487d-9f3e-48c414851a7f",
+      "revision": 11,
+      "current": false,
+      "method": "buckling",
+      "appendix": [
+        "analysis-settings",
+        "analysis-mesh",
+        "analysis-coordinates",
+        "analysis-stiffness",
+        "analysis-geometric",
+        "analysis-shapes",
+        "analysis-prestress"
+      ],
+      "missing": [],
+      "numbers": {
+        "factors": [
+          88.38523772048298,
+          362.5409508824359,
+          819.4755901063403
+        ]
+      }
+    },
+    {
+      "name": "second-order",
+      "analysisId": "analysis_92b4cde7-cbb2-4e3e-9346-a4a5590584df",
+      "revision": 9,
+      "current": false,
+      "method": "second-order",
+      "appendix": [
+        "analysis-settings",
+        "analysis-mesh",
+        "analysis-coordinates",
+        "analysis-stiffness",
+        "analysis-geometric",
+        "analysis-iterations"
+      ],
+      "missing": [],
+      "numbers": {
+        "nodes": [
+          {
+            "displacement": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "nodeId": "node_0001",
+            "reaction": {
+              "x": 100.00000000000007,
+              "y": -0.09999999999999076,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": -0.33027381505471975
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "displacement": {
+              "x": -0.00007500000000000003,
+              "y": 0.0003027381505473859,
+              "z": 0
+            },
+            "nodeId": "node_0002",
+            "reaction": {
+              "x": -5.684341886080802e-14,
+              "y": -2.1371793224034263e-15,
+              "z": 0
+            },
+            "reactionMoment": {
+              "x": 0,
+              "y": 0,
+              "z": -1.7763568394002505e-15
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0.00015206000238128978
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing",
+      "analysisId": "analysis_a1b25403-2b10-430a-945f-44207bbfd1e9",
+      "revision": 12,
+      "current": false,
+      "method": "modal",
+      "appendix": [
+        "analysis-settings",
+        "analysis-mesh",
+        "analysis-coordinates",
+        "analysis-stiffness",
+        "analysis-mass",
+        "analysis-shapes"
+      ],
+      "missing": [
+        "stiffness：本次运行未保存此记录（可能不适用或超过记录规模门槛）；未重建，未借用其他计算。",
+        "mass：本次运行未保存此记录（可能不适用或超过记录规模门槛）；未重建，未借用其他计算。"
+      ],
+      "numbers": {
+        "massKg": 1533.5491428942823,
+        "frequenciesHz": [
+          6.272160095291769,
+          8.153808121736668,
+          9.059786803317392,
+          12.544320188770701,
+          16.307616239966862,
+          18.119573601090913
+        ]
+      }
+    }
+  ],
+  "frozenInputs": true,
+  "nativeSavedRecords": true,
+  "recalculatedForAppendix": false
+}

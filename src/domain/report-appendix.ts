@@ -1,6 +1,7 @@
 import { ANALYSIS_DOF_ORDER, ANALYSIS_PROCESS_BASIS, NATIVE_RELEASE_STATIC_SOLVER, sameInputValue, getFrozenMemberCoefficients, getMemberAnalysisRecord, getOverallAnalysisProcessRecord, type AnalysisProcessBasis, type AnalysisResult, type MemberAnalysisRecord, type OverallAnalysisProcessRecord } from "./analysis";
 import { coefficientNumbersMatch as numbersMatch, releaseCoefficientMagnitudes } from "./coefficient-correspondence";
 import { hasMemberReleases } from "./member-releases";
+import { readRecordedProcess, type ProcessSection } from "./result-inspection";
 
 export const REPORT_APPENDIX_STEPS = {
   "member-process": "杆件过程（局部轴、位移荷载与单元矩阵）",
@@ -9,6 +10,15 @@ export const REPORT_APPENDIX_STEPS = {
   constraints: "整体约束处理与荷载向量",
   "assembled-stiffness": "整体刚度矩阵 K",
   "reduced-stiffness": "约束后刚度矩阵 Kff",
+  "analysis-settings": "实际分析设置与运行阶段",
+  "analysis-mesh": "实际内部细分映射",
+  "analysis-coordinates": "实际计算坐标与特征向量",
+  "analysis-stiffness": "实际刚度矩阵",
+  "analysis-mass": "实际质量矩阵",
+  "analysis-geometric": "实际几何刚度矩阵",
+  "analysis-iterations": "实际加载校正与收敛记录",
+  "analysis-shapes": "完整节点与沿杆形态样本",
+  "analysis-prestress": "固定与参考轴力记录",
 } as const;
 export type ReportAppendixStep = keyof typeof REPORT_APPENDIX_STEPS;
 export interface ReportAppendixSelection { memberIds: string[]; steps: ReportAppendixStep[] }
@@ -18,6 +28,15 @@ export interface ReportAppendix {
   overall: OverallAnalysisProcessRecord | null;
   missing: string[];
   basis: AnalysisProcessBasis;
+  recorded?: ReturnType<typeof readRecordedProcess>[];
+}
+
+export function reportAppendixSteps(result: AnalysisResult): ReportAppendixStep[] {
+  if (result.modal || result.buckling || result.secondOrder) return ["analysis-settings", "analysis-mesh", "analysis-coordinates", "analysis-stiffness",
+    ...(result.modal ? ["analysis-mass" as const] : ["analysis-geometric" as const]),
+    ...(result.secondOrder ? ["analysis-iterations" as const] : ["analysis-shapes" as const]),
+    ...(result.buckling ? ["analysis-prestress" as const] : [])];
+  return ["member-process", "dof-mapping", "assembly", "constraints", "assembled-stiffness", "reduced-stiffness"];
 }
 
 export function requireProcessCorrespondence(result: AnalysisResult): void {
@@ -67,7 +86,20 @@ export function captureReportAppendix(result: AnalysisResult, selection: ReportA
   if (steps.some((step) => !Object.hasOwn(REPORT_APPENDIX_STEPS, step))) throw new Error("附录包含未知计算步骤");
   if (memberIds.some((id) => !result.input.members.some((member) => member.id === id))) throw new Error("附录杆件不属于所选分析的冻结输入");
   if (!steps.length) return undefined;
+  if (steps.some((step) => !reportAppendixSteps(result).includes(step))) throw new Error("所选分析方法不支持该附录分量");
   const appendix: ReportAppendix = { selection: { steps, memberIds }, members: [], overall: null, missing: [], basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
+  if (result.modal || result.buckling || result.secondOrder) {
+    const sections: Partial<Record<ReportAppendixStep, ProcessSection[]>> = {
+      "analysis-settings": ["settings", "stages"], "analysis-mesh": ["mesh"], "analysis-coordinates": ["coordinates"],
+      "analysis-stiffness": ["stiffness"], "analysis-mass": ["mass"], "analysis-geometric": ["geometric"], "analysis-iterations": ["iterations"],
+    };
+    appendix.recorded = steps.flatMap((step) => (sections[step] ?? []).map((section) => {
+      const summary = readRecordedProcess(result, section);
+      return readRecordedProcess(result, section, 0, summary.total);
+    }));
+    for (const record of appendix.recorded) if (!record.available) appendix.missing.push(`${record.section}：${record.message}`);
+    return appendix;
+  }
   if ((steps.includes("member-process") || steps.includes("assembly")) && !memberIds.length) appendix.missing.push("未选择杆件，杆件过程与组装贡献不包含对象记录。");
   if (steps.includes("member-process")) for (const id of memberIds) {
     try { appendix.members.push(getMemberAnalysisRecord(result, id)); }

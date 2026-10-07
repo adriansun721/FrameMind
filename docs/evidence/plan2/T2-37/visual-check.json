@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "date": "2026-10-07",
+  "renderedAtDpi": 144,
+  "inspection": "Every page inspected at original resolution; Word rendered through isolated read-only native Microsoft Word, product PDF rasterized directly.",
+  "pages": {
+    "static": { "pdf": 6, "word": 6, "reviewer": "root" },
+    "combination": { "pdf": 6, "word": 8, "reviewer": "root" },
+    "second-order": { "pdf": 15, "word": 20, "reviewer": "standards_review" },
+    "buckling": { "pdf": 21, "word": 27, "reviewer": "spec_review" },
+    "modal": { "pdf": 11, "word": 12, "reviewer": "spec_review" },
+    "missing": { "pdf": 9, "word": 12, "reviewer": "standards_review" }
+  },
+  "totalPages": 153,
+  "checks": {
+    "allTextAndCellsPresent": true,
+    "numericValuesMatchFrozenInputAndSavedResult": true,
+    "noOutOfPageText": true,
+    "noClippingOrOverlap": true,
+    "noMissingGlyphs": true,
+    "unitsAndNormalizationExplicit": true,
+    "continuedTableHeadersCorrect": true,
+    "noBlankTrailingPage": true
+  },
+  "wordLayoutFixes": [
+    "Separate consecutive tables to prevent native Word merging unrelated headers.",
+    "Keep paragraph lines together to prevent an isolated trailing source fragment.",
+    "Set the final table's mandatory paragraph mark size and exact line height to retain it on the table's page."
+  ],
+  "deliveryComparison": {
+    "combinationSecondOrderBucklingMissingWord": "All non-timestamp text bounding boxes unchanged from the fully inspected corrected edition; all page PNGs except the timestamp pixels on page 1 identical. Page 1 re-inspected by root.",
+    "staticWord": "Native font selection changed layout; all six delivery pages re-inspected by root.",
+    "modalWord": "Final 12-page delivery re-inspected in full by spec_review.",
+    "productPdf": "Content and layout unchanged after Word-only fixes; independent export timestamps differ."
+  },
+  "ui": {
+    "themes": ["dark", "light"],
+    "resolutions": ["1920x1080", "2560x1440"],
+    "screenshotsInspected": 4,
+    "passed": true
+  },
+  "remainingDefects": []
+}

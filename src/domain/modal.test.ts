@@ -194,7 +194,7 @@ it("separates display scaling from saved shapes and rejects static interpretatio
   expect(Math.max(...samples.map((s) => Math.hypot(s.globalDisplacement.x, s.globalDisplacement.y, s.globalDisplacement.z)))).toBeCloseTo(.001, 12);
   expect(JSON.stringify(r.modal)).toBe(before); expect(r.nodes).toEqual([]);
   expect(() => readResults(r, true, { collection: "nodes" })).toThrow(/静力/);
-  expect(() => captureEngineeringReport(attachAnalysisResult(p, r), r.id)).toThrow(/模态/);
+  expect(captureEngineeringReport(attachAnalysisResult(p, r), r.id).result.modal).toEqual(r.modal);
 });
 
 it("rejects malformed extraction settings, foreign mappings and forged mass/frequency/shape records", () => {

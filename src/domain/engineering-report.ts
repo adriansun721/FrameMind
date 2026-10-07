@@ -1,6 +1,6 @@
 import type { UnitPresetId } from "./units";
 import { decodeAnalysisResult } from "./project-file";
-import { freezeAnalysisInput, type AnalysisResult } from "./analysis";
+import { freezeAnalysisInput, isAnalysisResultCurrent, type AnalysisResult } from "./analysis";
 import { calculateMemberGeometry } from "./member-geometry";
 import type { FrameProject } from "./project";
 import { captureReportAppendix, freezeReportData, type ReportAppendix, type ReportAppendixSelection } from "./report-appendix";
@@ -11,6 +11,7 @@ export interface EngineeringReport {
   generatedAt: string;
   result: AnalysisResult;
   appendix?: ReportAppendix;
+  current?: boolean;
 }
 
 export function reportSourceLabel(result: AnalysisResult): string {
@@ -24,12 +25,9 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
   const selected = project.analysisResults.find((result) => result.id === analysisId);
   if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
   const result = decodeAnalysisResult(structuredClone(selected));
-  if (result.secondOrder) throw new Error("二阶计算书由 T2-37 接入；请在二阶响应与线性比较面板核查");
   if (result.random) throw new Error("随机响应计算书由 T2-38 接入；请在 PSD/RMS 面板核查");
-  if (result.buckling) throw new Error("屈曲计算书由 T2-37 接入；请在屈曲因子与形态面板核查");
-  if (result.modal) throw new Error("模态结果请在频率与振型面板核查；模态计算书由 T2-37 接入");
   if (!result.input.nodes.length || !result.input.members.length) throw new Error("分析输入缺少节点或杆件，不能导出成功报告");
-  for (const member of result.input.members) {
+  for (const member of result.modal || result.buckling ? [] : result.input.members) {
     const start = result.input.nodes.find((node) => node.id === member.startNodeId)!;
     const end = result.input.nodes.find((node) => node.id === member.endNodeId)!;
     const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
@@ -48,13 +46,14 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
     Object.freeze(member.localEndForces.start); Object.freeze(member.localEndForces.end); Object.freeze(member.localEndForces); Object.freeze(member);
   });
   Object.freeze(result.nodes); Object.freeze(result.members); Object.freeze(result);
-  return freezeReportData({ displayUnitPreset: project.displayUnitPreset, projectName: project.name, generatedAt: new Date().toISOString(), result, appendix: captureReportAppendix(result, selection) });
+  return freezeReportData({ current: isAnalysisResultCurrent(project, selected), displayUnitPreset: project.displayUnitPreset, projectName: project.name, generatedAt: new Date().toISOString(), result, appendix: captureReportAppendix(result, selection) });
 }
 
 export const reportNumber = (value: number): string => value === 0 ? "0" : Number(value.toPrecision(7)).toString();
 
 /** Supplement only the appendix, preserving the body and its historical output. */
 export function withSupplementalReportProcess(report: EngineeringReport, supplementalResult: AnalysisResult): EngineeringReport {
+  if (report.result.modal || report.result.buckling || report.result.secondOrder) throw new Error("稳定性与模态附录只读取原运行记录，不支持补算替代");
   if (!report.appendix) throw new Error("请先选择要补算的过程附录步骤");
   const supplemental = decodeAnalysisResult(structuredClone(supplementalResult));
   const { solver: originalSolver, ...originalInput } = report.result.input;

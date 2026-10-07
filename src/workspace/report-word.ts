@@ -2,7 +2,7 @@ import { AlignmentType, Document, Footer, HeadingLevel, ImageRun, PageNumber, Pa
 import { reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import { reportSvgToPng } from "./report-figures";
 import { createReportContent } from "./report-content";
-import { heading, paragraph, table, tableCaption } from "./report-word-layout";
+import { heading, paragraph, table, tableCaption, tableSeparator } from "./report-word-layout";
 import JSZip from "jszip";
 import { reportTableXml } from "./report-word-tables";
 
@@ -17,7 +17,9 @@ export async function buildReportWord(report: EngineeringReport, renderPng = rep
   const contentText = JSON.stringify(blocks);
   let markerPrefix: string;
   do { markerPrefix = `FRAMEMIND_${crypto.randomUUID()}_TABLE_`; } while (contentText.includes(markerPrefix));
-  for (const block of blocks) {
+  for (const [index, block] of blocks.entries()) {
+    // Word merges adjacent tables, including their repeated header definitions.
+    if (block.kind === "table" && blocks[index - 1]?.kind === "table") children.push(tableSeparator());
     switch (block.kind) {
       case "title": children.push(new Paragraph({ text: block.text, heading: HeadingLevel.TITLE })); break;
       case "heading": children.push(block.newPage ? new Paragraph({ text: block.text, heading: HeadingLevel.HEADING_1, pageBreakBefore: true, keepNext: true }) : heading(block.text)); break;
@@ -33,6 +35,8 @@ export async function buildReportWord(report: EngineeringReport, renderPng = rep
       case "image": children.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ type: "png", data: await renderPng(block.svg), transformation: { width: 600, height: block.height }, altText: { title: block.description, description: block.description, name: block.description } })] })); break;
     }
   }
+  // Define Word's required paragraph after a final table without a full-height blank line.
+  if (blocks.at(-1)?.kind === "table") children.push(tableSeparator(true));
   const doc = new Document({
     creator: "FrameMind", title: `${report.projectName} 工程计算书`, description: `${source} · ${result.id}`,
     styles: { default: { document: { run: { font: { ascii: "Microsoft YaHei", hAnsi: "Microsoft YaHei", eastAsia: "Microsoft YaHei", cs: "Microsoft YaHei" }, size: 21, color: "000000" }, paragraph: { spacing: { line: 320 } } } },

@@ -36,7 +36,8 @@ def inspect_pdf(path):
                     if x0 < 0 or y0 < 0 or x1 > page.rect.width + 1 or y1 > page.rect.height + 1:
                         bounds.append({"page": index + 1, "text": span["text"], "bbox": span["bbox"]})
     text = "\n".join(page.get_text() for page in doc)
-    text = re.sub(r"FrameMind\s+\d+\s*/\s*\d+", "", text)
+    # Remove page furniture before comparing paragraphs spanning a page break.
+    text = re.sub(r"(?m)^FrameMind[^\S\n]+\d+(?:[^\S\n]*/[^\S\n]*\d+)?[^\S\n]*$", "", text)
     return {"pages": len(doc), "fonts": sorted(fonts), "out_of_page": bounds}, normalize(text)
 
 
@@ -61,6 +62,9 @@ def main():
     parser.add_argument("--renderer", required=True)
     parser.add_argument("--samples", nargs="+", default=["selected", "all", "long"])
     parser.add_argument("--output-dir", default=str(Path(tempfile.gettempdir()) / "framemind-t30-qa"))
+    parser.add_argument("--source-dir", default="docs/evidence")
+    parser.add_argument("--prefix", default="T30-")
+    parser.add_argument("--overview-dir", default="docs/evidence")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = Path(args.output_dir).resolve()
@@ -75,8 +79,8 @@ def main():
     reports = {}
     try:
         for sample in args.samples:
-            stem = f"T30-{sample}"
-            docx = root / "docs" / "evidence" / f"{stem}.docx"
+            stem = f"{args.prefix}{sample}"
+            docx = root / args.source_dir / f"{stem}.docx"
             # Word may lock its read-only document. Render a private copy so
             # desktop evidence restoration and the user's originals stay free.
             source_docx = output / f"{stem}-source.docx"
@@ -104,18 +108,23 @@ def main():
                 if text and normalize(text) not in pdf_text:
                     missing.append(text)
             info["missing_word_content"] = missing
-            info["word_layout"], _ = inspect_pdf(word_pdf)
+            info["word_layout"], word_text = inspect_pdf(word_pdf)
+            info["word_layout"]["missing_word_content"] = []
+            for paragraph in paragraphs:
+                text = "".join(node.text or "" for node in paragraph.findall(".//w:t", ns))
+                if text and normalize(text) not in word_text:
+                    info["word_layout"]["missing_word_content"].append(text)
             for kind, pdf in [("pdf", product_pdf), ("word", word_pdf)]:
                 # Reuse the skill's rasterization and page naming with native Word's PDF.
                 renderer.convert_to_pdf = lambda *unused, pdf=pdf, **kwargs: (str(pdf), "native Word / product PDF")
                 paths = renderer.rasterize(str(docx), str(output / f"{stem}-{kind}"), 144, False, False)
-                overview(paths, root / "docs" / "evidence" / f"{stem}-{kind}-pages.png")
+                overview(paths, root / args.overview_dir / f"{stem}-{kind}-pages.png")
             reports[stem] = info
             print(stem, json.dumps(info, ensure_ascii=False), flush=True)
     finally:
         word.Quit()
     (output / "layout-check.json").write_text(json.dumps(reports, ensure_ascii=False, indent=2), encoding="utf-8")
-    if any(item["out_of_page"] or item["missing_word_content"] or item["word_layout"]["out_of_page"] for item in reports.values()):
+    if any(item["out_of_page"] or item["missing_word_content"] or item["word_layout"]["out_of_page"] or item["word_layout"]["missing_word_content"] for item in reports.values()):
         raise SystemExit("Layout/content checks failed; inspect rendered pages and fix before accepting.")
 
 

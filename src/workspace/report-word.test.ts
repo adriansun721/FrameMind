@@ -24,6 +24,9 @@ describe("editable report Word", () => {
     const xml = await zip.file("word/document.xml")!.async("string");
     const document = new DOMParser().parseFromString(xml, "application/xml");
     expect(document.querySelector("parsererror")).toBeNull();
+    for (const node of document.getElementsByTagName("w:body")[0].children) {
+      if (node.tagName === "w:tbl") expect(node.previousElementSibling?.tagName).not.toBe("w:tbl");
+    }
     for (const value of ["node_0036", "member_0058", "整体自由度映射表", "约束处理与整体荷载", "200", "7850", "0.02", report.result.id]) expect(xml).toContain(value);
     expect(document.getElementsByTagName("w:body")[0].firstElementChild?.textContent).toBe("FRAMEMIND_TABLE_0_PLACEHOLDER 工程计算书");
     expect(document.getElementsByTagName("w:tblHeader").length).toBeGreaterThan(10);
@@ -49,6 +52,11 @@ describe("editable report Word", () => {
     for (const value of ["1 模型概况与来源", "2 理论假设与适用边界", "3 材料截面与模型参数", "4 支座与边界条件", "5 荷载自重与工况组合", "6 关键响应与完整结果", "K · u = F", "GPa", "kg/m³", "m⁴", "rad", "0.00002", "node_0002", report.result.id]) expect(xml).toContain(value);
     expect(xml).toContain('<w:pStyle w:val="Title"');
     expect(xml).toContain("w:tblHeader"); expect(xml).toContain("w:cantSplit");
+    const document = new DOMParser().parseFromString(xml, "application/xml");
+    for (const node of document.getElementsByTagName("w:body")[0].children) {
+      if (node.tagName === "w:tbl") expect(node.previousElementSibling?.tagName).not.toBe("w:tbl");
+      if (node.tagName === "w:p" && node.textContent?.includes("本报告记录分析结果")) expect(node.getElementsByTagName("w:keepLines")).toHaveLength(1);
+    }
     expect(xml).toContain("未启用"); expect(xml).toContain("不构成强度或稳定性结论");
     expect(Object.keys(zip.files).filter((path) => path.startsWith("word/media/") && path.endsWith(".png"))).toHaveLength(1); // identical injected PNGs are deduplicated
     expect((xml.match(/<w:drawing>/g) ?? []).length).toBe(2);

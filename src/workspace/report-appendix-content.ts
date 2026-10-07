@@ -2,26 +2,18 @@ import { unitPresentation } from "../domain/units";
 import { reportNumber as n, reportSourceLabel, type EngineeringReport } from "../domain/engineering-report";
 import { REPORT_APPENDIX_STEPS } from "../domain/report-appendix";
 import { heading, paragraph, table, tableCaption, type ReportBlock } from "./report-content-blocks";
+import { stabilityReportAppendix } from "./stability-report-appendix";
+import { reportMatrixTables } from "./report-matrix-content";
 
 type Content = ReportBlock[];
-function canonicalMatrixTables(title: string, matrix: number[][], indices: number[]): Content {
-  if (!indices.length) return [tableCaption(`${title} · 0 × 0`), paragraph("无自由自由度，不存在待求解的自由子系统矩阵条目。")];
-  const content: Content = [];
-  // At most six numeric columns per page-width table; no values are omitted.
-  for (let offset = 0; offset < indices.length; offset += 6) {
-    const columns = indices.slice(offset, offset + 6);
-    content.push(tableCaption(`${title} · ${matrix.length} × ${matrix.length} · 列 ${columns[0]}—${columns.at(-1)}`),
-      table(["行＼列", ...columns.map(String)], matrix.map((row, index) => [String(indices[index]), ...row.slice(offset, offset + 6).map(n)])));
-  }
-  return content;
-}
 
 export function reportAppendixContent(report: EngineeringReport): Content {
+  if (report.appendix?.recorded) return stabilityReportAppendix(report);
   const u = unitPresentation(report.displayUnitPreset);
   const mixed = (v: number, i: number, force = false) => u.number(v, force ? i % 6 < 3 ? "kN" : "kN·m" : i % 6 < 3 ? "m" : "rad", 7);
   const matrixTables = (title: string, matrix: number[][], indices: number[]) => {
     const converted = title.includes("矩阵 T") ? matrix : matrix.map((row, i) => row.map((v, j) => u.stiffness(v, indices[i], indices[j])));
-    return canonicalMatrixTables(title, converted, indices);
+    return reportMatrixTables(title, converted, indices);
   };
   const appendix = report.appendix;
   if (!appendix) return [];
