@@ -1,0 +1,60 @@
+{
+  "command": "npm test -- --maxWorkers=4 --reporter=json --outputFile=<report>",
+  "reports": [
+    {
+      "file": "full-unit.json",
+      "archive": "full-unit.json.gz",
+      "sha256": "e78e46e434a3c661daded01da0c8cbae5a410a2995461146c9155c19fbb272bd",
+      "files": 87,
+      "total": 685,
+      "passed": 685,
+      "failed": 0,
+      "success": true,
+      "startedAt": "2026-10-07T09:24:35.969Z"
+    },
+    {
+      "file": "full-unit-final.json",
+      "archive": "full-unit-final.json.gz",
+      "sha256": "7674f239cfe747f22785cc5645a0186060946db0513c4c454fbbae6902cb1882",
+      "files": 87,
+      "total": 686,
+      "passed": 686,
+      "failed": 0,
+      "success": true,
+      "startedAt": "2026-10-07T09:38:17.418Z"
+    },
+    {
+      "file": "full-unit-release.json",
+      "archive": "full-unit-release.json.gz",
+      "sha256": "d04a6595f8b8e1e344a703a9817a7d003c30a1012a56e960a73da523d123beeb",
+      "files": 87,
+      "total": 686,
+      "passed": 686,
+      "failed": 0,
+      "success": true,
+      "startedAt": "2026-10-07T09:49:06.905Z"
+    },
+    {
+      "file": "full-unit-acceptance.json",
+      "archive": "full-unit-acceptance.json.gz",
+      "sha256": "fe5110212eb1f66b1f243664cd89a5a1e9127abe6ddf42a2ac0fdce0895f0fa0",
+      "files": 87,
+      "total": 686,
+      "passed": 686,
+      "failed": 0,
+      "success": true,
+      "startedAt": "2026-10-07T10:09:07.301Z"
+    },
+    {
+      "file": "full-unit-v7.json",
+      "archive": "full-unit-v7.json.gz",
+      "sha256": "3bae18749165467948240a1ebc414ba31f56d02a58f905621789ca14c9bbd33e",
+      "files": 87,
+      "total": 686,
+      "passed": 686,
+      "failed": 0,
+      "success": true,
+      "startedAt": "2026-10-07T10:19:55.225Z"
+    }
+  ]
+}

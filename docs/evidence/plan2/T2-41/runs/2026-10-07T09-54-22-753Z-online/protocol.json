@@ -1,0 +1,224 @@
+{
+  "version": 5,
+  "registeredDate": "2026-10-07",
+  "timezone": "Asia/Taipei",
+  "repetitions": 2,
+  "timeoutMs": 360000,
+  "scope": "T2-41 advanced tools and five-method citations. Two repetitions per fixed scenario, no automatic retries. Small-sample capability evidence, not population reliability.",
+  "gates": {
+    "contractPassRate": 1,
+    "checkpointPassRate": 1
+  },
+  "metrics": {
+    "citation": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "clarified": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "completed": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "confirmation": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "evidence": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "explained": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "failure": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "fixedReference": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "identity": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "isolation": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "noGuess": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "once": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "read": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "restart": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "source": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "trial": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "unchanged": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "unchangedBeforeConfirm": "Each registered checkpoint must pass; false is failed and absent is missing, never counted as passed.",
+    "budget": "Every ordinary turn uses at most 8 rounds and 64 tool records. Transport timeout, no progress and cancellation are covered separately by fixed contracts.",
+    "toolBoundary": "No source editing, shell, script or automatic optimization tool is invoked; model edits still require confirmation and unchanged-state checks. Prohibited requests are separately replayed at the public tool/task boundaries."
+  },
+  "scenarios": {
+    "geometry": [
+      "identity",
+      "confirmation",
+      "unchangedBeforeConfirm",
+      "restart",
+      "completed",
+      "once",
+      "budget",
+      "toolBoundary"
+    ],
+    "mass": [
+      "read",
+      "clarified",
+      "noGuess",
+      "unchanged",
+      "budget",
+      "toolBoundary"
+    ],
+    "buckling": [
+      "read",
+      "fixedReference",
+      "confirmation",
+      "unchanged",
+      "budget",
+      "toolBoundary",
+      "actualCompleted",
+      "newCitation"
+    ],
+    "second-order": [
+      "trial",
+      "source",
+      "evidence",
+      "isolation",
+      "budget",
+      "toolBoundary",
+      "recoveryDraft",
+      "recovered"
+    ],
+    "spectrum": [
+      "failure",
+      "explained",
+      "noGuess",
+      "unchanged",
+      "budget",
+      "toolBoundary"
+    ],
+    "relationship": [
+      "read",
+      "clarified",
+      "noGuess",
+      "unchanged",
+      "budget",
+      "toolBoundary"
+    ],
+    "citations": [
+      "AC1:citation",
+      "AC2:citation",
+      "AC3:citation",
+      "AC4:citation",
+      "AC5:citation",
+      "unchanged",
+      "budget",
+      "toolBoundary"
+    ]
+  },
+  "unitCoverage": {
+    "AC2-01": [
+      "src/workspace/ai-tools.test.ts",
+      "src/workspace/ai-task.test.ts"
+    ],
+    "AC2-02": [
+      "src/workspace/model-edits.test.ts",
+      "src/workspace/task-draft.test.ts",
+      "src/workspace/analysis-intent.test.ts"
+    ],
+    "AC2-03": [
+      "src/workspace/task-draft.test.ts"
+    ],
+    "AC2-04": [
+      "src/workspace/task-draft.test.ts",
+      "src/workspace/task-restart.test.ts",
+      "electron/recovery-store.test.ts"
+    ],
+    "AC2-05": [
+      "src/workspace/draft-coordination.test.ts",
+      "src/workspace/ai-task.test.ts"
+    ],
+    "AC2-06": [
+      "src/workspace/draft-coordination.test.ts",
+      "src/workspace/ai-task.test.ts"
+    ],
+    "AC2-07": [
+      "src/workspace/task-scheduler.test.ts"
+    ],
+    "AC2-08": [
+      "src/workspace/diagnostic-trial.test.ts",
+      "src/workspace/ai-tools.test.ts"
+    ],
+    "AC2-09": [
+      "src/workspace/exploration-budget.test.ts",
+      "src/workspace/ai-task.test.ts"
+    ],
+    "AC2-10": [
+      "src/workspace/task-restart.test.ts",
+      "src/domain/project-restart.test.ts",
+      "electron/recovery-store.test.ts",
+      "src/workspace/native-analysis-task.test.ts",
+      "src/domain/analysis-service.test.ts"
+    ],
+    "AC2-11": [
+      "src/workspace/ai-task.test.ts",
+      "electron/deepseek.test.ts",
+      "electron/deepseek-chat.test.ts"
+    ],
+    "advanced": [
+      "src/workspace/task-draft.test.ts",
+      "src/workspace/model-edits.test.ts",
+      "src/workspace/node-merge.test.ts",
+      "src/workspace/topology.test.ts",
+      "src/workspace/psd-tools.test.ts",
+      "src/workspace/result-inspection.test.ts",
+      "electron/deepseek-chat.test.ts"
+    ]
+  },
+  "desktopFiles": [
+    "e2e/plan2-t2-41-agent.spec.ts",
+    "e2e/plan2-t2-05-coordination.spec.ts",
+    "e2e/plan2-t2-09-restart.spec.ts",
+    "e2e/plan2-t2-10-recovery.spec.ts",
+    "e2e/plan2-t2-11-reliability.spec.ts"
+  ],
+  "network": "Replay replaces only provider replies. Online never replaces fetch or chatDeepSeek; encrypted DeepSeek credentials and Local State are copied to an isolated temporary profile. Missing credentials or launch failure is blocked/failed, never skipped or counted as passed.",
+  "failurePolicy": "No automatic retries. Archive each repetition, failed checks, missing observations, inputs, tool outputs, model/settings and reporter failures. Fixes require a new timestamped run; retain previous runs. Never change gates after observing a result.",
+  "onlineFiles": [
+    "e2e/plan2-t2-41-agent.spec.ts"
+  ],
+  "inputs": {
+    "project": "docs/evidence/plan2/T2-36/all-methods.framemind",
+    "geometry": {
+      "nodeId": "node_0002",
+      "positionM": [
+        -0.25,
+        1.5,
+        4.25
+      ],
+      "massKg": 125
+    },
+    "buckling": {
+      "caseId": "AC4",
+      "fixed": [
+        {
+          "loadCaseId": "LC1",
+          "factor": 0.25
+        }
+      ],
+      "reference": [
+        {
+          "loadCaseId": "LC1",
+          "factor": 1
+        }
+      ]
+    },
+    "secondOrder": {
+      "caseId": "AC1",
+      "maxIterations": 1,
+      "recoveryMaxIterations": 20
+    },
+    "spectrum": {
+      "bandHz": [
+        1,
+        2
+      ],
+      "densityKN2Hz": [
+        -1,
+        1
+      ]
+    },
+    "citations": {
+      "nodeId": "node_0002",
+      "cases": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5"
+      ]
+    }
+  },
+  "registrationNote": "Version 5 retains version 4 samples, repetitions and gates. Original T2-11 regression now checks the declared production native mesh-static solver (/4) in both input and service provenance rather than the retired /2, retaining all numerical tolerances. Output rendering is bounded to 16 batches. All earlier failed runs remain archived; source/build drift still rejects a run."
+}

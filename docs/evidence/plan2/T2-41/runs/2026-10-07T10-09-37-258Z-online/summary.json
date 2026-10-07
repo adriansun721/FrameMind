@@ -1,0 +1,921 @@
+{
+  "mode": "online",
+  "startedAt": "2026-10-07T10:09:37.258Z",
+  "protocolHash": "1267bac92f08915e7b8a3ef646dfe96adb45c3d48844ae10ee02eea69cc8f1bd",
+  "revision": "00a53fdcccf1666110aec1a43cf59559761ce116",
+  "changedFiles": [
+    "M docs/evidence/T11-cases-1080.png",
+    " M docs/evidence/T11-cases-1440.png",
+    " M docs/evidence/T11-comparison-1080.png",
+    " M docs/evidence/T11-comparison-1440.png",
+    " M docs/evidence/T12-editor-1080.png",
+    " M docs/evidence/T12-editor-1440.png",
+    " M docs/evidence/T12-results-1080.png",
+    " M docs/evidence/T12-results-1440.png",
+    " M docs/evidence/T16-dark-deformation-1080.png",
+    " M docs/evidence/T16-dark-deformation-1440.png",
+    " M docs/evidence/T16-dark-forces-1080.png",
+    " M docs/evidence/T16-dark-forces-1440.png",
+    " M docs/evidence/T16-dark-model-1080.png",
+    " M docs/evidence/T16-dark-model-1440.png",
+    " M docs/evidence/T16-dark-selection-error-1080.png",
+    " M docs/evidence/T16-light-deformation-1080.png",
+    " M docs/evidence/T16-light-deformation-1440.png",
+    " M docs/evidence/T16-light-forces-1080.png",
+    " M docs/evidence/T16-light-forces-1440.png",
+    " M docs/evidence/T16-light-model-1080.png",
+    " M docs/evidence/T16-light-model-1440.png",
+    " M docs/evidence/T16-light-selection-error-1080.png",
+    " M docs/evidence/T17-member-process.png",
+    " M docs/evidence/T19-dark-1080.png",
+    " M docs/evidence/T19-dark-1440.png",
+    " M docs/evidence/T19-light-1080.png",
+    " M docs/evidence/T19-light-1440.png",
+    " M docs/evidence/T20-dark-1080.png",
+    " M docs/evidence/T20-dark-1440.png",
+    " M docs/evidence/T20-light-1080.png",
+    " M docs/evidence/T20-light-1440.png",
+    " M docs/evidence/T21-dark-1080.png",
+    " M docs/evidence/T21-dark-1440.png",
+    " M docs/evidence/T21-light-1080.png",
+    " M docs/evidence/T21-light-1440.png",
+    " M docs/evidence/T22-dark-1080.png",
+    " M docs/evidence/T22-dark-1440.png",
+    " M docs/evidence/T22-light-1080.png",
+    " M docs/evidence/T22-light-1440.png",
+    " M docs/evidence/T23-dark-1080.png",
+    " M docs/evidence/T23-dark-1440.png",
+    " M docs/evidence/T23-light-1080.png",
+    " M docs/evidence/T23-light-1440.png",
+    " M docs/evidence/T23-result.png",
+    " M docs/evidence/T24-dark-1080.png",
+    " M docs/evidence/T24-dark-1440.png",
+    " M docs/evidence/T24-light-1080.png",
+    " M docs/evidence/T24-light-1440.png",
+    " M docs/evidence/T25-dark.png",
+    " M docs/evidence/T25-light.png",
+    " M docs/evidence/T25-replay.json",
+    " M docs/evidence/T26-comparison.png",
+    " M docs/evidence/T26-dark-preview.png",
+    " M docs/evidence/T26-light-preview.png",
+    " M docs/evidence/T26-replay.json",
+    " M docs/evidence/T27-offline-analysis.png",
+    " M docs/evidence/T27-recovery.png",
+    " M docs/evidence/T28-baseline.docx",
+    " M docs/evidence/T28-baseline.framemind",
+    " M docs/evidence/T28-combination.docx",
+    " M docs/evidence/T28-combination.framemind",
+    " M docs/evidence/T28-dark-1080.png",
+    " M docs/evidence/T28-dark-1440.png",
+    " M docs/evidence/T28-light-1080.png",
+    " M docs/evidence/T28-light-1440.png",
+    " M docs/evidence/T29-all.docx",
+    " M docs/evidence/T29-all.framemind",
+    " M docs/evidence/T29-dark-1080.png",
+    " M docs/evidence/T29-dark-1440.png",
+    " M docs/evidence/T29-light-1080.png",
+    " M docs/evidence/T29-light-1440.png",
+    " M docs/evidence/T29-selected.docx",
+    " M docs/evidence/T29-selected.framemind",
+    " M docs/evidence/T29-supplemental.docx",
+    " M docs/evidence/T29-supplemental.framemind",
+    " M docs/evidence/T30-all.docx",
+    " M docs/evidence/T30-all.framemind",
+    " M docs/evidence/T30-all.pdf",
+    " M docs/evidence/T30-dark-1080.png",
+    " M docs/evidence/T30-dark-1440.png",
+    " M docs/evidence/T30-light-1080.png",
+    " M docs/evidence/T30-light-1440.png",
+    " M docs/evidence/T30-long.docx",
+    " M docs/evidence/T30-long.framemind",
+    " M docs/evidence/T30-long.pdf",
+    " M docs/evidence/T30-selected.docx",
+    " M docs/evidence/T30-selected.framemind",
+    " M docs/evidence/T30-selected.pdf",
+    " M docs/evidence/T33/replay-dark/failure.json",
+    " M docs/evidence/T33/replay-dark/failure.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-dark/guide-1080.png",
+    " M docs/evidence/T33/replay-dark/guide-1440.png",
+    " M docs/evidence/T33/replay-dark/validation.json",
+    " M docs/evidence/T33/replay-light/failure.json",
+    " M docs/evidence/T33/replay-light/failure.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-light/guide-1080.png",
+    " M docs/evidence/T33/replay-light/guide-1440.png",
+    " M docs/evidence/T33/replay-light/validation.json",
+    " M docs/evidence/compact-cards/dark-1080-editor.png",
+    " M docs/evidence/compact-cards/dark-1080-summary.png",
+    " M docs/evidence/compact-cards/dark-1440-editor.png",
+    " M docs/evidence/compact-cards/dark-1440-summary.png",
+    " M docs/evidence/compact-cards/light-1080-editor.png",
+    " M docs/evidence/compact-cards/light-1080-summary.png",
+    " M docs/evidence/compact-cards/light-1440-editor.png",
+    " M docs/evidence/compact-cards/light-1440-summary.png",
+    " M docs/evidence/plan2/T2-05/component-conflict.png",
+    " M docs/evidence/plan2/T2-05/stable-targets.json",
+    " M docs/evidence/plan2/T2-05/targets-dark-1440.png",
+    " M docs/evidence/plan2/T2-05/targets-light-1080.png",
+    " M docs/evidence/plan2/T2-09/offline-resumed-analysis.png",
+    " M docs/evidence/plan2/T2-09/reopened-receipt.png",
+    " M docs/evidence/plan2/T2-10/recovered-receipt-dark.png",
+    " M docs/evidence/plan2/T2-10/startup-fallback-dark.png",
+    " M docs/evidence/plan2/T2-10/startup-fallback-light.png",
+    " M docs/evidence/plan2/T2-12/desktop-result.json",
+    " M docs/evidence/plan2/T2-12/static-process.png",
+    " M docs/evidence/plan2/T2-13/desktop-results.json",
+    " M docs/evidence/plan2/T2-13/native-process.png",
+    " M docs/evidence/plan2/T2-14/desktop-results.json",
+    " M docs/evidence/plan2/T2-14/native-combination.docx",
+    " M docs/evidence/plan2/T2-14/native-combination.pdf",
+    " M docs/evidence/plan2/T2-14/native-process.png",
+    " M docs/evidence/plan2/T2-15/desktop-isolation.json",
+    " M docs/evidence/plan2/T2-15/native-production.png",
+    " M docs/evidence/plan2/T2-16/analysis-case-manager.png",
+    " M docs/evidence/plan2/T2-16/deleted-source-history.png",
+    " M docs/evidence/plan2/T2-16/desktop-verification.json",
+    " M docs/evidence/plan2/T2-17/units-dark-1080.png",
+    " M docs/evidence/plan2/T2-17/units-dark-1440.png",
+    " M docs/evidence/plan2/T2-17/units-light-1080.png",
+    " M docs/evidence/plan2/T2-17/units-light-1440.png",
+    " M docs/evidence/plan2/T2-17/units.docx",
+    " M docs/evidence/plan2/T2-17/units.framemind",
+    " M docs/evidence/plan2/T2-17/units.pdf",
+    " M docs/evidence/plan2/T2-18/geometry-dark-1080.png",
+    " M docs/evidence/plan2/T2-18/geometry-dark-1440.png",
+    " M docs/evidence/plan2/T2-18/geometry-light-1080.png",
+    " M docs/evidence/plan2/T2-18/geometry-light-1440.png",
+    " M docs/evidence/plan2/T2-18/large-close.framemind",
+    " M docs/evidence/plan2/T2-18/large-close.png",
+    " M docs/evidence/plan2/T2-19/desktop-mouse.json",
+    " M docs/evidence/plan2/T2-19/drawing-dark-1080.png",
+    " M docs/evidence/plan2/T2-19/drawing-dark-1440.png",
+    " M docs/evidence/plan2/T2-19/drawing-light-1080.png",
+    " M docs/evidence/plan2/T2-19/drawing-light-1440.png",
+    " M docs/evidence/plan2/T2-19/mouse-normal-zoom.png",
+    " M docs/evidence/plan2/T2-19/mouse-oblique.png",
+    " M docs/evidence/plan2/T2-20/desktop.json",
+    " M docs/evidence/plan2/T2-20/topology-dark-1080.png",
+    " M docs/evidence/plan2/T2-20/topology-dark-1440.png",
+    " M docs/evidence/plan2/T2-20/topology-light-1080.png",
+    " M docs/evidence/plan2/T2-20/topology-light-1440.png",
+    " M docs/evidence/plan2/T2-21/desktop.json",
+    " M docs/evidence/plan2/T2-21/merge-dark-1080.png",
+    " M docs/evidence/plan2/T2-21/merge-dark-1440.png",
+    " M docs/evidence/plan2/T2-21/merge-light-1080.png",
+    " M docs/evidence/plan2/T2-21/merge-light-1440.png",
+    " M docs/evidence/plan2/T2-22/desktop.json",
+    " M docs/evidence/plan2/T2-24/desktop.json",
+    " M docs/evidence/plan2/T2-24/line-dark-1080-680.png",
+    " M docs/evidence/plan2/T2-24/line-dark-1080.png",
+    " M docs/evidence/plan2/T2-24/line-dark-1440.png",
+    " M docs/evidence/plan2/T2-24/line-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/line-light-1080.png",
+    " M docs/evidence/plan2/T2-24/line-light-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1080.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1080.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-result-focus-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-small-deformation-light-1080-680.png",
+    " M docs/evidence/plan2/T2-25/desktop.json",
+    " M docs/evidence/plan2/T2-25/releases-dark-1080.png",
+    " M docs/evidence/plan2/T2-25/releases-dark-1440.png",
+    " M docs/evidence/plan2/T2-25/releases-light-1080.png",
+    " M docs/evidence/plan2/T2-25/releases-light-1440.png",
+    " M docs/evidence/plan2/T2-26/desktop.json",
+    " M docs/evidence/plan2/T2-26/mesh-dark-1080.png",
+    " M docs/evidence/plan2/T2-26/mesh-dark-1440.png",
+    " M docs/evidence/plan2/T2-26/mesh-light-1080.png",
+    " M docs/evidence/plan2/T2-26/mesh-light-1440.png",
+    " M docs/evidence/plan2/T2-26/mesh.docx",
+    " M docs/evidence/plan2/T2-26/mesh.pdf",
+    " M docs/evidence/plan2/T2-27/desktop.json",
+    " M docs/evidence/plan2/T2-27/modal-dark-1080.png",
+    " M docs/evidence/plan2/T2-27/modal-dark-1440.png",
+    " M docs/evidence/plan2/T2-27/modal-light-1080.png",
+    " M docs/evidence/plan2/T2-27/modal-light-1440.png",
+    " M docs/evidence/plan2/T2-28/line-editor-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-dark-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-dark-1440.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-light-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-light-1440.png",
+    " M docs/evidence/plan2/T2-28/point-editor-dark-1440.png",
+    " M docs/evidence/plan2/T2-29/damping-dark-1080.png",
+    " M docs/evidence/plan2/T2-29/damping-dark-1440.png",
+    " M docs/evidence/plan2/T2-29/damping-light-1080.png",
+    " M docs/evidence/plan2/T2-29/damping-light-1440.png",
+    " M docs/evidence/plan2/T2-29/desktop.json",
+    " M docs/evidence/plan2/T2-30/buckling-dark-1080.png",
+    " M docs/evidence/plan2/T2-30/buckling-dark-1440.png",
+    " M docs/evidence/plan2/T2-30/buckling-light-1080.png",
+    " M docs/evidence/plan2/T2-30/buckling-light-1440.png",
+    " M docs/evidence/plan2/T2-30/nonzero-fixed.framemind",
+    " M docs/evidence/plan2/T2-32/psd-dark-1440.png",
+    " M docs/evidence/plan2/T2-32/psd-light-1440.png",
+    "?? .vscode/",
+    "?? docs/evidence/plan2/T2-11/replay/",
+    "?? docs/evidence/plan2/T2-41/.gitignore",
+    "?? docs/evidence/plan2/T2-41/acceptance.md",
+    "?? docs/evidence/plan2/T2-41/full-unit-final.json.gz",
+    "?? docs/evidence/plan2/T2-41/full-unit-release.json.gz",
+    "?? docs/evidence/plan2/T2-41/full-unit.json.gz",
+    "?? docs/evidence/plan2/T2-41/runs/",
+    "?? docs/evidence/plan2/T2-41/unit-summary.json",
+    "?? docs/evidence/plan2/T2-41/verification.md"
+  ],
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.19.0",
+    "electron": "44.5.1"
+  },
+  "status": "failed",
+  "executions": [
+    {
+      "label": "desktop 2 repetitions",
+      "code": 1
+    }
+  ],
+  "coverage": {},
+  "metrics": {
+    "identity": {
+      "passed": 1,
+      "failed": 1,
+      "missing": 0,
+      "total": 2,
+      "rate": 0.5
+    },
+    "confirmation": {
+      "passed": 2,
+      "failed": 2,
+      "missing": 0,
+      "total": 4,
+      "rate": 0.5
+    },
+    "unchangedBeforeConfirm": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "restart": {
+      "passed": 1,
+      "failed": 0,
+      "missing": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "completed": {
+      "passed": 1,
+      "failed": 0,
+      "missing": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "once": {
+      "passed": 1,
+      "failed": 0,
+      "missing": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "budget": {
+      "passed": 11,
+      "failed": 0,
+      "missing": 3,
+      "total": 14,
+      "rate": 0.7857142857142857
+    },
+    "toolBoundary": {
+      "passed": 11,
+      "failed": 0,
+      "missing": 3,
+      "total": 14,
+      "rate": 0.7857142857142857
+    },
+    "read": {
+      "passed": 6,
+      "failed": 0,
+      "missing": 0,
+      "total": 6,
+      "rate": 1
+    },
+    "clarified": {
+      "passed": 1,
+      "failed": 3,
+      "missing": 0,
+      "total": 4,
+      "rate": 0.25
+    },
+    "noGuess": {
+      "passed": 6,
+      "failed": 0,
+      "missing": 0,
+      "total": 6,
+      "rate": 1
+    },
+    "unchanged": {
+      "passed": 10,
+      "failed": 0,
+      "missing": 0,
+      "total": 10,
+      "rate": 1
+    },
+    "fixedReference": {
+      "passed": 1,
+      "failed": 1,
+      "missing": 0,
+      "total": 2,
+      "rate": 0.5
+    },
+    "actualCompleted": {
+      "passed": 1,
+      "failed": 0,
+      "missing": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "newCitation": {
+      "passed": 1,
+      "failed": 0,
+      "missing": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "trial": {
+      "passed": 0,
+      "failed": 2,
+      "missing": 0,
+      "total": 2,
+      "rate": 0
+    },
+    "source": {
+      "passed": 1,
+      "failed": 1,
+      "missing": 0,
+      "total": 2,
+      "rate": 0.5
+    },
+    "evidence": {
+      "passed": 0,
+      "failed": 2,
+      "missing": 0,
+      "total": 2,
+      "rate": 0
+    },
+    "isolation": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "recoveryDraft": {
+      "passed": 1,
+      "failed": 1,
+      "missing": 0,
+      "total": 2,
+      "rate": 0.5
+    },
+    "recovered": {
+      "passed": 1,
+      "failed": 0,
+      "missing": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "failure": {
+      "passed": 1,
+      "failed": 1,
+      "missing": 0,
+      "total": 2,
+      "rate": 0.5
+    },
+    "explained": {
+      "passed": 1,
+      "failed": 1,
+      "missing": 0,
+      "total": 2,
+      "rate": 0.5
+    },
+    "citation": {
+      "passed": 0,
+      "failed": 10,
+      "missing": 0,
+      "total": 10,
+      "rate": 0
+    }
+  },
+  "samples": [
+    {
+      "id": "geometry",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "mass",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "mass",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "status": "failed"
+    }
+  ],
+  "failures": [
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "identity",
+      "status": "failed"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "confirmation",
+      "status": "failed"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "restart",
+      "status": "missing"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "completed",
+      "status": "missing"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "once",
+      "status": "missing"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "id": "mass",
+      "repeat": 1,
+      "check": "clarified",
+      "status": "failed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "check": "fixedReference",
+      "status": "failed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "check": "confirmation",
+      "status": "failed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "check": "actualCompleted",
+      "status": "missing"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "check": "newCitation",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "trial",
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "evidence",
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "trial",
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "source",
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "evidence",
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "recoveryDraft",
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "recovered",
+      "status": "missing"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 1,
+      "check": "failure",
+      "status": "failed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 1,
+      "check": "explained",
+      "status": "failed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 0,
+      "check": "clarified",
+      "status": "failed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 1,
+      "check": "clarified",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC1:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC2:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC3:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC4:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC5:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC1:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC2:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC3:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC4:citation",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC5:citation",
+      "status": "failed"
+    },
+    {
+      "desktop": "T2-41 failed second-order trial preserves formal results and diagnostics",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: trial\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:71:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 random source relationship must be clarified before adding sources",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: clarified\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:102:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 real citations bind all five saved methods to frozen engineering identities",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: AC1:citation\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:112:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 free coordinates and explicit mass survive whole-task restart confirmation",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts",
+            "column": 77,
+            "line": 25
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeEnabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('region', { name: '完整任务草案' }).getByRole('button', { name: '确认整体任务', exact: true })\nExpected: enabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeEnabled\" getByRole('region', { name: '完整任务草案' }).getByRole('button', { name: '确认整体任务', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('region', { name: '完整任务草案' }).getByRole('button', { name: '确认整体任务', exact: true })\u001b[22m\n\n\n  23 |     await page.getByRole(\"button\", { name: \"恢复任务\", exact: true }).click();\n  24 |     const card = page.getByRole(\"region\", { name: \"完整任务草案\" });\n> 25 |     await expect(card.getByRole(\"button\", { name: \"确认整体任务\", exact: true })).toBeEnabled();\n     |                                                                             ^\n  26 |     check(\"restart\", (await save(page, path)).nodes[1].additionalMassKg === undefined);\n  27 |     await card.getByRole(\"button\", { name: \"确认整体任务\", exact: true }).dblclick();\n  28 |     await expect(card).toHaveCount(0);\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:25:77\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:63:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:16:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 missing mass is clarified without invented engineering inputs",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: clarified\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:38:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 buckling keeps fixed preload separate from reference scaling",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts",
+            "column": 109,
+            "line": 57
+          },
+          "message": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: '完整任务草案' }).getByRole('button', { name: '确认整体任务', exact: true })\u001b[22m\n\n\n  55 |     check(\"confirmation\", result.status === \"awaiting-confirmation\" && result.taskDraft?.edits?.source === \"user\");\n  56 |     check(\"unchanged\", JSON.stringify(engineeringContent(await save(page, path))) === JSON.stringify(engineeringContent(project)));\n> 57 |     await page.getByRole(\"region\", { name: \"完整任务草案\" }).getByRole(\"button\", { name: \"确认整体任务\", exact: true }).click();\n     |                                                                                                             ^\n  58 |     await expect(page.getByTestId(\"ai-turn-status\").last()).toContainText(\"本地分析完成\", { timeout: 30_000 });\n  59 |     const after = await save(page, path);\n  60 |     const solved = after.analysisResults.at(-1), original = project.analysisResults.find((r) => r.input.analysisCase?.id === \"AC4\")!;\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:57:109\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:63:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:48:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 failed second-order trial preserves formal results and diagnostics",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts",
+            "column": 109,
+            "line": 83
+          },
+          "message": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: '完整任务草案' }).getByRole('button', { name: '确认整体任务', exact: true })\u001b[22m\n\n\n  81 |     const recovery = await ask(page, \"现在由我明确指定修复：准备整体草案，把 AC1 maxIterations 改为20，保留其余设置和模型。确认后计算 AC1，不自动改变荷载、截面或其他预算。\", [[{ name: \"read_model\", input: { collection: \"analysis-cases\" } }], [{ name: \"propose_task\", input: { edits: { source: \"user\", operations: [{ type: \"update_analysis_case\", id: \"AC1\", properties }] }, analysis: { requested: true, source: \"user\", sourceId: \"AC1\" } } }]], \"用户指定的修复草案已准备，等待确认后计算。\");\n  82 |     check(\"recoveryDraft\", recovery.status === \"awaiting-confirmation\" && recovery.taskDraft?.edits?.source === \"user\");\n> 83 |     await page.getByRole(\"region\", { name: \"完整任务草案\" }).getByRole(\"button\", { name: \"确认整体任务\", exact: true }).click();\n     |                                                                                                             ^\n  84 |     await expect(page.getByTestId(\"ai-turn-status\").last()).toContainText(\"本地分析完成\", { timeout: 30_000 });\n  85 |     const restored = await save(page, path), solved = restored.analysisResults.at(-1);\n  86 |     check(\"recovered\", restored.analysisResults.length === project.analysisResults.length + 1 && solved.secondOrder?.status === \"converged\" && solved.input.analysisCase.id === \"AC1\");\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:83:109\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:63:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:71:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 negative spectrum is refused with real preparation failure evidence",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: failure\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:91:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 random source relationship must be clarified before adding sources",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: clarified\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:102:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 real citations bind all five saved methods to frozen engineering identities",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 100
+          },
+          "message": "Error: AC1:citation\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:100\n\n   98 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   99 |     }\n> 100 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n  101 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n  102 |   } catch (error) {\n  103 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:100:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:112:3"
+        }
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "src/workspace/ai-tools.test.ts": "8eec2ac811e37851957aab3eb4337e38934ebb56132957c5c3be180998be55c2",
+    "src/workspace/ai-task.test.ts": "45efdf8cabfdd5327a4efd219be4c69013509f537a2e967782590202f91267cc",
+    "src/workspace/model-edits.test.ts": "f780ffbc1cfa228b466191de11ee5dbe4f5ed46212d72e01f016baeb1f750b9e",
+    "src/workspace/task-draft.test.ts": "1201f6708fc71b61730ea39470ad63f7ab168a9ba052f12c84cec80245b61967",
+    "src/workspace/analysis-intent.test.ts": "c51b1857123874d91b4cafaa156e14513c2d2eaed20eb8dd59fb78c2f28c128d",
+    "src/workspace/task-restart.test.ts": "f542fd5803015e08b7569d98956e49b304251e9f0efb46c749b4d94fe7e3f108",
+    "electron/recovery-store.test.ts": "6c5fb3f805d5c2657ddd634ea02751445a7740b6fdec5c1c528e0adeb1420559",
+    "src/workspace/draft-coordination.test.ts": "141b966b667dd7fdfd984a95fc0fe6df28206f1e15337960e5622c2b0c31963b",
+    "src/workspace/task-scheduler.test.ts": "7d4d4f3c8b01b8e09bb40bcd36ddd23b41aecfd01a2fd3ae9abbc9930afb0335",
+    "src/workspace/diagnostic-trial.test.ts": "6cc4487d62d67a48a213f44df78053837f34a1667bff15df69298ff76f4d1ff0",
+    "src/workspace/exploration-budget.test.ts": "75b6dfe1e8c20d6936eb6700ee0896ebf79c1c2322e4f00115a6bbcf9eb7622c",
+    "src/domain/project-restart.test.ts": "2a588ebd8bb7f3c1320571291ffaa7c5e6ac87ad15e9abf56dbbbdb617364764",
+    "src/workspace/native-analysis-task.test.ts": "c89738c87942a20dd3cdeebd45c1f49d12a30b015e104151cb9810f1cee35200",
+    "src/domain/analysis-service.test.ts": "6c0ac7f9fb1fa1b66aab9fcc3aed68d2ed068d384467157bff65832a0b5b3853",
+    "electron/deepseek.test.ts": "77011f5c4c9bca3d10c191fa961d11c8d69daf930226846f2d6db9e80b67aeb0",
+    "electron/deepseek-chat.test.ts": "609a52c6f0292f14ec1bafa9451a64e1c9f72149e56acaaca5cddbac93f54950",
+    "src/workspace/node-merge.test.ts": "ecadae2d68f0f3a8b2177201ab303ce47035388d0163b9989a132f6de5baed66",
+    "src/workspace/topology.test.ts": "3ced626a6b8fc0b5c9b6e239b3bf474cf083dd2fc07fc419bbcb920d797e1aa9",
+    "src/workspace/psd-tools.test.ts": "f7807b81e7cbe1c9dbe9204a62abd2483804daed0a8b1cf15ef45f60bcc9fa19",
+    "src/workspace/result-inspection.test.ts": "0690e84a51338e13f96614e006f63d1c4d14c2d99164411d4dc3912f9c3fd63f",
+    "e2e/plan2-t2-41-agent.spec.ts": "fad83c5c801237f6c1b36c7fafd9df9efb37f260223e13a7e6bff49bab90a639",
+    "e2e/plan2-t2-05-coordination.spec.ts": "fc0ec1a23cc51d380a94dc580165a38f934337eeae9b65f8d94e75ccfe3e5b98",
+    "e2e/plan2-t2-09-restart.spec.ts": "72039636048cbeb7148ada7d40624812af57e37e830d60812ead45d03059a1eb",
+    "e2e/plan2-t2-10-recovery.spec.ts": "607f32231cb6e40610bb42ee02f721a8a55b770b705c3956aa874a0f033b4250",
+    "e2e/plan2-t2-11-reliability.spec.ts": "7fb7fc5ced3a2828221560b520e3b848fbf8322aedcc6e629b08c43d64a856ac",
+    "native/bin/framemind-core.exe": "e06786fab32c70df989a46e35798677d1e64b2bf45556c6435c1fa7188990ba3",
+    "src/App.tsx": "2a37c942501e4c1734304f682866515db73a3c1ff13cf182ca5196bc7728e50c",
+    "src/components/AiConversationPanel.tsx": "38cace5ffaf6fb427a104d21fbf119752dbfbcbdf9d323bc8e956620ced7846d",
+    "src/components/TaskDraftCard.tsx": "007d35c7c4342fc4585b2e050b41599da90fb11dfd83eac8586a0f349d1e2446",
+    "src/domain/project-operations.ts": "b3e76beb1839f013d208d5b023dae7cea8f300a2c5a08b9fa131187c5f6fcd05",
+    "src/domain/analysis-service.ts": "4065bdd9551abce4ccb5a13c7a4bc19c14a68d54bbc25ac9034492621922d820",
+    "src/workspace/analysis-task.ts": "e4c57d1bdc1b879513cbb6e5e88053dcb862440a202e494097a770a3c9fb2533",
+    "src/workspace/task-persistence.ts": "df20f086dbdb98552452cf80d7331fee1f9057fca831ff992ffea7780446d499",
+    "src/workspace/draft-coordination.ts": "dfca8f92608b87deac973258f0836c3a62f0adb6ef9d64751e3a47fc52175f1d",
+    "src/workspace/model-edits.ts": "a96c18e8118a5f2fb28a2438692d8e3c510416c97345292bc61f09d2662c9984",
+    "dist/index.html": "f6b81a823681f8ea24a02b109b6569b9a8e37a765a84477376bc47333e69fa18",
+    "dist-electron/main.js": "b2de0e41460ac781517c08986fc331a570cbaab52ca4bfbebe434a475cdd724f",
+    "dist-electron/deepseek.js": "d7b1cf782790467b9b53c030c9bd36a8b02c8ccce8cade2f4bf95a465be7df08",
+    "dist/assets/analysis-worker-Cb447atw.js": "e8a3e5df04a7e34b77bd4925aebef11fa7be787a4d73f5bc4d4212badb087f06",
+    "dist/assets/index-CuDt9Y0h.css": "b5e7a1e24e2173fa35c86d641a5a38f4b833196c310fc8b04c00082b8d72a2fa",
+    "dist/assets/index-DdtW0F6B.js": "b578661a60b1717bea93243797018985c6cb251c8275afab18a0abdd4c76c610",
+    "dist/assets/jszip.min-BteT3oZt.js": "6d9d87808a48ac9dc6ac49f8869bfdc70528579a27db2e63c78567f72ef92bc0",
+    "dist/assets/random-report-content-NNjpoQyl.js": "c92e3ad3e1c59f3bcf64c1771496d9688cf6807a57b9e1f0c8458844c4bb6f8f",
+    "dist/assets/random-report-data-DUZ2_XxA.js": "32f96d9f2f264b45985fa2b16d04e85a8c6ce953d35eec5c2fb363ac6645b05a",
+    "dist/assets/report-content-D1kFZr2H.js": "fc54802fdfdc39bc616b74aab5fc1a00ab9ae1acd66879b7155fcb99c11a3b0c",
+    "dist/assets/report-pdf-BqNB-QiR.js": "8f8d448d8e14f75d6e4ba4e17f04af47e11005a2dbbbf686c779dd584181c1cc",
+    "dist/assets/report-word-Dl_JBV9s.js": "c31c36d17c0104bef61e44a4f073cc3b4f08efdff691f911b12a079d335b21b4",
+    "dist/assets/report-worker-CbOI7wIF.js": "f2b1825081fe48a0a2c3ce1834acc3cf1937363cab089209f780ef442eca6fea",
+    "docs/evidence/plan2/T2-36/all-methods.framemind": "f26866d5a34095ed86e447aebd4d75c801a9101b7724039c3c59b67abc5a2cea",
+    "e2e/agent-integration.ts": "7e576b6f561bb6e46eda51397aed81b563a2c4be5afdc22a9b4258660e6a2ccb",
+    "src/workspace/task-confirmation.ts": "1f49324aba5addb089d089bac9454a6c0e8c4e6a5a0211cb30f08d01c2b3894c",
+    "src/workspace/task-draft.ts": "739e9247203b945d4b81e7bd2b5f478cfeb94a7ac67758236a354c601aab31ea",
+    "electron/model-edit-schema.ts": "519ba18d47c5d086160a35d609ded009649c89e6b80ada177ee9367c845c11d3",
+    "src/workspace/ai-task.ts": "076eb6d91c6d82d270c96cc4a8f636b90ef841db8d7406c73078e2f6cffbfd18",
+    "src/workspace/ai-tools.ts": "05c779795ac0660e32bbb45f59a9f295e617e98c78d96940861ea5a177603190",
+    "electron/deepseek.ts": "9f66e360df8f99f73d295b71b38faf0769736bd44e5806943e6ee8bca04e07d9",
+    "scripts/verify-plan2-t211.cjs": "cd834f5bc806f1bdebfb906b54b9aefeaaed7630738e5586723d7e235ab011b4",
+    "package-lock.json": "6cf8cab8743067f00f9c0bad7a843cae6873459ffd0c3befecba536ab7dbb9a4"
+  },
+  "desktopStats": {
+    "startTime": "2026-10-07T10:09:38.196Z",
+    "duration": 524651.034,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 10,
+    "flaky": 0
+  },
+  "sourceDrift": [],
+  "endedAt": "2026-10-07T10:18:27.579Z"
+}

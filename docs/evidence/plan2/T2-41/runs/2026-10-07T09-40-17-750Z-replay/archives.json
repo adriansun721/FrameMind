@@ -1,0 +1,167 @@
+{
+  "format": "gzip",
+  "uncompressedHash": "SHA-256",
+  "files": [
+    {
+      "file": "buckling-0.json",
+      "archive": "buckling-0.json.gz",
+      "bytes": 69262346,
+      "compressedBytes": 2438490,
+      "sha256": "d1920bcc8ca6a8669a52e7ddb7b0419f16f35db757cdcad32c65bfbcbb920596"
+    },
+    {
+      "file": "buckling-1.json",
+      "archive": "buckling-1.json.gz",
+      "bytes": 69262346,
+      "compressedBytes": 2438409,
+      "sha256": "06ddc7febb055b689dddb652a99066d656b30c72e213c5e46f048114e026acf8"
+    },
+    {
+      "file": "citations-0.json",
+      "archive": "citations-0.json.gz",
+      "bytes": 108294181,
+      "compressedBytes": 3704037,
+      "sha256": "19b175929cdaad17b26bf435a0a2e2b1e67a621e7e48e80c6f860f27e56fc4d4"
+    },
+    {
+      "file": "citations-1.json",
+      "archive": "citations-1.json.gz",
+      "bytes": 108294181,
+      "compressedBytes": 3704046,
+      "sha256": "03599112207241abc145c9abb93ed1e210d949d6d051f30927334f4dab14da39"
+    },
+    {
+      "file": "confirmation-0.json",
+      "archive": "confirmation-0.json.gz",
+      "bytes": 2808394,
+      "compressedBytes": 142088,
+      "sha256": "07590ac2945dc47d354172152baaf9b80188e0ce2825637007504ffdcadb9df2"
+    },
+    {
+      "file": "confirmation-1.json",
+      "archive": "confirmation-1.json.gz",
+      "bytes": 936638,
+      "compressedBytes": 50070,
+      "sha256": "56d885937a706c3db0e2778e06eed647f15f6c87ccb8b22333142232542b93b9"
+    },
+    {
+      "file": "contracts-0.json",
+      "archive": "contracts-0.json.gz",
+      "bytes": 122279,
+      "compressedBytes": 12087,
+      "sha256": "0ed85d8b5c10d4afaebb9abedf279a5823a5236749b2dda6a7c49d9ea8c7f2d1"
+    },
+    {
+      "file": "contracts-1.json",
+      "archive": "contracts-1.json.gz",
+      "bytes": 122297,
+      "compressedBytes": 12077,
+      "sha256": "b50db1eb6c9eb00a77256975258fdbe85fc198e12e7b82c1d372ba4ffc2f8d38"
+    },
+    {
+      "file": "desktop.json",
+      "archive": "desktop.json.gz",
+      "bytes": 91003,
+      "compressedBytes": 6097,
+      "sha256": "abe62ed6f5f408f3ce0376c7c66f81f0955d9dc9fdbbbb43de3dae56914f4d36"
+    },
+    {
+      "file": "diagnostic-0.json",
+      "archive": "diagnostic-0.json.gz",
+      "bytes": 4121531,
+      "compressedBytes": 191728,
+      "sha256": "c6c5c97a5051776bf34bb7447bdf404629c23b560ce49b4cad273dc035583097"
+    },
+    {
+      "file": "diagnostic-1.json",
+      "archive": "diagnostic-1.json.gz",
+      "bytes": 4121530,
+      "compressedBytes": 191815,
+      "sha256": "ad7bfde10525611bbc327a705daf93dbe2d9e19b13e52db20268643a5aca81d8"
+    },
+    {
+      "file": "geometry-0.json",
+      "archive": "geometry-0.json.gz",
+      "bytes": 55583186,
+      "compressedBytes": 1995440,
+      "sha256": "5b982d74f652efe4f53e44cc16454cd9216aebd8abbada43c9e006cf46c482ed"
+    },
+    {
+      "file": "geometry-1.json",
+      "archive": "geometry-1.json.gz",
+      "bytes": 55583186,
+      "compressedBytes": 1995455,
+      "sha256": "a5e99b9bc3e9eaf602da402f9d9f5e51933a63785deee9821d83e98582a994e8"
+    },
+    {
+      "file": "mass-0.json",
+      "archive": "mass-0.json.gz",
+      "bytes": 49592034,
+      "compressedBytes": 1792663,
+      "sha256": "a222475153d08dabfd0b7b826e23954c5a1c4296040f4e78b788cb07426bd51c"
+    },
+    {
+      "file": "mass-1.json",
+      "archive": "mass-1.json.gz",
+      "bytes": 49592034,
+      "compressedBytes": 1792653,
+      "sha256": "d64c53cd44243e286f0c1cc7f9ad1d5cbe1e1e7649d440519e24d14d88ab03a6"
+    },
+    {
+      "file": "relationship-0.json",
+      "archive": "relationship-0.json.gz",
+      "bytes": 49602287,
+      "compressedBytes": 1793712,
+      "sha256": "3c6d4456c8dde64df45486fb59db946b91989a079c301ac57d9d1da9a5275144"
+    },
+    {
+      "file": "relationship-1.json",
+      "archive": "relationship-1.json.gz",
+      "bytes": 49602287,
+      "compressedBytes": 1793722,
+      "sha256": "3f061adbc0aeeeb4d67d2efb54fd11e3be5ce29c01af123e2b7f5a3216a7f976"
+    },
+    {
+      "file": "second-order-0.json",
+      "archive": "second-order-0.json.gz",
+      "bytes": 76706205,
+      "compressedBytes": 2696812,
+      "sha256": "c1c35a4eb4f372c623ad79bb2ccb0ca143318868b8580ad64bfa4cdea68359a6"
+    },
+    {
+      "file": "second-order-1.json",
+      "archive": "second-order-1.json.gz",
+      "bytes": 76706202,
+      "compressedBytes": 2696848,
+      "sha256": "f8048d3a994bb6267f4ea73488d0740cc08b64c113ea726a8639e2d35c01421d"
+    },
+    {
+      "file": "spectrum-0.json",
+      "archive": "spectrum-0.json.gz",
+      "bytes": 49591724,
+      "compressedBytes": 1792795,
+      "sha256": "583f8f24646af0a00ded80431e3f0a114a3d528a83f02dfd9256b84b919515fe"
+    },
+    {
+      "file": "spectrum-1.json",
+      "archive": "spectrum-1.json.gz",
+      "bytes": 49591724,
+      "compressedBytes": 1792794,
+      "sha256": "9b24a9a58671ace3c41b6a63826adb8fbfd87a4b05bc936d3431be13d792f848"
+    },
+    {
+      "file": "state-0.json",
+      "archive": "state-0.json.gz",
+      "bytes": 1086250,
+      "compressedBytes": 54852,
+      "sha256": "f65bbe557808c09b030b1b06286680e7492f884ba31a7b815dd20b3d61e2d6d1"
+    },
+    {
+      "file": "state-1.json",
+      "archive": "state-1.json.gz",
+      "bytes": 1086250,
+      "compressedBytes": 54827,
+      "sha256": "7e2663649478d4f92ff37dd58686937667a55d19ffc33dbf5cb05131f2ad9b8c"
+    }
+  ]
+}

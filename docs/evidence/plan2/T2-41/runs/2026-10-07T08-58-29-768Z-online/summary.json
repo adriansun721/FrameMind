@@ -1,0 +1,782 @@
+{
+  "mode": "online",
+  "startedAt": "2026-10-07T08:58:29.768Z",
+  "protocolHash": "f590d1dfaa775c685d51afd5b13da7e4cea6f5e42dcea5ca521887e2914ce1f3",
+  "revision": "b542891832b932dbe81140a3818cb9c3447f3872",
+  "changedFiles": [
+    "M docs/evidence/T11-cases-1080.png",
+    " M docs/evidence/T11-cases-1440.png",
+    " M docs/evidence/T11-comparison-1080.png",
+    " M docs/evidence/T11-comparison-1440.png",
+    " M docs/evidence/T12-editor-1080.png",
+    " M docs/evidence/T12-editor-1440.png",
+    " M docs/evidence/T12-results-1080.png",
+    " M docs/evidence/T12-results-1440.png",
+    " M docs/evidence/T16-dark-deformation-1080.png",
+    " M docs/evidence/T16-dark-deformation-1440.png",
+    " M docs/evidence/T16-dark-forces-1080.png",
+    " M docs/evidence/T16-dark-forces-1440.png",
+    " M docs/evidence/T16-dark-model-1080.png",
+    " M docs/evidence/T16-dark-model-1440.png",
+    " M docs/evidence/T16-dark-selection-error-1080.png",
+    " M docs/evidence/T16-light-deformation-1080.png",
+    " M docs/evidence/T16-light-deformation-1440.png",
+    " M docs/evidence/T16-light-forces-1080.png",
+    " M docs/evidence/T16-light-forces-1440.png",
+    " M docs/evidence/T16-light-model-1080.png",
+    " M docs/evidence/T16-light-model-1440.png",
+    " M docs/evidence/T16-light-selection-error-1080.png",
+    " M docs/evidence/T17-member-process.png",
+    " M docs/evidence/T19-dark-1080.png",
+    " M docs/evidence/T19-dark-1440.png",
+    " M docs/evidence/T19-light-1080.png",
+    " M docs/evidence/T19-light-1440.png",
+    " M docs/evidence/T20-dark-1080.png",
+    " M docs/evidence/T20-dark-1440.png",
+    " M docs/evidence/T20-light-1080.png",
+    " M docs/evidence/T20-light-1440.png",
+    " M docs/evidence/T21-dark-1080.png",
+    " M docs/evidence/T21-dark-1440.png",
+    " M docs/evidence/T21-light-1080.png",
+    " M docs/evidence/T21-light-1440.png",
+    " M docs/evidence/T22-dark-1080.png",
+    " M docs/evidence/T22-dark-1440.png",
+    " M docs/evidence/T22-light-1080.png",
+    " M docs/evidence/T22-light-1440.png",
+    " M docs/evidence/T23-dark-1080.png",
+    " M docs/evidence/T23-dark-1440.png",
+    " M docs/evidence/T23-light-1080.png",
+    " M docs/evidence/T23-light-1440.png",
+    " M docs/evidence/T23-result.png",
+    " M docs/evidence/T24-dark-1080.png",
+    " M docs/evidence/T24-dark-1440.png",
+    " M docs/evidence/T24-light-1080.png",
+    " M docs/evidence/T24-light-1440.png",
+    " M docs/evidence/T25-dark.png",
+    " M docs/evidence/T25-light.png",
+    " M docs/evidence/T25-replay.json",
+    " M docs/evidence/T26-comparison.png",
+    " M docs/evidence/T26-dark-preview.png",
+    " M docs/evidence/T26-light-preview.png",
+    " M docs/evidence/T26-replay.json",
+    " M docs/evidence/T27-offline-analysis.png",
+    " M docs/evidence/T27-recovery.png",
+    " M docs/evidence/T28-baseline.docx",
+    " M docs/evidence/T28-baseline.framemind",
+    " M docs/evidence/T28-combination.docx",
+    " M docs/evidence/T28-combination.framemind",
+    " M docs/evidence/T28-dark-1080.png",
+    " M docs/evidence/T28-dark-1440.png",
+    " M docs/evidence/T28-light-1080.png",
+    " M docs/evidence/T28-light-1440.png",
+    " M docs/evidence/T29-all.docx",
+    " M docs/evidence/T29-all.framemind",
+    " M docs/evidence/T29-dark-1080.png",
+    " M docs/evidence/T29-dark-1440.png",
+    " M docs/evidence/T29-light-1080.png",
+    " M docs/evidence/T29-light-1440.png",
+    " M docs/evidence/T29-selected.docx",
+    " M docs/evidence/T29-selected.framemind",
+    " M docs/evidence/T29-supplemental.docx",
+    " M docs/evidence/T29-supplemental.framemind",
+    " M docs/evidence/T30-all.docx",
+    " M docs/evidence/T30-all.framemind",
+    " M docs/evidence/T30-all.pdf",
+    " M docs/evidence/T30-dark-1080.png",
+    " M docs/evidence/T30-dark-1440.png",
+    " M docs/evidence/T30-light-1080.png",
+    " M docs/evidence/T30-light-1440.png",
+    " M docs/evidence/T30-long.docx",
+    " M docs/evidence/T30-long.framemind",
+    " M docs/evidence/T30-long.pdf",
+    " M docs/evidence/T30-selected.docx",
+    " M docs/evidence/T30-selected.framemind",
+    " M docs/evidence/T30-selected.pdf",
+    " M docs/evidence/T33/replay-dark/failure.json",
+    " M docs/evidence/T33/replay-dark/failure.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-dark/guide-1080.png",
+    " M docs/evidence/T33/replay-dark/guide-1440.png",
+    " M docs/evidence/T33/replay-dark/validation.json",
+    " M docs/evidence/T33/replay-light/failure.json",
+    " M docs/evidence/T33/replay-light/failure.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-light/guide-1080.png",
+    " M docs/evidence/T33/replay-light/guide-1440.png",
+    " M docs/evidence/T33/replay-light/validation.json",
+    " M docs/evidence/compact-cards/dark-1080-editor.png",
+    " M docs/evidence/compact-cards/dark-1080-summary.png",
+    " M docs/evidence/compact-cards/dark-1440-editor.png",
+    " M docs/evidence/compact-cards/dark-1440-summary.png",
+    " M docs/evidence/compact-cards/light-1080-editor.png",
+    " M docs/evidence/compact-cards/light-1080-summary.png",
+    " M docs/evidence/compact-cards/light-1440-editor.png",
+    " M docs/evidence/compact-cards/light-1440-summary.png",
+    " M docs/evidence/plan2/T2-05/component-conflict.png",
+    " M docs/evidence/plan2/T2-05/stable-targets.json",
+    " M docs/evidence/plan2/T2-05/targets-dark-1440.png",
+    " M docs/evidence/plan2/T2-05/targets-light-1080.png",
+    " M docs/evidence/plan2/T2-09/reopened-receipt.png",
+    " M docs/evidence/plan2/T2-10/recovered-receipt-dark.png",
+    " M docs/evidence/plan2/T2-10/startup-fallback-dark.png",
+    " M docs/evidence/plan2/T2-10/startup-fallback-light.png",
+    " M docs/evidence/plan2/T2-12/desktop-result.json",
+    " M docs/evidence/plan2/T2-12/static-process.png",
+    " M docs/evidence/plan2/T2-13/desktop-results.json",
+    " M docs/evidence/plan2/T2-13/native-process.png",
+    " M docs/evidence/plan2/T2-14/desktop-results.json",
+    " M docs/evidence/plan2/T2-14/native-combination.docx",
+    " M docs/evidence/plan2/T2-14/native-combination.pdf",
+    " M docs/evidence/plan2/T2-14/native-process.png",
+    " M docs/evidence/plan2/T2-15/desktop-isolation.json",
+    " M docs/evidence/plan2/T2-15/native-production.png",
+    " M docs/evidence/plan2/T2-16/analysis-case-manager.png",
+    " M docs/evidence/plan2/T2-16/deleted-source-history.png",
+    " M docs/evidence/plan2/T2-16/desktop-verification.json",
+    " M docs/evidence/plan2/T2-17/units-dark-1080.png",
+    " M docs/evidence/plan2/T2-17/units-dark-1440.png",
+    " M docs/evidence/plan2/T2-17/units-light-1080.png",
+    " M docs/evidence/plan2/T2-17/units-light-1440.png",
+    " M docs/evidence/plan2/T2-17/units.docx",
+    " M docs/evidence/plan2/T2-17/units.framemind",
+    " M docs/evidence/plan2/T2-17/units.pdf",
+    " M docs/evidence/plan2/T2-18/geometry-dark-1080.png",
+    " M docs/evidence/plan2/T2-18/geometry-dark-1440.png",
+    " M docs/evidence/plan2/T2-18/geometry-light-1080.png",
+    " M docs/evidence/plan2/T2-18/geometry-light-1440.png",
+    " M docs/evidence/plan2/T2-18/large-close.framemind",
+    " M docs/evidence/plan2/T2-18/large-close.png",
+    " M docs/evidence/plan2/T2-19/desktop-mouse.json",
+    " M docs/evidence/plan2/T2-19/drawing-dark-1080.png",
+    " M docs/evidence/plan2/T2-19/drawing-dark-1440.png",
+    " M docs/evidence/plan2/T2-19/drawing-light-1080.png",
+    " M docs/evidence/plan2/T2-19/drawing-light-1440.png",
+    " M docs/evidence/plan2/T2-19/mouse-normal-zoom.png",
+    " M docs/evidence/plan2/T2-19/mouse-oblique.png",
+    " M docs/evidence/plan2/T2-20/desktop.json",
+    " M docs/evidence/plan2/T2-20/topology-dark-1080.png",
+    " M docs/evidence/plan2/T2-20/topology-dark-1440.png",
+    " M docs/evidence/plan2/T2-20/topology-light-1080.png",
+    " M docs/evidence/plan2/T2-20/topology-light-1440.png",
+    " M docs/evidence/plan2/T2-21/desktop.json",
+    " M docs/evidence/plan2/T2-21/merge-dark-1080.png",
+    " M docs/evidence/plan2/T2-21/merge-dark-1440.png",
+    " M docs/evidence/plan2/T2-21/merge-light-1080.png",
+    " M docs/evidence/plan2/T2-21/merge-light-1440.png",
+    " M docs/evidence/plan2/T2-22/desktop.json",
+    " M docs/evidence/plan2/T2-24/desktop.json",
+    " M docs/evidence/plan2/T2-24/line-dark-1080-680.png",
+    " M docs/evidence/plan2/T2-24/line-dark-1080.png",
+    " M docs/evidence/plan2/T2-24/line-dark-1440.png",
+    " M docs/evidence/plan2/T2-24/line-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/line-light-1080.png",
+    " M docs/evidence/plan2/T2-24/line-light-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1080.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1080.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-result-focus-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-small-deformation-light-1080-680.png",
+    " M docs/evidence/plan2/T2-25/desktop.json",
+    " M docs/evidence/plan2/T2-25/releases-dark-1080.png",
+    " M docs/evidence/plan2/T2-25/releases-dark-1440.png",
+    " M docs/evidence/plan2/T2-25/releases-light-1080.png",
+    " M docs/evidence/plan2/T2-25/releases-light-1440.png",
+    " M docs/evidence/plan2/T2-26/desktop.json",
+    " M docs/evidence/plan2/T2-26/mesh-dark-1080.png",
+    " M docs/evidence/plan2/T2-26/mesh-dark-1440.png",
+    " M docs/evidence/plan2/T2-26/mesh-light-1080.png",
+    " M docs/evidence/plan2/T2-26/mesh-light-1440.png",
+    " M docs/evidence/plan2/T2-26/mesh.docx",
+    " M docs/evidence/plan2/T2-26/mesh.pdf",
+    " M docs/evidence/plan2/T2-27/desktop.json",
+    " M docs/evidence/plan2/T2-27/modal-dark-1080.png",
+    " M docs/evidence/plan2/T2-27/modal-dark-1440.png",
+    " M docs/evidence/plan2/T2-27/modal-light-1080.png",
+    " M docs/evidence/plan2/T2-27/modal-light-1440.png",
+    " M docs/evidence/plan2/T2-28/line-editor-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-dark-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-dark-1440.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-light-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-light-1440.png",
+    " M docs/evidence/plan2/T2-28/point-editor-dark-1440.png",
+    " M docs/evidence/plan2/T2-29/damping-dark-1080.png",
+    " M docs/evidence/plan2/T2-29/damping-dark-1440.png",
+    " M docs/evidence/plan2/T2-29/damping-light-1080.png",
+    " M docs/evidence/plan2/T2-29/damping-light-1440.png",
+    " M docs/evidence/plan2/T2-29/desktop.json",
+    " M docs/evidence/plan2/T2-30/buckling-dark-1080.png",
+    " M docs/evidence/plan2/T2-30/buckling-dark-1440.png",
+    " M docs/evidence/plan2/T2-30/buckling-light-1080.png",
+    " M docs/evidence/plan2/T2-30/buckling-light-1440.png",
+    " M docs/evidence/plan2/T2-30/nonzero-fixed.framemind",
+    " M docs/evidence/plan2/T2-32/psd-dark-1440.png",
+    " M docs/evidence/plan2/T2-32/psd-light-1440.png",
+    " M e2e/plan2-t2-11-reliability.spec.ts",
+    " M electron/deepseek-chat.test.ts",
+    " M electron/deepseek.ts",
+    " M electron/model-edit-schema.ts",
+    " M package.json",
+    " M scripts/archive-plan2-t211.cjs",
+    " M scripts/verify-plan2-t211.cjs",
+    " M src/components/AiConversationPanel.tsx",
+    " M src/components/TaskDraftCard.tsx",
+    " M src/domain/project-operations.ts",
+    " M src/workspace/ai-task.ts",
+    " M src/workspace/ai-tools.ts",
+    " M src/workspace/draft-coordination.test.ts",
+    " M src/workspace/draft-coordination.ts",
+    " M src/workspace/model-edits.test.ts",
+    " M src/workspace/model-edits.ts",
+    " M src/workspace/task-confirmation.ts",
+    " M src/workspace/task-draft.test.ts",
+    " M src/workspace/task-draft.ts",
+    " M src/workspace/task-persistence.ts",
+    "?? .vscode/",
+    "?? docs/evidence/plan2/T2-11/replay/",
+    "?? docs/evidence/plan2/T2-41/",
+    "?? e2e/agent-integration.ts",
+    "?? e2e/plan2-t2-41-agent.spec.ts"
+  ],
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.19.0",
+    "electron": "44.5.1"
+  },
+  "status": "failed",
+  "executions": [
+    {
+      "label": "desktop 2 repetitions",
+      "code": 1
+    }
+  ],
+  "coverage": {},
+  "metrics": {
+    "identity": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "confirmation": {
+      "passed": 4,
+      "failed": 0,
+      "missing": 0,
+      "total": 4,
+      "rate": 1
+    },
+    "unchangedBeforeConfirm": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "restart": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "completed": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "once": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "budget": {
+      "passed": 10,
+      "failed": 0,
+      "missing": 4,
+      "total": 14,
+      "rate": 0.7142857142857143
+    },
+    "toolBoundary": {
+      "passed": 10,
+      "failed": 0,
+      "missing": 4,
+      "total": 14,
+      "rate": 0.7142857142857143
+    },
+    "read": {
+      "passed": 6,
+      "failed": 0,
+      "missing": 0,
+      "total": 6,
+      "rate": 1
+    },
+    "clarified": {
+      "passed": 2,
+      "failed": 2,
+      "missing": 0,
+      "total": 4,
+      "rate": 0.5
+    },
+    "noGuess": {
+      "passed": 6,
+      "failed": 0,
+      "missing": 0,
+      "total": 6,
+      "rate": 1
+    },
+    "unchanged": {
+      "passed": 8,
+      "failed": 0,
+      "missing": 2,
+      "total": 10,
+      "rate": 0.8
+    },
+    "fixedReference": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "trial": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "source": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "evidence": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "isolation": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 2,
+      "total": 2,
+      "rate": 0
+    },
+    "failure": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "explained": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "citation": {
+      "passed": 0,
+      "failed": 0,
+      "missing": 10,
+      "total": 10,
+      "rate": 0
+    }
+  },
+  "samples": [
+    {
+      "id": "geometry",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "mass",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "mass",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 1,
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "status": "failed"
+    }
+  ],
+  "failures": [
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "trial",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "source",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "evidence",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "isolation",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "trial",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "source",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "evidence",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "isolation",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "id": "relationship",
+      "repeat": 0,
+      "check": "clarified",
+      "status": "failed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 1,
+      "check": "clarified",
+      "status": "failed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC1:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC2:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC3:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC4:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "AC5:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "unchanged",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC1:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC2:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC3:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC4:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "AC5:citation",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "unchanged",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "budget",
+      "status": "missing"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "check": "toolBoundary",
+      "status": "missing"
+    },
+    {
+      "desktop": "T2-41 failed second-order trial preserves formal results and diagnostics",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 65,
+            "line": 79
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('ai-turn-status').last()\nExpected pattern: \u001b[32m/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/\u001b[39m\nReceived string:  \u001b[31m\"处理中 · 正在读取当前模型\"\u001b[39m\nTimeout: 150000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByTestId('ai-turn-status').last() with timeout 150000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('ai-turn-status').last()\u001b[22m\n\u001b[2m    141 × locator resolved to <span class=\"ai-turn-status\" data-testid=\"ai-turn-status\">处理中 · 正在读取当前模型</span>\u001b[22m\n\u001b[2m        - unexpected value \"处理中 · 正在读取当前模型\"\u001b[22m\n\n\n   at agent-integration.ts:79\n\n  77 |         await page.getByLabel(\"AI 消息草稿\").fill(prompt);\n  78 |         await page.getByRole(\"button\", { name: \"发送消息\", exact: true }).click();\n> 79 |         await expect(page.getByTestId(\"ai-turn-status\").last()).toHaveText(/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/, { timeout: 150_000 });\n     |                                                                 ^\n  80 |         let evidence: AiTaskResult | undefined;\n  81 |         await expect.poll(async () => {\n  82 |           evidence = await page.evaluate(async ({ projectId, previousIds, prompt }) => {\n    at ask (D:\\FrameMind\\e2e\\agent-integration.ts:79:65)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:65:20\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:60:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:64:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 random source relationship must be clarified before adding sources",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 97
+          },
+          "message": "Error: clarified\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:97\n\n   95 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   96 |     }\n>  97 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n   98 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n   99 |   } catch (error) {\n  100 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:97:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:87:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 real citations bind all five saved methods to frozen engineering identities",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 65,
+            "line": 79
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('ai-turn-status').last()\nExpected pattern: \u001b[32m/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/\u001b[39m\nReceived string:  \u001b[31m\"处理中 · 正在读取当前模型\"\u001b[39m\nTimeout: 150000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByTestId('ai-turn-status').last() with timeout 150000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('ai-turn-status').last()\u001b[22m\n\u001b[2m    129 × locator resolved to <span class=\"ai-turn-status\" data-testid=\"ai-turn-status\">处理中 · 正在读取当前模型</span>\u001b[22m\n\u001b[2m        - unexpected value \"处理中 · 正在读取当前模型\"\u001b[22m\n\n\n   at agent-integration.ts:79\n\n  77 |         await page.getByLabel(\"AI 消息草稿\").fill(prompt);\n  78 |         await page.getByRole(\"button\", { name: \"发送消息\", exact: true }).click();\n> 79 |         await expect(page.getByTestId(\"ai-turn-status\").last()).toHaveText(/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/, { timeout: 150_000 });\n     |                                                                 ^\n  80 |         let evidence: AiTaskResult | undefined;\n  81 |         await expect.poll(async () => {\n  82 |           evidence = await page.evaluate(async ({ projectId, previousIds, prompt }) => {\n    at ask (D:\\FrameMind\\e2e\\agent-integration.ts:79:65)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:102:22\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:60:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:97:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 failed second-order trial preserves formal results and diagnostics",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 65,
+            "line": 79
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('ai-turn-status').last()\nExpected pattern: \u001b[32m/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/\u001b[39m\nReceived string:  \u001b[31m\"处理中 · 正在读取当前模型\"\u001b[39m\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByTestId('ai-turn-status').last() with timeout 150000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('ai-turn-status').last()\u001b[22m\n\u001b[2m    36 × locator resolved to <span class=\"ai-turn-status\" data-testid=\"ai-turn-status\">处理中 · 正在读取当前模型</span>\u001b[22m\n\u001b[2m       - unexpected value \"处理中 · 正在读取当前模型\"\u001b[22m\n\u001b[2m  - Protocol error (Runtime.callFunctionOn): Internal server error, session closed.\u001b[22m\n\n\n   at agent-integration.ts:79\n\n  77 |         await page.getByLabel(\"AI 消息草稿\").fill(prompt);\n  78 |         await page.getByRole(\"button\", { name: \"发送消息\", exact: true }).click();\n> 79 |         await expect(page.getByTestId(\"ai-turn-status\").last()).toHaveText(/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/, { timeout: 150_000 });\n     |                                                                 ^\n  80 |         let evidence: AiTaskResult | undefined;\n  81 |         await expect.poll(async () => {\n  82 |           evidence = await page.evaluate(async ({ projectId, previousIds, prompt }) => {\n    at ask (D:\\FrameMind\\e2e\\agent-integration.ts:79:65)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:65:20\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:60:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:64:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 random source relationship must be clarified before adding sources",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 77,
+            "line": 97
+          },
+          "message": "Error: clarified\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n   at agent-integration.ts:97\n\n   95 |       checks.toolBoundary = results.length > 0 && results.every((r) => r.records.every((record) => !/command|shell|script|code|exec|file_write|optimize/.test(record.call.function.name)));\n   96 |     }\n>  97 |     for (const [name, value] of Object.entries(checks)) expect(value, name).toBe(true);\n      |                                                                             ^\n   98 |     expect(Object.keys(checks).length).toBeGreaterThan(0);\n   99 |   } catch (error) {\n  100 |     failed = true;\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:97:77)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:87:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-41 real citations bind all five saved methods to frozen engineering identities",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\agent-integration.ts",
+            "column": 65,
+            "line": 79
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('ai-turn-status').last()\nExpected pattern: \u001b[32m/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/\u001b[39m\nReceived string:  \u001b[31m\"处理中 · 正在读取当前模型\"\u001b[39m\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByTestId('ai-turn-status').last() with timeout 150000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('ai-turn-status').last()\u001b[22m\n\u001b[2m    29 × locator resolved to <span class=\"ai-turn-status\" data-testid=\"ai-turn-status\">处理中 · 正在读取当前模型</span>\u001b[22m\n\u001b[2m       - unexpected value \"处理中 · 正在读取当前模型\"\u001b[22m\n\u001b[2m  - Protocol error (Runtime.callFunctionOn): Internal server error, session closed.\u001b[22m\n\n\n   at agent-integration.ts:79\n\n  77 |         await page.getByLabel(\"AI 消息草稿\").fill(prompt);\n  78 |         await page.getByRole(\"button\", { name: \"发送消息\", exact: true }).click();\n> 79 |         await expect(page.getByTestId(\"ai-turn-status\").last()).toHaveText(/^(等待确认|缺少输入|已完成|处理失败|已取消) ·/, { timeout: 150_000 });\n     |                                                                 ^\n  80 |         let evidence: AiTaskResult | undefined;\n  81 |         await expect.poll(async () => {\n  82 |           evidence = await page.evaluate(async ({ projectId, previousIds, prompt }) => {\n    at ask (D:\\FrameMind\\e2e\\agent-integration.ts:79:65)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:102:22\n    at agentFixture (D:\\FrameMind\\e2e\\agent-integration.ts:60:5)\n    at D:\\FrameMind\\e2e\\plan2-t2-41-agent.spec.ts:97:3"
+        }
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "src/workspace/ai-tools.test.ts": "8eec2ac811e37851957aab3eb4337e38934ebb56132957c5c3be180998be55c2",
+    "src/workspace/ai-task.test.ts": "1208a68dc4241ae7b403f8d49d782355a89d7fc7393f6eeb3ec46e3b8b38bf7b",
+    "src/workspace/model-edits.test.ts": "7d473832114eee9d66524d6d95e91f2008071bd41dc0b1c402bbaedabbad874e",
+    "src/workspace/task-draft.test.ts": "c51cf186c772825083697504c66f3a1381d96c55df8b9d14a99dce8e0c64041a",
+    "src/workspace/analysis-intent.test.ts": "c51b1857123874d91b4cafaa156e14513c2d2eaed20eb8dd59fb78c2f28c128d",
+    "src/workspace/task-restart.test.ts": "f542fd5803015e08b7569d98956e49b304251e9f0efb46c749b4d94fe7e3f108",
+    "electron/recovery-store.test.ts": "6c5fb3f805d5c2657ddd634ea02751445a7740b6fdec5c1c528e0adeb1420559",
+    "src/workspace/draft-coordination.test.ts": "fcd61efcf34fdcd4aa5c57cff9b742410fb030c14097c50222d2a8a4abc519cb",
+    "src/workspace/task-scheduler.test.ts": "7d4d4f3c8b01b8e09bb40bcd36ddd23b41aecfd01a2fd3ae9abbc9930afb0335",
+    "src/workspace/diagnostic-trial.test.ts": "6cc4487d62d67a48a213f44df78053837f34a1667bff15df69298ff76f4d1ff0",
+    "src/workspace/exploration-budget.test.ts": "75b6dfe1e8c20d6936eb6700ee0896ebf79c1c2322e4f00115a6bbcf9eb7622c",
+    "src/domain/project-restart.test.ts": "2a588ebd8bb7f3c1320571291ffaa7c5e6ac87ad15e9abf56dbbbdb617364764",
+    "electron/deepseek.test.ts": "77011f5c4c9bca3d10c191fa961d11c8d69daf930226846f2d6db9e80b67aeb0",
+    "electron/deepseek-chat.test.ts": "609a52c6f0292f14ec1bafa9451a64e1c9f72149e56acaaca5cddbac93f54950",
+    "src/workspace/node-merge.test.ts": "ecadae2d68f0f3a8b2177201ab303ce47035388d0163b9989a132f6de5baed66",
+    "src/workspace/topology.test.ts": "3ced626a6b8fc0b5c9b6e239b3bf474cf083dd2fc07fc419bbcb920d797e1aa9",
+    "src/workspace/psd-tools.test.ts": "f7807b81e7cbe1c9dbe9204a62abd2483804daed0a8b1cf15ef45f60bcc9fa19",
+    "src/workspace/result-inspection.test.ts": "0690e84a51338e13f96614e006f63d1c4d14c2d99164411d4dc3912f9c3fd63f",
+    "e2e/plan2-t2-41-agent.spec.ts": "f7226cc7b8b5f7700f12e3a3f3fe70c4970bae8e09c0d875f8e79c72bef36e2a",
+    "e2e/plan2-t2-05-coordination.spec.ts": "fc0ec1a23cc51d380a94dc580165a38f934337eeae9b65f8d94e75ccfe3e5b98",
+    "e2e/plan2-t2-09-restart.spec.ts": "96b32da9e2eaa587930c08a44c9cb1d0f19e9fb61178de97418309eac8e894fe",
+    "e2e/plan2-t2-10-recovery.spec.ts": "37d948ba5a35ea5c50aac9fcc201a2ea4072e3bfbe2605b504b742c689a2a120",
+    "docs/evidence/plan2/T2-36/all-methods.framemind": "f26866d5a34095ed86e447aebd4d75c801a9101b7724039c3c59b67abc5a2cea",
+    "e2e/agent-integration.ts": "a837c852901d7ada40bda9d34c1373c7c84f3ddf5bb6bf17790f2a739e2fd1f2",
+    "src/workspace/task-confirmation.ts": "43f42d373b40aae0cacd527d99d1d7d68c5303825e0c23ef599876f5e3afa2fc",
+    "src/workspace/task-draft.ts": "d58680ce5bd007f98c1b03fc0c97c5f2bcb1d1605206832348e3212259447fc9",
+    "electron/model-edit-schema.ts": "f1060c6f1a9e6bbac3346063e63a7e9ca4126aa4a5d045375e9b54ff2678a274",
+    "src/workspace/ai-task.ts": "4d78cfbaa7fc2ea12fc14c396653539ace1af46c83d3dc57f90fd65a08ecc6d5",
+    "src/workspace/ai-tools.ts": "05c779795ac0660e32bbb45f59a9f295e617e98c78d96940861ea5a177603190",
+    "electron/deepseek.ts": "8a2d86cd03d3e62232dbaaf215477b380f59f3b7d87c63a7fe8daf55f74fc9a4",
+    "scripts/verify-plan2-t211.cjs": "0db3a6663d38e4d4c0aec96edcd601c225362f1c1d8f50e2e62483b837cfea03",
+    "package-lock.json": "6cf8cab8743067f00f9c0bad7a843cae6873459ffd0c3befecba536ab7dbb9a4"
+  },
+  "desktopStats": {
+    "startTime": "2026-10-07T08:58:30.647Z",
+    "duration": 993263.6429999999,
+    "expected": 8,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  },
+  "endedAt": "2026-10-07T09:15:07.721Z"
+}

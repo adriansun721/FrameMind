@@ -1,0 +1,8 @@
+# Preserve immutable evidence bytes, including protocol SHA-256 on Windows.
+/protocol.json -text
+/unit-summary.json -text
+/runs/**/*.json -text whitespace=cr-at-eol
+# Playwright excerpts intentionally retain source-line padding as failure evidence.
+/runs/**/artifacts/**/error-context.md -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+*.gz -text
+*.zip -text

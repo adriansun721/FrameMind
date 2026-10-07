@@ -1,0 +1,669 @@
+{
+  "mode": "replay",
+  "startedAt": "2026-10-07T09:24:24.666Z",
+  "protocolHash": "7929b8b3dc1a381fab43e0b15c48e3d5e178214a1634d620ac92b4da2b17a3f8",
+  "revision": "196857c65fe5d18b10fc30ee7e8202b59a641a79",
+  "changedFiles": [
+    "M docs/evidence/T11-cases-1080.png",
+    " M docs/evidence/T11-cases-1440.png",
+    " M docs/evidence/T11-comparison-1080.png",
+    " M docs/evidence/T11-comparison-1440.png",
+    " M docs/evidence/T12-editor-1080.png",
+    " M docs/evidence/T12-editor-1440.png",
+    " M docs/evidence/T12-results-1080.png",
+    " M docs/evidence/T12-results-1440.png",
+    " M docs/evidence/T16-dark-deformation-1080.png",
+    " M docs/evidence/T16-dark-deformation-1440.png",
+    " M docs/evidence/T16-dark-forces-1080.png",
+    " M docs/evidence/T16-dark-forces-1440.png",
+    " M docs/evidence/T16-dark-model-1080.png",
+    " M docs/evidence/T16-dark-model-1440.png",
+    " M docs/evidence/T16-dark-selection-error-1080.png",
+    " M docs/evidence/T16-light-deformation-1080.png",
+    " M docs/evidence/T16-light-deformation-1440.png",
+    " M docs/evidence/T16-light-forces-1080.png",
+    " M docs/evidence/T16-light-forces-1440.png",
+    " M docs/evidence/T16-light-model-1080.png",
+    " M docs/evidence/T16-light-model-1440.png",
+    " M docs/evidence/T16-light-selection-error-1080.png",
+    " M docs/evidence/T17-member-process.png",
+    " M docs/evidence/T19-dark-1080.png",
+    " M docs/evidence/T19-dark-1440.png",
+    " M docs/evidence/T19-light-1080.png",
+    " M docs/evidence/T19-light-1440.png",
+    " M docs/evidence/T20-dark-1080.png",
+    " M docs/evidence/T20-dark-1440.png",
+    " M docs/evidence/T20-light-1080.png",
+    " M docs/evidence/T20-light-1440.png",
+    " M docs/evidence/T21-dark-1080.png",
+    " M docs/evidence/T21-dark-1440.png",
+    " M docs/evidence/T21-light-1080.png",
+    " M docs/evidence/T21-light-1440.png",
+    " M docs/evidence/T22-dark-1080.png",
+    " M docs/evidence/T22-dark-1440.png",
+    " M docs/evidence/T22-light-1080.png",
+    " M docs/evidence/T22-light-1440.png",
+    " M docs/evidence/T23-dark-1080.png",
+    " M docs/evidence/T23-dark-1440.png",
+    " M docs/evidence/T23-light-1080.png",
+    " M docs/evidence/T23-light-1440.png",
+    " M docs/evidence/T23-result.png",
+    " M docs/evidence/T24-dark-1080.png",
+    " M docs/evidence/T24-dark-1440.png",
+    " M docs/evidence/T24-light-1080.png",
+    " M docs/evidence/T24-light-1440.png",
+    " M docs/evidence/T25-dark.png",
+    " M docs/evidence/T25-light.png",
+    " M docs/evidence/T25-replay.json",
+    " M docs/evidence/T26-comparison.png",
+    " M docs/evidence/T26-dark-preview.png",
+    " M docs/evidence/T26-light-preview.png",
+    " M docs/evidence/T26-replay.json",
+    " M docs/evidence/T27-offline-analysis.png",
+    " M docs/evidence/T27-recovery.png",
+    " M docs/evidence/T28-baseline.docx",
+    " M docs/evidence/T28-baseline.framemind",
+    " M docs/evidence/T28-combination.docx",
+    " M docs/evidence/T28-combination.framemind",
+    " M docs/evidence/T28-dark-1080.png",
+    " M docs/evidence/T28-dark-1440.png",
+    " M docs/evidence/T28-light-1080.png",
+    " M docs/evidence/T28-light-1440.png",
+    " M docs/evidence/T29-all.docx",
+    " M docs/evidence/T29-all.framemind",
+    " M docs/evidence/T29-dark-1080.png",
+    " M docs/evidence/T29-dark-1440.png",
+    " M docs/evidence/T29-light-1080.png",
+    " M docs/evidence/T29-light-1440.png",
+    " M docs/evidence/T29-selected.docx",
+    " M docs/evidence/T29-selected.framemind",
+    " M docs/evidence/T29-supplemental.docx",
+    " M docs/evidence/T29-supplemental.framemind",
+    " M docs/evidence/T30-all.docx",
+    " M docs/evidence/T30-all.framemind",
+    " M docs/evidence/T30-all.pdf",
+    " M docs/evidence/T30-dark-1080.png",
+    " M docs/evidence/T30-dark-1440.png",
+    " M docs/evidence/T30-light-1080.png",
+    " M docs/evidence/T30-light-1440.png",
+    " M docs/evidence/T30-long.docx",
+    " M docs/evidence/T30-long.framemind",
+    " M docs/evidence/T30-long.pdf",
+    " M docs/evidence/T30-selected.docx",
+    " M docs/evidence/T30-selected.framemind",
+    " M docs/evidence/T30-selected.pdf",
+    " M docs/evidence/T33/replay-dark/failure.json",
+    " M docs/evidence/T33/replay-dark/failure.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-dark/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-dark/guide-1080.png",
+    " M docs/evidence/T33/replay-dark/guide-1440.png",
+    " M docs/evidence/T33/replay-dark/validation.json",
+    " M docs/evidence/T33/replay-light/failure.json",
+    " M docs/evidence/T33/replay-light/failure.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1080.png",
+    " M docs/evidence/T33/replay-light/frame-preview-1440.png",
+    " M docs/evidence/T33/replay-light/guide-1080.png",
+    " M docs/evidence/T33/replay-light/guide-1440.png",
+    " M docs/evidence/T33/replay-light/validation.json",
+    " M docs/evidence/compact-cards/dark-1080-editor.png",
+    " M docs/evidence/compact-cards/dark-1080-summary.png",
+    " M docs/evidence/compact-cards/dark-1440-editor.png",
+    " M docs/evidence/compact-cards/dark-1440-summary.png",
+    " M docs/evidence/compact-cards/light-1080-editor.png",
+    " M docs/evidence/compact-cards/light-1080-summary.png",
+    " M docs/evidence/compact-cards/light-1440-editor.png",
+    " M docs/evidence/compact-cards/light-1440-summary.png",
+    " M docs/evidence/plan2/T2-05/component-conflict.png",
+    " M docs/evidence/plan2/T2-05/stable-targets.json",
+    " M docs/evidence/plan2/T2-05/targets-dark-1440.png",
+    " M docs/evidence/plan2/T2-05/targets-light-1080.png",
+    " M docs/evidence/plan2/T2-09/reopened-receipt.png",
+    " M docs/evidence/plan2/T2-10/recovered-receipt-dark.png",
+    " M docs/evidence/plan2/T2-10/startup-fallback-dark.png",
+    " M docs/evidence/plan2/T2-10/startup-fallback-light.png",
+    " M docs/evidence/plan2/T2-12/desktop-result.json",
+    " M docs/evidence/plan2/T2-12/static-process.png",
+    " M docs/evidence/plan2/T2-13/desktop-results.json",
+    " M docs/evidence/plan2/T2-13/native-process.png",
+    " M docs/evidence/plan2/T2-14/desktop-results.json",
+    " M docs/evidence/plan2/T2-14/native-combination.docx",
+    " M docs/evidence/plan2/T2-14/native-combination.pdf",
+    " M docs/evidence/plan2/T2-14/native-process.png",
+    " M docs/evidence/plan2/T2-15/desktop-isolation.json",
+    " M docs/evidence/plan2/T2-15/native-production.png",
+    " M docs/evidence/plan2/T2-16/analysis-case-manager.png",
+    " M docs/evidence/plan2/T2-16/deleted-source-history.png",
+    " M docs/evidence/plan2/T2-16/desktop-verification.json",
+    " M docs/evidence/plan2/T2-17/units-dark-1080.png",
+    " M docs/evidence/plan2/T2-17/units-dark-1440.png",
+    " M docs/evidence/plan2/T2-17/units-light-1080.png",
+    " M docs/evidence/plan2/T2-17/units-light-1440.png",
+    " M docs/evidence/plan2/T2-17/units.docx",
+    " M docs/evidence/plan2/T2-17/units.framemind",
+    " M docs/evidence/plan2/T2-17/units.pdf",
+    " M docs/evidence/plan2/T2-18/geometry-dark-1080.png",
+    " M docs/evidence/plan2/T2-18/geometry-dark-1440.png",
+    " M docs/evidence/plan2/T2-18/geometry-light-1080.png",
+    " M docs/evidence/plan2/T2-18/geometry-light-1440.png",
+    " M docs/evidence/plan2/T2-18/large-close.framemind",
+    " M docs/evidence/plan2/T2-18/large-close.png",
+    " M docs/evidence/plan2/T2-19/desktop-mouse.json",
+    " M docs/evidence/plan2/T2-19/drawing-dark-1080.png",
+    " M docs/evidence/plan2/T2-19/drawing-dark-1440.png",
+    " M docs/evidence/plan2/T2-19/drawing-light-1080.png",
+    " M docs/evidence/plan2/T2-19/drawing-light-1440.png",
+    " M docs/evidence/plan2/T2-19/mouse-normal-zoom.png",
+    " M docs/evidence/plan2/T2-19/mouse-oblique.png",
+    " M docs/evidence/plan2/T2-20/desktop.json",
+    " M docs/evidence/plan2/T2-20/topology-dark-1080.png",
+    " M docs/evidence/plan2/T2-20/topology-dark-1440.png",
+    " M docs/evidence/plan2/T2-20/topology-light-1080.png",
+    " M docs/evidence/plan2/T2-20/topology-light-1440.png",
+    " M docs/evidence/plan2/T2-21/desktop.json",
+    " M docs/evidence/plan2/T2-21/merge-dark-1080.png",
+    " M docs/evidence/plan2/T2-21/merge-dark-1440.png",
+    " M docs/evidence/plan2/T2-21/merge-light-1080.png",
+    " M docs/evidence/plan2/T2-21/merge-light-1440.png",
+    " M docs/evidence/plan2/T2-22/desktop.json",
+    " M docs/evidence/plan2/T2-24/desktop.json",
+    " M docs/evidence/plan2/T2-24/line-dark-1080-680.png",
+    " M docs/evidence/plan2/T2-24/line-dark-1080.png",
+    " M docs/evidence/plan2/T2-24/line-dark-1440.png",
+    " M docs/evidence/plan2/T2-24/line-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/line-light-1080.png",
+    " M docs/evidence/plan2/T2-24/line-light-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1080.png",
+    " M docs/evidence/plan2/T2-24/solid-dark-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1080.png",
+    " M docs/evidence/plan2/T2-24/solid-light-1440.png",
+    " M docs/evidence/plan2/T2-24/solid-result-focus-light-1080-680.png",
+    " M docs/evidence/plan2/T2-24/solid-small-deformation-light-1080-680.png",
+    " M docs/evidence/plan2/T2-25/desktop.json",
+    " M docs/evidence/plan2/T2-25/releases-dark-1080.png",
+    " M docs/evidence/plan2/T2-25/releases-dark-1440.png",
+    " M docs/evidence/plan2/T2-25/releases-light-1080.png",
+    " M docs/evidence/plan2/T2-25/releases-light-1440.png",
+    " M docs/evidence/plan2/T2-26/desktop.json",
+    " M docs/evidence/plan2/T2-26/mesh-dark-1080.png",
+    " M docs/evidence/plan2/T2-26/mesh-dark-1440.png",
+    " M docs/evidence/plan2/T2-26/mesh-light-1080.png",
+    " M docs/evidence/plan2/T2-26/mesh-light-1440.png",
+    " M docs/evidence/plan2/T2-26/mesh.docx",
+    " M docs/evidence/plan2/T2-26/mesh.pdf",
+    " M docs/evidence/plan2/T2-27/desktop.json",
+    " M docs/evidence/plan2/T2-27/modal-dark-1080.png",
+    " M docs/evidence/plan2/T2-27/modal-dark-1440.png",
+    " M docs/evidence/plan2/T2-27/modal-light-1080.png",
+    " M docs/evidence/plan2/T2-27/modal-light-1440.png",
+    " M docs/evidence/plan2/T2-28/line-editor-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-dark-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-dark-1440.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-light-1080.png",
+    " M docs/evidence/plan2/T2-28/mass-sources-light-1440.png",
+    " M docs/evidence/plan2/T2-28/point-editor-dark-1440.png",
+    " M docs/evidence/plan2/T2-29/damping-dark-1080.png",
+    " M docs/evidence/plan2/T2-29/damping-dark-1440.png",
+    " M docs/evidence/plan2/T2-29/damping-light-1080.png",
+    " M docs/evidence/plan2/T2-29/damping-light-1440.png",
+    " M docs/evidence/plan2/T2-29/desktop.json",
+    " M docs/evidence/plan2/T2-30/buckling-dark-1080.png",
+    " M docs/evidence/plan2/T2-30/buckling-dark-1440.png",
+    " M docs/evidence/plan2/T2-30/buckling-light-1080.png",
+    " M docs/evidence/plan2/T2-30/buckling-light-1440.png",
+    " M docs/evidence/plan2/T2-30/nonzero-fixed.framemind",
+    " M docs/evidence/plan2/T2-32/psd-dark-1440.png",
+    " M docs/evidence/plan2/T2-32/psd-light-1440.png",
+    " M docs/evidence/plan2/T2-41/protocol.json",
+    " M e2e/agent-integration.ts",
+    " M e2e/plan2-t2-41-agent.spec.ts",
+    " M electron/deepseek.ts",
+    " M electron/model-edit-schema.ts",
+    " M src/components/TaskDraftCard.tsx",
+    " M src/domain/project-operations.ts",
+    " M src/workspace/ai-task.test.ts",
+    " M src/workspace/ai-task.ts",
+    " M src/workspace/draft-coordination.test.ts",
+    " M src/workspace/draft-coordination.ts",
+    " M src/workspace/model-edits.test.ts",
+    " M src/workspace/model-edits.ts",
+    " M src/workspace/task-confirmation.ts",
+    " M src/workspace/task-draft.test.ts",
+    " M src/workspace/task-draft.ts",
+    " M src/workspace/task-persistence.ts",
+    "?? .vscode/",
+    "?? docs/evidence/plan2/T2-11/replay/",
+    "?? docs/evidence/plan2/T2-41/implementation.md",
+    "?? docs/evidence/plan2/T2-41/replay/",
+    "?? docs/evidence/plan2/T2-41/runs/",
+    "?? docs/evidence/plan2/T2-41/tool-coverage.md"
+  ],
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.19.0",
+    "electron": "44.5.1"
+  },
+  "status": "failed",
+  "executions": [
+    {
+      "label": "contracts repetition 1/2",
+      "code": 0
+    },
+    {
+      "label": "contracts repetition 2/2",
+      "code": 0
+    },
+    {
+      "label": "desktop 2 repetitions",
+      "code": 1
+    }
+  ],
+  "coverage": {
+    "AC2-01": {
+      "passed": 74,
+      "total": 74,
+      "failures": []
+    },
+    "AC2-02": {
+      "passed": 48,
+      "total": 48,
+      "failures": []
+    },
+    "AC2-03": {
+      "passed": 34,
+      "total": 34,
+      "failures": []
+    },
+    "AC2-04": {
+      "passed": 62,
+      "total": 62,
+      "failures": []
+    },
+    "AC2-05": {
+      "passed": 74,
+      "total": 74,
+      "failures": []
+    },
+    "AC2-06": {
+      "passed": 74,
+      "total": 74,
+      "failures": []
+    },
+    "AC2-07": {
+      "passed": 30,
+      "total": 30,
+      "failures": []
+    },
+    "AC2-08": {
+      "passed": 20,
+      "total": 20,
+      "failures": []
+    },
+    "AC2-09": {
+      "passed": 70,
+      "total": 70,
+      "failures": []
+    },
+    "AC2-10": {
+      "passed": 42,
+      "total": 42,
+      "failures": []
+    },
+    "AC2-11": {
+      "passed": 204,
+      "total": 204,
+      "failures": []
+    },
+    "advanced": {
+      "passed": 198,
+      "total": 198,
+      "failures": []
+    }
+  },
+  "metrics": {
+    "identity": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "confirmation": {
+      "passed": 4,
+      "failed": 0,
+      "missing": 0,
+      "total": 4,
+      "rate": 1
+    },
+    "unchangedBeforeConfirm": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "restart": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "completed": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "once": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "budget": {
+      "passed": 14,
+      "failed": 0,
+      "missing": 0,
+      "total": 14,
+      "rate": 1
+    },
+    "toolBoundary": {
+      "passed": 14,
+      "failed": 0,
+      "missing": 0,
+      "total": 14,
+      "rate": 1
+    },
+    "read": {
+      "passed": 6,
+      "failed": 0,
+      "missing": 0,
+      "total": 6,
+      "rate": 1
+    },
+    "clarified": {
+      "passed": 4,
+      "failed": 0,
+      "missing": 0,
+      "total": 4,
+      "rate": 1
+    },
+    "noGuess": {
+      "passed": 6,
+      "failed": 0,
+      "missing": 0,
+      "total": 6,
+      "rate": 1
+    },
+    "unchanged": {
+      "passed": 10,
+      "failed": 0,
+      "missing": 0,
+      "total": 10,
+      "rate": 1
+    },
+    "fixedReference": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "actualCompleted": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "newCitation": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "trial": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "source": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "evidence": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "isolation": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "recoveryDraft": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "recovered": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "failure": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "explained": {
+      "passed": 2,
+      "failed": 0,
+      "missing": 0,
+      "total": 2,
+      "rate": 1
+    },
+    "citation": {
+      "passed": 10,
+      "failed": 0,
+      "missing": 0,
+      "total": 10,
+      "rate": 1
+    }
+  },
+  "samples": [
+    {
+      "id": "geometry",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "geometry",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "mass",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "mass",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "buckling",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "second-order",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "spectrum",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "relationship",
+      "repeat": 1,
+      "status": "passed"
+    },
+    {
+      "id": "citations",
+      "repeat": 0,
+      "status": "passed"
+    },
+    {
+      "id": "citations",
+      "repeat": 1,
+      "status": "passed"
+    }
+  ],
+  "failures": [
+    {
+      "desktop": "T2-09 freezes an interrupted local calculation and resumes it offline only on request",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-09-restart.spec.ts",
+            "column": 44,
+            "line": 175
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveLength\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected length: \u001b[32m1\u001b[39m\nReceived length: \u001b[31m0\u001b[39m\nReceived array:  \u001b[31m[]\u001b[39m\n\n  173 |     await expect(page.getByRole(\"button\", { name: \"取消计算\", exact: true })).toBeVisible();\n  174 |     const interrupted = await save(page, path);\n> 175 |     expect(interrupted.taskState.analyses).toHaveLength(1);\n      |                                            ^\n  176 |     expect(interrupted.taskState.scheduled.some((task: { kind: string; status: string }) => task.kind === \"analysis\" && task.status === \"running\")).toBe(true);\n  177 |     await app!.close(); page = await launch();\n  178 |     await expect(page.getByRole(\"button\", { name: \"取消计算\", exact: true })).toHaveCount(0);\n    at D:\\FrameMind\\e2e\\plan2-t2-09-restart.spec.ts:175:44"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-09 freezes an interrupted local calculation and resumes it offline only on request",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-09-restart.spec.ts",
+            "column": 46,
+            "line": 184
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   2\u001b[39m\n\u001b[31m+ Received  + 452\u001b[39m\n\n\u001b[33m@@ -50,10 +50,460 @@\u001b[39m\n\u001b[2m        \"rotationDegrees\": 0,\u001b[22m\n\u001b[2m        \"sectionId\": \"section_0001\",\u001b[22m\n\u001b[2m        \"startNodeId\": \"node_0003\",\u001b[22m\n\u001b[2m      },\u001b[22m\n\u001b[2m    ],\u001b[22m\n\u001b[31m+   \"meshPlan\": Object {\u001b[39m\n\u001b[31m+     \"frames\": Object {\u001b[39m\n\u001b[31m+       \"member_0001\": Object {\u001b[39m\n\u001b[31m+         \"length\": 4,\u001b[39m\n\u001b[31m+         \"localX\": Object {\u001b[39m\n\u001b[31m+           \"x\": 0,\u001b[39m\n\u001b[31m+           \"y\": 0,\u001b[39m\n\u001b[31m+           \"z\": 1,\u001b[39m\n\u001b[31m+         },\u001b[39m\n\u001b[31m+         \"localY\": Object {\u001b[39m\n\u001b[31m+           \"x\": 1,\u001b[39m\n\u001b[31m+           \"y\": 0,\u001b[39m\n\u001b[31m+           \"z\": 0,\u001b[39m\n\u001b[31m+         },\u001b[39m\n\u001b[31m+         \"localZ\": Object {\u001b[39m\n\u001b[31m+           \"x\": 0,\u001b[39m\n\u001b[31m+           \"y\": 1,\u001b[39m\n\u001b[31m+           \"z\": 0,\u001b[39m\n\u001b[31m+         },\u001b[39m\n\u001b[31m+         \"referenceAxis\": \"global-y\",\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       \"member_0002\": Object {\u001b[39m\n\u001b[31m+         \"length\": 4,\u001b[39m\n\u001b[31m+         \"localX\": Object {\u001b[39m\n\u001b[31m+           \"x\": 0,\u001b[39m\n\u001b[31m+           \"y\": 0,\u001b[39m\n\u001b[31m+           \"z\": 1,\u001b[39m\n\u001b[31m+         },\u001b[39m\n\u001b[31m+         \"localY\": Object {\u001b[39m\n\u001b[31m+           \"x\": 1,\u001b[39m\n\u001b[31m+           \"y\": 0,\u001b[39m\n\u001b[31m+           \"z\": 0,\u001b[39m\n\u001b[31m+         },\u001b[39m\n\u001b[31m+         \"localZ\": Object {\u001b[39m\n\u001b[31m+           \"x\": 0,\u001b[39m\n\u001b[31m+           \"y\": 1,\u001b[39m\n\u001b[31m+           \"z\": 0,\u001b[39m\n\u001b[31m+         },\u001b[39m\n\u001b[31m+         \"referenceAxis\": \"global-y\",\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     },\u001b[39m\n\u001b[31m+     \"levels\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"divisions\": 1,\u001b[39m\n\u001b[31m+         \"elements\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_1_e_0_0\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0002\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0001\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_1_e_1_0\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0004\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0003\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"nodes\": Array [],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"divisions\": 2,\u001b[39m\n\u001b[31m+         \"elements\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_2_e_0_0\",\u001b[39m\n\u001b[31m+             \"end\": 2,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_2_n_0_1\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0001\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_2_e_0_1\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0002\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 2,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_2_n_0_1\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_2_e_1_0\",\u001b[39m\n\u001b[31m+             \"end\": 2,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_2_n_1_1\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0003\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_2_e_1_1\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0004\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 2,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_2_n_1_1\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"nodes\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.5,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_2_n_0_1\",\u001b[39m\n\u001b[31m+             \"position\": 2,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.5,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_2_n_1_1\",\u001b[39m\n\u001b[31m+             \"position\": 2,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"divisions\": 4,\u001b[39m\n\u001b[31m+         \"elements\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_0_0\",\u001b[39m\n\u001b[31m+             \"end\": 1,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_4_n_0_1\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0001\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_0_1\",\u001b[39m\n\u001b[31m+             \"end\": 2,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_4_n_0_2\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 1,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_4_n_0_1\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_0_2\",\u001b[39m\n\u001b[31m+             \"end\": 3,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_4_n_0_3\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 2,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_4_n_0_2\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_0_3\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0002\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 3,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_4_n_0_3\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_1_0\",\u001b[39m\n\u001b[31m+             \"end\": 1,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_4_n_1_1\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0003\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_1_1\",\u001b[39m\n\u001b[31m+             \"end\": 2,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_4_n_1_2\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 1,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_4_n_1_1\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_1_2\",\u001b[39m\n\u001b[31m+             \"end\": 3,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_4_n_1_3\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 2,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_4_n_1_2\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_4_e_1_3\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0004\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 3,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_4_n_1_3\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"nodes\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.25,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_4_n_0_1\",\u001b[39m\n\u001b[31m+             \"position\": 1,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.5,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_4_n_0_2\",\u001b[39m\n\u001b[31m+             \"position\": 2,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.75,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_4_n_0_3\",\u001b[39m\n\u001b[31m+             \"position\": 3,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.25,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_4_n_1_1\",\u001b[39m\n\u001b[31m+             \"position\": 1,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.5,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_4_n_1_2\",\u001b[39m\n\u001b[31m+             \"position\": 2,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.75,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_4_n_1_3\",\u001b[39m\n\u001b[31m+             \"position\": 3,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"divisions\": 8,\u001b[39m\n\u001b[31m+         \"elements\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_0\",\u001b[39m\n\u001b[31m+             \"end\": 0.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_1\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0001\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_1\",\u001b[39m\n\u001b[31m+             \"end\": 1,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_2\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 0.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_1\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_2\",\u001b[39m\n\u001b[31m+             \"end\": 1.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_3\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 1,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_2\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_3\",\u001b[39m\n\u001b[31m+             \"end\": 2,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_4\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 1.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_3\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_4\",\u001b[39m\n\u001b[31m+             \"end\": 2.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_5\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 2,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_4\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_5\",\u001b[39m\n\u001b[31m+             \"end\": 3,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_6\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 2.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_5\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_6\",\u001b[39m\n\u001b[31m+             \"end\": 3.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_0_7\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 3,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_6\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_0_7\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0002\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"start\": 3.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_0_7\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_0\",\u001b[39m\n\u001b[31m+             \"end\": 0.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_1\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 0,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"node_0003\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_1\",\u001b[39m\n\u001b[31m+             \"end\": 1,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_2\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 0.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_1\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_2\",\u001b[39m\n\u001b[31m+             \"end\": 1.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_3\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 1,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_2\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_3\",\u001b[39m\n\u001b[31m+             \"end\": 2,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_4\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 1.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_3\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_4\",\u001b[39m\n\u001b[31m+             \"end\": 2.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_5\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 2,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_4\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_5\",\u001b[39m\n\u001b[31m+             \"end\": 3,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_6\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 2.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_5\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_6\",\u001b[39m\n\u001b[31m+             \"end\": 3.5,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"__mesh_8_n_1_7\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 3,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_6\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"elementId\": \"__mesh_8_e_1_7\",\u001b[39m\n\u001b[31m+             \"end\": 4,\u001b[39m\n\u001b[31m+             \"endNodeId\": \"node_0004\",\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"start\": 3.5,\u001b[39m\n\u001b[31m+             \"startNodeId\": \"__mesh_8_n_1_7\",\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"nodes\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.125,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_1\",\u001b[39m\n\u001b[31m+             \"position\": 0.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.25,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_2\",\u001b[39m\n\u001b[31m+             \"position\": 1,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.375,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_3\",\u001b[39m\n\u001b[31m+             \"position\": 1.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.5,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_4\",\u001b[39m\n\u001b[31m+             \"position\": 2,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.625,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_5\",\u001b[39m\n\u001b[31m+             \"position\": 2.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.75,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_6\",\u001b[39m\n\u001b[31m+             \"position\": 3,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.875,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0001\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_0_7\",\u001b[39m\n\u001b[31m+             \"position\": 3.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.125,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_1\",\u001b[39m\n\u001b[31m+             \"position\": 0.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.25,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_2\",\u001b[39m\n\u001b[31m+             \"position\": 1,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.375,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_3\",\u001b[39m\n\u001b[31m+             \"position\": 1.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.5,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_4\",\u001b[39m\n\u001b[31m+             \"position\": 2,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.625,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_5\",\u001b[39m\n\u001b[31m+             \"position\": 2.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.75,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_6\",\u001b[39m\n\u001b[31m+             \"position\": 3,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"fraction\": 0.875,\u001b[39m\n\u001b[31m+             \"memberId\": \"member_0002\",\u001b[39m\n\u001b[31m+             \"nodeId\": \"__mesh_8_n_1_7\",\u001b[39m\n\u001b[31m+             \"position\": 3.5,\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"policy\": Object {\u001b[39m\n\u001b[31m+       \"displacementTolerance\": 1e-12,\u001b[39m\n\u001b[31m+       \"forceTolerance\": 1e-8,\u001b[39m\n\u001b[31m+       \"maxDivisions\": 8,\u001b[39m\n\u001b[31m+       \"maxEquations\": 12000,\u001b[39m\n\u001b[31m+       \"relativeTolerance\": 0.000001,\u001b[39m\n\u001b[31m+     },\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[2m    \"nodalLoads\": Array [\u001b[22m\n\u001b[2m      Object {\u001b[22m\n\u001b[2m        \"force\": Object {\u001b[22m\n\u001b[2m          \"x\": 5,\u001b[22m\n\u001b[2m          \"y\": 0,\u001b[22m\n\u001b[33m@@ -160,13 +610,13 @@\u001b[39m\n\u001b[2m        \"z\": -10,\u001b[22m\n\u001b[2m      },\u001b[22m\n\u001b[2m      \"loadCaseId\": \"LC1\",\u001b[22m\n\u001b[2m    },\u001b[22m\n\u001b[2m    \"solver\": Object {\u001b[22m\n\u001b[32m-     \"algorithm\": \"partial-pivot-gaussian\",\u001b[39m\n\u001b[31m+     \"algorithm\": \"sparse-ldlt\",\u001b[39m\n\u001b[2m      \"constraints\": \"free-dof-elimination\",\u001b[22m\n\u001b[32m-     \"implementation\": \"framemind-frame/3\",\u001b[39m\n\u001b[31m+     \"implementation\": \"framemind-native/4\",\u001b[39m\n\u001b[2m      \"relativePivotTolerance\": 1e-12,\u001b[22m\n\u001b[2m    },\u001b[22m\n\u001b[2m    \"supports\": Array [\u001b[22m\n\u001b[2m      Object {\u001b[22m\n\u001b[2m        \"id\": \"support_0001\",\u001b[22m\n\n  182 |     const resumed = await save(page, path);\n  183 |     expect(resumed.analysisResults).toHaveLength(2);\n> 184 |     expect(resumed.analysisResults[1].input).toEqual(interrupted.taskState.analyses[0].input);\n      |                                              ^\n  185 |     expect(resumed.taskState.analyses).toHaveLength(0);\n  186 |     await mkdir(\"docs/evidence/plan2/T2-09\", { recursive: true });\n  187 |     await page.screenshot({ path: \"docs/evidence/plan2/T2-09/offline-resumed-analysis.png\" });\n    at D:\\FrameMind\\e2e\\plan2-t2-09-restart.spec.ts:184:46"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-10 restores a crashed local calculation from its automatic frozen-input snapshot offline",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts",
+            "column": 86,
+            "line": 236
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  234 |     });\n  235 |     await page.getByRole(\"button\", { name: \"运行分析\", exact: true }).click();\n> 236 |     await expect.poll(async () => (await latest(page))?.taskState?.analyses?.length).toBe(1);\n      |                                                                                      ^\n  237 |     const interrupted = await latest(page); await crash(); page = await launch();\n  238 |     await page.getByRole(\"button\", { name: \"恢复此快照\", exact: true }).click();\n  239 |     await expect(page.getByRole(\"button\", { name: \"取消计算\", exact: true })).toHaveCount(0);\n    at D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts:236:86\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts:32:9)\n    at D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts:226:3"
+        }
+      ]
+    },
+    {
+      "desktop": "T2-10 restores a crashed local calculation from its automatic frozen-input snapshot offline",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts",
+            "column": 86,
+            "line": 236
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  234 |     });\n  235 |     await page.getByRole(\"button\", { name: \"运行分析\", exact: true }).click();\n> 236 |     await expect.poll(async () => (await latest(page))?.taskState?.analyses?.length).toBe(1);\n      |                                                                                      ^\n  237 |     const interrupted = await latest(page); await crash(); page = await launch();\n  238 |     await page.getByRole(\"button\", { name: \"恢复此快照\", exact: true }).click();\n  239 |     await expect(page.getByRole(\"button\", { name: \"取消计算\", exact: true })).toHaveCount(0);\n    at D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts:236:86\n    at fixture (D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts:32:9)\n    at D:\\FrameMind\\e2e\\plan2-t2-10-recovery.spec.ts:226:3"
+        }
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "src/workspace/ai-tools.test.ts": "8eec2ac811e37851957aab3eb4337e38934ebb56132957c5c3be180998be55c2",
+    "src/workspace/ai-task.test.ts": "fb6ab173896cc86e4c1f57f19e30c0eeca672c0e34a255f734ea5adaecbd18a2",
+    "src/workspace/model-edits.test.ts": "f780ffbc1cfa228b466191de11ee5dbe4f5ed46212d72e01f016baeb1f750b9e",
+    "src/workspace/task-draft.test.ts": "1201f6708fc71b61730ea39470ad63f7ab168a9ba052f12c84cec80245b61967",
+    "src/workspace/analysis-intent.test.ts": "c51b1857123874d91b4cafaa156e14513c2d2eaed20eb8dd59fb78c2f28c128d",
+    "src/workspace/task-restart.test.ts": "f542fd5803015e08b7569d98956e49b304251e9f0efb46c749b4d94fe7e3f108",
+    "electron/recovery-store.test.ts": "6c5fb3f805d5c2657ddd634ea02751445a7740b6fdec5c1c528e0adeb1420559",
+    "src/workspace/draft-coordination.test.ts": "141b966b667dd7fdfd984a95fc0fe6df28206f1e15337960e5622c2b0c31963b",
+    "src/workspace/task-scheduler.test.ts": "7d4d4f3c8b01b8e09bb40bcd36ddd23b41aecfd01a2fd3ae9abbc9930afb0335",
+    "src/workspace/diagnostic-trial.test.ts": "6cc4487d62d67a48a213f44df78053837f34a1667bff15df69298ff76f4d1ff0",
+    "src/workspace/exploration-budget.test.ts": "75b6dfe1e8c20d6936eb6700ee0896ebf79c1c2322e4f00115a6bbcf9eb7622c",
+    "src/domain/project-restart.test.ts": "2a588ebd8bb7f3c1320571291ffaa7c5e6ac87ad15e9abf56dbbbdb617364764",
+    "electron/deepseek.test.ts": "77011f5c4c9bca3d10c191fa961d11c8d69daf930226846f2d6db9e80b67aeb0",
+    "electron/deepseek-chat.test.ts": "609a52c6f0292f14ec1bafa9451a64e1c9f72149e56acaaca5cddbac93f54950",
+    "src/workspace/node-merge.test.ts": "ecadae2d68f0f3a8b2177201ab303ce47035388d0163b9989a132f6de5baed66",
+    "src/workspace/topology.test.ts": "3ced626a6b8fc0b5c9b6e239b3bf474cf083dd2fc07fc419bbcb920d797e1aa9",
+    "src/workspace/psd-tools.test.ts": "f7807b81e7cbe1c9dbe9204a62abd2483804daed0a8b1cf15ef45f60bcc9fa19",
+    "src/workspace/result-inspection.test.ts": "0690e84a51338e13f96614e006f63d1c4d14c2d99164411d4dc3912f9c3fd63f",
+    "e2e/plan2-t2-41-agent.spec.ts": "fad83c5c801237f6c1b36c7fafd9df9efb37f260223e13a7e6bff49bab90a639",
+    "e2e/plan2-t2-05-coordination.spec.ts": "fc0ec1a23cc51d380a94dc580165a38f934337eeae9b65f8d94e75ccfe3e5b98",
+    "e2e/plan2-t2-09-restart.spec.ts": "96b32da9e2eaa587930c08a44c9cb1d0f19e9fb61178de97418309eac8e894fe",
+    "e2e/plan2-t2-10-recovery.spec.ts": "37d948ba5a35ea5c50aac9fcc201a2ea4072e3bfbe2605b504b742c689a2a120",
+    "docs/evidence/plan2/T2-36/all-methods.framemind": "f26866d5a34095ed86e447aebd4d75c801a9101b7724039c3c59b67abc5a2cea",
+    "e2e/agent-integration.ts": "7e576b6f561bb6e46eda51397aed81b563a2c4be5afdc22a9b4258660e6a2ccb",
+    "src/workspace/task-confirmation.ts": "1f49324aba5addb089d089bac9454a6c0e8c4e6a5a0211cb30f08d01c2b3894c",
+    "src/workspace/task-draft.ts": "739e9247203b945d4b81e7bd2b5f478cfeb94a7ac67758236a354c601aab31ea",
+    "electron/model-edit-schema.ts": "519ba18d47c5d086160a35d609ded009649c89e6b80ada177ee9367c845c11d3",
+    "src/workspace/ai-task.ts": "758265c7c82b891bb2100a2a0b0a8272d5b6a1922cf99b1c1e3847c9b3d2f016",
+    "src/workspace/ai-tools.ts": "05c779795ac0660e32bbb45f59a9f295e617e98c78d96940861ea5a177603190",
+    "electron/deepseek.ts": "9f66e360df8f99f73d295b71b38faf0769736bd44e5806943e6ee8bca04e07d9",
+    "scripts/verify-plan2-t211.cjs": "0db3a6663d38e4d4c0aec96edcd601c225362f1c1d8f50e2e62483b837cfea03",
+    "package-lock.json": "6cf8cab8743067f00f9c0bad7a843cae6873459ffd0c3befecba536ab7dbb9a4"
+  },
+  "desktopStats": {
+    "startTime": "2026-10-07T09:24:44.733Z",
+    "duration": 744184.33,
+    "expected": 56,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  },
+  "endedAt": "2026-10-07T09:37:14.966Z"
+}

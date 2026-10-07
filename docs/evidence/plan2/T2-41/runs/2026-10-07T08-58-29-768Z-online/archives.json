@@ -1,0 +1,111 @@
+{
+  "format": "gzip",
+  "uncompressedHash": "SHA-256",
+  "files": [
+    {
+      "file": "buckling-0.json",
+      "archive": "buckling-0.json.gz",
+      "bytes": 49629018,
+      "compressedBytes": 1796542,
+      "sha256": "221f378b91ec714cac65b3db187cf90d9cf91bfba57a6f77c824240e12ed30c3"
+    },
+    {
+      "file": "buckling-1.json",
+      "archive": "buckling-1.json.gz",
+      "bytes": 49635576,
+      "compressedBytes": 1796943,
+      "sha256": "bd87b3e738fa312579e57cfad5bdf2736e7ab963cad4f611efa655dc8b533c21"
+    },
+    {
+      "file": "citations-0.json",
+      "archive": "citations-0.json.gz",
+      "bytes": 8231140,
+      "compressedBytes": 363009,
+      "sha256": "18a74735e5d0e2ee44447b3135df42f4545409a27686122afd782e8c106e424e"
+    },
+    {
+      "file": "citations-1.json",
+      "archive": "citations-1.json.gz",
+      "bytes": 8231140,
+      "compressedBytes": 363005,
+      "sha256": "250a18ee25f3660cf8eadab79deec11c33e696b06d942e614e92828dc7de83d7"
+    },
+    {
+      "file": "desktop.json",
+      "archive": "desktop.json.gz",
+      "bytes": 48877,
+      "compressedBytes": 3692,
+      "sha256": "72a2624db191b71f7fcabd7837d17e09e4c7589cfb3bd24bfaf24346b59666cb"
+    },
+    {
+      "file": "geometry-0.json",
+      "archive": "geometry-0.json.gz",
+      "bytes": 55582661,
+      "compressedBytes": 1995576,
+      "sha256": "289bb22c26a4b25eb73e6d0ce502a54bcb3df995aa5f4fa483d9f0aa3f71f941"
+    },
+    {
+      "file": "geometry-1.json",
+      "archive": "geometry-1.json.gz",
+      "bytes": 55602324,
+      "compressedBytes": 1996031,
+      "sha256": "3f692c67d96e350ff9596dbc22414f1e83593a312ab6201b960fac8bcb7d9c92"
+    },
+    {
+      "file": "mass-0.json",
+      "archive": "mass-0.json.gz",
+      "bytes": 49592492,
+      "compressedBytes": 1792873,
+      "sha256": "d3237b7026d35797a3f58c7040b48ba3113560ced8b301d337d15cd81cfc4ddd"
+    },
+    {
+      "file": "mass-1.json",
+      "archive": "mass-1.json.gz",
+      "bytes": 49592500,
+      "compressedBytes": 1792886,
+      "sha256": "5c75a08e6fad295f5cce1a37a30407cf3db5f11a291a668e286f942cb7f1125e"
+    },
+    {
+      "file": "relationship-0.json",
+      "archive": "relationship-0.json.gz",
+      "bytes": 49615167,
+      "compressedBytes": 1794839,
+      "sha256": "a856e1135cae5afdb52574dc8e9d76ffd61f5171c36dd45073fbaa67ed6c654e"
+    },
+    {
+      "file": "relationship-1.json",
+      "archive": "relationship-1.json.gz",
+      "bytes": 49615705,
+      "compressedBytes": 1795144,
+      "sha256": "d8421b770c6d47a89c664f14d1b98715ff5f2f65ac0507c969681405dd394fc9"
+    },
+    {
+      "file": "second-order-0.json",
+      "archive": "second-order-0.json.gz",
+      "bytes": 8231141,
+      "compressedBytes": 363013,
+      "sha256": "1ab425e01d6693ef36a7712ad41fd231654fc16231b7baa37d90cbd32b5bf30d"
+    },
+    {
+      "file": "second-order-1.json",
+      "archive": "second-order-1.json.gz",
+      "bytes": 8231141,
+      "compressedBytes": 363010,
+      "sha256": "0427525d448c88ecdbad8862cf00a0b918afa7777c0911c8d96539f1a0cfe015"
+    },
+    {
+      "file": "spectrum-0.json",
+      "archive": "spectrum-0.json.gz",
+      "bytes": 49592306,
+      "compressedBytes": 1793043,
+      "sha256": "8d464a5bea151c9ce87657fd5e57ae90c6176e901bccfee2503e699cbd264994"
+    },
+    {
+      "file": "spectrum-1.json",
+      "archive": "spectrum-1.json.gz",
+      "bytes": 49592506,
+      "compressedBytes": 1793210,
+      "sha256": "64daaaa9c979815c6c2a0056c5c44726565517d5d2b814c870d49b62dfcd1aaf"
+    }
+  ]
+}

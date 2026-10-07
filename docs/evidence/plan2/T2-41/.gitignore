@@ -1,0 +1,7 @@
+# Exact local JSON remains available; Git stores its verified lossless archive.
+full-unit*.json
+/replay/
+/runs/*/*-[0-9].json
+/runs/*/desktop.json
+/runs/*/artifacts/.last-run.json
+/runs/*/artifacts/.playwright-artifacts-*/
