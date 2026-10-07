@@ -11,6 +11,7 @@ import { reportAppendixContent } from "./report-appendix-content";
 import { calculateMemberGeometry } from "../domain/member-geometry";
 import { resultIdentity, resultMeaning } from "../domain/result-inspection";
 import { stabilityReportSummary, stabilityReportTheory } from "./stability-report-content";
+import { randomReportContent, randomReportTheory } from "./random-report-content";
 import { heading, paragraph, table, tableCaption, title, image, type ReportBlock } from "./report-content-blocks";
 
 function provenance(label: string, value: ResourceProvenance): ReportBlock {
@@ -52,7 +53,7 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     ...(result.process?.releaseNullRotations?.length ? [paragraph("节点脱开方向的转角不可确定，节点结果表中相关数值只是坐标参考，不是物理转角。已释放梁端转角由原生恢复记录给出。")] : []),
     heading("2 理论假设与适用边界"),
     paragraph("空间 Euler–Bernoulli 直杆单元，每节点 ux、uy、uz、rx、ry、rz 六个自由度。线弹性、小变形，未释放分量为刚接，忽略剪切变形；支座采用零位移自由度约束。"),
-    ...stabilityReportTheory(result),
+    ...(result.random ? randomReportTheory() : stabilityReportTheory(result)),
     paragraph("总体位移、转角、支座反力及反力矩按全局 XYZ。局部 x 由杆件起点指向终点，y、z 随截面转角；局部轴向量见表。杆端 N、Vy、Vz、T、My、Mz 为局部轴端部作用分量，两个端点分别记录，不能直接当作截面内力包络。"),
     paragraph(`求解器 ${input.solver?.implementation ?? "历史结果未记录版本"}；算法 ${input.solver?.algorithm ?? "未记录"}；约束 ${input.solver?.constraints ?? "未记录"}；相对主元阈值 ${input.solver ? n(input.solver.relativePivotTolerance) : "未记录"}。`),
     heading("3 材料截面与模型参数"),
@@ -81,9 +82,9 @@ export function createReportContent(report: EngineeringReport): ReportBlock[] {
     heading("4 支座与边界条件"),
     paragraph("约束表示该自由度位移或转角为零；自由表示未施加该约束。平移方向为全局 XYZ，转动方向为绕全局 XYZ。"),
     table(["支座 / 节点", "ux", "uy", "uz", "rx", "ry", "rz"], input.supports.map((item) => [`${item.label} / ${nodeLabel(item.nodeId)}`, ...item.restraints.map((value) => value ? "约束" : "自由")])),
-    heading("5 荷载自重与工况组合"),
-    paragraph(`本次来源 ${source}。节点力和力矩按全局 XYZ；杆件均布荷载的坐标系逐项列示，作用于整根杆件。`),
   ];
+  if (result.random) return [...children, ...randomReportContent(report)];
+  children.push(heading("5 荷载自重与工况组合"), paragraph(`本次来源 ${source}。节点力和力矩按全局 XYZ；杆件均布荷载的坐标系逐项列示，作用于整根杆件。`));
   if (input.combination) {
     children.push(paragraph(`${result.secondOrder ? "组合系数作用于冻结荷载输入，二阶响应不作线性叠加。" : "组合结果按用户定义系数线性叠加。"}下表和各分项工况保留未加权荷载；加权等效荷载见后续汇总表，避免自重和外荷载重复计入。`),
       table(["工况", "名称", "系数"], input.combination.definition.terms.map((term) => [term.loadCaseId, input.combination!.cases.find((item) => item.loadCase.id === term.loadCaseId)!.loadCase.name, n(term.factor)])));

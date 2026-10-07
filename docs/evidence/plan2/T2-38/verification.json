@@ -1,0 +1,229 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "force",
+      "analysisId": "analysis_6f2d6729-af41-4dec-aed0-d5bbab0fc827",
+      "modalAnalysisId": "analysis_c52c386c-0e16-4663-aedd-a0feac3f46b4",
+      "revision": 13,
+      "points": 1313,
+      "inputPoints": [
+        2
+      ],
+      "rmsM": 0.049438481464073064,
+      "current": false,
+      "referenceFrame": "fixed-global",
+      "zipBytes": 75504,
+      "rmsReference": {
+        "token": "[[result:rms]]",
+        "analysisId": "analysis_6f2d6729-af41-4dec-aed0-d5bbab0fc827",
+        "inputRevision": 13,
+        "createdAt": "2026-10-07T06:42:04Z",
+        "current": true,
+        "source": {
+          "id": "AC2",
+          "name": "force random report",
+          "kind": "case"
+        },
+        "method": "random",
+        "meaning": "零均值平稳随机响应；RMS 为统计均方根，不是瞬时峰值或确定性位移；输入有效频段外为零",
+        "object": {
+          "kind": "node",
+          "id": "node_0002",
+          "label": "N2",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "quantity": "rms",
+        "component": "y",
+        "coordinateSystem": "global XYZ",
+        "referenceFrame": "fixed-global",
+        "value": 0.049438481464073064,
+        "unit": "m"
+      }
+    },
+    {
+      "name": "base",
+      "analysisId": "analysis_b58865a7-bcf6-4107-859d-a27309f6539f",
+      "modalAnalysisId": "analysis_c52c386c-0e16-4663-aedd-a0feac3f46b4",
+      "revision": 13,
+      "points": 1313,
+      "inputPoints": [
+        2
+      ],
+      "rmsM": 0.009112774939804008,
+      "current": false,
+      "referenceFrame": "relative-to-base",
+      "zipBytes": 75195,
+      "rmsReference": {
+        "token": "[[result:rms]]",
+        "analysisId": "analysis_b58865a7-bcf6-4107-859d-a27309f6539f",
+        "inputRevision": 13,
+        "createdAt": "2026-10-07T06:42:05Z",
+        "current": true,
+        "source": {
+          "id": "AC2",
+          "name": "base random report",
+          "kind": "case"
+        },
+        "method": "random",
+        "meaning": "零均值平稳随机响应；RMS 为统计均方根，不是瞬时峰值或确定性位移；输入有效频段外为零",
+        "object": {
+          "kind": "node",
+          "id": "node_0002",
+          "label": "N2",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "quantity": "rms",
+        "component": "y",
+        "coordinateSystem": "global XYZ",
+        "referenceFrame": "relative-to-base",
+        "value": 0.009112774939804008,
+        "unit": "m"
+      }
+    },
+    {
+      "name": "multi",
+      "analysisId": "analysis_ef0190b0-06b4-4477-85ee-7aab84ccfe7a",
+      "modalAnalysisId": "analysis_c52c386c-0e16-4663-aedd-a0feac3f46b4",
+      "revision": 13,
+      "points": 1313,
+      "inputPoints": [
+        2,
+        2
+      ],
+      "rmsM": 0.078986210166496,
+      "current": false,
+      "referenceFrame": "relative-to-base",
+      "zipBytes": 76036,
+      "rmsReference": {
+        "token": "[[result:rms]]",
+        "analysisId": "analysis_ef0190b0-06b4-4477-85ee-7aab84ccfe7a",
+        "inputRevision": 13,
+        "createdAt": "2026-10-07T06:42:05Z",
+        "current": true,
+        "source": {
+          "id": "AC2",
+          "name": "multi random report",
+          "kind": "case"
+        },
+        "method": "random",
+        "meaning": "零均值平稳随机响应；RMS 为统计均方根，不是瞬时峰值或确定性位移；输入有效频段外为零",
+        "object": {
+          "kind": "node",
+          "id": "node_0002",
+          "label": "N2",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "quantity": "rms",
+        "component": "y",
+        "coordinateSystem": "global XYZ",
+        "referenceFrame": "relative-to-base",
+        "value": 0.078986210166496,
+        "unit": "m"
+      }
+    },
+    {
+      "name": "long",
+      "analysisId": "analysis_d2b0b23a-117a-4217-a76d-d057b5cef5cf",
+      "modalAnalysisId": "analysis_c52c386c-0e16-4663-aedd-a0feac3f46b4",
+      "revision": 13,
+      "points": 2193,
+      "inputPoints": [
+        257
+      ],
+      "rmsM": 0.04943694844203273,
+      "current": false,
+      "referenceFrame": "fixed-global",
+      "zipBytes": 108248,
+      "rmsReference": {
+        "token": "[[result:rms]]",
+        "analysisId": "analysis_d2b0b23a-117a-4217-a76d-d057b5cef5cf",
+        "inputRevision": 13,
+        "createdAt": "2026-10-07T06:42:06Z",
+        "current": true,
+        "source": {
+          "id": "AC2",
+          "name": "long random report",
+          "kind": "case"
+        },
+        "method": "random",
+        "meaning": "零均值平稳随机响应；RMS 为统计均方根，不是瞬时峰值或确定性位移；输入有效频段外为零",
+        "object": {
+          "kind": "node",
+          "id": "node_0002",
+          "label": "N2",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "quantity": "rms",
+        "component": "y",
+        "coordinateSystem": "global XYZ",
+        "referenceFrame": "fixed-global",
+        "value": 0.04943694844203273,
+        "unit": "m"
+      }
+    },
+    {
+      "name": "missing",
+      "analysisId": "analysis_d0801169-2389-4573-8d5c-3fe4db16c5ca",
+      "modalAnalysisId": "analysis_c9eaf909-ba27-4b81-b445-500cf27b6de2",
+      "revision": 17,
+      "points": 1601,
+      "inputPoints": [
+        2
+      ],
+      "rmsM": 0.04943512558273939,
+      "current": false,
+      "referenceFrame": "fixed-global",
+      "zipBytes": 97409,
+      "rmsReference": {
+        "token": "[[result:rms]]",
+        "analysisId": "analysis_d0801169-2389-4573-8d5c-3fe4db16c5ca",
+        "inputRevision": 17,
+        "createdAt": "2026-10-07T06:42:06Z",
+        "current": true,
+        "source": {
+          "id": "AC2",
+          "name": "missing random report",
+          "kind": "case"
+        },
+        "method": "random",
+        "meaning": "零均值平稳随机响应；RMS 为统计均方根，不是瞬时峰值或确定性位移；输入有效频段外为零",
+        "object": {
+          "kind": "node",
+          "id": "node_0002",
+          "label": "N2",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "quantity": "rms",
+        "component": "y",
+        "coordinateSystem": "global XYZ",
+        "referenceFrame": "fixed-global",
+        "value": 0.04943512558273939,
+        "unit": "m"
+      }
+    }
+  ],
+  "fullPrecisionCsv": true,
+  "frozenSource": true,
+  "trapezoidalRmsChecked": true
+}

@@ -11,7 +11,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
   project: FrameProject; initialAnalysisId?: string; onClose(): void; onStatus(tone: "neutral" | "success" | "error", text: string): void;
 }) {
   const [analysisId, setAnalysisId] = useState(initialAnalysisId ?? project.analysisResults.at(-1)?.id ?? "");
-  const [busy, setBusy] = useState<"Word" | "PDF" | null>(null); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState<"Word" | "PDF" | "ZIP" | null>(null); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
   const [selection, setSelection] = useState<ReportAppendixSelection>({ memberIds: [], steps: [] });
   const [supplemental, setSupplemental] = useState<AnalysisResult | null>(null);
   const [supplementing, setSupplementing] = useState(false);
@@ -25,7 +25,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
       return supplemental ? withSupplementalReportProcess(report, supplemental).appendix : report.appendix;
     } catch { return null; } // Export displays source validation failures through the existing alert.
   }, [project, selected, selection, supplemental]);
-  const advanced = Boolean(selected?.modal || selected?.buckling || selected?.secondOrder);
+  const advanced = Boolean(selected?.random || selected?.modal || selected?.buckling || selected?.secondOrder);
   const canSupplement = !advanced && !supplemental && preview && (
     (selection.steps.includes("member-process") && selection.memberIds.length > preview.members.length) ||
     (selection.steps.some((step) => step !== "member-process") && !preview.overall)
@@ -77,6 +77,21 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
       setError(message); onStatus("error", `${format} 计算书导出失败：${message}`);
     } finally { setBusy(null); }
   }
+  async function exportRandomData() {
+    if (locked) return;
+    setError(""); setNotice(""); setBusy("ZIP");
+    try {
+      const report = captureEngineeringReport(project, analysisId);
+      const { buildRandomReportData } = await import("../workspace/random-report-data");
+      const { reportBytesToBase64 } = await import("../workspace/report-word");
+      const outcome = await window.frameMind.exportReportData({ suggestedName: `${report.projectName}_${report.result.id}_随机数据`, base64: reportBytesToBase64(await buildRandomReportData(report)) });
+      if (outcome.status === "cancelled") { setNotice("已取消导出"); onStatus("neutral", "已取消随机数据导出"); }
+      else { setNotice(`已导出 ${outcome.path}`); onStatus("success", `已导出随机数据 · R${report.result.projectRevision} · ${outcome.path}`); }
+    } catch (failure) {
+      const message = failure instanceof Error ? failure.message : "随机数据导出失败";
+      setError(message); onStatus("error", message);
+    } finally { setBusy(null); }
+  }
   return <div className="dialog-backdrop" onMouseDown={onClose}>
     <section className="node-dialog wide-dialog report-dialog" role="dialog" aria-modal="true" aria-label="工程计算书" onMouseDown={(event) => event.stopPropagation()}>
       <header><h2>工程计算书</h2><button className="icon-button" onClick={onClose} aria-label="关闭"><X size={15} /></button></header>
@@ -88,11 +103,12 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
         </select></label>
         {selected && <section className="report-source"><strong>{reportSourceLabel(selected)} · R{selected.projectRevision}</strong><p>分析 ID {selected.id}</p><p>{isAnalysisResultCurrent(project, selected) ? "结果当前" : "历史结果 · 使用该次分析的原模型与荷载，不使用当前编辑值"}</p></section>}
         <p className="dialog-copy">正文包含冻结模型、材料截面、边界与分析方法摘要；静力与二阶输出荷载和响应，屈曲区分固定与参考荷载，模态列质量来源、频率和归一化振型。开始导出时冻结来源，后续编辑不改变本次报告。</p>
+        {selected?.random && <p className="dialog-copy">随机计算书列激励分布、输入谱、冻结模态与阻尼、响应 PSD/RMS 及收敛。默认频点表取前后各 16 点，完整表可选入附录；随机数据 ZIP 始终保留全部频点、冻结输入、模态基础和已有过程记录。RMS 是统计均方根。</p>}
         {selected && <fieldset className="report-appendix" disabled={locked}>
           <legend>可选过程附录</legend>
           <p>{advanced ? "默认只导出正文。附录读取所选分析的实际记录，缺少记录明确标注，不为补附录重新计算。" : "默认只导出正文。杆件过程与组装贡献使用下方所选杆件；整体步骤使用全部模型。"}</p>
           <div className="report-step-list">{reportAppendixSteps(selected).map((step) => <label key={step}><input type="checkbox" checked={selection.steps.includes(step)} onChange={() => toggleStep(step)} />{REPORT_APPENDIX_STEPS[step]}</label>)}</div>
-          <p>整体矩阵须单独勾选；超过采集上限时标记缺少记录，矩阵按列分块输出。</p>
+          <p>{selected?.random ? "已保存的矩阵与计算坐标包含在随机数据 ZIP 中；缺少记录会明确标注。" : "整体矩阵须单独勾选；超过采集上限时标记缺少记录，矩阵按列分块输出。"}</p>
           {!advanced && <details className="report-member-picker" open={selection.steps.includes("member-process") || selection.steps.includes("assembly")}>
             <summary>附录杆件 · 已选 {selection.memberIds.length} / {selected.input.members.length}</summary>
             <div className="report-member-actions"><button type="button" className="button ghost compact-button" onClick={() => setSelection((value) => ({ ...value, memberIds: selected.input.members.map((member) => member.id) }))}>选择全部杆件</button><button type="button" className="button ghost compact-button" onClick={() => setSelection((value) => ({ ...value, memberIds: [] }))}>清空杆件</button></div>
@@ -105,7 +121,7 @@ export function EngineeringReportDialog({ project, initialAnalysisId, onClose, o
         <p className="dialog-copy">此计算书记录分析结果，不给出结构安全或规范合格结论。</p>
         {error && <p className="form-error" role="alert">{error}</p>}{notice && <p className="report-notice">{notice}</p>}
       </div>
-      <div className="dialog-actions"><button className="button ghost" onClick={onClose}>关闭</button><button className="button ghost" disabled={!selected || locked} onClick={() => void exportReport("Word")}>{busy === "Word" ? "正在导出 Word…" : "导出 Word"}</button><button className="button primary" disabled={!selected || locked} onClick={() => void exportReport("PDF")}>{busy === "PDF" ? "正在导出 PDF…" : "导出 PDF"}</button></div>
+      <div className="dialog-actions"><button className="button ghost" onClick={onClose}>关闭</button>{selected?.random && <button className="button ghost" disabled={locked} onClick={() => void exportRandomData()}>{busy === "ZIP" ? "正在导出数据…" : "导出随机数据 ZIP"}</button>}<button className="button ghost" disabled={!selected || locked} onClick={() => void exportReport("Word")}>{busy === "Word" ? "正在导出 Word…" : "导出 Word"}</button><button className="button primary" disabled={!selected || locked} onClick={() => void exportReport("PDF")}>{busy === "PDF" ? "正在导出 PDF…" : "导出 PDF"}</button></div>
     </section>
   </div>;
 }

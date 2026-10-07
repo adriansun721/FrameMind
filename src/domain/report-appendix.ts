@@ -19,6 +19,7 @@ export const REPORT_APPENDIX_STEPS = {
   "analysis-iterations": "实际加载校正与收敛记录",
   "analysis-shapes": "完整节点与沿杆形态样本",
   "analysis-prestress": "固定与参考轴力记录",
+  "random-tables": "完整输入谱与响应 PSD 频点",
 } as const;
 export type ReportAppendixStep = keyof typeof REPORT_APPENDIX_STEPS;
 export interface ReportAppendixSelection { memberIds: string[]; steps: ReportAppendixStep[] }
@@ -32,6 +33,7 @@ export interface ReportAppendix {
 }
 
 export function reportAppendixSteps(result: AnalysisResult): ReportAppendixStep[] {
+  if (result.random) return ["analysis-settings", "random-tables"];
   if (result.modal || result.buckling || result.secondOrder) return ["analysis-settings", "analysis-mesh", "analysis-coordinates", "analysis-stiffness",
     ...(result.modal ? ["analysis-mass" as const] : ["analysis-geometric" as const]),
     ...(result.secondOrder ? ["analysis-iterations" as const] : ["analysis-shapes" as const]),
@@ -88,7 +90,7 @@ export function captureReportAppendix(result: AnalysisResult, selection: ReportA
   if (!steps.length) return undefined;
   if (steps.some((step) => !reportAppendixSteps(result).includes(step))) throw new Error("所选分析方法不支持该附录分量");
   const appendix: ReportAppendix = { selection: { steps, memberIds }, members: [], overall: null, missing: [], basis: structuredClone(ANALYSIS_PROCESS_BASIS) };
-  if (result.modal || result.buckling || result.secondOrder) {
+  if (result.random || result.modal || result.buckling || result.secondOrder) {
     const sections: Partial<Record<ReportAppendixStep, ProcessSection[]>> = {
       "analysis-settings": ["settings", "stages"], "analysis-mesh": ["mesh"], "analysis-coordinates": ["coordinates"],
       "analysis-stiffness": ["stiffness"], "analysis-mass": ["mass"], "analysis-geometric": ["geometric"], "analysis-iterations": ["iterations"],

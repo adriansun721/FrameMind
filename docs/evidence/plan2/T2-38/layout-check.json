@@ -1,0 +1,94 @@
+{
+  "checks": [
+    {
+      "sample": "force",
+      "format": "word",
+      "pages": 12,
+      "issues": [],
+      "footerCount": 12,
+      "pngDirectory": ".scratch\\T2-38-layout\\force-word",
+      "source": ".scratch\\T2-38-layout\\force-word.pdf"
+    },
+    {
+      "sample": "force",
+      "format": "pdf",
+      "pages": 9,
+      "issues": [],
+      "footerCount": 9,
+      "pngDirectory": ".scratch\\T2-38-layout\\force-pdf",
+      "source": "docs\\evidence\\plan2\\T2-38\\force.pdf"
+    },
+    {
+      "sample": "base",
+      "format": "word",
+      "pages": 12,
+      "issues": [],
+      "footerCount": 12,
+      "pngDirectory": ".scratch\\T2-38-layout\\base-word",
+      "source": ".scratch\\T2-38-layout\\base-word.pdf"
+    },
+    {
+      "sample": "base",
+      "format": "pdf",
+      "pages": 9,
+      "issues": [],
+      "footerCount": 9,
+      "pngDirectory": ".scratch\\T2-38-layout\\base-pdf",
+      "source": "docs\\evidence\\plan2\\T2-38\\base.pdf"
+    },
+    {
+      "sample": "multi",
+      "format": "word",
+      "pages": 13,
+      "issues": [],
+      "footerCount": 13,
+      "pngDirectory": ".scratch\\T2-38-layout\\multi-word",
+      "source": ".scratch\\T2-38-layout\\multi-word.pdf"
+    },
+    {
+      "sample": "multi",
+      "format": "pdf",
+      "pages": 10,
+      "issues": [],
+      "footerCount": 10,
+      "pngDirectory": ".scratch\\T2-38-layout\\multi-pdf",
+      "source": "docs\\evidence\\plan2\\T2-38\\multi.pdf"
+    },
+    {
+      "sample": "long",
+      "format": "word",
+      "pages": 110,
+      "issues": [],
+      "footerCount": 110,
+      "pngDirectory": ".scratch\\T2-38-layout\\long-word",
+      "source": ".scratch\\T2-38-layout\\long-word.pdf"
+    },
+    {
+      "sample": "long",
+      "format": "pdf",
+      "pages": 83,
+      "issues": [],
+      "footerCount": 83,
+      "pngDirectory": ".scratch\\T2-38-layout\\long-pdf",
+      "source": "docs\\evidence\\plan2\\T2-38\\long.pdf"
+    },
+    {
+      "sample": "missing",
+      "format": "word",
+      "pages": 13,
+      "issues": [],
+      "footerCount": 13,
+      "pngDirectory": ".scratch\\T2-38-layout\\missing-word",
+      "source": ".scratch\\T2-38-layout\\missing-word.pdf"
+    },
+    {
+      "sample": "missing",
+      "format": "pdf",
+      "pages": 9,
+      "issues": [],
+      "footerCount": 9,
+      "pngDirectory": ".scratch\\T2-38-layout\\missing-pdf",
+      "source": "docs\\evidence\\plan2\\T2-38\\missing.pdf"
+    }
+  ]
+}

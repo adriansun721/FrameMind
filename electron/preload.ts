@@ -16,6 +16,7 @@ const desktopApi: FrameMindDesktopApi = {
   readRecovery: (id) => ipcRenderer.invoke(DesktopChannel.ReadRecovery, id),
   exportReportPdf: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportPdf, request),
   exportReportWord: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportWord, request),
+  exportReportData: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportData, request),
   setTheme: (theme) => ipcRenderer.invoke(DesktopChannel.SetTheme, theme),
   saveProject: (request: { path: string | null; content: string }) =>
     ipcRenderer.invoke(DesktopChannel.SaveProject, request),

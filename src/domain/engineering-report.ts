@@ -15,7 +15,7 @@ export interface EngineeringReport {
 }
 
 export function reportSourceLabel(result: AnalysisResult): string {
-  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name} · ${result.secondOrder ? "弹性二阶" : result.buckling ? "特征值屈曲" : result.modal ? "模态" : "线性静力"} · ${result.input.analysisCase.loadSourceId}`;
+  if (result.input.analysisCase) return `${result.input.analysisCase.id} · ${result.input.analysisCase.name} · ${result.random ? "随机响应" : result.secondOrder ? "弹性二阶" : result.buckling ? "特征值屈曲" : result.modal ? "模态" : "线性静力"} · ${result.input.analysisCase.loadSourceId}`;
   const source = result.input.combination?.definition ?? result.input.loadCase;
   return source ? `${source.id} · ${source.name}${result.input.combination ? " · 用户定义组合" : ""}` : "LC1 · 默认工况";
 }
@@ -25,9 +25,8 @@ export function captureEngineeringReport(project: FrameProject, analysisId: stri
   const selected = project.analysisResults.find((result) => result.id === analysisId);
   if (!selected || selected.projectId !== project.id) throw new Error("请选择本项目已完成且可对应的分析结果");
   const result = decodeAnalysisResult(structuredClone(selected));
-  if (result.random) throw new Error("随机响应计算书由 T2-38 接入；请在 PSD/RMS 面板核查");
   if (!result.input.nodes.length || !result.input.members.length) throw new Error("分析输入缺少节点或杆件，不能导出成功报告");
-  for (const member of result.modal || result.buckling ? [] : result.input.members) {
+  for (const member of result.random || result.modal || result.buckling ? [] : result.input.members) {
     const start = result.input.nodes.find((node) => node.id === member.startNodeId)!;
     const end = result.input.nodes.find((node) => node.id === member.endNodeId)!;
     const geometry = calculateMemberGeometry(start.position, end.position, member.rotationDegrees);
@@ -53,7 +52,7 @@ export const reportNumber = (value: number): string => value === 0 ? "0" : Numbe
 
 /** Supplement only the appendix, preserving the body and its historical output. */
 export function withSupplementalReportProcess(report: EngineeringReport, supplementalResult: AnalysisResult): EngineeringReport {
-  if (report.result.modal || report.result.buckling || report.result.secondOrder) throw new Error("稳定性与模态附录只读取原运行记录，不支持补算替代");
+  if (report.result.random || report.result.modal || report.result.buckling || report.result.secondOrder) throw new Error("此分析附录只读取原运行记录，不支持补算替代");
   if (!report.appendix) throw new Error("请先选择要补算的过程附录步骤");
   const supplemental = decodeAnalysisResult(structuredClone(supplementalResult));
   const { solver: originalSolver, ...originalInput } = report.result.input;

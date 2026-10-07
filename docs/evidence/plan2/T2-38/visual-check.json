@@ -1,0 +1,114 @@
+{
+  "passed": true,
+  "pages": 280,
+  "checks": [
+    {
+      "sample": "force",
+      "format": "word",
+      "pages": 12,
+      "numericTableValuesChecked": 135,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "7702bdfa24587f78f44596e066c17b3202fe19207aaf3083d29b6eab46ab4078"
+    },
+    {
+      "sample": "force",
+      "format": "pdf",
+      "pages": 9,
+      "numericTableValuesChecked": 135,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "ab7f668ffed63580686f31ae466ea952e76a29095b0f2480c7527dbc9546f275"
+    },
+    {
+      "sample": "base",
+      "format": "word",
+      "pages": 12,
+      "numericTableValuesChecked": 135,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "e76a936fc0eae2eb53fd8770d13601c4704e281b3fca0b9f0e74572d7a36478d"
+    },
+    {
+      "sample": "base",
+      "format": "pdf",
+      "pages": 9,
+      "numericTableValuesChecked": 135,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "9783fdf40424196cf563b113bcd6f83938c469abbb236be0939c38ce94344d2b"
+    },
+    {
+      "sample": "multi",
+      "format": "word",
+      "pages": 13,
+      "numericTableValuesChecked": 136,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "9a1bbcbf458486aafef8f08717e6cbfac1a64a7744a2d1ccc7ee15c7d760010c"
+    },
+    {
+      "sample": "multi",
+      "format": "pdf",
+      "pages": 10,
+      "numericTableValuesChecked": 136,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "e0dbc1feb1295484fed1b244d642ecd4f8159603f33ec8b7bce0a07057bffd41"
+    },
+    {
+      "sample": "long",
+      "format": "word",
+      "pages": 110,
+      "numericTableValuesChecked": 6603,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "3d621d94da166da2401c88ee91927045540b55dc879fc4d6de50656ca2d005f6"
+    },
+    {
+      "sample": "long",
+      "format": "pdf",
+      "pages": 83,
+      "numericTableValuesChecked": 6603,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "754034573b1d926314362480be1bd8f7ef86149f760f6acf1a1b4953032ddc2e"
+    },
+    {
+      "sample": "missing",
+      "format": "word",
+      "pages": 13,
+      "numericTableValuesChecked": 137,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "559b62ac198b7590f62cbb88d2c81f2c37ef77a0667fe0f60b4c4acc957f46a3"
+    },
+    {
+      "sample": "missing",
+      "format": "pdf",
+      "pages": 9,
+      "numericTableValuesChecked": 137,
+      "missing": [],
+      "allOriginalPageImagesInspected": true,
+      "visualIssues": [],
+      "sha256": "e25fd68cb6896b4c9260d06158b4bef698013ef193a0e44988bee5c48cd75002"
+    }
+  ],
+  "uiScreenshots": [
+    "report-dark-1080.png",
+    "report-dark-1440.png",
+    "report-light-1080.png",
+    "report-light-1440.png"
+  ],
+  "uiIssues": [],
+  "inspection": "All final page PNGs inspected individually; source artifact hashes bind this result. Native Word COM pagination and product Electron PDF rendered with documents render_docx.py rasterizer."
+}

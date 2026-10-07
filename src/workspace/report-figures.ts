@@ -9,6 +9,21 @@ function svg(report: EngineeringReport, title: string, body: string, height = 66
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="${height}" viewBox="0 0 1200 ${height}"><rect width="1200" height="${height}" fill="white"/><g font-family="Microsoft YaHei,Arial,sans-serif" fill="#222">${text(30, 35, title, 28)}${text(30, 68, source.length > 65 ? source.slice(0, 62) + "…" : source)}${body}${text(30, height - 17, `分析 ${report.result.id}`, 22)}</g></svg>`;
 }
 
+export function createRandomPsdFigure(report: EngineeringReport): string {
+  const r = report.result.random!, u = unitPresentation(report.displayUnitPreset);
+  const first = r.points[0].frequencyHz, last = r.points.at(-1)!.frequencyHz;
+  const max = r.points.reduce((v, p) => Math.max(v, p.density), 0);
+  const points = r.points.map((p) => `${140 + (p.frequencyHz - first) / (last - first) * 1000},${450 - (max ? p.density / max : 0) * 320}`).join(" ");
+  let body = `<path d="M140 120 V450 H1140" fill="none" stroke="#555" stroke-width="2"/><polyline points="${points}" fill="none" stroke="#245979" stroke-width="3"/>`;
+  for (let i = 0; i <= 4; i++) {
+    body += text(140 + i * 245, 488, Number((first + (last - first) * i / 4).toPrecision(5)).toString(), 20);
+    body += text(10, 455 - i * 80, u.number(max * i / 4, "m²/Hz", 5), 18);
+  }
+  body += text(145, 108, `PSD (${u.unit("m²/Hz")})`, 22) + text(760, 525, "频率 f (Hz)", 22);
+  body += text(30, 560, `${r.response.nodeId} / ${r.response.component.toUpperCase()}  全局 XYZ  ${r.referenceFrame === "relative-to-base" ? "相对基底" : "固定全局参考"}  单边谱`, 22);
+  return svg(report, "随机平移响应 PSD（完整保存频点）", body, 620);
+}
+
 export function createReportFigures(report: EngineeringReport): Record<string, string> & { model: string; displacement: string } {
   const u = unitPresentation(report.displayUnitPreset);
   const { input, nodes } = report.result;
@@ -57,7 +72,7 @@ export function createReportFigures(report: EngineeringReport): Record<string, s
   });
   chart += text(30, chartHeight - 52, `蓝色条 |u| = √(ux² + uy² + uz²)  单位 ${u.unit("m")}  零值为空条`);
   const shapes = Object.fromEntries((report.result.modal?.modes ?? report.result.buckling?.modes ?? []).map((mode) => [`shape-${mode.number}`, createReportShapeFigure(report, mode.number)]));
-  return { model: svg(report, "冻结输入模型", model), displacement: svg(report, "节点位移幅值", chart, chartHeight), ...shapes };
+  return { model: svg(report, "冻结输入模型", model), displacement: svg(report, "节点位移幅值", chart, chartHeight), ...(report.result.random ? { "random-psd": createRandomPsdFigure(report) } : {}), ...shapes };
 }
 
 /** Uses saved engineering-member samples; each mode has its own disclosed display scale. */

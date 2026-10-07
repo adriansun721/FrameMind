@@ -1,5 +1,7 @@
 # FrameMind
 
+T2-38 支持随机响应 Word/PDF 计算书和完整数据 ZIP，保留冻结输入、模态与阻尼、PSD/RMS、参考系、单位及缺记录说明。默认频点摘要与完整附录可选，完整 ZIP 不截断频点。五组实际导出共 280 页逐页复核通过，见 [T2-38 验收记录](docs/evidence/plan2/T2-38/implementation.md)；运行 `npm run evidence:plan2:t238` 复验。
+
 T2-14 新增“C++ 静力试算”，支持完整空间刚架、节点力／力矩、局部／全局均布力、自重及工况组合。`npm run evidence:plan2:t214` 复跑原 22 个独立静力基准、非法输入与桌面保存／计算书验证；原参考及门槛保持不变。手动“计算”和 agent 正式入口切换由 T2-15 负责；见 [T2-14 记录](docs/evidence/plan2/T2-14/implementation.md)。
 
 T2-15 将“计算”、agent、诊断副本和历史过程补算统一切到 C++ 静力核心，保留真实阶段、取消及故障诊断；TypeScript 仅作显式测试参考，没有静默回退。开发先运行 `npm run build:native`（需要 Visual Studio 2026 C++ x64 Build Tools 与 CMake），安装运行不需要编译器。`npm run evidence:plan2:t215` 复跑独立数值、故障、资源基线及桌面回放；`npm run package:win:native-production` 在 `release/t215/` 生成正式通路安装候选，`node scripts/verify-plan2-t213-install.cjs --t215` 验证安装后的 22 个静力算例。约 1,000 节点／3,000 杆性能及干净 Windows 验收由 T2-42/T2-44 承接；见 [T2-15 决定](docs/decisions/0048-native-production-isolation.md)。

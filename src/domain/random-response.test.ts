@@ -52,7 +52,7 @@ it("manual and agent-confirmed random cases share frozen modal, damping and spec
   expect(captureAnalysisInput(active)).toEqual({ ...captureAnalysisInput(manual), projectRevision: active.revision });
   const reopened = decodeProject(encodeProject(completed)); expect(reopened.latestAnalysis!.random).toEqual(result.random); expect(isAnalysisResultCurrent(reopened, reopened.latestAnalysis!)).toBe(true);
   expect(history.undo(applied.project)!.analysisCases).toHaveLength(1); expect(history.redo(project)!.analysisCases).toHaveLength(2);
-  expect(() => captureEngineeringReport(completed, result.id)).toThrow(/T2-38/);
+  expect(captureEngineeringReport(completed, result.id).result.random).toEqual(result.random);
 });
 
 it("a small free component mixed with a restrained force direction is equivalent to a scaled free force", () => {
