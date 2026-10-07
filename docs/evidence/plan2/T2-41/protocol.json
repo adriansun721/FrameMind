@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "registeredDate": "2026-10-07",
   "timezone": "Asia/Taipei",
   "repetitions": 2,
@@ -220,5 +220,5 @@
       ]
     }
   },
-  "registrationNote": "Version 5 retains version 4 samples, repetitions and gates. Original T2-11 regression now checks the declared production native mesh-static solver (/4) in both input and service provenance rather than the retired /2, retaining all numerical tolerances. Output rendering is bounded to 16 batches. All earlier failed runs remain archived; source/build drift still rejects a run."
+  "registrationNote": "Version 6 retains every version 5 sample, repetition and gate. Version 5 online exposed an agent using readonly inspect_diagnostics instead of the requested retained-copy trial, failing trial/source/evidence checks. Guidance now distinguishes readonly inspection from creating or continuing a valid copy and explicitly running the requested source, without discarding valid trial history. Qualitative shape descriptions must match frozen geometry. Previous failures and source drift remain recorded. Frozen object labels must be resolved to the actual read stable ids before object/result calls; v5 label-as-id failure and its blocked following request are retained. No gate, scenario or physics threshold is relaxed."
 }
