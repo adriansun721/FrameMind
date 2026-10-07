@@ -10,6 +10,7 @@ export const ANALYSIS_STAGE_LABELS: Record<AnalysisStage, string> = {
   "model-check": "模型检查", assembly: "刚度组装", solve: "方程求解", recovery: "结果恢复",
 };
 export const ANALYSIS_FIELD_LABELS: Record<string, string> = {
+  random: "随机节点力与响应设置", frequencyPoints: "随机频率网格与预算", integration: "PSD 积分与加密预算", modeCount: "随机响应模态截断与参与方向",
   "native-core": "原生计算资源与协议",
   id: "对象身份", "position.x": "X 坐标", "position.y": "Y 坐标", "position.z": "Z 坐标",
   elasticModulusGPa: "弹性模量 E", densityKgM3: "密度", poissonRatio: "泊松比",
@@ -31,6 +32,7 @@ export type AnalysisTarget =
   | { kind: "self-weight"; id: ProjectId | string };
 
 export interface AnalysisDiagnostic {
+  randomConvergence?: { status: "failed"; pointBudget: number; refinementBudget: number; attemptedPoints: number; runs: import("./random-response").RandomConvergenceRun[]; detail: Record<string, number> };
   iterations?: SecondOrderIteration[];
   convergence?: Array<{ divisions: number; iterations: SecondOrderIteration[]; error?: MeshError }>;
   position?: number;

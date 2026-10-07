@@ -862,3 +862,7 @@ button { color: inherit; }
 .psd-preview svg { display: block; width: 100%; color: var(--text-secondary); }
 .psd-preview svg text { fill: currentColor; font-size: 12px; }
 .psd-preview p { overflow-wrap: anywhere; }
+.random-result-panel { display: flex; flex-direction: column; gap: 12px; }
+.random-result-panel svg { display: block; width: 100%; height: auto; color: var(--text-secondary); }
+.random-result-panel p { overflow-wrap: anywhere; }
+.random-result-panel .load-case-actions { flex-wrap: wrap; align-items: center; }

@@ -31,7 +31,7 @@ export interface AnalysisRunRecord {
 
 export function analysisDependencies(input: AnalysisInputSnapshot): AnalysisRunRecord["dependencies"] {
   if (input.analysisCase?.method === "buckling") return (["fixed", "reference"] as const).flatMap((role) => input.analysisCase!.settings.buckling![role].map((t) => ({ ...t, role })));
-  return input.analysisCase?.method === "modal" ? [] : input.combination ? input.combination.definition.terms.map((term) => ({ ...term }))
+  return ["modal", "random"].includes(input.analysisCase?.method ?? "") ? [] : input.combination ? input.combination.definition.terms.map((term) => ({ ...term }))
     : [{ loadCaseId: input.loadCase?.id ?? "LC1", factor: 1 }];
 }
 

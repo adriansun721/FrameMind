@@ -164,7 +164,7 @@ describe("T2-16 reusable definitions and analysis cases", () => {
   it("rejects unsupported methods, settings, source mismatches and numeric comparisons at public boundaries", () => {
     const p = addAnalysisCase(cantilever(), properties("A"));
     for (const method of ["modal", "second-order", "buckling", "random"] as const) {
-      expect(() => addAnalysisCase(p, { ...properties("Unsupported"), method })).toThrow(method === "modal" ? /结构质量/ : method === "buckling" ? /固定／参考/ : method === "second-order" ? /二阶/ : /尚未接入/);
+      expect(() => addAnalysisCase(p, { ...properties("Unsupported"), method })).toThrow(method === "modal" ? /结构质量/ : method === "buckling" ? /固定／参考/ : method === "second-order" ? /二阶/ : /节点力谱、模态与积分设置/);
       const result = solveFrame(selectAnalysisCase(p, "AC1"));
       const unsupported = { ...result, input: { ...result.input, analysisCase: { ...result.input.analysisCase!, method } } };
       expect(compareAnalysisResults(result, unsupported).compatible).toBe(false);

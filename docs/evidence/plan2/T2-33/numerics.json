@@ -1,0 +1,544 @@
+{
+  "task": "T2-33",
+  "passed": true,
+  "checks": [
+    {
+      "name": "continuous-cantilever",
+      "reference": "continuous EB cantilever, 20 analytic bending modes",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.04943738052999588,
+      "rmsM": 0.049438481464073064,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 2.1825513646255844e-14
+      },
+      "curveTolerance": 0.005,
+      "curveError": 0.00006366678001155139,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.000022269263973528908,
+      "convergence": {
+        "modal": {
+          "curveError": 0.00013350031833178687,
+          "lowerModeCount": 4,
+          "rmsError": 0.00003773209056533285,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.0499604398995798,
+            "variance": 0.0024960455549595255
+          },
+          {
+            "curveError": 0.04277751556628362,
+            "points": 165,
+            "rms": 0.049560087742157366,
+            "rmsError": 0.008013383353452079,
+            "variance": 0.0024562022970103367,
+            "varianceError": 0.01596255239413485
+          },
+          {
+            "curveError": 0.039127776639160936,
+            "points": 329,
+            "rms": 0.049467693203964616,
+            "rmsError": 0.001864293273116145,
+            "variance": 0.002447052670921567,
+            "varianceError": 0.003725110956824116
+          },
+          {
+            "curveError": 0.013680978053805703,
+            "points": 657,
+            "rms": 0.049444339040367415,
+            "rmsError": 0.0004721094129234585,
+            "variance": 0.002444742663138801,
+            "varianceError": 0.0009439959385491915
+          },
+          {
+            "curveError": 0.0037504856412260467,
+            "points": 1313,
+            "rms": 0.049438481464073064,
+            "rmsError": 0.00011846808771310036,
+            "variance": 0.0024441634494734962,
+            "varianceError": 0.00023692214073815825
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "dominant-simple-oscillator",
+      "reference": "independent scalar oscillator: M=rho*A*L/4, K=M*omega1²",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.04656578274519544,
+      "rmsM": 0.04657040037061812,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 7.200106992958036e-15
+      },
+      "curveTolerance": 0.005,
+      "curveError": 0.0012036691818029257,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.00009916348766103589,
+      "convergence": {
+        "modal": {
+          "curveError": 0.00013354506105675584,
+          "lowerModeCount": 4,
+          "rmsError": 0.000011257216345003126,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 72,
+            "rms": 0.04656910100292112,
+            "variance": 0.0021686811682202693
+          },
+          {
+            "curveError": 0.0068030477698724804,
+            "points": 143,
+            "rms": 0.046570139374891496,
+            "rmsError": 0.000022296947879284843,
+            "variance": 0.0021687778813968194,
+            "varianceError": 0.00004459339860468117
+          },
+          {
+            "curveError": 0.0017961403080501985,
+            "points": 285,
+            "rms": 0.04657040037061812,
+            "rmsError": 0.0000056043264507943525,
+            "variance": 0.0021688021906796683,
+            "varianceError": 0.000011208621493149433
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "uniform-damping-effect",
+      "reference": "continuous EB cantilever, 20 analytic bending modes",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.03495994876362797,
+      "rmsM": 0.034959071375274896,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 9.225757554738698e-15
+      },
+      "curveTolerance": 0.005,
+      "curveError": 0.0001253445673719282,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.00002509695763597275,
+      "convergence": {
+        "modal": {
+          "curveError": 0.0002732599335005029,
+          "lowerModeCount": 4,
+          "rmsError": 0.00007605174801833405,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.03507737683425462,
+            "variance": 0.0012304223655723024
+          },
+          {
+            "curveError": 0.0443793634031895,
+            "points": 165,
+            "rms": 0.034981467767262416,
+            "rmsError": 0.0027342143469104045,
+            "variance": 0.0012237030871520194,
+            "varianceError": 0.005460952765725848
+          },
+          {
+            "curveError": 0.03132279733020709,
+            "points": 329,
+            "rms": 0.03496426888591227,
+            "rmsError": 0.0004916569385989084,
+            "variance": 0.0012225000987263724,
+            "varianceError": 0.0009830721506527513
+          },
+          {
+            "curveError": 0.010379216747313872,
+            "points": 657,
+            "rms": 0.034960105352796624,
+            "rmsError": 0.00011907965612634168,
+            "variance": 0.0012222089662786394,
+            "varianceError": 0.00023814513228779906
+          },
+          {
+            "curveError": 0.0028167950582351975,
+            "points": 1313,
+            "rms": 0.034959071375274896,
+            "rmsError": 0.000029575926939963385,
+            "variance": 0.0012221366714215644,
+            "varianceError": 0.00005915097914485575
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "mode-specific-damping",
+      "reference": "continuous EB cantilever, 20 analytic bending modes",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.034959436218859566,
+      "rmsM": 0.03495856362730696,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 2.572642444477291e-14
+      },
+      "curveTolerance": 0.005,
+      "curveError": 0.0001252463796543206,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.000024960115121430704,
+      "convergence": {
+        "modal": {
+          "curveError": 0.0002727000026131312,
+          "lowerModeCount": 4,
+          "rmsError": 0.00007546767645487667,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.035077191772332636,
+            "variance": 0.0012304093826330006
+          },
+          {
+            "curveError": 0.04437900094656995,
+            "points": 165,
+            "rms": 0.034981040421209995,
+            "rmsError": 0.002741135942315672,
+            "variance": 0.0012236731889503278,
+            "varianceError": 0.0054747580583770815
+          },
+          {
+            "curveError": 0.03132271320115699,
+            "points": 329,
+            "rms": 0.03496378031495645,
+            "rmsError": 0.0004934131759866252,
+            "variance": 0.0012224659339125361,
+            "varianceError": 0.000986582895411222
+          },
+          {
+            "curveError": 0.010379202636096773,
+            "points": 657,
+            "rms": 0.034959601441893695,
+            "rmsError": 0.00011952005833210649,
+            "variance": 0.0012221737329760557,
+            "varianceError": 0.00023902583161985707
+          },
+          {
+            "curveError": 0.0028167928991517,
+            "points": 1313,
+            "rms": 0.03495856362730696,
+            "rmsError": 0.000029686110365379684,
+            "variance": 0.001222101170884469,
+            "varianceError": 0.000059371339465754414
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "narrow-resonance",
+      "reference": "continuous EB cantilever, 20 analytic bending modes",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.698914181485649,
+      "rmsM": 0.699149693242789,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 4.227420689755174e-14
+      },
+      "curveTolerance": 0.02,
+      "curveError": 0.0008496353201277551,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.00033696806185745665,
+      "convergence": {
+        "modal": {
+          "curveError": 6.51778413389084e-7,
+          "lowerModeCount": 4,
+          "rmsError": 4.9801031432457466e-8,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 74,
+            "rms": 0.7358290991907275,
+            "variance": 0.5414444632158375
+          },
+          {
+            "curveError": 0.050036263900208024,
+            "points": 147,
+            "rms": 0.7107980659702762,
+            "rmsError": 0.03401745493346308,
+            "variance": 0.5052338905870851,
+            "varianceError": 0.06687772262677597
+          },
+          {
+            "curveError": 0.041186559404622146,
+            "points": 293,
+            "rms": 0.7023798234425719,
+            "rmsError": 0.011843367238503882,
+            "variance": 0.4933374163792185,
+            "varianceError": 0.023546469129461647
+          },
+          {
+            "curveError": 0.014028801416165478,
+            "points": 585,
+            "rms": 0.6998370394691185,
+            "rmsError": 0.0036202406284828676,
+            "variance": 0.4897718818129005,
+            "varianceError": 0.007227375114757716
+          },
+          {
+            "curveError": 0.0038014795546347613,
+            "points": 1169,
+            "rms": 0.699149693242789,
+            "rmsError": 0.0009821518261606938,
+            "variance": 0.488810293561486,
+            "varianceError": 0.0019633390301116824
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "coherent-modal-antiresonance",
+      "reference": "continuous EB cantilever, 20 analytic bending modes",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.0011293454554451075,
+      "rmsM": 0.001132318878428267,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 1.3116373839985018e-14
+      },
+      "curveTolerance": 0.005,
+      "curveError": 0.002906888998880623,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.0026328728457913897,
+      "convergence": {
+        "modal": {
+          "curveError": 0.002755182999703005,
+          "lowerModeCount": 8,
+          "rmsError": 0.0023872775361749123,
+          "status": "converged",
+          "upperModeCount": 10
+        },
+        "runs": [
+          {
+            "points": 66,
+            "rms": 0.0011327308834491844,
+            "variance": 0.0000012830792543195698
+          },
+          {
+            "curveError": 0.0017752818362942592,
+            "points": 131,
+            "rms": 0.001132318878428267,
+            "rmsError": 0.00036372718969479513,
+            "variance": 0.0000012821460424450486,
+            "varianceError": 0.000727322081920902
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "piecewise-linear-input-spectrum",
+      "reference": "continuous EB cantilever, 20 analytic bending modes",
+      "firstFrequencyHz": 9.059785616307645,
+      "referenceRms": 0.06566221572657707,
+      "rmsM": 0.06566492791280676,
+      "independentIntegration": {
+        "method": "composite Simpson",
+        "coarseIntervals": 200000,
+        "fineIntervals": 400000,
+        "relativeChange": 1.2271538887139543e-14
+      },
+      "curveTolerance": 0.005,
+      "curveError": 0.00006277255856209542,
+      "rmsTolerance": 0.005,
+      "rmsError": 0.00004130512806610476,
+      "convergence": {
+        "modal": {
+          "curveError": 0.00013088594204174587,
+          "lowerModeCount": 4,
+          "rmsError": 0.000008517871711587596,
+          "status": "converged",
+          "upperModeCount": 6
+        },
+        "runs": [
+          {
+            "points": 84,
+            "rms": 0.0663213383051922,
+            "variance": 0.004398519914591754
+          },
+          {
+            "curveError": 0.04578445708337652,
+            "points": 167,
+            "rms": 0.06581700705152992,
+            "rmsError": 0.007604358816486655,
+            "variance": 0.0043318784172211395,
+            "varianceError": 0.015150891359963229
+          },
+          {
+            "curveError": 0.03986126332379842,
+            "points": 333,
+            "rms": 0.06570147771231566,
+            "rmsError": 0.0017553113456497036,
+            "variance": 0.004316684173581912,
+            "varianceError": 0.0035075415733792246
+          },
+          {
+            "curveError": 0.013800732728501547,
+            "points": 665,
+            "rms": 0.06567225781311796,
+            "rmsError": 0.0004447373212158693,
+            "variance": 0.0043128454462726335,
+            "varianceError": 0.0008892768511469291
+          },
+          {
+            "curveError": 0.003769607923770044,
+            "points": 1329,
+            "rms": 0.06566492791280676,
+            "rmsError": 0.00011161334413169537,
+            "variance": 0.004311882757794108,
+            "varianceError": 0.0002232142307249254
+          }
+        ],
+        "status": "converged"
+      }
+    },
+    {
+      "name": "signed-spatial-coefficient",
+      "factor": -2,
+      "rmsRatio": 2
+    },
+    {
+      "name": "zero-coefficient-and-restrained-response",
+      "passed": true
+    },
+    {
+      "name": "persisted-numeric-tampering-rejected",
+      "passed": true
+    },
+    {
+      "name": "precise-load-and-mass-dependencies",
+      "unrelatedStaticLoadCurrent": true,
+      "massChangeCurrent": false
+    }
+  ],
+  "failures": [
+    {
+      "name": "frequency-budget",
+      "code": "random-frequency-budget",
+      "publishedPartialResult": false,
+      "evidence": {
+        "attemptedPoints": 83,
+        "detail": {
+          "nextPoints": 165
+        },
+        "pointBudget": 100,
+        "refinementBudget": 10,
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.0499604398995798,
+            "variance": 0.0024960455549595255
+          }
+        ],
+        "status": "failed"
+      }
+    },
+    {
+      "name": "integration-budget",
+      "code": "random-integration-budget",
+      "publishedPartialResult": false,
+      "evidence": {
+        "attemptedPoints": 165,
+        "detail": {},
+        "pointBudget": 20001,
+        "refinementBudget": 1,
+        "runs": [
+          {
+            "points": 83,
+            "rms": 0.0499604398995798,
+            "variance": 0.0024960455549595255
+          },
+          {
+            "curveError": 0.04277751556628362,
+            "points": 165,
+            "rms": 0.049560087742157366,
+            "rmsError": 0.008013383353452079,
+            "variance": 0.0024562022970103367,
+            "varianceError": 0.01596255239413485
+          }
+        ],
+        "status": "failed"
+      }
+    },
+    {
+      "name": "modal-truncation",
+      "code": "random-modal-truncation",
+      "publishedPartialResult": false,
+      "evidence": {
+        "attemptedPoints": 141,
+        "detail": {
+          "curveError": 0.9927543224138571,
+          "lowerModeCount": 4,
+          "rmsError": 0.8661462793253174,
+          "upperModeCount": 6
+        },
+        "pointBudget": 20001,
+        "refinementBudget": 10,
+        "runs": [
+          {
+            "points": 71,
+            "rms": 0.000607473037430076,
+            "variance": 3.690234912045226e-7
+          },
+          {
+            "curveError": 0.002388017712946271,
+            "points": 141,
+            "rms": 0.0006074784099183724,
+            "rmsError": 0.000008843916439901903,
+            "variance": 3.690300185169541e-7,
+            "varianceError": 0.00001768775466487834
+          }
+        ],
+        "status": "failed"
+      }
+    },
+    {
+      "name": "cropped-band",
+      "publicInputRejected": true
+    },
+    {
+      "name": "uncovered-band",
+      "publicInputRejected": true
+    },
+    {
+      "name": "zero-direction",
+      "publicInputRejected": true
+    },
+    {
+      "name": "missing-force-participation",
+      "publicInputRejected": true
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import { CANONICAL_UNITS, convertQuantity, requireUnitPreset, UNIT_CONTRACT, unitDimension, unitPresentation, type QuantityDimension, type UnitPresetId } from "../domain/units";
 
 const FIELD_DIMENSIONS: Record<string, QuantityDimension> = {
+  bandHz: "frequency", frequencyHz: "frequency", absoluteRmsTolerance: "length", absoluteVarianceTolerance: "area", absolutePsdTolerance: "displacementPSD",
   additionalMassKg: "mass", structuralMassKg: "mass", additionalLineMassKgM: "lineMass", massPerLengthKgM: "lineMass", lengthM: "length",
   rootRadiusM: "length", width: "length", height: "length", diameter: "length", thickness: "length", webThickness: "length", flangeThickness: "length",
   position: "length", endPosition: "length", origin: "length", xSpans: "length", ySpans: "length", storeyHeights: "length", length: "length", tolerance: "length", distance: "length", targetPosition: "length",
@@ -17,23 +18,28 @@ export function toolFieldDimension(field: string): QuantityDimension | undefined
   return parts.map((part) => FIELD_DIMENSIONS[part]).find(Boolean);
 }
 
+function isExplicitPsd(value: Record<string, unknown>): boolean {
+  return ["force", "acceleration"].includes(value.quantity as string) && Boolean(value.sidedness && value.frequencyUnit);
+}
+
 /** Converts declared engineering fields, leaving IDs, counts, coefficients and provenance intact. */
 export function convertToolQuantities(value: unknown, convert: (n: number, dimension: QuantityDimension) => number, dimension?: QuantityDimension): unknown {
   if (typeof value === "number") return dimension ? convert(value, dimension) : value;
   if (Array.isArray(value)) return value.map((item) => convertToolQuantities(item, convert, dimension));
   if (!value || typeof value !== "object") return value;
   const record = value as Record<string, unknown>;
+  if (isExplicitPsd(record)) return value;
   const result: Record<string, unknown> = {};
   for (const [key, child] of Object.entries(record)) {
-    if (["assumptions", "solver", "service", "provenance", "parameterBasis", "catalogBasis", "basis", "process"].includes(key)) { result[key] = child; continue; }
+    if (["assumptions", "solver", "service", "provenance", "parameterBasis", "catalogBasis", "basis", "process", "randomBasis", "frozenRandomSettings", "inputSpectrum"].includes(key)) { result[key] = child; continue; }
     if (["localEndForces", "startEndForces", "endEndForces", "startDelta", "endDelta"].includes(key)) {
       const forces = (v: unknown): unknown => Array.isArray(v) ? v.map((n, i) => typeof n === "number" ? convert(n, i % 6 < 3 ? "force" : "moment") : n)
         : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, a]) => [k, forces(a)])) : v;
       result[key] = forces(child); continue;
     }
-    const explicit = ["value", "delta"].includes(key) && typeof record.unit === "string" ? unitDimension(record.unit)
+    const explicit = key === "rms" && typeof record.rmsUnit === "string" ? unitDimension(record.rmsUnit) : key === "variance" && record.varianceUnit === "m²" ? "area" : ["value", "delta"].includes(key) && typeof record.unit === "string" ? unitDimension(record.unit)
       : ["min", "max", "equals"].includes(key) && typeof record.field === "string" ? toolFieldDimension(record.field) : undefined;
-    result[key] = convertToolQuantities(child, convert, explicit ?? toolFieldDimension(key) ?? dimension);
+    result[key] = convertToolQuantities(child, convert, (key === "density" && typeof record.densityUnit === "string" ? unitDimension(record.densityUnit) : undefined) ?? explicit ?? toolFieldDimension(key) ?? dimension);
   }
   return result;
 }
@@ -69,11 +75,14 @@ export function normalizeToolUnits(input: Record<string, unknown>, toolName?: st
 export function presentToolData(data: unknown, preset: UnitPresetId): unknown {
   const u = unitPresentation(preset);
   const converted = convertToolQuantities(data, (v, d) => u.value(v, CANONICAL_UNITS[d]));
-  const labels = (value: unknown): unknown => Array.isArray(value) ? value.map(labels) : value && typeof value === "object"
-    ? Object.fromEntries(Object.entries(value).map(([key, child]) => [key,
-      ["assumptions", "solver", "service", "provenance", "parameterBasis", "catalogBasis", "basis", "process"].includes(key) ? child
-        : (key === "unit" || key === "units") && typeof child === "string" && Object.values(CANONICAL_UNITS).includes(child as never) ? u.unit(child)
-          : key === "units" && child && typeof child === "object" ? Object.fromEntries(Object.entries(child).map(([k, v]) => [k, typeof v === "string" && Object.values(CANONICAL_UNITS).includes(v as never) ? u.unit(v) : v])) : labels(child)])) : value;
+  const labels = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(labels);
+    if (!value || typeof value !== "object" || isExplicitPsd(value as Record<string, unknown>)) return value;
+    return Object.fromEntries(Object.entries(value).map(([key, child]) => [key,
+      ["assumptions", "solver", "service", "provenance", "parameterBasis", "catalogBasis", "basis", "process", "randomBasis", "frozenRandomSettings", "inputSpectrum"].includes(key) ? child
+        : (["unit", "units", "rmsUnit", "varianceUnit", "densityUnit", "frequencyUnit"].includes(key)) && typeof child === "string" && Object.values(CANONICAL_UNITS).includes(child as never) ? u.unit(child)
+          : key === "units" && child && typeof child === "object" ? Object.fromEntries(Object.entries(child).map(([k, v]) => [k, typeof v === "string" && Object.values(CANONICAL_UNITS).includes(v as never) ? u.unit(v) : v])) : labels(child)]));
+  };
   const presented = labels(converted);
   return { ...(presented && typeof presented === "object" && !Array.isArray(presented) ? presented : { items: presented }), displayUnitPreset: preset, quantityUnits: u.units, storageContract: UNIT_CONTRACT.canonical };
 }

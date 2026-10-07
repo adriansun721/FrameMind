@@ -111,7 +111,7 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
       case "create_analysis_case": case "update_analysis_case": {
         object(input, input.type === "create_analysis_case" ? ["type", "properties"] : ["type", "id", "properties"]);
         const properties = object(input.properties, ["name", "method", "loadSourceId", "settings"]);
-        object(properties.settings, ["solver", "mesh", "modal", "buckling", "secondOrder"]);
+        object(properties.settings, ["solver", "mesh", "modal", "buckling", "secondOrder", "random"]);
         return { type: input.type, ...(input.type === "update_analysis_case" ? { id: identity(input.id) } : {}), properties } as Extract<ProjectEditOperation, { type: "create_analysis_case" | "update_analysis_case" }>;
       }
       case "delete_analysis_case": object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) };

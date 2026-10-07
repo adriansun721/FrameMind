@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "manualBinding": true,
+  "unitsEquivalent": true,
+  "statisticalMeaning": true,
+  "located": true,
+  "frequencyBudgetFailurePreservesHistory": true,
+  "undo": true,
+  "editedSpectrumStale": true,
+  "reopenedHistory": true,
+  "recalculatedRmsFactor": 2,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "widths": [
+    1080,
+    1440
+  ]
+}

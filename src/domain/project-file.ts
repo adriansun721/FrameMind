@@ -1,3 +1,4 @@
+import { decodeRandomResult } from "./random-response-result";
 import { decodeSecondOrderResult } from "./second-order-result";
 import { decodePsdSpectrum } from "./psd";
 import { decodeBucklingResult } from "./buckling";
@@ -264,7 +265,7 @@ function decodeAnalysisInput(input: Record<string, unknown>, projectId: string, 
   }
   const bucklingCases = [...bucklingLoads?.fixed?.combination?.cases ?? [], ...bucklingLoads?.reference?.combination?.cases ?? []];
   const analysisCase = input.analysisCase === undefined ? undefined : decodeAnalysisCase(input.analysisCase, { loadCases: bucklingLoads ? bucklingCases.map((c) => c.loadCase) : loadCase ? [loadCase] : [], loadCombinations: combination ? [combination.definition] : [] });
-  if (analysisCase && !["modal", "buckling"].includes(analysisCase.method) && analysisCase.loadSourceId !== (combination?.definition.id ?? loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
+  if (analysisCase && !["modal", "buckling", "random"].includes(analysisCase.method) && analysisCase.loadSourceId !== (combination?.definition.id ?? loadCase?.id)) throw new Error("分析工况与冻结荷载来源不一致");
   const decoded = { ...input, analysisCase, loadCase, nodes: inputNodes, materials: inputMaterials, sections: inputSections, members: inputMembers, supports: inputSupports, nodalLoads: inputLoads, uniformLoads: inputUniformLoads, selfWeight: inputSelfWeight, combination } as AnalysisInputSnapshot;
   validateCombinationInput(decoded);
   return freezeAnalysisInput(decoded);
@@ -332,6 +333,7 @@ function decodeResult(value: unknown, internal: boolean): AnalysisResult {
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
   const input = decodeAnalysisInput(value.input, projectId, projectRevision, internal);
+  if (input.solver?.implementation === "framemind-native/8" || input.analysisCase?.method === "random") return decodeRandomResult(value, input, decodeAnalysisResult);
   if (input.solver?.implementation === "framemind-native/7" || input.analysisCase?.method === "second-order") return decodeSecondOrderResult(value, input, (packet) => decodeResult(packet, true));
   if (input.solver?.implementation === "framemind-native/6" || input.analysisCase?.method === "buckling") return decodeBucklingResult(value, input, (packet) => decodeResult(packet, true));
   if (input.solver?.implementation === "framemind-native/5" || input.analysisCase?.method === "modal") return decodeModalResult(value, input);

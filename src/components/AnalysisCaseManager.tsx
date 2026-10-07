@@ -1,3 +1,5 @@
+import { DEFAULT_RANDOM_ACCURACY, type RandomSettings } from "../domain/random-response";
+import { RandomSettingsEditor } from "./RandomSettingsEditor";
 import { DEFAULT_BUCKLING_SETTINGS } from "../domain/buckling";
 import { DEFAULT_SECOND_ORDER_SETTINGS } from "../domain/second-order";
 import { SecondOrderSettingsEditor } from "./SecondOrderSettingsEditor";
@@ -14,11 +16,13 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   project: FrameProject; onChange(project: FrameProject): void; onAnalyze(id: string): void;
   onViewHistory(id: string): void; onLoads(): void; onCombinations(): void; onPsd(): void; onClose(): void;
 }) {
+  const blankRandom = (): RandomSettings => ({ ...DEFAULT_RANDOM_ACCURACY, modalAnalysisId: "", psdSpectrumId: "", excitation: { nodeId: "", direction: { x: 0, y: 0, z: 1 }, scale: 1 }, response: { nodeId: "", component: "z" }, bandHz: [0, 20] });
   const initial = project.analysisCases.find((c) => c.id === project.activeAnalysisCaseId);
   const [editingId, setEditingId] = useState(initial?.id ?? "");
   const [name, setName] = useState(initial?.name ?? "");
   const [sourceId, setSourceId] = useState(initial?.loadSourceId ?? project.activeLoadCombinationId ?? project.activeLoadCaseId);
   const [method, setMethod] = useState<AnalysisMethod>(initial?.method ?? "static");
+  const [random, setRandom] = useState(initial?.settings.random ?? blankRandom());
   const [buckling, setBuckling] = useState(initial?.settings.buckling ?? structuredClone({ ...DEFAULT_BUCKLING_SETTINGS, reference: [{ loadCaseId: project.activeLoadCaseId, factor: 1 }] }));
   const [modal, setModal] = useState(initial?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
   const [secondOrder, setSecondOrder] = useState(initial?.settings.secondOrder ?? { ...DEFAULT_SECOND_ORDER_SETTINGS });
@@ -26,6 +30,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   const [mesh, setMesh] = useState(initial?.settings.mesh ?? { ...DEFAULT_MESH_POLICY });
   const edit = (id: string) => {
     const item = project.analysisCases.find((c) => c.id === id);
+    setRandom(item?.settings.random ?? blankRandom());
     setEditingId(id); setName(item?.name ?? ""); setSourceId(item?.loadSourceId ?? project.activeLoadCaseId); setError(undefined);
     setBuckling(item?.settings.buckling ?? structuredClone({ ...DEFAULT_BUCKLING_SETTINGS, reference: [{ loadCaseId: project.activeLoadCaseId, factor: 1 }] }));
     setMethod(item?.method ?? "static"); setModal(item?.settings.modal ?? { ...DEFAULT_MODAL_SETTINGS });
@@ -35,7 +40,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
   const save = (event: FormEvent) => {
     event.preventDefault();
     try {
-      const properties = method === "second-order" ? { name, method, loadSourceId: sourceId, settings: { solver: "native-second-order" as const, secondOrder } } : method === "buckling" ? { name, method, loadSourceId: "buckling", settings: { solver: "native-buckling" as const, buckling } } : method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
+      const properties = method === "random" ? { name, method, loadSourceId: "random", settings: { solver: "native-random" as const, random } } : method === "second-order" ? { name, method, loadSourceId: sourceId, settings: { solver: "native-second-order" as const, secondOrder } } : method === "buckling" ? { name, method, loadSourceId: "buckling", settings: { solver: "native-buckling" as const, buckling } } : method === "modal" ? { name, method, loadSourceId: "structure", settings: { solver: "native-modal" as const, modal } } : { name, method: "static" as const, loadSourceId: sourceId, settings: { solver: "native-static" as const, mesh } };
       const next = editingId ? updateAnalysisCase(project, editingId, properties) : addAnalysisCase(project, properties);
       const id = editingId || next.analysisCases.at(-1)!.id;
       onChange(selectAnalysisCase(next, id)); setEditingId(id); setError(undefined);
@@ -65,6 +70,7 @@ export function AnalysisCaseManager({ project, onChange, onAnalyze, onViewHistor
           <label className="field"><span>每杆最大计算单元</span><select value={mesh.maxDivisions} onChange={(e) => setMesh({ ...mesh, maxDivisions: Number(e.target.value) })}>{[1, 2, 4, 8, 16].map((n) => <option key={n}>{n}</option>)}</select></label>
           {([['maxEquations', '最大计算方程数'], ['relativeTolerance', '细分相对误差'], ['displacementTolerance', '位移绝对误差（m / rad）'], ['forceTolerance', '内力绝对误差（kN / kN·m）']] as const).map(([key, label]) => <label className="field" key={key}><span>{label}</span><input type="number" step="any" value={mesh[key]} onChange={(e) => setMesh({ ...mesh, [key]: Number(e.target.value) })} /></label>)}
         </details></>}
+        {method === "random" && <RandomSettingsEditor project={project} value={random} onChange={setRandom} />}
         {method === "buckling" && <BucklingSettingsEditor project={project} value={buckling} onChange={setBuckling} />}
         {method === "second-order" && <><label className="field"><span>复用荷载定义</span><select value={sourceId === "buckling" || sourceId === "structure" ? project.activeLoadCaseId : sourceId} onChange={(e) => setSourceId(e.target.value)}>{[...project.loadCases, ...project.loadCombinations].map((c) => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}</select></label><SecondOrderSettingsEditor value={secondOrder} onChange={setSecondOrder} /></>}
         {method === "modal" && <>

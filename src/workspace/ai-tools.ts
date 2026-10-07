@@ -87,7 +87,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
   const before = project.analysisResults.find((item) => item.id === comparisonIds?.beforeId);
   const after = project.analysisResults.find((item) => item.id === comparisonIds?.afterId);
   const resultSnapshot = (result: AnalysisResult) => structuredClone({ ...result, process: undefined });
-  const analysisComplete = Boolean(analysis && analysis.status === "complete" && (analysis.buckling ? analysis.input.analysisCase?.method === "buckling" && analysis.buckling.modes.length > 0 : analysis.modal
+  const analysisComplete = Boolean(analysis && analysis.status === "complete" && (analysis.random ? analysis.input.analysisCase?.method === "random" && analysis.random.convergence.status === "converged" : analysis.buckling ? analysis.input.analysisCase?.method === "buckling" && analysis.buckling.modes.length > 0 : analysis.modal
     ? analysis.input.analysisCase?.method === "modal" && analysis.modal.modes.length > 0 && analysis.modal.modes.every((mode) => mode.nodes.length === analysis.input.nodes.length && mode.members.length === analysis.input.members.length)
     : analysis.nodes.length === analysis.input.nodes.length && analysis.members.length === analysis.input.members.length));
   const analysisCurrent = analysisComplete && analysis ? isAnalysisResultCurrent(project, analysis) : false;
@@ -119,7 +119,7 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
       comparison: comparisonIds,
     }),
     model: structuredClone(model),
-    editProject: structuredClone({ ...project, analysisResults: project.analysisResults.filter((r) => r.modal || r.buckling || r.secondOrder), latestAnalysis: undefined }),
+    editProject: structuredClone({ ...project, analysisResults: project.analysisResults.filter((r) => r.random || r.modal || r.buckling || r.secondOrder), latestAnalysis: undefined }),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
     analysisCurrent,
@@ -148,7 +148,7 @@ const queryFields: Record<string, readonly string[]> = {
   loads: ["id", "label", "kind", "nodeId", "memberId", "loadCaseId"],
   "load-cases": ["id", "name", "description"],
   "psd-spectra": ["id", "name", "quantity", "excitationUnit", "frequencyUnit", "densityUnit", "sidedness", "band", "points", "interpolation", "outsideBand"],
-  "analysis-cases": ["id", "name", "method", "loadSourceId", "settings.solver", "settings.mesh", "settings.modal", "settings.buckling", "settings.secondOrder"],
+  "analysis-cases": ["id", "name", "method", "loadSourceId", "settings.solver", "settings.mesh", "settings.modal", "settings.buckling", "settings.secondOrder", "settings.random"],
 };
 interface CollectionQuery { field: string; equals?: string | number | boolean; min?: number; max?: number; }
 const mutationTools = new Set(["create_node", "create_nodes", "update_node", "update_nodes", "delete_node", "delete_nodes",

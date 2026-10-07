@@ -1,3 +1,4 @@
+import { RANDOM_RESPONSE_MEANING } from "../domain/random-response";
 import { getMemberSectionForces, type AnalysisResult } from "../domain/analysis";
 import { indeterminateRotationComponents } from "../domain/member-releases";
 import { ANALYSIS_FORCE_COMPONENTS } from "../domain/analysis-comparison";
@@ -77,11 +78,29 @@ function fields(input: Record<string, unknown>, allowed: string[]) {
 export function readResults(result: AnalysisResult, current: boolean, input: Record<string, unknown>, project?: FrameProject) {
   fields(input, ["analysisId", "collection", "offset", "limit", "fields", "query"]);
   const collection = input.collection;
-  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh", "modes", "mass"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members、mesh、modes 或 mass");
+  if (typeof collection !== "string" || !["summary", "nodes", "members", "mesh", "modes", "mass", "psd", "input-psd"].includes(collection)) throw new Error("结果集合必须为 summary、nodes、members、mesh、modes、mass、psd 或 input-psd");
   const offset = input.offset === undefined ? 0 : input.offset; const limit = input.limit === undefined ? 50 : input.limit;
   if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0
     || typeof limit !== "number" || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error("结果分页须为非负 offset 与 1 至 100 的 limit");
   const provenance = { ...analysisProvenance(result, current), ...(result.secondOrder ? { method: "second-order", meaning: SECOND_ORDER_MEANING, completion: result.secondOrder.status } : {}), ...(result.modal ? { damping: project ? modalDampingStatus(project, result) : { status: "missing", message: "需读取项目阻尼配置", truncation: modalTruncationCheck(result) } } : {}) };
+  if (result.random) {
+    if (input.fields !== undefined || input.query !== undefined || !["summary", "psd", "input-psd"].includes(collection)) throw new Error("随机结果仅支持 summary、psd 与 input-psd；统计量不是静力位移、内力或振型");
+    const r = result.random, s = result.input.analysisCase!.settings.random!, basis = result.input.randomBasis!;
+    const { points: spectrumPoints, ...spectrumMetadata } = basis.spectrum;
+    if (collection === "summary") return { ...provenance, method: "random", meaning: RANDOM_RESPONSE_MEANING, response: r.response, coordinateSystem: r.coordinateSystem,
+      rms: r.rms, rmsUnit: "m", variance: r.variance, varianceUnit: "m²", densityUnit: "m²/Hz", sidedness: r.sidedness, frequencyUnit: "Hz", bandHz: s.bandHz,
+      frozenRandomSettings: s, modalAnalysisId: basis.modal.id, modalCreatedAt: basis.modal.createdAt, modeCount: r.modeCount,
+      damping: basis.damping, inputSpectrum: { ...spectrumMetadata, totalPoints: spectrumPoints.length }, convergence: { ...r.convergence, runs: r.convergence.runs.map((run) => ({ ...run, rmsUnit: "m", varianceUnit: "m²" })) }, totalPoints: r.points.length };
+    if (collection === "input-psd") {
+      const items = spectrumPoints.slice(offset, offset + limit).map((p) => ({ frequencyHz: p.frequency, density: p.density, densityUnit: "kN²/Hz", frequencyUnit: "Hz" }));
+      return { ...provenance, method: "random", collection, inputSpectrum: spectrumMetadata, total: spectrumPoints.length, offset, limit, items,
+        page: { empty: !items.length, hasMore: offset + items.length < spectrumPoints.length, nextOffset: offset + items.length } };
+    }
+    const items = r.points.slice(offset, offset + limit).map((p) => ({ ...p, densityUnit: "m²/Hz", frequencyUnit: "Hz", response: r.response, coordinateSystem: r.coordinateSystem }));
+    return { ...provenance, method: "random", meaning: RANDOM_RESPONSE_MEANING, collection, total: r.points.length, offset, limit, items,
+      page: { empty: !items.length, hasMore: offset + items.length < r.points.length, nextOffset: offset + items.length } };
+  }
+  if (["psd", "input-psd"].includes(collection)) throw new Error("本结果不是随机响应；输入谱请从 read_model psd-spectra 读取");
   if (result.buckling) {
     if (input.fields !== undefined || input.query !== undefined || !["summary", "modes", "mesh"].includes(collection)) throw new Error("屈曲仅支持 summary、modes、mesh；屈曲形态不是静力位移、内力或质量");
     const b = result.buckling;
@@ -146,6 +165,13 @@ export function readResult(result: AnalysisResult, current: boolean, input: Reco
   if (typeof input.id !== "string" || typeof input.component !== "string" || typeof input.quantity !== "string") throw new Error("结果项需提供稳定对象身份、类型与分量");
   const provenance = analysisProvenance(result, current);
   const quantity = input.quantity; const component = input.component;
+  if (result.random) {
+    const r = result.random;
+    if (input.kind !== "node" || input.id !== r.response.nodeId || component !== r.response.component || quantity !== "rms" || input.position !== undefined) throw new Error("随机结果只提供所选节点平移分量的统计 RMS；PSD 使用 read_results psd 分页读取");
+    const node = result.input.nodes.find((n) => n.id === r.response.nodeId)!;
+    return { token: `[[result:${callId}]]`, analysisId: result.id, inputRevision: provenance.inputRevision, createdAt: result.createdAt, current,
+      source: provenance.source, object: { kind: "node", id: node.id, label: node.label, position: node.position }, quantity: "rms", component, coordinateSystem: "global XYZ", value: r.rms, unit: "m" };
+  }
   let object: ResultReference["object"]; let value: number; let unit: string;
   if (input.kind === "node") {
     if (input.position !== undefined) throw new Error("节点结果不接受沿杆位置");
@@ -183,7 +209,7 @@ export function readResult(result: AnalysisResult, current: boolean, input: Reco
     ...(quantity === "sectionForces" ? { position: input.position as number } : {}), value, unit };
 }
 
-export const RESULT_QUANTITY_LABELS: Record<string, string> = { displacement: "位移", rotation: "转角", reaction: "反力", reactionMoment: "反力矩",
+export const RESULT_QUANTITY_LABELS: Record<string, string> = { rms: "平移 RMS（统计均方根，非瞬时峰值）", displacement: "位移", rotation: "转角", reaction: "反力", reactionMoment: "反力矩",
   sectionForces: "截面内力（正局部 x 面）", startEndForces: "起点杆端作用力", endEndForces: "终点杆端作用力" };
 export function resultReferenceLabel(ref: ResultReference): string {
   return `${ref.object.label} · ${RESULT_QUANTITY_LABELS[ref.quantity]} ${ref.component}${ref.position !== undefined ? ` @ ${ref.position} m` : ""} = ${ref.value.toPrecision(8)} ${ref.unit}`;

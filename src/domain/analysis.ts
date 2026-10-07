@@ -1,3 +1,4 @@
+import { captureRandomInput, type RandomBasis, type RandomRecord } from "./random-response";
 import type { SecondOrderRecord } from "./second-order";
 import { secondOrderResponsesAt } from "./second-order-process";
 import { bucklingPattern, type BucklingRecord, type BucklingLoadPattern } from "./buckling";
@@ -51,8 +52,10 @@ export const NATIVE_MODAL_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze
 export const NATIVE_BUCKLING_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_MODAL_SOLVER, implementation: "framemind-native/6" });
 export const NATIVE_SECOND_ORDER_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_STATIC_SOLVER, implementation: "framemind-native/7" });
 
+export const NATIVE_RANDOM_SOLVER: Readonly<AnalysisSolverConfig> = Object.freeze({ ...NATIVE_MODAL_SOLVER, implementation: "framemind-native/8" });
+
 export function isNativeSolver(solver: AnalysisSolverConfig | undefined): boolean {
-  return sameInputValue(solver, NATIVE_SECOND_ORDER_SOLVER) || sameInputValue(solver, NATIVE_BUCKLING_SOLVER) || sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
+  return sameInputValue(solver, NATIVE_RANDOM_SOLVER) || sameInputValue(solver, NATIVE_SECOND_ORDER_SOLVER) || sameInputValue(solver, NATIVE_BUCKLING_SOLVER) || sameInputValue(solver, NATIVE_MODAL_SOLVER) || sameInputValue(solver, NATIVE_ANALYSIS_SOLVER) || sameInputValue(solver, NATIVE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_RELEASE_STATIC_SOLVER) || sameInputValue(solver, NATIVE_MESH_STATIC_SOLVER);
 }
 
 export interface AnalysisAssumptions {
@@ -65,6 +68,7 @@ export interface AnalysisAssumptions {
 
 export interface AnalysisInputSnapshot {
   /** Private inherited frames for validated internal calculation runs only. */
+  randomBasis?: RandomBasis;
   calculationFrames?: Record<string, MemberGeometry>;
   bucklingLoads?: { fixed: BucklingLoadPattern | null; reference: BucklingLoadPattern };
   meshPlan?: MeshPlan;
@@ -124,6 +128,7 @@ export interface NativeReleaseRecovery {
 }
 
 export interface AnalysisResult {
+  random?: RandomRecord;
   secondOrder?: SecondOrderRecord;
   buckling?: BucklingRecord;
   modal?: ModalRecord;
@@ -379,6 +384,7 @@ export function freezeAnalysisInput(input: AnalysisInputSnapshot): AnalysisInput
 export function captureAnalysisInput(project: FrameProject, loadCaseId?: string): AnalysisInputSnapshot {
   if (loadCaseId === undefined && project.activeAnalysisCaseId) {
     const { damping: _damping, ...analysisCase } = validateAnalysisCase(project, requireAnalysisCase(project, project.activeAnalysisCaseId));
+    if (analysisCase.method === "random") return freezeAnalysisInput(captureRandomInput(project, analysisCase));
     if (analysisCase.method === "buckling") {
       const base = captureAnalysisInput({ ...project, activeAnalysisCaseId: undefined, activeLoadCombinationId: undefined }, project.activeLoadCaseId);
       const pattern = (terms: import("./project").LoadCombinationTerm[]) => bucklingPattern(base, terms, terms.map((term) => {
@@ -513,11 +519,12 @@ export function analysisInputDependencies(input: AnalysisInputSnapshot): unknown
   return {
     projectId: input.projectId, dofOrder: input.dofOrder, assumptions: input.assumptions, solver: input.solver,
     analysisCase: input.analysisCase ? { id: input.analysisCase.id, method: input.analysisCase.method, loadSourceId: input.analysisCase.loadSourceId, settings: input.analysisCase.settings } : undefined,
-    nodes: sorted(input.nodes).map(({ id, position, additionalMassKg }) => ({ id, position, ...(input.analysisCase?.method === "modal" ? { additionalMassKg: additionalMassKg ?? 0 } : {}) })),
-    members: sorted(input.members).map(({ additionalLineMassKgM, ...m }) => ({ ...m, ...(input.analysisCase?.method === "modal" ? { additionalLineMassKgM: additionalLineMassKgM ?? 0 } : {}) })), supports: sorted(input.supports),
-    materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight || input.analysisCase?.method === "modal" ? { densityKgM3 } : {}) })),
+    nodes: sorted(input.nodes).map(({ id, position, additionalMassKg }) => ({ id, position, ...(["modal", "random"].includes(input.analysisCase?.method ?? "") ? { additionalMassKg: additionalMassKg ?? 0 } : {}) })),
+    members: sorted(input.members).map(({ additionalLineMassKgM, ...m }) => ({ ...m, ...(["modal", "random"].includes(input.analysisCase?.method ?? "") ? { additionalLineMassKgM: additionalLineMassKgM ?? 0 } : {}) })), supports: sorted(input.supports),
+    materials: sorted(input.materials.filter((m) => materialIds.has(m.id))).map(({ id, elasticModulusGPa, poissonRatio, densityKgM3 }) => ({ id, elasticModulusGPa, poissonRatio, ...(hasSelfWeight || ["modal", "random"].includes(input.analysisCase?.method ?? "") ? { densityKgM3 } : {}) })),
     sections: sorted(input.sections.filter((s) => sectionIds.has(s.id))).map(({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 }) => ({ id, areaM2, secondMomentYM4, secondMomentZM4, torsionalConstantM4 })),
-    conditions: input.bucklingLoads ? Object.fromEntries((["fixed", "reference"] as const).map((role) => [role, input.bucklingLoads![role]?.combination?.cases.filter((c) => input.analysisCase!.settings.buckling![role].some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions) ?? []])) : input.analysisCase?.method === "modal" ? undefined : input.combination ? {
+    randomBasis: input.randomBasis,
+    conditions: input.bucklingLoads ? Object.fromEntries((["fixed", "reference"] as const).map((role) => [role, input.bucklingLoads![role]?.combination?.cases.filter((c) => input.analysisCase!.settings.buckling![role].some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions) ?? []])) : ["modal", "random"].includes(input.analysisCase?.method ?? "") ? undefined : input.combination ? {
       id: input.combination.definition.id,
       terms: [...input.combination.definition.terms].sort((a, b) => a.loadCaseId.localeCompare(b.loadCaseId)),
       cases: input.combination.cases.filter((c) => input.combination!.definition.terms.some((t) => t.loadCaseId === c.loadCase.id && t.factor !== 0)).sort((a, b) => a.loadCase.id.localeCompare(b.loadCase.id)).map(conditions),
@@ -768,6 +775,7 @@ function sectionForces(s: MemberAnalysisResult["localEndForces"]["start"], q: Ve
 }
 
 export function getMemberAnalysisRecord(result: AnalysisResult, memberId: string): MemberAnalysisRecord {
+  if (result.random) throw new Error("随机统计响应不能重建为静力过程；请读取冻结 PSD/RMS 和频率积分记录");
   if (result.secondOrder) throw new Error("二阶不能重建为线性静力过程；请读取保存的二阶加载与内部单元记录");
   requireLoadRecoveryVersion(result.input);
   const input = result.input; const member = input.members.find((item) => item.id === memberId);
@@ -859,6 +867,7 @@ function reconstructProcessSnapshot(input: AnalysisInputSnapshot): AnalysisProce
 
 /** Uses the process captured by the run, falling back to frozen-input reconstruction for older files. */
 export function getOverallAnalysisProcessRecord(result: AnalysisResult): OverallAnalysisProcessRecord {
+  if (result.random) throw new Error("随机统计响应不能重建为静力过程；请读取冻结 PSD/RMS 和频率积分记录");
   if (result.secondOrder) throw new Error("二阶不能重建为 K·u=F 静力过程；请读取保存的二阶加载记录");
   requireLoadRecoveryVersion(result.input);
   const snapshot = result.discretization?.runs.at(-1)?.result.process ?? result.process ?? reconstructProcessSnapshot(result.input);
@@ -873,6 +882,7 @@ export function supplementOverallAnalysisProcessRecord(result: AnalysisResult): 
 }
 
 export function createSupplementalAnalysisInput(result: AnalysisResult): AnalysisInputSnapshot {
+  if (result.random) throw new Error("随机统计响应不能补算为静力位移；请重新执行随机工况");
   if (result.secondOrder) throw new Error("二阶不能补算为线性静力过程；请重新执行原二阶工况");
   const input = structuredClone(result.input);
   return freezeAnalysisInput({ ...input, solver: { ...ANALYSIS_SOLVER } });

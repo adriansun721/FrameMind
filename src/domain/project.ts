@@ -1,4 +1,5 @@
 import { validateSecondOrderSettings, type SecondOrderSettings } from "./second-order";
+import { captureRandomInput, validateRandomSettings, type RandomSettings } from "./random-response";
 import type { PsdSpectrum } from "./psd";
 import { validateBucklingSettings, type BucklingSettings } from "./buckling";
 import { validateAdditionalMass } from "./additional-mass";
@@ -55,7 +56,7 @@ export interface FrameAnalysisCase {
   name: string;
   method: AnalysisMethod;
   loadSourceId: string;
-  settings: { solver: "native-static" | "native-modal" | "native-buckling" | "native-second-order"; mesh?: MeshPolicy; modal?: ModalSettings; buckling?: BucklingSettings; secondOrder?: SecondOrderSettings };
+  settings: { solver: "native-static" | "native-modal" | "native-buckling" | "native-second-order" | "native-random"; random?: RandomSettings; mesh?: MeshPolicy; modal?: ModalSettings; buckling?: BucklingSettings; secondOrder?: SecondOrderSettings };
   legacySourceId?: string;
   damping?: ModalDampingBinding;
 }
@@ -546,6 +547,10 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
   if (!value || typeof value.id !== "string" || !/^AC[1-9]\d*$/.test(value.id) || !Number.isSafeInteger(Number(value.id.slice(2)))) throw new Error("分析工况标识无效");
   requireAnalysisCapability(value.method);
   if (typeof value.name !== "string" || !value.name.trim()) throw new Error("分析工况名称不能为空");
+  if (value.method === "random") {
+    if (value.loadSourceId !== "random" || value.damping !== undefined || value.legacySourceId !== undefined || !value.settings || value.settings.solver !== "native-random" || Object.keys(value.settings).sort().join() !== "random,solver") throw new Error("随机工况须绑定独立的节点力谱、模态与积分设置");
+    return { id: value.id, name: value.name.trim(), method: "random", loadSourceId: "random", settings: { solver: "native-random", random: validateRandomSettings(value.settings.random) } };
+  }
   if (value.method === "second-order") {
     if (!value.settings || value.settings.solver !== "native-second-order" || Object.keys(value.settings).sort().join() !== "secondOrder,solver" || value.damping !== undefined || value.legacySourceId !== undefined) throw new Error("二阶须使用独立加载与求解设置");
     if (!project.loadCombinations.some((c) => c.id === value.loadSourceId)) requireLoadCase(project, value.loadSourceId);
@@ -571,12 +576,14 @@ export function validateAnalysisCase(project: Pick<FrameProject, "loadCases" | "
 export function addAnalysisCase(project: FrameProject, properties: Omit<FrameAnalysisCase, "id" | "legacySourceId">): FrameProject {
   assertCounter(project.nextAnalysisCaseNumber);
   const item = validateAnalysisCase(project, { ...properties, id: `AC${project.nextAnalysisCaseNumber}` });
+  if (item.method === "random") captureRandomInput(project, item);
   return { ...project, analysisCases: [...project.analysisCases, item], nextAnalysisCaseNumber: project.nextAnalysisCaseNumber + 1, ...nextRevision(project) };
 }
 
 export function updateAnalysisCase(project: FrameProject, id: string, properties: Omit<FrameAnalysisCase, "id" | "legacySourceId">): FrameProject {
   const previous = requireAnalysisCase(project, id);
   const item = validateAnalysisCase(project, { ...properties, id, ...(properties.method === "modal" && previous.damping && properties.damping === undefined ? { damping: previous.damping } : {}), ...(previous.loadSourceId === properties.loadSourceId && previous.legacySourceId ? { legacySourceId: previous.legacySourceId } : {}) });
+  if (item.method === "random") captureRandomInput(project, item);
   const next = { ...project, analysisCases: project.analysisCases.map((c) => c.id === id ? item : c), ...nextRevision(project) };
   return project.activeAnalysisCaseId === id ? selectAnalysisCase(next, id) : next;
 }
@@ -589,7 +596,7 @@ export function requireAnalysisCase(project: Pick<FrameProject, "analysisCases">
 
 export function selectAnalysisCase(project: FrameProject, id: string): FrameProject {
   const item = requireAnalysisCase(project, id);
-  if (item.method === "modal" || item.method === "buckling") return { ...project, activeAnalysisCaseId: id, activeLoadCombinationId: undefined };
+  if (item.method === "random" || item.method === "modal" || item.method === "buckling") return { ...project, activeAnalysisCaseId: id, activeLoadCombinationId: undefined };
   const selected = project.loadCombinations.some((c) => c.id === item.loadSourceId) ? selectLoadCombination(project, item.loadSourceId) : selectLoadCase(project, item.loadSourceId);
   return { ...selected, activeAnalysisCaseId: id };
 }

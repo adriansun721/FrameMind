@@ -1,4 +1,4 @@
-import { ANALYSIS_DOF_ORDER, NATIVE_SECOND_ORDER_SOLVER, NATIVE_BUCKLING_SOLVER, NATIVE_MODAL_SOLVER, NATIVE_ANALYSIS_SOLVER, NATIVE_MESH_STATIC_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
+import { ANALYSIS_DOF_ORDER, NATIVE_RANDOM_SOLVER, NATIVE_SECOND_ORDER_SOLVER, NATIVE_BUCKLING_SOLVER, NATIVE_MODAL_SOLVER, NATIVE_ANALYSIS_SOLVER, NATIVE_MESH_STATIC_SOLVER, freezeAnalysisInput, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "../domain/analysis";
 import { analysisRunRecord, analysisServiceFailure, AnalysisServiceFailure, createAnalysisRequest, executeAnalysisRequest } from "../domain/analysis-service";
 import { ANALYSIS_STAGE_ORDER, decodeAnalysisRun, type AnalysisOrigin, type AnalysisRunRecord, type AnalysisStageRecord } from "../domain/analysis-service-contract";
 import { AnalysisFailure, type AnalysisDiagnostic, type AnalysisStage } from "../domain/analysis-diagnostics";
@@ -32,6 +32,11 @@ export interface AnalysisTask {
 }
 
 function validDiagnostic(value: AnalysisDiagnostic): boolean {
+  const random = value?.randomConvergence;
+  if (random !== undefined && (!random || random.status !== "failed" || !Number.isSafeInteger(random.pointBudget) || random.pointBudget < 3 || random.pointBudget > 20001
+    || !Number.isSafeInteger(random.refinementBudget) || random.refinementBudget < 1 || random.refinementBudget > 12 || !Number.isSafeInteger(random.attemptedPoints) || random.attemptedPoints < 3 || random.attemptedPoints > 20500
+    || !Array.isArray(random.runs) || random.runs.length > 13 || random.runs.some((r) => !r || !Number.isSafeInteger(r.points) || r.points < 3 || Object.values(r).some((n) => !Number.isFinite(n) || n < 0))
+    || !random.detail || typeof random.detail !== "object" || Array.isArray(random.detail) || Object.values(random.detail).some((n) => !Number.isFinite(n) || n < 0))) return false;
   const validIterations = (records: NonNullable<AnalysisDiagnostic["iterations"]>) => Array.isArray(records) && records.length <= 10000 && records.every((r) => r && Number.isSafeInteger(r.step) && r.step >= 1 && r.step <= 100 && Number.isSafeInteger(r.iteration) && r.iteration >= 1 && r.iteration <= 100
     && Number.isFinite(r.factor) && r.factor > 0 && r.factor <= 1 && [r.residualBefore, r.residual, r.increment].every((x) => Number.isFinite(x) && x >= 0)
     && Array.isArray(r.displacement) && Array.isArray(r.correction) && r.displacement.length === r.correction.length && r.displacement.length <= 1200 && [...r.displacement, ...r.correction].every(Number.isFinite));
@@ -52,7 +57,7 @@ function validDiagnostic(value: AnalysisDiagnostic): boolean {
 /** Compatibility facade: manual, agent and supplemental callers keep their existing API. */
 export function startAnalysisTask(input: AnalysisInputSnapshot, options: AnalysisTaskOptions = {}): AnalysisTask {
   const native = options.backend !== "typescript-reference";
-  const nativeSolver = input.analysisCase?.method === "second-order" ? NATIVE_SECOND_ORDER_SOLVER : input.analysisCase?.method === "buckling" ? NATIVE_BUCKLING_SOLVER : input.analysisCase?.method === "modal" ? NATIVE_MODAL_SOLVER : options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_MESH_STATIC_SOLVER;
+  const nativeSolver = input.analysisCase?.method === "random" ? NATIVE_RANDOM_SOLVER : input.analysisCase?.method === "second-order" ? NATIVE_SECOND_ORDER_SOLVER : input.analysisCase?.method === "buckling" ? NATIVE_BUCKLING_SOLVER : input.analysisCase?.method === "modal" ? NATIVE_MODAL_SOLVER : options.backend === "native-single-member" ? NATIVE_ANALYSIS_SOLVER : NATIVE_MESH_STATIC_SOLVER;
   const request = createAnalysisRequest(native ? { ...input, solver: { ...nativeSolver } } : input, options.origin);
   const stages: AnalysisStageRecord[] = [];
   let settled = false;
@@ -89,7 +94,7 @@ export function startAnalysisTask(input: AnalysisInputSnapshot, options: Analysi
   const complete = (result: AnalysisResult) => {
     try {
       const validated = decodeAnalysisResult(result);
-      if (result.discretization || result.modal || result.buckling || result.secondOrder) result = validated;
+      if (result.random || result.discretization || result.modal || result.buckling || result.secondOrder) result = validated;
       if (result.id !== request.analysisId || result.projectId !== request.input.projectId
         || result.projectRevision !== request.input.projectRevision || !result.service
         || result.service.requestId !== request.requestId || !sameInputValue(result.input, request.input)
