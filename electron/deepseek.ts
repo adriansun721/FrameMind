@@ -111,6 +111,7 @@ const taskToolDefinitions = [
   { type: "function", function: { name: "propose_task", description: "Prepare one unapplied whole-task draft containing geometry/resources, supports, loads and analysis intent. Existing model values are retained when omitted; new frame object references may be used by supports and loads. Never applies or solves.", parameters: {
     type: "object", additionalProperties: false, properties: {
       goal: { type: "string", maxLength: 2000 },
+      edits: { type: "object", additionalProperties: false, required: ["operations", "source"], properties: { operations: MODEL_EDIT_SCHEMA.properties.operations, source: { type: "string", enum: ["existing", "user", "catalog", "suggestion", "assumption", "unknown"] } }, description: "Atomic advanced engineering operations on stable existing IDs, confirmed together with conditions and analysis intent. Replaces prior edits when supplied. Do not combine with frame/parameters. Declare provenance; never invent missing mass, damping, fixed buckling load or random source relationship." },
       frame: { type: "object", additionalProperties: false, required: ["parameters"], properties: { parameters: taskFrameParameterSchema } },
       parameters: taskFrameParameterSchema,
       supports: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, required: ["nodeId", "restraints", "source"], properties: {
@@ -142,8 +143,9 @@ function toolsForMessages(messages: readonly DeepSeekChatMessage[]) {
   const editRequested = messages.some((message) => message.role === "user" && /(?:矩形管|圆管|实心矩形|实心圆|参数.*截面|指派.*截面|截面.*指派)/i.test(message.content)) || messages.some((message) => message.role === "user" && /(?:\u5408\u5e76.*\u8282\u70b9|\u8282\u70b9.*\u5408\u5e76|merge.*node|node.*merge)/i.test(message.content)) || messages.some((message) => message.role === "user" && /绘杆|画杆|工作平面|自由坐标|自由数值|斜杆|基础编辑|批量|移到|转角|旋转|(?:(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成).*(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱)|(?:节点|杆件|坐标|材料|截面|支座|荷载|转角|点|梁|柱).*(?:建立|创建|新增|修改|编辑|更新|移动|复制|删除|调整|设置|改变|变更|改为|改成))|(?:draw|edit|move|delete|copy|create|update|modify|duplicate).*(?:node|member|section)|(?:node|member|section).*(?:draw|edit|move|delete|copy|create|update|modify|duplicate)/i.test(message.content));
   const taskDraftActive = messages.some((message) => message.role === "system" && /当前完整任务草案：\{/.test(message.content));
   const taskRequested = taskDraftActive || messages.some((message) => message.role === "user" && /完整任务|整体草案|一次确认|集中补齐|(?:(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面).*(?:支座|荷载|自重|工况|组合|计算)|(?:支座|荷载|自重|工况|组合|计算).*(?:建立|创建|建模|几何|框架|刚架|节点|杆件|材料|截面))/i.test(message.content));
-  const base = taskRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;
-  return (editRequested || randomInputRequested ? [...base, ...modelEditTools] : base).map((tool) => {
+  const advancedRequested = messages.some((message) => message.role === "user" && /质量|释放|模态|屈曲|二阶|阻尼|分析工况|mass|release|modal|buckling|second.order|damping/i.test(message.content));
+  const base = taskRequested || editRequested || advancedRequested || randomInputRequested ? [...modelTools, ...taskToolDefinitions] : modelTools;
+  return (editRequested || advancedRequested || randomInputRequested ? [...base, ...modelEditTools] : base).map((tool) => {
     if (tool.function.name.startsWith("discard_") || ["request_analysis", "read_unit_contract", "read_geometry_contract", "convert_quantity"].includes(tool.function.name)) return tool;
     return { ...tool, function: { ...tool.function,
       description: tool.function.description + " Numeric fields use canonical m, kN, kN·m, GPa, kg/m³, m², m⁴, degrees (orientation), rad (response), m/s² unless inputUnits explicitly overrides dimensions. External values with missing units require user clarification. outputUnitPreset changes returned data only; confirmation and reference payloads remain canonical.",

@@ -1,4 +1,6 @@
 import {
+  addMaterial, updateMaterial, deleteMaterial, deleteSection, deleteSupport, deleteNodalLoad, deleteUniformLoad, deleteLoadCase, deleteLoadCombination,
+  type MaterialProperties, type MaterialId, type SupportId, type LoadId, type FrameMaterial, type FrameLoadCase, type FrameLoadCombination,
   addSection, updateSection,
   type SectionInput, type FrameSection, type SectionId,
   addMember,
@@ -108,6 +110,13 @@ export function deleteMembers(project: FrameProject, ids: readonly MemberId[]): 
 }
 
 export type ProjectEditOperation =
+  | { type: "create_material"; properties: MaterialProperties }
+  | { type: "update_material"; id: MaterialId; properties: MaterialProperties }
+  | { type: "duplicate_material" | "delete_material"; id: MaterialId }
+  | { type: "delete_section"; id: SectionId }
+  | { type: "delete_support"; id: SupportId }
+  | { type: "delete_nodal_load" | "delete_uniform_load"; id: LoadId }
+  | { type: "delete_load_case" | "delete_load_combination"; id: string }
   | { type: "create_psd_spectrum"; properties: PsdInput }
   | { type: "update_psd_spectrum"; id: string; properties: PsdInput }
   | { type: "delete_psd_spectrum"; id: string }
@@ -130,17 +139,17 @@ export type ProjectEditOperation =
   | { type: "delete_analysis_case"; id: string };
 
 export interface ProjectEditChange {
-  kind: "section" | "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case" | "psd-spectrum";
+  kind: "material" | "load-case" | "load-combination" | "section" | "node" | "member" | "support" | "nodal-load" | "uniform-load" | "analysis-case" | "psd-spectrum";
   id: string;
-  before?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase | PsdSpectrum;
-  after?: FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase | PsdSpectrum;
+  before?: FrameMaterial | FrameLoadCase | FrameLoadCombination | FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase | PsdSpectrum;
+  after?: FrameMaterial | FrameLoadCase | FrameLoadCombination | FrameSection | FrameNode | FrameMember | FrameSupport | FrameNodalLoad | FrameUniformLoad | FrameAnalysisCase | PsdSpectrum;
 }
 export interface ProjectEditReceipt {
   projectId: string;
   baseRevision: number;
   appliedRevision: number;
   changes: ProjectEditChange[];
-  created: { operationIndex: number; kind: "node" | "member" | "section"; id: string; sourceId?: string }[];
+  created: { operationIndex: number; kind: "node" | "member" | "section" | "material"; id: string; sourceId?: string }[];
   affectedMemberIds: MemberId[];
   topology?: TopologyReceipt[];
   nodeMerges?: NodeMergeReceipt[];
@@ -167,6 +176,21 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     if (groupedIndices.has(operationIndex)) return current;
     let changed: FrameProject;
     switch (operation.type) {
+      case "create_material": changed = addMaterial(current, operation.properties); created.push({ operationIndex, kind: "material", id: changed.materials.at(-1)!.id }); break;
+      case "update_material": changed = updateMaterial(current, operation.id, operation.properties); break;
+      case "duplicate_material": {
+        const material = current.materials.find((m) => m.id === operation.id);
+        if (!material) throw new Error("材料身份不存在");
+        changed = addMaterial(current, { ...material, name: `${material.name} (copy)` }, structuredClone(material.provenance));
+        created.push({ operationIndex, kind: "material", id: changed.materials.at(-1)!.id, sourceId: operation.id }); break;
+      }
+      case "delete_material": changed = deleteMaterial(current, operation.id); break;
+      case "delete_section": changed = deleteSection(current, operation.id); break;
+      case "delete_support": changed = deleteSupport(current, operation.id); break;
+      case "delete_nodal_load": changed = deleteNodalLoad(current, operation.id); break;
+      case "delete_uniform_load": changed = deleteUniformLoad(current, operation.id); break;
+      case "delete_load_case": changed = deleteLoadCase(current, operation.id); break;
+      case "delete_load_combination": changed = deleteLoadCombination(current, operation.id); break;
       case "create_psd_spectrum": changed = addPsdSpectrum(current, operation.properties); break;
       case "update_psd_spectrum": changed = updatePsdSpectrum(current, operation.id, operation.properties); break;
       case "delete_psd_spectrum": changed = deletePsdSpectrum(current, operation.id); break;
@@ -216,7 +240,7 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
     return changed;
   }));
   const changes: ProjectEditChange[] = [];
-  const collections = [["section", "sections"], ["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"], ["psd-spectrum", "psdSpectra"]] as const;
+  const collections = [["material", "materials"], ["load-case", "loadCases"], ["load-combination", "loadCombinations"], ["section", "sections"], ["node", "nodes"], ["member", "members"], ["support", "supports"], ["nodal-load", "nodalLoads"], ["uniform-load", "uniformLoads"], ["analysis-case", "analysisCases"], ["psd-spectrum", "psdSpectra"]] as const;
   for (const [kind, collection] of collections) {
     const before = new Map(project[collection].map((object) => [object.id as string, object]));
     const after = new Map(next[collection].map((object) => [object.id as string, object]));
@@ -226,7 +250,8 @@ export function applyProjectEdits(project: FrameProject, operations: readonly Pr
   }
   const nodeIds = new Set(changes.filter((change) => change.kind === "node").map((change) => change.id));
   const sectionIds = new Set(changes.filter((change) => change.kind === "section").map((change) => change.id));
-  const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => sectionIds.has(member.sectionId) || nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
+  const materialIds = new Set(changes.filter((change) => change.kind === "material").map((change) => change.id));
+  const affectedMemberIds = [...new Set([...project.members, ...next.members].filter((member) => materialIds.has(member.materialId) || sectionIds.has(member.sectionId) || nodeIds.has(member.startNodeId) || nodeIds.has(member.endNodeId)
     || changes.some((change) => change.kind === "member" && change.id === member.id)).map((member) => member.id))];
   return { project: next, receipt: { projectId: project.id, baseRevision: project.revision, appliedRevision: next.revision, changes, created, affectedMemberIds, ...(topology.length ? { topology } : {}), ...(nodeMerges.length ? { nodeMerges } : {}) } };
 }

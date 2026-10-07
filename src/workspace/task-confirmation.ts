@@ -1,7 +1,8 @@
 import { addMaterial, addMember, addNode, addSection, addNodalLoad, addSupport, updateNodalLoad, updateSupport, selectAnalysisSource, type FrameProject, type MemberId, type NodeId, type SectionId, type MaterialId } from "../domain/project";
 import { applyLoadStage, type LoadStage } from "./load-stage";
 import type { NodalLoadProposal, SupportProposal } from "./analysis-conditions";
-import { applyProjectTransaction } from "../domain/project-operations";
+import { applyProjectTransaction, applyProjectEdits, type ProjectEditReceipt } from "../domain/project-operations";
+import { parseProjectEditOperations } from "./model-edits";
 import { captureAiSnapshot, type AiToolResult } from "./ai-tools";
 import { buildTaskDraftPreview, type TaskDraft } from "./task-draft";
 import { savedOperation, recordOperation, sameProjectInput } from "./task-persistence";
@@ -36,6 +37,7 @@ interface TaskAppliedObjects {
 }
 
 interface TaskApplicationVerification {
+  edits?: ProjectEditReceipt;
   status: "verified";
   objects: TaskAppliedObjects;
 }
@@ -143,7 +145,7 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
   const mapping: Record<string, string> = {};
   let references: Record<string, string> = {};
   const next = applyProjectTransaction(project, (initial) => {
-    let current = initial;
+    let current = draft.edits ? applyProjectEdits(initial, parseProjectEditOperations(draft.edits.operations)).project : initial;
     const materials = new Map<string, MaterialId>();
     const sections = new Map<string, SectionId>();
     const nodes = new Map<string, NodeId>();
@@ -198,9 +200,10 @@ function applyTask(project: FrameProject, draft: TaskDraft): TaskApplication {
         current = selectAnalysisSource(current, resolved);
       }
     }
+    if (draft.analysis?.sourceId && !draft.conditions) current = selectAnalysisSource(current, draft.analysis.sourceId);
     return current;
   });
-  return { project: next, mapping, references, verification: verifyTaskApplication(project, next, draft, preview, mapping, references) };
+  return { project: next, mapping, references, verification: { ...verifyTaskApplication(project, next, draft, preview, mapping, references), edits: preview.edits } };
 }
 
 export class TaskDraftStageConfirmation {

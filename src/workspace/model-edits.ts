@@ -2,7 +2,7 @@ import { validateMemberEndReleases } from "../domain/member-releases";
 import { validatePsdInput } from "../domain/psd";
 import { validateAdditionalMass } from "../domain/additional-mass";
 import { validateModalDampingInput } from "../domain/modal-damping";
-import { validateSection, type SectionInput } from "../domain/project";
+import { validateMaterial, validateSection, type SectionInput } from "../domain/project";
 import { getSectionCatalogEntry } from "../domain/resource-library";
 import type { FrameProject, MaterialId, MemberId, NodeId, SectionId, Vector3 } from "../domain/project";
 import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
@@ -58,6 +58,14 @@ export function parseProjectEditOperations(value: unknown): ProjectEditOperation
   return value.map((value) => {
     const input = object(value, ["type", "id", "analysisId", "position", "properties", "changes", "memberIds", "rotationDegrees", "nodeId", "nodeIds", "targetNodeId", "tolerance", "resolution", "massKg"]);
     switch (input.type) {
+      case "create_material": case "update_material": {
+        object(input, input.type === "create_material" ? ["type", "properties"] : ["type", "id", "properties"]);
+        const properties = object(input.properties, ["name", "elasticModulusGPa", "poissonRatio", "densityKgM3"]);
+        const validated = validateMaterial("草案材料", properties as unknown as Parameters<typeof validateMaterial>[1]);
+        return { type: input.type, ...(input.type === "update_material" ? { id: identity(input.id) as MaterialId } : {}), properties: validated } as ProjectEditOperation;
+      }
+      case "duplicate_material": case "delete_material": case "delete_section": case "delete_support": case "delete_nodal_load": case "delete_uniform_load": case "delete_load_case": case "delete_load_combination":
+        object(input, ["type", "id"]); return { type: input.type, id: identity(input.id) } as ProjectEditOperation;
       case "create_psd_spectrum": case "update_psd_spectrum": {
         object(input, input.type === "create_psd_spectrum" ? ["type", "properties"] : ["type", "id", "properties"]);
         return { type: input.type, ...(input.type === "update_psd_spectrum" ? { id: identity(input.id) } : {}), properties: validatePsdInput(input.properties) } as ProjectEditOperation;
@@ -210,6 +218,7 @@ export class ModelEditConfirmation {
       if (JSON.stringify(reviewedEngineeringReceipt(outcome.receipt)) !== JSON.stringify(reviewedEngineeringReceipt(draft.preview))) return failed("草案内容与预览不一致，请重新核对");
       const snapshot = captureAiSnapshot(outcome.project, []);
       const collections = {
+        material: outcome.project.materials, "load-case": outcome.project.loadCases, "load-combination": outcome.project.loadCombinations,
         section: outcome.project.sections,
         node: outcome.project.nodes,
         member: outcome.project.members,

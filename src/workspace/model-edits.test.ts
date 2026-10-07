@@ -14,6 +14,22 @@ function frame() {
 }
 const call = (name: string, input: unknown) => ({ id: "edit-call", type: "function", function: { name, arguments: JSON.stringify(input) } });
 
+it("reviews custom materials and condition removal through shared operations with protected referenced resources", () => {
+  const base = frame();
+  const project = addNodalLoad(addSupport(base, base.nodes[0].id, [true, true, true, true, true, true]), base.nodes[1].id, { x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  const result = executeAiTool(captureAiSnapshot(project, []), call("propose_model_edits", { operations: [
+    { type: "update_material", id: "material_0001", properties: { name: "E210", elasticModulusGPa: 210, poissonRatio: 0.3, densityKgM3: 7850 } },
+    { type: "delete_nodal_load", id: project.nodalLoads[0].id },
+  ] }));
+  expect(result.status).toBe("awaiting-confirmation");
+  expect(project.materials[0].elasticModulusGPa).toBe(200);
+  const applied = new ModelEditConfirmation().confirm(project, prepareModelEditConfirmation(project, result.modelEdits!));
+  expect(applied.result.status).toBe("applied");
+  expect(applied.project.materials[0].elasticModulusGPa).toBe(210);
+  expect(applied.project.nodalLoads).toHaveLength(0);
+  expect(executeAiTool(captureAiSnapshot(project, []), call("propose_model_edits", { operations: [{ type: "delete_material", id: "material_0001" }] })).status).toBe("failed");
+});
+
 describe("T2-02 shared manual and tool editing", () => {
   it("prepares an isolated node/member batch then confirms the same formal objects as manual editing", () => {
     const project = frame();

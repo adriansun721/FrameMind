@@ -10,6 +10,13 @@ import { coordinateModelEdits, coordinateSection, coordinateTaskDraft } from "./
 import { prepareTaskDraftConfirmation, TaskDraftStageConfirmation } from "./task-confirmation";
 
 describe("task drafts during manual edits", () => {
+  it("coordinates advanced whole-task operations against manual changes to the same mass", () => {
+    const base = columns();
+    const draft = proposeTask(captureAiSnapshot(base, []), { edits: { source: "user", operations: [{ type: "set_node_mass", id: base.nodes[1].id, massKg: 100 }] } });
+    const current = { ...base, revision: base.revision + 1, nodes: base.nodes.map((n, i) => i === 1 ? { ...n, additionalMassKg: 250 } : n) };
+    expect(coordinateTaskDraft(base, current, draft).conflicts.join(" ")).toContain("additionalMassKg");
+    expect(new TaskDraftStageConfirmation().confirm(current, prepareTaskDraftConfirmation(base, draft)).result.status).toBe("failed");
+  });
   it("preserves a compatible component edit, updates the review version and rejects the old confirmation", () => {
     let base = addNode(createProject(), { x: 0, y: 0, z: 0 });
     base = addNodalLoad(base, base.nodes[0].id, { x: 1, y: 2, z: 0 }, { x: 0, y: 0, z: 0 }, "LC1");

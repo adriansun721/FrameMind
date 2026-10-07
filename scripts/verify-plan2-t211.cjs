@@ -7,13 +7,16 @@ const { redactPersistence } = require("../dist-electron/persistence-redaction.js
 const root = resolve(__dirname, "..");
 const online = process.argv.includes("--online");
 const mode = online ? "online" : "replay";
+const extended = process.argv.includes("--t241");
+const task = extended ? "T2-41" : "T2-11";
+const prefix = extended ? "FRAMEMIND_T241" : "FRAMEMIND_T211";
 let recordRunnerFailure;
 
 async function run() {
-  const protocolText = await readFile(join(root, "docs/evidence/plan2/T2-11/protocol.json"), "utf8");
+  const protocolText = await readFile(join(root, `docs/evidence/plan2/${task}/protocol.json`), "utf8");
   const protocol = JSON.parse(protocolText);
   const startedAt = new Date().toISOString();
-  const output = join(root, "docs/evidence/plan2/T2-11/runs", `${startedAt.replace(/[:.]/g, "-")}-${mode}`);
+  const output = join(root, `docs/evidence/plan2/${task}/runs`, `${startedAt.replace(/[:.]/g, "-")}-${mode}`);
   await mkdir(output, { recursive: true });
   const report = { mode, startedAt, protocolHash: createHash("sha256").update(protocolText).digest("hex"),
     revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
@@ -21,7 +24,7 @@ async function run() {
     environment: { platform: process.platform, arch: process.arch, node: process.version, electron: require("electron/package.json").version },
     status: "running", executions: [], coverage: {}, metrics: {}, samples: [], failures: [] };
   report.sourceHashes = {};
-  for (const file of [...new Set([...Object.values(protocol.unitCoverage).flat(), ...protocol.desktopFiles, "src/workspace/ai-task.ts", "src/workspace/ai-tools.ts", "electron/deepseek.ts", "scripts/verify-plan2-t211.cjs", "package-lock.json"])]) {
+  for (const file of [...new Set([...Object.values(protocol.unitCoverage).flat(), ...protocol.desktopFiles, ...(protocol.inputs?.project ? [protocol.inputs.project, "e2e/agent-integration.ts", "src/workspace/task-confirmation.ts", "src/workspace/task-draft.ts", "electron/model-edit-schema.ts"] : []), "src/workspace/ai-task.ts", "src/workspace/ai-tools.ts", "electron/deepseek.ts", "scripts/verify-plan2-t211.cjs", "package-lock.json"])]) {
     report.sourceHashes[file] = createHash("sha256").update(await readFile(join(root, file))).digest("hex");
   }
   const persist = async () => writeFile(join(output, "summary.json"), JSON.stringify(redactPersistence(report), null, 2) + "\n");
@@ -29,13 +32,13 @@ async function run() {
   // This immutable protocol copy is written before any measured execution.
   await writeFile(join(output, "protocol.json"), protocolText);
   await persist();
-  console.log(`T2-11 ${mode}: ${output}`);
+  console.log(`${task} ${mode}: ${output}`);
   if (online) {
     try { for (const name of ["deepseek.credentials", "Local State"]) await access(join(process.env.APPDATA, "framemind", name)); }
     catch { report.status = "blocked"; report.failures.push({ reason: "encrypted-credential-profile-unavailable" }); await persist(); process.exitCode = 1; return; }
   }
   async function execute(label, args, env = {}) {
-    console.log(`T2-11 ${label}`);
+    console.log(`${task} ${label}`);
     const code = await new Promise((done) => {
       const child = spawn(process.execPath, args, { cwd: root, stdio: ["ignore", "ignore", "ignore"], env: { ...process.env, ...env } });
       child.once("error", () => { report.failures.push({ label, reason: "process-launch-failed" }); done(1); });
@@ -49,9 +52,9 @@ async function run() {
       "--maxWorkers=4", "--reporter=json", `--outputFile=${join(output, `contracts-${repeat}.json`)}`]);
   }
   await execute(`desktop ${protocol.repetitions} repetitions`, [join(root, "scripts/run-e2e-isolated.cjs"),
-    ...(online ? ["e2e/plan2-t2-11-reliability.spec.ts"] : protocol.desktopFiles),
+    ...(online ? (protocol.onlineFiles ?? ["e2e/plan2-t2-11-reliability.spec.ts"]) : protocol.desktopFiles),
     `--repeat-each=${protocol.repetitions}`, "--workers=1", "--retries=0", "--reporter=json", `--output=${join(output, "artifacts")}`], {
-    FRAMEMIND_T211_ONLINE: online ? "1" : "0", FRAMEMIND_T211_OUTPUT: output,
+    [prefix + "_ONLINE"]: online ? "1" : "0", [prefix + "_OUTPUT"]: output,
     PLAYWRIGHT_JSON_OUTPUT_NAME: join(output, "desktop.json"),
   });
   if (!online) {

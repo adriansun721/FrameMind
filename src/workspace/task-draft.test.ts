@@ -5,6 +5,50 @@ import { addNode, addSupport, createProject, type FrameProject } from "../domain
 import { ProjectHistory } from "../domain/project-history";
 import { buildTaskDraftPreview, proposeTask } from "./task-draft";
 import { TaskDraftStageConfirmation, prepareTaskDraftConfirmation } from "./task-confirmation";
+import { columns } from "./section-stage.fixture";
+import { decodeProject, encodeProject } from "../domain/project-file";
+import { executeAiTool } from "./ai-tools";
+import { persistTaskState } from "./task-persistence";
+
+it("does not embed prior task histories in the next agent engineering snapshot", () => {
+  const project = columns();
+  const snapshot = captureAiSnapshot({ ...project, taskState: persistTaskState(project.id, [], []) }, []);
+  expect(snapshot.editProject.taskState).toBeUndefined();
+  expect(snapshot.editProject.nodes).toEqual(project.nodes);
+});
+
+it("confirms advanced edits and conditions together once across project reopening", () => {
+  const project = columns();
+  const snapshot = captureAiSnapshot(project, []);
+  const draft = proposeTask(snapshot, {
+    edits: { source: "user", operations: [{ type: "set_node_mass", id: project.nodes[1].id, massKg: 125 }] },
+    nodalLoads: [{ id: project.nodalLoads[0].id, nodeId: project.nodalLoads[0].nodeId, loadCaseId: "LC1", force: { x: 12, y: 0, z: 0 }, moment: project.nodalLoads[0].moment, source: "user" }],
+    analysis: { requested: true, source: "user", sourceId: "LC1" },
+  });
+  expect(project.nodes[1].additionalMassKg).toBeUndefined();
+  expect(buildTaskDraftPreview(snapshot, draft).changes).toEqual(expect.arrayContaining([expect.objectContaining({ label: `节点 ${project.nodes[1].id}`, source: "user" })]));
+  const confirmation = prepareTaskDraftConfirmation(project, draft);
+  const outcome = new TaskDraftStageConfirmation().confirm(project, confirmation);
+  expect(outcome.result.status).toBe("applied");
+  expect(outcome.project.revision).toBe(project.revision + 1);
+  expect(outcome.project.nodes[1].additionalMassKg).toBe(125);
+  expect(outcome.project.nodalLoads[0].force.x).toBe(12);
+  expect(outcome.result.data).toMatchObject({ verification: { edits: { changes: [{ kind: "node", id: project.nodes[1].id }] } } });
+  const reopened = decodeProject(encodeProject(outcome.project));
+  expect(new TaskDraftStageConfirmation().confirm(reopened, confirmation).project).toBe(reopened);
+});
+
+it("refuses unknown advanced provenance, unsafe commands and underflow through the whole-task tool", () => {
+  const project = columns();
+  const call = (argumentsText: string) => ({ id: "advanced", type: "function", function: { name: "propose_task", arguments: argumentsText } });
+  const input = { edits: { source: "unknown", operations: [{ type: "set_node_mass", id: project.nodes[1].id, massKg: 100 }] } };
+  const missing = executeAiTool(captureAiSnapshot(project, []), call(JSON.stringify(input)));
+  expect(missing.status).toBe("missing-input");
+  expect(new TaskDraftStageConfirmation().confirm(project, prepareTaskDraftConfirmation(project, missing.taskDraft!)).result.status).toBe("failed");
+  expect(executeAiTool(captureAiSnapshot(project, []), call('{"edits":{"source":"user","operations":[{"type":"set_node_mass","id":"node_0002","massKg":-1e-400}]}}')).status).toBe("failed");
+  expect(executeAiTool(captureAiSnapshot(project, []), call('{"edits":{"source":"user","operations":[{"type":"execute_command","command":"git reset --hard"}]}}')).status).toBe("failed");
+  expect(project.nodes[1].additionalMassKg).toBeUndefined();
+});
 
 const frame = {
   parameters: {

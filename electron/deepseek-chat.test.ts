@@ -64,6 +64,17 @@ test.each(["把 N1 移到 X=-1，并把 M1 转角改成30度", "建立负坐标�
   expect(names).toContain("merge_nodes");
 });
 
+test.each(["设置节点附加质量", "创建屈曲工况", "核查二阶失败", "调整模态阻尼", "设置杆端释放", "Create a modal case"]) ("advanced wording exposes whole-task engineering schemas: %s", async (prompt) => {
+  let request: { tools: { function: { name: string; parameters: { properties: Record<string, unknown> } } }[] } | undefined;
+  const connection = await setup(async (_url, init) => {
+    request = JSON.parse(init!.body as string);
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "请核查参数来源。" } }] }));
+  });
+  expect((await connection.chat({ requestId: "advanced", messages: [{ role: "user", content: prompt }] })).status).toBe("success");
+  expect(request!.tools.find((t) => t.function.name === "propose_task")?.function.parameters.properties).toHaveProperty("edits");
+  expect(request!.tools.some((t) => t.function.name === "propose_model_edits")).toBe(true);
+});
+
 test("whole-task wording exposes a single reviewed task-draft tool", async () => {
   const requests: RequestInit[] = [];
   const connection = await setup(async (_url, init) => {

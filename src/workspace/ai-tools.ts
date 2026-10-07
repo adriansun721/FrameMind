@@ -119,7 +119,9 @@ export function captureAiSnapshot(project: FrameProject, selection: readonly AiO
       comparison: comparisonIds,
     }),
     model: structuredClone(model),
-    editProject: structuredClone({ ...project, analysisResults: project.analysisResults.filter((r) => r.random || r.modal || r.buckling || r.secondOrder), latestAnalysis: undefined }),
+    // Engineering snapshots must not recursively contain earlier agent tasks or
+    // commit receipts. Confirmation checks those on the live project separately.
+    editProject: structuredClone({ ...project, taskState: undefined, confirmedOperations: undefined, analysisResults: project.analysisResults.filter((r) => r.random || r.modal || r.buckling || r.secondOrder), latestAnalysis: undefined }),
     analysis: analysis ? resultSnapshot(analysis) : undefined,
     comparison: before && after ? { before: resultSnapshot(before), after: resultSnapshot(after), beforeCurrent: isAnalysisResultCurrent(project, before), afterCurrent: isAnalysisResultCurrent(project, after) } : undefined,
     analysisCurrent,
@@ -347,11 +349,13 @@ function executeAiToolInternal(snapshot: AiSnapshot, value: unknown, previousPro
       return { status: "completed", message: "完整任务草案已拒绝，正式模型保留", context: snapshot.context, taskDraft: null };
     }
     if (call.function.name === "propose_task") {
+      if (input.edits) validatePsdJsonNumbers(call.function.arguments);
       const taskDraft = proposeTask(snapshot, input, previousTaskDraft);
       const preview = buildTaskDraftPreview(snapshot, taskDraft);
       return { status: preview.status, message: preview.issues.length ? "完整任务草案需要集中补齐或澄清" : "完整任务草案已准备，尚未应用", context: snapshot.context,
         taskDraft, data: { goal: taskDraft.goal, taskId: taskDraft.id, version: taskDraft.version, baseRevision: taskDraft.baseRevision,
           issues: preview.issues, missing: preview.missing, changes: preview.changes, objectRefs: preview.objectRefs, analysis: preview.analysis,
+          edits: preview.edits,
           frame: preview.frame ? { counts: { nodes: preview.frame.nodes.length, members: preview.frame.members.length }, parameters: taskDraft.frame?.parameters } : undefined,
           conditions: preview.conditions ? { supports: preview.conditions.supports, nodalLoads: preview.conditions.nodalLoads, uniformLoads: preview.conditions.uniformLoads, selfWeight: preview.conditions.selfWeight, loadStageSummary: preview.conditions.loadStageSummary } : undefined } };
     }

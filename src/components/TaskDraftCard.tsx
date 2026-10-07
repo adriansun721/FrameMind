@@ -4,6 +4,9 @@ import { convertToolQuantities, toolFieldDimension } from "../workspace/unit-too
 import { useMemo, useState } from "react";
 import type { AiSnapshot } from "../workspace/ai-tools";
 import { buildTaskDraftPreview, type TaskDraft } from "../workspace/task-draft";
+import { TopologyImpact } from "./TopologyImpact";
+import { NodeMergeImpact } from "./NodeMergeImpact";
+import { SectionEditImpact } from "./SectionEditImpact";
 
 const sourceLabel: Record<string, string> = { existing: "已有", user: "用户提供", catalog: "目录", suggestion: "建议", assumption: "假设", unknown: "未知" };
 
@@ -25,15 +28,17 @@ export function TaskDraftCard({ snapshot, draft, busy, current, onConfirm, onRej
   const [revision, setRevision] = useState("");
   const preview = useMemo(() => buildTaskDraftPreview(snapshot, draft), [snapshot, draft]);
   const categoryCount = (category: string) => preview.changes.filter((change) => change.category === category).length;
-  const frameCount = preview.frame ? `${preview.frame.nodes.length} 节点 / ${preview.frame.members.length} 杆件` : "保留已有几何";
+  const frameCount = preview.frame ? `${preview.frame.nodes.length} 节点 / ${preview.frame.members.length} 杆件` : draft.edits ? `${draft.edits.operations.length} 项工程操作` : "保留已有几何";
   const conditionCount = `${draft.conditions?.supports?.length ?? snapshot.model.supports.length} 支座 / ${draft.conditions?.nodalLoads?.length ?? snapshot.model.nodalLoads.length} 节点荷载 / ${draft.conditions?.uniformLoads?.length ?? snapshot.model.uniformLoads.length} 均布荷载 / ${draft.conditions?.loadCases?.length ?? snapshot.model.loadCases.length} 工况 / ${draft.conditions?.loadCombinations?.length ?? snapshot.model.loadCombinations.length} 组合`;
-  const changedIds = {
+  const changedIds: Record<"supports" | "nodalLoads" | "uniformLoads" | "loadCases" | "loadCombinations", Set<string>> = {
     supports: new Set((draft.conditions?.supports ?? []).flatMap((item) => item.id ? [item.id] : [])),
     nodalLoads: new Set((draft.conditions?.nodalLoads ?? []).flatMap((item) => item.id ? [item.id] : [])),
     uniformLoads: new Set((draft.conditions?.uniformLoads ?? []).flatMap((item) => item.id ? [item.id] : [])),
     loadCases: new Set((draft.conditions?.loadCases ?? []).flatMap((item) => item.id ? [item.id] : [])),
     loadCombinations: new Set((draft.conditions?.loadCombinations ?? []).flatMap((item) => item.id ? [item.id] : [])),
   };
+  const conditionKinds = { supports: "support", nodalLoads: "nodal-load", uniformLoads: "uniform-load", loadCases: "load-case", loadCombinations: "load-combination" } as const;
+  for (const key of Object.keys(conditionKinds) as (keyof typeof conditionKinds)[]) for (const change of preview.edits?.changes ?? []) if (change.kind === conditionKinds[key]) changedIds[key].add(change.id);
   const retainedConditions = [
     ...snapshot.model.supports.filter((item) => !changedIds.supports.has(item.id)).map((item) => `${item.label} · 支座 · ${item.nodeId}`),
     ...snapshot.model.nodalLoads.filter((item) => !changedIds.nodalLoads.has(item.id)).map((item) => `${item.label} · 节点荷载 · ${item.nodeId} · ${item.loadCaseId}`),
@@ -59,6 +64,10 @@ export function TaskDraftCard({ snapshot, draft, busy, current, onConfirm, onRej
       <p>对象：{preview.objectRefs.filter((item) => item.category === "new").length} 个新对象，{preview.objectRefs.filter((item) => item.category === "existing").length} 个已有对象可引用。</p>
       {retainedConditions.length > 0 && <p>确认后保留已有条件：{retainedConditions.join("；")}</p>}
       <ol>{preview.changes.map((change, index) => <li key={`${change.category}:${change.label}:${index}`}><strong>{change.label}</strong> · {sourceLabel[change.source] ?? change.source}<br />{change.before === undefined ? "缺失" : changeText(change.label, change.before)} → {change.after === undefined ? "未改变" : changeText(change.label, change.after)}{change.impact ? ` · ${change.impact}` : ""}</li>)}</ol>
+      {preview.edits?.affectedMemberIds.length ? <p>关联杆件：{preview.edits.affectedMemberIds.join("、")}</p> : null}
+      {preview.edits?.topology && <TopologyImpact receipts={preview.edits.topology} />}
+      {preview.edits?.nodeMerges?.map((impact, index) => <NodeMergeImpact key={index} impact={impact} />)}
+      {preview.edits?.changes.some((c) => c.kind === "section") && <SectionEditImpact project={snapshot.editProject} receipt={preview.edits} />}
     </details>
     <form className="task-draft-revision" onSubmit={(event) => { event.preventDefault(); if (revision.trim() && !busy && current) { onRevise(revision.trim()); setRevision(""); } }}>
       <label>修订完整任务<textarea aria-label="完整任务修订" rows={2} value={revision} disabled={busy || !current} placeholder={current ? "补充或修改几何、支座、荷载或分析要求" : "正式模型已变化，请重新准备完整任务草案"} onChange={(event) => setRevision(event.target.value)} /></label>

@@ -64,7 +64,9 @@
     "evidence:plan2:t238": "npm run build:native && node scripts/verify-plan2-t238.mjs && npm run build && npx vitest run src/workspace/random-report.test.ts --maxWorkers=2 && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-38-random-reports.spec.ts",
     "evidence:plan2:t239": "npm run build && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-39-workbench.spec.ts",
     "test:numerical-acceptance": "node --test scripts/numerical-acceptance.test.mjs",
-    "evidence:plan2:t240": "npm run build:native && npm run typecheck && npm run test:numerical-acceptance && node scripts/verify-plan2-t240.mjs"
+    "evidence:plan2:t240": "npm run build:native && npm run typecheck && npm run test:numerical-acceptance && node scripts/verify-plan2-t240.mjs",
+    "evidence:plan2:t241": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241",
+    "evidence:plan2:t241:online": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241 --online"
   },
   "dependencies": {
     "docx": "^9.7.1",

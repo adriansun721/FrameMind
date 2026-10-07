@@ -9,6 +9,7 @@ import { proposeConditions, type ConditionsProposal } from "./analysis-condition
 import type { SectionChangeProposal } from "./section-stage";
 import { proposeModelEdits, type ModelEditProposal } from "./model-edits";
 import type { TaskDraft } from "./task-draft";
+import { parseProjectEditOperations } from "./model-edits";
 import type { StageResolution } from "../components/AiTaskTimeline";
 import type { ScheduledTaskDescriptor } from "./task-scheduler";
 import { redactPersistence } from "../../electron/persistence-redaction";
@@ -189,6 +190,11 @@ function draftContent(kind: string, draft: Record<string, unknown>, base: FrameP
     assert(Array.isArray(draft.memberIds) && draft.memberIds.every((id) => typeof id === "string") && object(draft.section) && ["user", "suggestion"].includes(String(draft.source)));
     validateSection("恢复截面", draft.section as unknown as Parameters<typeof validateSection>[1]);
   } else if (kind === "taskDraft") {
+    if (draft.edits !== undefined) {
+      assert(object(draft.edits) && ["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(String(draft.edits.source)) && draft.frame === undefined);
+      draft.edits.operations = parseProjectEditOperations(draft.edits.operations);
+      proposeModelEdits(base, { operations: draft.edits.operations });
+    }
     assert(draft.goal === undefined || typeof draft.goal === "string");
     if (draft.frame !== undefined) { assert(object(draft.frame)); draftContent("frame", draft.frame, base); }
     if (draft.conditions !== undefined) { assert(object(draft.conditions)); draftContent("conditions", draft.conditions, base); }

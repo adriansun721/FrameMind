@@ -59,15 +59,15 @@ export function engineeringDraftTargets(base: FrameProject, drafts: {
 }, fallback: readonly AiObjectRef[]): readonly AiObjectRef[] {
   if (!Object.values(drafts).some(Boolean)) return fallback;
   return [
+    ...(drafts.taskDraft?.edits ? engineeringDraftTargets(base, { modelEdits: proposeModelEdits(base, { operations: drafts.taskDraft.edits.operations }) }, []) : []),
     ...conditionTargets(base, drafts.taskDraft?.conditions),
     ...conditionTargets(base, drafts.conditions ?? undefined),
-    ...(drafts.modelEdits?.operations ?? []).flatMap((item) => item.type === "update_section"
-      ? base.members.filter((m) => m.sectionId === item.id).map((m) => ({ kind: "member" as const, id: m.id })) : []),
+    ...(drafts.modelEdits?.preview.affectedMemberIds ?? []).map((id) => ({ kind: "member" as const, id })),
     ...(drafts.sectionChange?.memberIds ?? []).map((id) => ({ kind: "member" as const, id })),
     ...(drafts.modelEdits?.operations ?? []).flatMap((item) => item.type === "merge_nodes"
       ? item.nodeIds.map((id) => ({ kind: "node" as const, id })) : "memberIds" in item
       ? [...item.memberIds.map((id) => ({ kind: "member" as const, id })), ...("nodeId" in item && item.nodeId ? [{ kind: "node" as const, id: item.nodeId }] : [])]
-      : "id" in item && !isAnalysisCaseEdit(item.type) && !item.type.endsWith("section")
+      : "id" in item && (isNodeEdit(item.type) || item.type.endsWith("member"))
       ? [{ kind: isNodeEdit(item.type) ? "node" as const : "member" as const, id: item.id }] : []),
   ];
 }
@@ -95,7 +95,9 @@ export function coordinateTaskDraft(base: FrameProject, current: FrameProject, d
   if (sameEngineeringState(base, current)) return { draft, conflicts: [] };
   if (base.id !== current.id) return { draft, conflicts: ["项目已切换，旧任务不能提交"] };
   const coordinated = draft.conditions ? coordinateConditions(base, current, draft.conditions) : undefined;
-  const next = { ...draft, baseRevision: current.revision, version: draft.version + 1, ...(coordinated ? { conditions: coordinated.draft } : {}) };
+  const edited = draft.edits ? coordinateModelEdits(base, current, proposeModelEdits(base, { operations: draft.edits.operations })) : undefined;
+  if (edited?.conflicts.length) return { draft, conflicts: edited.conflicts };
+  const next = { ...draft, baseRevision: current.revision, version: draft.version + 1, ...(coordinated ? { conditions: coordinated.draft } : {}), ...(draft.edits && edited ? { edits: { ...draft.edits, operations: edited.draft.operations } } : {}) };
   const preview = buildTaskDraftPreview(captureAiSnapshot(current, []), next);
   return { draft: next, conflicts: [...(coordinated?.conflicts ?? []), ...newIssues(buildTaskDraftPreview(captureAiSnapshot(base, []), draft).issues, preview.issues)] };
 }
@@ -104,6 +106,10 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   if (sameEngineeringState(base, current)) return { draft, conflicts: [] };
   const conflicts: string[] = [];
   const operations = draft.operations.map((operation) => {
+    if (["create_material", "update_material", "duplicate_material", "delete_material", "delete_section", "delete_support", "delete_nodal_load", "delete_uniform_load", "delete_load_case", "delete_load_combination"].includes(operation.type)) {
+      if (!same(engineeringContent(base), engineeringContent(current))) conflicts.push("资源或删除操作的关联工程已变化，请重新核对影响");
+      return operation;
+    }
     if (operation.type === "merge_nodes") {
       // New incident members/conditions can expand a merge's impact even without moving a node.
       const nodes = new Set(operation.nodeIds);
@@ -164,7 +170,7 @@ export function coordinateModelEdits(base: FrameProject, current: FrameProject, 
   });
   // Deleting a node or member also removes its conditions and connected members.
   for (const change of draft.preview.changes.filter((item) => item.before && !item.after)) {
-    const collection = { section: current.sections, node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases, "psd-spectrum": current.psdSpectra }[change.kind];
+    const collection = { material: current.materials, "load-case": current.loadCases, "load-combination": current.loadCombinations, section: current.sections, node: current.nodes, member: current.members, support: current.supports, "nodal-load": current.nodalLoads, "uniform-load": current.uniformLoads, "analysis-case": current.analysisCases, "psd-spectrum": current.psdSpectra }[change.kind];
     if (!same(change.before, collection.find((item) => item.id === change.id))) conflicts.push(`${change.id}：级联删除对象已变化`);
   }
   try {

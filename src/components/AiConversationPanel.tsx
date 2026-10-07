@@ -31,7 +31,7 @@ import type { TaskDraft } from "../workspace/task-draft";
 import { coordinateFrame, coordinateModelEdits, coordinateSection, coordinateTaskDraft, engineeringDraftTargets, sameEngineeringState, targetConflicts, validateConditions } from "../workspace/draft-coordination";
 import { TaskScheduler, type ScheduledTaskDescriptor, type TaskSchedulerSnapshot } from "../workspace/task-scheduler";
 import type { ExplorationMode } from "../workspace/exploration-budget";
-import { persistTaskState, recoveredTurns, recoveryIssues, mergeLocalChat, sameProjectInput, type ConversationTurn, type ConversationHistory, type PersistedTaskState } from "../workspace/task-persistence";
+import { projectInput, persistTaskState, recoveredTurns, recoveryIssues, mergeLocalChat, sameProjectInput, type ConversationTurn, type ConversationHistory, type PersistedTaskState } from "../workspace/task-persistence";
 import { redactPersistence } from "../../electron/persistence-redaction";
 
 // Full conversation history is local; engineering task summaries travel with the project.
@@ -64,8 +64,8 @@ interface Props {
 }
 
 export function AiConversationPanel({ project: persistedProject, sessionId, selection, analysis, comparison, onComparison, onSectionConfirm, onLocateResult, onLocateTargets, open, onClose, onSettings, onPreview, onConfirm, onEditsConfirm, onTaskConfirm, onConditionsConfirm, onAnalyze, onResumeAnalysis, onCancelAnalysis, analysisBusy, scheduler, onTaskStateChange, onPersistenceError }: Props) {
-  const projectRef = useRef(persistedProject);
-  if (!sameProjectInput(projectRef.current, persistedProject)) projectRef.current = persistedProject;
+  const projectRef = useRef(projectInput(persistedProject));
+  if (!sameProjectInput(projectRef.current, persistedProject)) projectRef.current = projectInput(persistedProject);
   const project = projectRef.current;
   const localViewRef = useRef(false);
   const units = useUnits();
@@ -80,11 +80,11 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   const [showHome, setShowHome] = useState(true);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [conversationId, setConversationId] = useState<string>(() => crypto.randomUUID());
-  const [conversations, setConversations] = useState(() => project.taskState?.conversations ?? sessionHistories.get(project.id) ?? []);
-  const [restoring, setRestoring] = useState(Boolean(project.taskState?.conversations.length));
+  const [conversations, setConversations] = useState(() => persistedProject.taskState?.conversations ?? sessionHistories.get(project.id) ?? []);
+  const [restoring, setRestoring] = useState(Boolean(persistedProject.taskState?.conversations.length));
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [chatLoaded, setChatLoaded] = useState(false);
-  const savedTasks = useRef(project.taskState?.scheduled ?? []);
+  const savedTasks = useRef(persistedProject.taskState?.scheduled ?? []);
   const [remainingSavedTasks, setRemainingSavedTasks] = useState(savedTasks.current.filter((task) => ["queued", "running", "paused", "waiting-input", "waiting-confirmation", "failed"].includes(task.status)));
   const [proposal, setProposal] = useState<FrameProposal | undefined>();
   const [proposalDirty, setProposalDirty] = useState(false);
@@ -185,7 +185,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
       if (!current) return;
       if (!content) { setChatLoaded(true); return; }
       const histories: ConversationHistory[] = JSON.parse(content);
-      setConversations((previous) => mergeLocalChat(project, previous, histories));
+      setConversations((previous) => mergeLocalChat(persistedProject, previous, histories));
       setChatLoaded(true);
     }).catch(() => onPersistenceError("本机聊天记录读取失败，项目任务记录仍可恢复"));
     return () => { current = false; };
@@ -206,7 +206,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
     rejectProposal(); rejectConditions(); rejectSection(); rejectModelEdits(); rejectTaskDraft();
     baselineRef.current = undefined;
     localViewRef.current = Boolean(conversation.localOnly);
-    const issues = conversation.localOnly ? ["仅查看本机聊天，工程任务状态以保存的项目为准"] : recoveryIssues(project, conversation);
+    const issues = conversation.localOnly ? ["仅查看本机聊天，工程任务状态以保存的项目为准"] : recoveryIssues(persistedProject, conversation);
     setRecoveryMessage(issues.join("；"));
     setRestoring(false);
     setConversationId(conversation.id); setTurns(recoveredTurns(conversation)); setDraft(""); setShowHome(false);
@@ -547,7 +547,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   const resumeSavedTask = async (task: ScheduledTaskDescriptor) => {
     const owner = conversations.find((item) => item.turns.some((turn) => turn.scheduledTaskId === task.id));
     const targets = owner?.targets ?? owner?.turns.find((turn) => turn.scheduledTaskId === task.id)?.context.selection ?? [];
-    const issues = owner ? recoveryIssues(project, owner) : targetConflicts(project, targets);
+    const issues = owner ? recoveryIssues(persistedProject, owner) : targetConflicts(project, targets);
     if (issues.length) { setRecoveryMessage(issues.join("；")); return; }
     const input = persistedProject.taskState?.analyses.find((item) => item.taskId === task.id)?.input;
     dismissSavedTask(task.id);

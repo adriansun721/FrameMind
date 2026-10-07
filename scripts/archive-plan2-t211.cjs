@@ -4,7 +4,9 @@ const { gzipSync, gunzipSync } = require("node:zlib");
 const { createHash } = require("node:crypto");
 
 async function archive() {
-  const root = resolve(__dirname, "../docs/evidence/plan2/T2-11/runs");
+  const extended = process.argv.includes("--t241");
+  const root = resolve(__dirname, `../docs/evidence/plan2/${extended ? "T2-41" : "T2-11"}/runs`);
+  const names = extended ? /^(geometry-\d+|mass-\d+|buckling-\d+|second-order-\d+|spectrum-\d+|relationship-\d+|citations-\d+|contracts-\d+|desktop)\.json$/ : /^(state-\d+|confirmation-\d+|diagnostic-\d+|contracts-\d+|desktop)\.json$/;
   let count = 0;
   for (const entry of await readdir(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
@@ -18,13 +20,13 @@ async function archive() {
       archives = manifest.files;
     } catch (error) { if (error.code !== "ENOENT") throw error; }
     for (const entry of archives) {
-      if (!/^(state-\d+|confirmation-\d+|diagnostic-\d+|contracts-\d+|desktop)\.json$/.test(entry.file) || entry.archive !== `${entry.file}.gz`) throw new Error("Invalid archive name");
+      if (!names.test(entry.file) || entry.archive !== `${entry.file}.gz`) throw new Error("Invalid archive name");
       const compressed = await readFile(join(directory, entry.archive));
       const content = gunzipSync(compressed);
       if (content.length !== entry.bytes || compressed.length !== entry.compressedBytes || createHash("sha256").update(content).digest("hex") !== entry.sha256) throw new Error("Archive integrity mismatch");
     }
     for (const file of await readdir(directory)) {
-      if (!/^(state-\d+|confirmation-\d+|diagnostic-\d+|contracts-\d+|desktop)\.json$/.test(file)) continue;
+      if (!names.test(file)) continue;
       const content = await readFile(join(directory, file));
       JSON.parse(content.toString("utf8"));
       const hash = createHash("sha256").update(content).digest("hex");

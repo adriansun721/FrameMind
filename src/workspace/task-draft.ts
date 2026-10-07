@@ -4,6 +4,8 @@ import { buildFramePreview, proposeFrame, type FramePreview, type FrameProposal 
 import { buildConditionsPreview, proposeConditions, type ConditionsProposal } from "./analysis-conditions";
 import type { AiSnapshot, AiStatus } from "./ai-tools";
 import type { TaskValueSource } from "./condition-input";
+import { parseProjectEditOperations } from "./model-edits";
+import { applyProjectEdits, type ProjectEditOperation, type ProjectEditReceipt } from "../domain/project-operations";
 
 /** A value origin used by the whole-task review. Existing values are facts, while
  * user/suggestion values describe the proposed change that still needs review. */
@@ -24,6 +26,7 @@ export interface TaskDraft {
   frame?: FrameProposal;
   conditions?: ConditionsProposal;
   analysis?: TaskAnalysisIntent;
+  edits?: { operations: ProjectEditOperation[]; source: TaskValueSource };
 }
 
 export interface TaskChange {
@@ -36,6 +39,7 @@ export interface TaskChange {
 }
 
 export interface TaskDraftPreview {
+  edits?: ProjectEditReceipt;
   status: AiStatus;
   issues: string[];
   missing: { category: TaskChange["category"]; label: string; reason: string }[];
@@ -156,9 +160,10 @@ function changes(snapshot: AiSnapshot, frame: FrameProposal | undefined, conditi
 }
 
 export function buildTaskDraftPreview(snapshot: AiSnapshot, draft: TaskDraft): TaskDraftPreview {
+  const edited = draft.edits ? applyProjectEdits(snapshot.editProject, parseProjectEditOperations(draft.edits.operations)) : undefined;
   const frame = draft.frame ? buildFramePreview(snapshot, draft.frame) : undefined;
   const conditions = draft.conditions ? replaceConditionRefs(draft.conditions, draft.frame) : undefined;
-  const conditionProject = draftProject(snapshot.editProject, frame);
+  const conditionProject = draftProject(edited?.project ?? snapshot.editProject, frame);
   const conditionPreview = conditions ? buildConditionsPreview(conditionProject, conditions) : undefined;
   const hasExistingLoad = snapshot.model.nodalLoads.length > 0 || snapshot.model.uniformLoads.length > 0 || snapshot.model.selfWeight.enabled
     || snapshot.model.loadCases.length > 1 || snapshot.model.loadCombinations.length > 0;
@@ -199,17 +204,29 @@ export function buildTaskDraftPreview(snapshot: AiSnapshot, draft: TaskDraft): T
     ...(frame?.members ?? []).map((item) => ({ kind: "member" as const, id: item.id, label: item.label, category: "new" as const })),
   ];
   const allChanges = changes(snapshot, draft.frame, draft.conditions, draft.analysis);
+  if (draft.edits) {
+    if (draft.edits.source === "unknown") missing.push({ category: "geometry", label: "工程操作来源", reason: "工程操作的来源未知，请补充或确认" });
+    const labels = { material: "材料", section: "截面", node: "节点", member: "杆件", support: "支座", "nodal-load": "节点荷载", "uniform-load": "均布荷载", "load-case": "荷载工况", "load-combination": "荷载组合", "analysis-case": "分析工况", "psd-spectrum": "输入谱" };
+    for (const change of edited!.receipt.changes) allChanges.push({ category: ["material", "section", "psd-spectrum"].includes(change.kind) ? "resource" : change.kind === "support" ? "support" : ["nodal-load", "uniform-load", "load-case", "load-combination"].includes(change.kind) ? "load" : change.kind === "analysis-case" ? "analysis" : "geometry", label: `${labels[change.kind]} ${change.id}`, before: change.before, after: change.after, source: draft.edits.source, impact: "与条件及分析意图一起确认；共享资源变化影响全部引用对象" });
+  }
   if (draft.frame) {
     allChanges.push({ category: "resource", label: "材料来源", after: draft.frame.parameters.material?.value, source: parameterSource(snapshot, draft.frame, "material"), impact: "确认后复制到正式项目资源" });
     allChanges.push({ category: "resource", label: "柱/梁截面来源", after: { column: draft.frame.parameters.columnSection?.value, beam: draft.frame.parameters.beamSection?.value }, source: parameterSource(snapshot, draft.frame, "columnSection"), impact: "确认后绑定新杆件" });
   }
-  return { status: missing.length ? "missing-input" : "awaiting-confirmation", issues, missing, changes: allChanges, frame, conditions: conditionPreview, objectRefs, analysis: draft.analysis };
+  return { status: missing.length ? "missing-input" : "awaiting-confirmation", issues, missing, changes: allChanges, frame, conditions: conditionPreview, objectRefs, analysis: draft.analysis, edits: edited?.receipt };
 }
 
 /** Merge one natural-language task update. No project mutation occurs here. */
 export function proposeTask(snapshot: AiSnapshot, input: unknown, previous?: TaskDraft): TaskDraft {
   const request = record(input, "完整任务草案必须是对象");
-  exact(request, ["id", "goal", "frame", "parameters", "conditions", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysis", "analysisRequested"]);
+  exact(request, ["id", "goal", "frame", "parameters", "conditions", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysis", "analysisRequested", "edits"]);
+  let edits = previous?.edits;
+  if (request.edits !== undefined) {
+    const input = record(request.edits, "工程操作必须是对象");
+    exact(input, ["operations", "source"]);
+    if (!["existing", "user", "catalog", "suggestion", "assumption", "unknown"].includes(String(input.source))) throw new Error("工程操作必须声明参数来源");
+    edits = { operations: parseProjectEditOperations(input.operations), source: input.source as TaskValueSource };
+  }
   const id = previous?.id ?? (typeof request.id === "string" && request.id.trim() ? text(request.id, "任务身份", 200) : `task_${crypto.randomUUID()}`);
   const frameInput = request.frame ?? (request.parameters === undefined ? undefined : { parameters: request.parameters });
   const frame = frameInput === undefined ? previous?.frame : proposeFrame(frameInput, previous?.frame);
@@ -223,7 +240,8 @@ export function proposeTask(snapshot: AiSnapshot, input: unknown, previous?: Tas
     ?? (conditions?.loadCases?.length === 1 && !conditions.loadCombinations?.length ? conditions.loadCases[0].ref : undefined)
     ?? snapshot.model.activeAnalysisCaseId ?? snapshot.model.activeLoadCombinationId ?? snapshot.model.activeLoadCaseId;
   const goal = request.goal === undefined ? previous?.goal : text(request.goal, "任务目标");
-  const next: TaskDraft = { id, version: (previous?.version ?? 0) + 1, projectId: snapshot.context.projectId, baseRevision: snapshot.context.modelRevision, ...(goal ? { goal } : {}), ...(frame ? { frame } : {}), ...(conditions ? { conditions } : {}), ...(analysis ? { analysis } : {}) };
+  if (frame && edits) throw new Error("参数框架生成与已有对象工程操作请分别准备整体草案，避免使用未应用身份");
+  const next: TaskDraft = { id, version: (previous?.version ?? 0) + 1, projectId: snapshot.context.projectId, baseRevision: snapshot.context.modelRevision, ...(goal ? { goal } : {}), ...(frame ? { frame } : {}), ...(conditions ? { conditions } : {}), ...(analysis ? { analysis } : {}), ...(edits ? { edits } : {}) };
   // Validate the merged draft now so a tool reply can distinguish missing input
   // from a malformed request without ever changing the applied model.
   buildTaskDraftPreview(snapshot, next);
