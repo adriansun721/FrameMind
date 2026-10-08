@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "methods": [
+    "AC1",
+    "AC2",
+    "AC4",
+    "AC5"
+  ],
+  "reportWord": true,
+  "reportPdf": true,
+  "savedAndReopenedInput": true
+}

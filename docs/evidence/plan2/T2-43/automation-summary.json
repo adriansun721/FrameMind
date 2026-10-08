@@ -1,0 +1,116 @@
+{
+  "task": "T2-43",
+  "generatedAt": "2026-10-08T12:52:51.934Z",
+  "automationPassed": true,
+  "passed": false,
+  "checks": [
+    {
+      "name": "mainlineOne",
+      "passed": true
+    },
+    {
+      "name": "mainlineTwo/dark",
+      "passed": true
+    },
+    {
+      "name": "mainlineTwo/light",
+      "passed": true
+    },
+    {
+      "name": "constituent/T2-20",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-20\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-21",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-21\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-22",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-22\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-24",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-24\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-25",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-25\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-26",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-26\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-27",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-27\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-28",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-28\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-29",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-29\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-30",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-30\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-31",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-31\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-32",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-32\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-33",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-33\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-34",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-34\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-35",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-35\\desktop.json"
+    },
+    {
+      "name": "constituent/T2-36",
+      "passed": true,
+      "evidence": "docs\\evidence\\plan2\\T2-36\\desktop.json"
+    }
+  ],
+  "humanAcceptance": {
+    "required": true,
+    "status": "pending",
+    "reason": "PLAN2.0 explicitly requires a real participant; automated Electron replay is not a substitute."
+  },
+  "dependency": {
+    "task": "T2-42",
+    "status": "partial",
+    "reason": "Target-scale performance acceptance remains failed in the registered v2 measurements.",
+    "evidence": "docs/evidence/plan2/T2-42/acceptance.md"
+  },
+  "sources": {
+    "mainlineOne": "7631be37d92a2439ef4b9a24b72454d7bdb9979e40897a82972f9e015997034c",
+    "mainlineDark": "fce8356b47bf1dacf341eee52cb5ec474eb72641392deb0696d97617c5459410",
+    "mainlineLight": "431fec72146cddbc449f3be6e5484c2bb9881b172c2374c4a1f7ebbc0af9951d"
+  }
+}

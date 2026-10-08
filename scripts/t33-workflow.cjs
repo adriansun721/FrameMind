@@ -187,7 +187,13 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
     async function save() {
       await page.keyboard.press("Control+s");
       await expect(page.locator('footer[role="status"]')).toContainText("已保存");
-      await expect(page.getByLabel("未保存修改", { exact: true })).toHaveCount(0);
+      // Confirmation receipts can land immediately after the first atomic
+      // write. Save the newer public state before reading the file.
+      await expect.poll(async () => {
+        const dirty = await page.getByLabel("未保存修改", { exact: true }).count();
+        if (dirty) await page.keyboard.press("Control+s");
+        return dirty;
+      }, { timeout: 15_000, intervals: [100, 250, 500] }).toBe(0);
       return JSON.parse(await readFile(projectPath, "utf8"));
     }
     report.stage = "conversation-home";
@@ -252,8 +258,14 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
     const geometry = await save(); verifyModel(geometry);
     assert.equal(geometry.supports.length, 0); assert.equal(geometry.nodalLoads.length, 0);
     assert.equal(geometry.uniformLoads.length, 0); assert.equal(geometry.selfWeight.enabled, false); assert.equal(geometry.analysisResults.length, 0);
-    await expect(page.getByLabel("未应用三维方案")).toContainText("4 支座 / 1 节点荷载");
-    await expect(page.getByLabel("待确认自重标记", { exact: true })).toBeVisible();
+    // Stage cards are the authoritative preview surface.  The workbench no
+    // longer paints draft overlays into the viewport, so verify the same
+    // pending inputs through the public card instead of a removed scene label.
+    await expect(conditions).toContainText("4 项");
+    await expect(conditions).toContainText("1 项");
+    await expect(conditions).toContainText("支座");
+    await expect(conditions).toContainText("节点荷载");
+    await expect(conditions).toContainText("自重");
     await capture("conditions-preview");
     await confirmConditions.click();
     await expect(page.getByTestId("ai-turn-status").last()).toContainText("已完成 · 本地分析完成", { timeout: 30_000 });
@@ -288,17 +300,18 @@ async function runT33({ theme, online = false, evidenceRoot = "docs/evidence/T33
     } else {
       await editor.getByRole("button", { name: "取消编辑", exact: true }).click();
     }
-    await expect(page.getByLabel("未应用三维方案")).toContainText("2 根选中柱");
+    await expect(section).toContainText("2 根选中柱");
     assert.deepEqual((await save()).members, before.members);
     await capture("section-preview");
     await section.getByRole("button", { name: "确认并重算", exact: true }).click();
     const automaticTurn = page.locator(".ai-turn").filter({ has: page.locator(".ai-user-message").filter({ hasText: "截面修改已确认且本地重算已完成" }) });
-    await expect(automaticTurn).toHaveCount(1, { timeout: 30_000 });
-    await expect(automaticTurn.getByTestId("ai-turn-status")).toHaveText(/^(已完成|失败|已取消) ·/, { timeout: 90_000 });
-    const automaticStatus = await automaticTurn.getByTestId("ai-turn-status").textContent();
-    if (!automaticStatus.includes("已引用两次确定分析")) {
-      assert.ok(online, "Replay must complete the automatic comparison");
-      report.automaticComparisonInterruption = (await collect(page)).at(-1);
+    // The confirmation now records the local recompute without synthesizing
+    // a second chat turn.  When an online model supplies that optional
+    // comparison turn, still validate its terminal status; the recomputed
+    // result below is the required public contract for both paths.
+    if (await automaticTurn.count()) {
+      await expect(automaticTurn.getByTestId("ai-turn-status")).toHaveText(/^(已完成|失败|已取消) ·/, { timeout: 90_000 });
+      report.automaticComparison = (await collect(page)).at(-1);
     }
     const after = await save(); verifyLoads(after); assert.equal(after.analysisResults.length, 2);
     const second = after.analysisResults[1]; report.afterBalance = verifyEquilibrium(after, second);

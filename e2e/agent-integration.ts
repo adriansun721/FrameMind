@@ -31,7 +31,8 @@ export async function agentFixture(id: string, options: { task: "T2-11" | "T2-41
   let failed = false;
   let failure: string | undefined;
   let activePage: Page | undefined;
-  const env = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: path };
+  const env = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: path,
+    FRAMEMIND_E2E_REPORT_PATH: join(directory, "report.docx"), FRAMEMIND_E2E_REPORT_PDF_PATH: join(directory, "report.pdf") };
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.VITE_DEV_SERVER_URL;
   const launch = async () => {

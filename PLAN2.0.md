@@ -920,6 +920,8 @@
 
 ### T2-43 — 两条完整桌面主线与真人试用
 
+**状态：** 自动化桌面主线已完成并归档，更新于 2026-10-08（Asia/Taipei）。T2-42 目标规模性能仍为部分完成，真人首次试用尚未登记；因此本任务不能标记为全部完成。见 [T2-43 验收记录](./docs/evidence/plan2/T2-43/acceptance.md)、[自动化汇总](./docs/evidence/plan2/T2-43/automation-summary.md) 和 [真人试用记录](./docs/evidence/plan2/T2-43/human-check.md)。
+
 **交付行为：** 在真实 Windows 桌面完整演示既有项目续作和自由建模高级分析，验证用户能够理解和完成操作。
 
 **阻塞于：** T2-19、T2-40、T2-41、T2-42。

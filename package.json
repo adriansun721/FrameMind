@@ -68,7 +68,8 @@
     "evidence:plan2:t241": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241",
     "evidence:plan2:t241:online": "npm run build:native && npm run build && node scripts/verify-plan2-t211.cjs --t241 --online",
     "evidence:plan2:t242:register": "npm run build:native && npm run build && node scripts/verify-plan2-t242.mjs --register",
-    "evidence:plan2:t242": "node scripts/verify-plan2-t242.mjs"
+    "evidence:plan2:t242": "node scripts/verify-plan2-t242.mjs",
+    "evidence:plan2:t243": "npm run build && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-43-mainlines.spec.ts && node scripts/verify-plan2-t243.mjs"
   },
   "dependencies": {
     "docx": "^9.7.1",
