@@ -2,14 +2,11 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { stdin, stdout } from "node:process";
+import { hashAudit, parseStepIntermediate, STEP_READER_INFO } from "./step-intermediate.mjs";
 
-export const CAD_PARSER_VERSION = "framemind-step-reader/1.0.0";
+export const CAD_PARSER_VERSION = "framemind-step-reader/2.0.0";
 export const CAD_KERNEL = {
-  name: "FrameMind STEP Part 21 reader",
-  version: "1.0.0",
-  build: "framemind-step-reader-1",
-  license: "MIT",
-  runtime: "bundled",
+  ...STEP_READER_INFO,
 };
 
 const write = (message) => stdout.write(`${JSON.stringify(message)}\n`);
@@ -77,12 +74,24 @@ try {
           const application = first(headerText, /APPLICATION_PROTOCOL_DEFINITION\s*\([^,]+,\s*'([^']+)'/i);
           const schema = first(headerText, /FILE_SCHEMA\s*\(\s*\(('([^']+)'|[^)]+)\)/i);
           const units = /MILLI|MILLIMETRE|MILLIMETER/i.test(text) ? "millimetre (inferred from STEP units context)" : undefined;
-          phase(requestId, "finalize");
-          write({ kind: "result", requestId, parserVersion: CAD_PARSER_VERSION, kernel: CAD_KERNEL,
-            input: { sha256, sizeBytes: bytes.length, extension },
-            diagnostics: { products, solidBreps, assemblyInstances, entities: entities.length, header: { ...(application ? { application } : {}), ...(schema ? { schema } : {}), ...(units ? { units } : {}) } },
-            intermediateState: { schemaVersion: 1, source: { inputSha256: sha256, parserVersion: CAD_PARSER_VERSION }, entities, warnings },
-          });
+          let parsed;
+          try {
+            parsed = parseStepIntermediate(bytes, { inputSha256: sha256, parserVersion: CAD_PARSER_VERSION, parameters: request.parameters });
+          } catch (cause) {
+            error(requestId, "cad-intermediate-error", cause instanceof Error ? cause.message : "STEP 中间态生成失败", "finalize");
+            parsed = null;
+          }
+          if (parsed) {
+            phase(requestId, "finalize");
+            const audit = { ...parsed.audit, requestId, recordedAt: new Date().toISOString() };
+            write({ kind: "result", requestId, parserVersion: CAD_PARSER_VERSION, kernel: CAD_KERNEL,
+              input: { sha256, sizeBytes: bytes.length, extension },
+              diagnostics: { products, solidBreps, assemblyInstances, entities: entities.length, header: { ...(application ? { application } : {}), ...(schema ? { schema } : {}), ...(units ? { units } : {}) }, ...parsed.state.diagnostics, warnings: [...warnings, ...parsed.state.warnings] },
+              intermediateState: { ...parsed.state, source: { inputSha256: sha256, parserVersion: CAD_PARSER_VERSION }, geometryHash: parsed.geometryHash, auditHash: hashAudit(audit) },
+              audit,
+              aiSummary: parsed.aiSummary,
+            });
+          }
           }
         }
       }

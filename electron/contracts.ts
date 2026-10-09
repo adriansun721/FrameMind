@@ -107,6 +107,7 @@ export interface CadImportRequest {
   projectContent: string;
   formalSave: RecoverySaveRequest["formalSave"];
   retryOf?: string;
+  parameters?: { coordinateSystem?: "global-right-handed"; lengthUnit?: "m" };
 }
 
 export interface CadKernelInfo {
@@ -145,13 +146,42 @@ export interface CadParseResult {
     assemblyInstances: number;
     entities: number;
     header: { application?: string; schema?: string; units?: string };
+    entityCount?: number;
+    productCount?: number;
+    assemblyInstanceCount?: number;
+    solidCount?: number;
+    lineCandidateCount?: number;
+    unsupportedEntityCount?: number;
+    coordinateSystem?: string;
+    sourceLengthUnit?: string;
+    warnings?: string[];
   };
   intermediateState: {
-    schemaVersion: 1;
+    schemaVersion: 2;
     source: { inputSha256: string; parserVersion: string };
     entities: Array<{ id: number; type: string; line: number }>;
+    normalization: { coordinateSystem: string; lengthUnit: string; deterministic: true };
+    units: { sourceLength: string; length: "m"; lengthToM: number; areaToM2: number; inertiaToM4: number; torsionToM4: number; explicit: boolean };
+    unitConversions: { length: { sourceToCanonical: number; canonical: "m" }; area: { sourceToCanonical: number; canonical: "m²" }; secondMoment: { sourceToCanonical: number; canonical: "m⁴" }; torsionConstant: { sourceToCanonical: number; canonical: "m⁴" } };
+    products: Array<{ id: number; name: string; description: string; definitionId: number | null; sourceEntityIds: number[] }>;
+    assemblyTree: Array<{ instanceId: number; parentDefinitionId: number | null; childDefinitionId: number | null; parentProductId: number | null; childProductId: number | null; globalTransform: number[][] }>;
+    instances: Array<{ id: number; name: string; parentDefinitionId: number | null; childDefinitionId: number | null; parentProductId: number | null; childProductId: number | null; transform: number[][]; globalTransform: number[][]; sourceEntityIds: number[] }>;
+    brepSummaries: Array<{ id: number; shellId: number | null; faceCount: number; surfaceKinds: string[]; sourceEntityIds: number[] }>;
+    geometryCandidates: Array<{ id: string; kind: "line"; classification: string; sourceEntityId: number; origin: number[]; direction: number[]; lengthM: number | null; sourceEntityIds: number[] }>;
+    instanceGeometryCandidates: Array<{ id: string; kind: "line"; classification: string; sourceEntityId: number; instanceId: number; origin: number[]; direction: number[]; lengthM: number | null; sourceEntityIds: number[] }>;
+    candidateNodes: Array<{ id: string; position: number[]; sourceEntityIds: number[] }>;
+    candidateMembers: Array<{ id: string; kind: "line"; classification: string; instanceId: number | null; startNodeId: string; endNodeId: string | null; sourceEntityIds: number[]; sectionBasisId: string }>;
+    sectionBasis: Array<{ id: string; status: "unresolved"; reason: string; sourceEntityIds: number[] }>;
+    sourceMappings: Array<{ sourceEntityIds: number[]; derivedKind: string; derivedIds: Array<number | string> }>;
+    diagnostics: { entityCount: number; productCount: number; assemblyInstanceCount: number; solidCount: number; lineCandidateCount: number; unsupportedEntityCount: number; coordinateSystem: string; sourceLengthUnit: string; blockingIssues: string[]; anomalies: Array<{ code: string; severity: string; entityIds?: number[]; count?: number; message?: string }> };
+    anomalies: Array<{ code: string; severity: string; entityIds?: number[]; count?: number; message?: string }>;
     warnings: string[];
+    ignoredEntities: Array<{ id: number; type: string; reason: string }>;
+    geometryHash?: string;
+    auditHash?: string;
   };
+  audit?: { parserVersion: string; inputSha256: string; parameters: Record<string, unknown>; requestId?: string; recordedAt?: string };
+  aiSummary?: string;
 }
 
 export type CadImportResult =

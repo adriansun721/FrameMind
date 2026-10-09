@@ -80,7 +80,7 @@ ipcMain.handle(DesktopChannel.ImportStep, async (event, request: CadImportReques
   // produce an intermediate result, so a crash cannot change the formal model.
   await recoveries.save({ content: request.projectContent, formalSave: request.formalSave ?? null });
   const taskId = `cad_${randomUUID()}`;
-  const messages = await cadParser.run(event.sender.id, { requestId: taskId, inputPath: targetPath, ...(request.retryOf ? { retryOf: request.retryOf } : {}) });
+  const messages = await cadParser.run(event.sender.id, { requestId: taskId, inputPath: targetPath, ...(request.retryOf ? { retryOf: request.retryOf } : {}), ...(request.parameters ? { parameters: request.parameters } : {}) });
   const phases = messages.filter((message): message is CadParsePhase => message.kind === "phase");
   const terminal = messages.at(-1);
   if (terminal?.kind === "result") return { status: "parsed", path: targetPath, checkpointed: true, phases, result: terminal };
