@@ -2,3 +2,5 @@
 /docs/fixtures/t33-demo.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /docs/evidence/T33/**/*.framemind -text
 /docs/evidence/T34/**/*.framemind -text
+# Preserve exact exported JSON bytes for P25-04 artifact SHA-256 on Windows.
+/docs/evidence/plan2/P25-04/**/preview.json -text

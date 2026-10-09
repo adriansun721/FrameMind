@@ -65,6 +65,22 @@ ipcMain.handle(DesktopChannel.CancelCadImport, (event, requestId: unknown) => {
   if (typeof requestId !== "string") throw new Error("CAD 任务身份无效");
   cadParser.cancel(event.sender.id, requestId);
 });
+ipcMain.handle(DesktopChannel.ExportCadPreview, async (event, request: { suggestedName: string; content: string }): Promise<SaveProjectResult> => {
+  requireTrustedSender(event);
+  if (!request || typeof request.content !== "string" || request.content.length > 32 * 1024 * 1024 || typeof request.suggestedName !== "string") throw new Error("CAD 预览导出无效");
+  const parsed = JSON.parse(request.content);
+  if (parsed.task !== "P25-04" || parsed.previewOnly !== true || !/^[a-f0-9]{64}$/.test(parsed.inputSha256)) throw new Error("CAD 预览身份无效");
+  let target = process.env.FRAMEMIND_E2E_CAD_PREVIEW_PATH;
+  if (!target) {
+    const name = request.suggestedName.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").slice(0, 120);
+    const selection = await dialog.showSaveDialog({ title: "导出 STEP 预览", defaultPath: `${name}.json`, filters: [{ name: "预览 JSON", extensions: ["json"] }] });
+    if (selection.canceled || !selection.filePath) return { status: "cancelled" };
+    target = selection.filePath;
+  }
+  if (!target.toLowerCase().endsWith(".json")) target += ".json";
+  await projectFiles.save(target, request.content);
+  return { status: "saved", path: target };
+});
 ipcMain.handle(DesktopChannel.ImportStep, async (event, request: CadImportRequest): Promise<CadImportResult> => {
   requireTrustedSender(event);
   if (!request || typeof request.projectContent !== "string" || request.projectContent.length > 64 * 1024 * 1024) throw new Error("导入前恢复内容无效");

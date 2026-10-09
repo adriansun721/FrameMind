@@ -1,3 +1,27 @@
+export type CadVector = [number, number, number];
+export interface CadBounds { min: number[]; max: number[] }
+export interface CadCenterline {
+  id: string; instanceId: number | null; solidId: number; sourceEntityIds: number[];
+  start: number[]; end: number[]; direction: number[]; lengthM: number;
+  endSections: number[][][]; boundingBox: CadBounds; method: string;
+}
+export interface CadEngineeringGeometry {
+  schemaVersion: 1;
+  recognitionToleranceM: number;
+  definitions: Array<{ solidId: number; status: string; reason?: string; rejections?: string[]; sourceEntityIds: number[] }>;
+  solidInstances: Array<{ instanceId: number | null; solidId: number; status: string; boundsBasis: "verified-linear-vertices" | "vertex-sample-only"; bounds: CadBounds; transform: number[][]; sourceEntityIds: number[] }>;
+  centerlines: CadCenterline[];
+  issues: Array<{ code: string; severity: string; instanceId?: number | null; sourceEntityIds: number[]; message: string }>;
+}
+export interface CadPose {
+  translationM: CadVector;
+  rotationDegrees: CadVector;
+}
+export interface CadPoseDecision {
+  revision: number; recordedAt: string; inputSha256: string; geometryHash: string;
+  pose: CadPose; source: "user";
+}
+
 export const enum DesktopChannel {
   RunNativeAnalysis = "analysis:native-run",
   CancelNativeAnalysis = "analysis:native-cancel",
@@ -18,6 +42,7 @@ export const enum DesktopChannel {
   CancelDeepSeekChat = "deepseek:chat-cancel",
   ImportStep = "cad:step-import",
   CancelCadImport = "cad:step-cancel",
+  ExportCadPreview = "cad:preview-export",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
   ExportReportData = "report:data",
@@ -179,6 +204,7 @@ export interface CadParseResult {
     ignoredEntities: Array<{ id: number; type: string; reason: string }>;
     geometryHash?: string;
     auditHash?: string;
+    engineeringGeometry?: CadEngineeringGeometry;
   };
   audit?: { parserVersion: string; inputSha256: string; parameters: Record<string, unknown>; requestId?: string; recordedAt?: string };
   aiSummary?: string;
@@ -212,4 +238,5 @@ export interface FrameMindDesktopApi {
   cancelDeepSeekChat(requestId: string): Promise<void>;
   importStep(request: CadImportRequest): Promise<CadImportResult>;
   cancelCadImport(requestId: string): Promise<void>;
+  exportCadPreview(request: { suggestedName: string; content: string }): Promise<SaveProjectResult>;
 }

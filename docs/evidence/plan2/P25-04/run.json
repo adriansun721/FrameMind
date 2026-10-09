@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "task": "P25-04",
+  "status": "blocked",
+  "taskAcceptance": "pending",
+  "currentRun": "runs/15cc455c-7fdf-4133-8793-346d3f07e85e/run.json",
+  "currentArtifact": "runs/15cc455c-7fdf-4133-8793-346d3f07e85e/preview.json",
+  "supersededInitialEvidence": {
+    "status": "invalid-withdrawn",
+    "reason": "Initial preview incorrectly treated 822 BREP LINE parameter scales as engineering centerlines; the prior passed claim is withdrawn.",
+    "notAnAcceptanceBaseline": true
+  },
+  "independentCadReference": "pending-P25-01"
+}

@@ -7,5 +7,9 @@ extraResources:
     to: native
   - from: scripts/cad-parser-worker.mjs
     to: cad/cad-parser-worker.mjs
+  - from: scripts/step-intermediate.mjs
+    to: cad/step-intermediate.mjs
+  - from: scripts/step-centerlines.mjs
+    to: cad/step-centerlines.mjs
   - from: docs/evidence/plan2/T2-13/criteria.md
     to: native/T2-13-acceptance-scope.md

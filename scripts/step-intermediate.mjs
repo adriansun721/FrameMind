@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { extractStepCenterlines } from "./step-centerlines.mjs";
 
 export const INTERMEDIATE_SCHEMA_VERSION = 2;
 
@@ -10,7 +11,7 @@ const UNSUPPORTED_TYPES = new Set([
   "TOROIDAL_SURFACE", "SPHERICAL_SURFACE", "DEGENERATE_TOROIDAL_SURFACE",
 ]);
 
-export const STEP_READER_INFO = Object.freeze({ name: "FrameMind STEP Part 21 reader", version: "2.0.0", build: "framemind-step-reader-2", license: "MIT", runtime: "bundled" });
+export const STEP_READER_INFO = Object.freeze({ name: "FrameMind STEP Part 21 reader", version: "2.1.0", build: "framemind-step-reader-2.1", license: "MIT", runtime: "bundled" });
 
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 const round = (value, digits = 12) => {
@@ -77,7 +78,7 @@ function matchingClose(value, openIndex) {
   return value.length - 1;
 }
 
-function parseRecords(text) {
+export function parseRecords(text) {
   const dataStart = text.search(/\bDATA\s*;/i);
   const dataEnd = text.search(/\bEND-ISO-10303-21\s*;/i);
   if (dataStart < 0 || dataEnd < 0 || dataEnd <= dataStart) throw new Error("STEP 文档缺少完整 DATA 段");
@@ -153,7 +154,7 @@ function detectUnits(records, text) {
 }
 
 function summarizeAi(state) {
-  return JSON.stringify({ schemaVersion: state.schemaVersion, units: state.units, products: state.products.map(({ id, name, definitionId }) => ({ id, name, definitionId })), instances: state.instances.map(({ id, parentDefinitionId, childDefinitionId, transform, globalTransform }) => ({ id, parentDefinitionId, childDefinitionId, transform, globalTransform })), entities: state.diagnostics.entityCount, solids: state.brepSummaries.map(({ id, faceCount, surfaceKinds }) => ({ id, faceCount, surfaceKinds })), candidates: { definitions: state.geometryCandidates.length, instances: state.instanceGeometryCandidates.length, nodes: state.candidateNodes.length, members: state.candidateMembers.length, sectionBasis: state.sectionBasis.length }, anomalies: state.anomalies, warnings: state.warnings, ignoredEntities: state.ignoredEntities.map(({ id, type, reason }) => ({ id, type, reason })) });
+  return JSON.stringify({ schemaVersion: state.schemaVersion, units: state.units, products: state.products.map(({ id, name, definitionId }) => ({ id, name, definitionId })), instances: state.instances.map(({ id, parentDefinitionId, childDefinitionId, transform, globalTransform }) => ({ id, parentDefinitionId, childDefinitionId, transform, globalTransform })), entities: state.diagnostics.entityCount, solids: state.brepSummaries.map(({ id, faceCount, surfaceKinds }) => ({ id, faceCount, surfaceKinds })), engineeringGeometry: { centerlineCount: state.engineeringGeometry.centerlines.length, issues: state.engineeringGeometry.issues, support: "planar linear closed symmetric translated cap boundaries only; raw LINE candidates are not engineering members" }, candidates: { definitions: state.geometryCandidates.length, instances: state.instanceGeometryCandidates.length, nodes: state.candidateNodes.length, members: state.candidateMembers.length, sectionBasis: state.sectionBasis.length }, anomalies: state.anomalies, warnings: state.warnings, ignoredEntities: state.ignoredEntities.map(({ id, type, reason }) => ({ id, type, reason })) });
 }
 
 export function parseStepIntermediate(bytes, options = {}) {
@@ -290,9 +291,12 @@ export function parseStepIntermediate(bytes, options = {}) {
     ...candidateMembers.map((member) => ({ sourceEntityIds: member.sourceEntityIds, derivedKind: "candidate-member", derivedIds: [member.id, member.sectionBasisId] })),
   ].sort((a, b) => a.sourceEntityIds[0] - b.sourceEntityIds[0]);
   const state = { schemaVersion: INTERMEDIATE_SCHEMA_VERSION, normalization: { coordinateSystem: parameters.coordinateSystem, lengthUnit: parameters.lengthUnit, deterministic: true }, units, unitConversions: { length: { sourceToCanonical: units.lengthToM, canonical: "m" }, area: { sourceToCanonical: units.areaToM2, canonical: "m²" }, secondMoment: { sourceToCanonical: units.inertiaToM4, canonical: "m⁴" }, torsionConstant: { sourceToCanonical: units.torsionToM4, canonical: "m⁴" } }, entities: entitySummaries, products, assemblyTree, instances, brepSummaries, geometryCandidates, instanceGeometryCandidates, candidateNodes, candidateMembers, sectionBasis, sourceMappings, diagnostics, anomalies, warnings, ignoredEntities };
+  state.engineeringGeometry = extractStepCenterlines(records, units, instances);
+  state.sourceMappings.push(...state.engineeringGeometry.centerlines.map((axis) => ({ sourceEntityIds: axis.sourceEntityIds, derivedKind: "engineering-centerline", derivedIds: [axis.id] })));
+  state.sourceMappings.sort((a, b) => a.sourceEntityIds[0] - b.sourceEntityIds[0]);
   const geometryHash = digest(state);
   const inputSha256 = options.inputSha256 ?? digest(bytes);
-  const audit = { parserVersion: options.parserVersion ?? "framemind-step-reader/2.0.0", inputSha256, parameters };
+  const audit = { parserVersion: options.parserVersion ?? "framemind-step-reader/2.1.0", inputSha256, parameters };
   return { state, geometryHash, auditHash: digest(audit), audit, aiSummary: summarizeAi(state) };
 }
 

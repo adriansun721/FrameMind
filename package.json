@@ -76,7 +76,9 @@
     "evidence:plan2:p2503": "node scripts/run-p25-03-step.mjs",
     "test:plan2:p2501": "node --test scripts/register-p25-01.test.mjs scripts/inspect-p25-01-step.test.mjs",
     "test:plan2:p2502": "node --test scripts/run-p25-02-step.test.mjs",
-    "test:plan2:p2503": "node --test scripts/p25-03-step.test.mjs"
+    "test:plan2:p2503": "node --test scripts/p25-03-step.test.mjs",
+    "evidence:plan2:p2504": "node scripts/run-p25-04-step.mjs",
+    "test:plan2:p2504": "node --test scripts/step-centerlines.test.mjs scripts/p25-04-step.test.mjs"
   },
   "dependencies": {
     "docx": "^9.7.1",

@@ -6,7 +6,7 @@ import { StringDecoder } from "node:string_decoder";
 import type { CadParseError, CadParsePhase, CadParseResult } from "./contracts";
 
 export const CAD_RUNTIME_LIMITS = Object.freeze({ inputBytes: 256 * 1024 * 1024, outputBytes: 32 * 1024 * 1024, timeoutMs: 120_000, concurrent: 1 });
-export const CAD_PARSER_VERSION = "framemind-step-reader/2.0.0";
+export const CAD_PARSER_VERSION = "framemind-step-reader/2.1.0";
 
 export interface CadParserRequest { requestId: string; inputPath: string; expectedSha256?: string; retryOf?: string; parameters?: { coordinateSystem?: "global-right-handed"; lengthUnit?: "m" }; }
 export interface CadParserHostOptions {

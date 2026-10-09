@@ -856,6 +856,49 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px
 .unit-preset-selector { max-width: 150px; height: 28px; padding: 2px 6px; color: var(--text-primary); background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 11px; }
 
 .member-release-fields { display: grid; gap: 8px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 10px; min-width: 0; }
+.cad-topology-dialog { width: min(1060px, calc(100vw - 32px)); max-height: min(820px, calc(100vh - 32px)); }
+.cad-topology-dialog { display: flex; flex-direction: column; overflow: hidden; }
+.cad-preview-body { overflow: auto; min-height: 0; }
+.cad-topology-dialog > header, .cad-topology-dialog > .dialog-actions { flex: none; }
+.cad-solid-box { stroke: var(--text-muted); stroke-width: 1; opacity: .45; }
+.cad-solid-box.located { stroke: var(--focus-border); stroke-width: 3; opacity: 1; }
+.cad-axis-y { stroke: var(--model-axis-y); stroke-width: 2; }
+.cad-contact { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: var(--text-caption); }
+.cad-topology-details > p { margin: 8px; color: var(--text-secondary); font-size: var(--text-micro); overflow-wrap: anywhere; }
+.cad-topology-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; color: var(--text-secondary); font: var(--text-micro) var(--font-mono); }
+.cad-topology-summary span { padding: 5px 7px; border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.cad-pose-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin: 0 0 12px; padding: 8px; border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.cad-pose-controls legend { padding: 0 4px; color: var(--text-secondary); font-size: var(--text-caption); }
+.cad-pose-controls label { display: grid; gap: 4px; color: var(--text-muted); font-size: var(--text-micro); }
+.cad-pose-controls input { width: 96px; min-width: 0; }
+.cad-pose-record { align-self: center; color: var(--text-secondary); font: var(--text-micro) var(--font-mono); overflow-wrap: anywhere; }
+.cad-topology-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, .8fr); gap: 12px; min-height: 0; }
+.cad-topology-viewport { min-width: 0; min-height: 300px; border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.cad-topology-viewport svg { display: block; width: 100%; height: auto; min-height: 300px; color: var(--text-muted); }
+.cad-preview-frame { stroke: var(--border-subtle); }
+.cad-member { stroke: var(--model-preview); stroke-width: 2; opacity: .78; }
+.cad-member-split { stroke: var(--status-warning); stroke-dasharray: 6 4; }
+.cad-node { fill: var(--surface-panel); stroke: var(--status-warning); stroke-width: 1.5; }
+.cad-node-connected { fill: var(--status-success); stroke: var(--status-success); }
+.cad-axis-x { stroke: var(--model-axis-x); stroke-width: 2; }
+.cad-axis-z { stroke: var(--model-axis-z); stroke-width: 2; }
+.cad-topology-viewport text { fill: var(--text-muted); font: 11px var(--font-mono); }
+.cad-topology-issues { display: grid; align-content: start; gap: 8px; min-width: 0; overflow: auto; max-height: 380px; }
+.cad-topology-issues h3 { margin: 0; color: var(--text-primary); font-size: var(--text-caption); }
+.cad-topology-issue { display: grid; gap: 3px; padding: 8px; border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.cad-topology-issue strong { color: var(--text-primary); font-size: var(--text-micro); }
+.cad-topology-issue span, .cad-topology-issue small, .cad-topology-ok, .cad-topology-note { color: var(--text-secondary); font-size: var(--text-micro); line-height: var(--line-height-body); overflow-wrap: anywhere; }
+.cad-topology-issue.blocking { border-color: var(--status-error); }
+.cad-topology-issue.warning { border-color: var(--status-warning); }
+.cad-topology-ok { margin: 0; padding: 8px; border: 1px solid var(--status-success); }
+.cad-topology-note { margin: 0; padding: 8px; border: 1px solid var(--border-subtle); }
+.cad-topology-details { margin-top: 12px; border: 1px solid var(--border-subtle); background: var(--surface-panel-muted); }
+.cad-topology-details summary { padding: 8px; color: var(--text-secondary); cursor: pointer; font-size: var(--text-caption); }
+.cad-topology-details dl { display: grid; gap: 6px; margin: 0; padding: 0 8px 8px; }
+.cad-topology-details dl > div { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 8px; }
+.cad-topology-details dt { color: var(--text-muted); font-size: var(--text-micro); }
+.cad-topology-details dd { margin: 0; color: var(--text-secondary); font: var(--text-micro) var(--font-mono); overflow-wrap: anywhere; }
+@media (max-width: 760px) { .cad-topology-layout { grid-template-columns: 1fr; } .cad-topology-issues { max-height: 220px; } }
 .member-release-fields legend { font-size: 12px; padding: 0 4px; }
 .member-release-fields .field { display: grid; gap: 4px; }
 .member-release-fields select { width: 100%; min-width: 0; }

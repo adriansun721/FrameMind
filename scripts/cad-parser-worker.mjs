@@ -4,7 +4,7 @@ import { extname } from "node:path";
 import { stdin, stdout } from "node:process";
 import { hashAudit, parseStepIntermediate, STEP_READER_INFO } from "./step-intermediate.mjs";
 
-export const CAD_PARSER_VERSION = "framemind-step-reader/2.0.0";
+export const CAD_PARSER_VERSION = "framemind-step-reader/2.1.0";
 export const CAD_KERNEL = {
   ...STEP_READER_INFO,
 };

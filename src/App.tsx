@@ -50,6 +50,8 @@ import { TaskDraftStageConfirmation } from "./workspace/task-confirmation";
 import { ModelEditConfirmation } from "./workspace/model-edits";
 import { TopologyEditor } from "./components/TopologyEditor";
 import { NodeMergeEditor } from "./components/NodeMergeEditor";
+import { CadTopologyPreview } from "./components/CadTopologyPreview";
+import { CAD_ORIGINAL_POSE, type CadPose, type CadPoseDecision } from "./workspace/cad-geometry";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
   addMaterial, addCatalogMaterial, addNodalLoad, addSection, addCatalogSection, addSupport, attachAnalysisResult, createProject, updateMaterial, updateSupport, updateNodalLoad,
@@ -70,7 +72,7 @@ import { AnalysisCancelledError, prepareAnalysisTaskInput, startAnalysisTask, ty
 import { AnalysisServiceFailure } from "./domain/analysis-service";
 import { TaskScheduler, type ScheduledTaskHandle, type TaskSchedulerSnapshot } from "./workspace/task-scheduler";
 import { RecoveryAutosave } from "./workspace/recovery-autosave";
-import type { AppTheme, RecoveryEntry, RecoverySaveRequest } from "../electron/contracts";
+import type { AppTheme, CadParseResult, RecoveryEntry, RecoverySaveRequest } from "../electron/contracts";
 
 type StatusTone = "neutral" | "success" | "error";
 type Selection = AnalysisTarget | null;
@@ -179,6 +181,11 @@ export function App() {
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
   const [cadImportBusy, setCadImportBusy] = useState(false);
   const [cadRetryOf, setCadRetryOf] = useState<string | undefined>();
+  const [cadPreview, setCadPreview] = useState<CadParseResult | null>(null);
+  const [cadPreviewOpen, setCadPreviewOpen] = useState(false);
+  const [cadPose, setCadPose] = useState<CadPose>(CAD_ORIGINAL_POSE);
+  const [cadPoseDecisions, setCadPoseDecisions] = useState<CadPoseDecision[]>([]);
+  const [cadContacts, setCadContacts] = useState<string[]>([]);
   const [drawingEnabled, setDrawingEnabled] = useState(false);
   const [drawingReset, setDrawingReset] = useState(0);
   useEffect(() => { if (resultView !== "model") setDrawingEnabled(false); }, [resultView]);
@@ -253,6 +260,7 @@ export function App() {
 
   const activateProject = (next: FrameProject, newSession: boolean, historyMode: "record" | "restore" | "reset" = newSession ? "reset" : "record") => {
     const previous = activeProjectRef.current;
+    if (newSession || next.revision !== previous.revision || historyMode === "restore") { setCadPreview(null); setCadPreviewOpen(false); setCadContacts([]); setCadPoseDecisions([]); setCadRetryOf(undefined); }
     if (!newSession && next.displayUnitPreset !== previous.displayUnitPreset) next = { ...next, displayUnitPreset: previous.displayUnitPreset };
     if (newSession && startupReady) captureRecoveryRef.current();
     if (newSession) { setDrawingEnabled(false); setDrawingReset((value) => value + 1); setPsdManagerOpen(false); }
@@ -350,12 +358,16 @@ export function App() {
     const source = activeProjectRef.current;
     const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
     setCadImportBusy(true);
+    setStatus({ tone: "neutral", text: "正在隔离解析 STEP，正式模型保持原状" });
+    setCadPreview(null); setCadPreviewOpen(false); setCadContacts([]); setCadPoseDecisions([]); setCadPose(CAD_ORIGINAL_POSE);
     try {
       const result = await window.frameMind.importStep({ path, projectContent: encodeProject(source), formalSave: formalSaveRef.current, ...(retryOf ? { retryOf } : {}) });
       if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
       if (result.status === "cancelled") return;
       if (result.status === "parsed") {
         setCadRetryOf(undefined);
+        setCadPreview(result.result);
+        setCadPreviewOpen(true);
         setStatus({ tone: "success", text: `STEP 已隔离解析：${filename(result.path) ?? "文件"} · ${result.result.diagnostics.entities} 个实体；正式模型未修改` });
       } else {
         setCadRetryOf(result.requestId);
@@ -676,6 +688,7 @@ export function App() {
             <MenuAction icon={<FilePlus2 size={14} />} label="新建项目" shortcut="Ctrl+N" onSelect={() => { setFileMenuOpen(false); beginNewProject(); }} />
             <MenuAction icon={<FolderOpen size={14} />} label="打开项目" shortcut="Ctrl+O" onSelect={() => { setFileMenuOpen(false); void openProject(); }} />
             <MenuAction icon={<Box size={14} />} label="导入 STEP" shortcut="" onSelect={() => { setFileMenuOpen(false); void importStep(); }} />
+            {cadPreview && <MenuAction icon={<Box size={14} />} label="重开 STEP 预览" shortcut="" onSelect={() => { setFileMenuOpen(false); setCadPreviewOpen(true); }} />}
             <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
           </div>}
         </div>
@@ -986,6 +999,9 @@ export function App() {
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
     {comparisonOpen && <AnalysisComparisonDialog key={`${comparisonPair?.beforeId ?? ""}:${comparisonPair?.afterId ?? ""}`} project={project} pair={comparisonPair} onPairChange={setComparisonPair} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
     {reportOpen && <EngineeringReportDialog key={project.id} project={project} initialAnalysisId={caseResult?.id} onClose={() => setReportOpen(false)} onStatus={(tone, text) => setStatus({ tone, text })} />}
+    {cadPreview && cadPreviewOpen && <CadTopologyPreview key={cadPreview.requestId} result={cadPreview} pose={cadPose} decisions={cadPoseDecisions} approvedContactIds={cadContacts} onContactsChange={setCadContacts} onPoseChange={(pose) => {
+      setCadPose(pose); setCadPoseDecisions((current) => [...current, { revision: current.length + 1, recordedAt: new Date().toISOString(), inputSha256: cadPreview.input.sha256, geometryHash: cadPreview.intermediateState.geometryHash ?? "", pose, source: "user" }]);
+    }} onClose={() => setCadPreviewOpen(false)} />}
   </main></UnitPresetContext.Provider>;
 }
 

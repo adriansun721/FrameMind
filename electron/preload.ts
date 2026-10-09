@@ -31,6 +31,7 @@ const desktopApi: FrameMindDesktopApi = {
   cancelDeepSeekChat: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelDeepSeekChat, requestId),
   importStep: (request) => ipcRenderer.invoke(DesktopChannel.ImportStep, request),
   cancelCadImport: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelCadImport, requestId),
+  exportCadPreview: (request) => ipcRenderer.invoke(DesktopChannel.ExportCadPreview, request),
 };
 
 contextBridge.exposeInMainWorld("frameMind", desktopApi);
