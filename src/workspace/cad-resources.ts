@@ -32,6 +32,17 @@ export interface CadSectionResource {
   issues: string[];
 }
 
+/** A user supplied replacement is evidence, rather than a silent overwrite. */
+export interface CadSectionCorrection {
+  sectionId: string;
+  original?: CadSectionProperties;
+  replacement: CadSectionProperties;
+  reference: string;
+  confirmed: boolean;
+  recordedAt?: string;
+  recordedBy?: "user";
+}
+
 export interface CadMaterialResource {
   status: CadResourceStatus;
   name?: string;
@@ -58,6 +69,7 @@ export interface CadResourceReview {
   joint: CadJointAssumption;
   checks: CadResourceCheck[];
   ai: CadAiVerification;
+  corrections: CadSectionCorrection[];
 }
 
 export interface CadResourceCheck {
@@ -69,9 +81,15 @@ export interface CadResourceCheck {
 }
 
 export interface CadAiVerification {
-  status: "not-requested" | "pending" | "accepted" | "rejected" | "needs-human" | "invalid";
-  request: { schemaVersion: 1; geometryHash?: string; sections: unknown[]; material: unknown; joint: unknown; checks: CadResourceCheck[] };
+  status: "not-requested" | "pending" | "accepted" | "rejected" | "needs-human" | "invalid" | "format-error" | "timeout" | "failed";
+  request: { schemaVersion: 1; geometryHash?: string; sections: unknown[]; material: unknown; joint: unknown; corrections?: CadSectionCorrection[]; checks: CadResourceCheck[] };
   response?: { decision: "accept" | "reject" | "needs-human"; findings: Array<{ checkCode: string; decision: "accept" | "reject" | "needs-human"; evidence: string[]; message: string }> };
+  error?: string;
+}
+
+export interface CadAiVerificationTransport {
+  chatDeepSeek(request: { requestId: string; messages: Array<{ role: "system" | "user"; content: string }> }): Promise<{ status: string; message: string; assistant?: { content: string | null } }>;
+  cancelDeepSeekChat?(requestId: string): Promise<void>;
 }
 
 type Point2 = [number, number];
@@ -162,7 +180,7 @@ export function calculateCadSectionResource(centerline: CadCenterline, memberIds
     const profile = { verticesM: ordered.map(([y, z]) => [round(y), round(z)] as [number, number]), centroidM: [round(props.centroid[0]), round(props.centroid[1])] as [number, number], normal: basis.n };
     return { ...base, status: "verified", profile, memberProfiles: memberIds.map((memberId) => ({ memberId, verticesM: profile.verticesM, normal: profile.normal })), properties: { areaM2: props.area, secondMomentYM4: props.iy, secondMomentZM4: props.iz, torsionalConstantM4 }, basis: { ...base.basis, method: `${CAD_SECTION_METHOD}+${CAD_RECTANGULAR_TORSION_METHOD}`, applicability: `${base.basis.applicability}；矩形端截面使用 SCI P385 矩形 Saint-Venant 近似` } };
   } catch (error) {
-    if (manual?.confirmed && [manual.properties.areaM2, manual.properties.secondMomentYM4, manual.properties.secondMomentZM4, manual.properties.torsionalConstantM4].every((value) => finite(value) && value > 0) && manual.reference.trim()) {
+    if (manual?.confirmed && [manual.properties.areaM2, manual.properties.secondMomentYM4, manual.properties.secondMomentZM4, manual.properties.torsionalConstantM4].every((value) => finite(value) && value > 0) && manual.reference.trim() && centerline.direction.every(finite) && norm(centerline.direction) > CAD_SECTION_TOLERANCE_M) {
       return { ...base, status: "verified", memberProfiles: memberIds.map((memberId) => ({ memberId, verticesM: [], normal: unit(centerline.direction) })), properties: structuredClone(manual.properties), basis: { ...base.basis, method: "user-supplied-section-v1", applicability: "几何无法可靠计算；用户明确提供并确认 A/Iy/Iz/J", uncertainty: "依赖用户提供值及其独立参考", references: [manual.reference] }, issues: [error instanceof Error ? error.message : "几何参数未采用；已使用用户确认值"] };
     }
     return { ...base, status: "blocked", issues: [error instanceof Error ? error.message : "截面几何无法核验"] };
@@ -176,6 +194,7 @@ export function validateCadMaterial(input: Partial<CadMaterialResource> | null |
   if (!finite(input?.poissonRatio) || input!.poissonRatio! <= -1 || input!.poissonRatio! >= 0.5) issues.push("ν 必须位于 (-1, 0.5)");
   if (!finite(input?.densityKgM3) || input!.densityKgM3! <= 0) issues.push("ρ 必须为正有限 kg/m³");
   const source = input?.source ?? "missing";
+  if (!["user", "step", "catalog", "missing"].includes(source)) issues.push("材料来源类型无效");
   if (source === "missing") issues.push("材料来源未确认");
   if (!input?.confirmed) issues.push("材料尚未由用户明确确认");
   return { status: issues.length ? "needs-user-confirmation" : "verified", name: input?.name?.trim(), elasticModulusGPa: input?.elasticModulusGPa, poissonRatio: input?.poissonRatio, densityKgM3: input?.densityKgM3, source, confirmed: input?.confirmed, issues };
@@ -185,11 +204,13 @@ export function makeRigidJointAssumption(confirmed = false): CadJointAssumption 
   return { kind: "rigid", status: confirmed ? "confirmed" : "needs-user-confirmation", source: confirmed ? "user" : "unset", evidence: confirmed ? "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实" : "待用户明确确认；几何接触不自动推断连接刚度" };
 }
 
-export function buildCadResourceReview(input: { topology: CadTopologyPreview; centerlines: CadCenterline[]; geometryHash?: string; material?: Partial<CadMaterialResource> | null; rigidJointsConfirmed?: boolean; manualSections?: Record<string, { properties: CadSectionProperties; reference: string; confirmed: boolean }> }): CadResourceReview {
+export function buildCadResourceReview(input: { topology: CadTopologyPreview; centerlines: CadCenterline[]; geometryHash?: string; material?: Partial<CadMaterialResource> | null; rigidJointsConfirmed?: boolean; manualSections?: Record<string, { properties: CadSectionProperties; reference: string; confirmed: boolean; recordedAt?: string; recordedBy?: "user" }> }): CadResourceReview {
   const byId = new Map(input.centerlines.map((line) => [line.id, line]));
   const membersByLine = new Map<string, string[]>();
   for (const member of input.topology.members) membersByLine.set(member.parentId, [...(membersByLine.get(member.parentId) ?? []), member.id]);
+  const originalCalculated = input.centerlines.map((line) => calculateCadSectionResource(line, membersByLine.get(line.id) ?? []));
   const calculated = input.centerlines.map((line) => calculateCadSectionResource(line, membersByLine.get(line.id) ?? [], input.manualSections?.[line.id]));
+  const corrections: CadSectionCorrection[] = Object.entries(input.manualSections ?? {}).map(([sectionId, manual]) => ({ sectionId, original: originalCalculated.find((section) => section.id === `cad-section:${input.centerlines.find((line) => line.id === sectionId)?.solidId}`)?.properties, replacement: structuredClone(manual.properties), reference: manual.reference, confirmed: manual.confirmed, ...(manual.recordedAt ? { recordedAt: manual.recordedAt } : {}), recordedBy: manual.recordedBy ?? "user" }));
   // A resource is shared only when all calculated properties agree within the
   // registered geometry tolerance. Blocked sections stay separate so one
   // unresolved solid cannot hide another solid's provenance.
@@ -211,13 +232,38 @@ export function buildCadResourceReview(input: { topology: CadTopologyPreview; ce
   const joint = makeRigidJointAssumption(input.rigidJointsConfirmed);
   const checks: CadResourceCheck[] = [];
   if (!sections.length) checks.push({ code: "sections-present", status: "failed", severity: "error", message: "没有可追溯的工程截面资源", evidence: [] });
-  for (const section of sections) checks.push({ code: `section:${section.id}`, status: section.status === "verified" ? "passed" : "failed", severity: "error", message: section.status === "verified" ? "A/Iy/Iz/J 已由确定性几何计算" : section.issues.join("；"), evidence: section.sourceEntityIds.map((id) => `STEP 实体 #${id}`) });
+  const seenCenterlineIds = new Set<string>();
+  for (const line of input.centerlines) {
+    if (!Number.isInteger(line.solidId) || line.solidId < 0) checks.push({ code: `schema:centerline:${line.id}`, status: "failed", severity: "error", message: "中心线实体 ID 无效", evidence: [line.id] });
+    if (seenCenterlineIds.has(line.id)) checks.push({ code: `duplicate:centerline:${line.id}`, status: "failed", severity: "error", message: "中心线 ID 重复", evidence: [line.id] });
+    seenCenterlineIds.add(line.id);
+    if (![...line.start, ...line.end, ...line.direction].every(finite)) checks.push({ code: `schema:coordinates:${line.id}`, status: "failed", severity: "error", message: "中心线坐标和方向必须为有限数值", evidence: [line.id] });
+    if (!Number.isFinite(line.lengthM) || line.lengthM <= CAD_SECTION_TOLERANCE_M) checks.push({ code: `zero-length:${line.id}`, status: "failed", severity: "error", message: "中心线长度必须为正有限值", evidence: [line.id] });
+    const lineEntityIds = new Set<number>();
+    for (const entityId of line.sourceEntityIds) {
+      if (!Number.isInteger(entityId) || entityId < 0) checks.push({ code: `schema:entity:${line.id}:${entityId}`, status: "failed", severity: "error", message: "来源实体 ID 无效", evidence: [line.id] });
+      if (lineEntityIds.has(entityId)) checks.push({ code: `duplicate:entity:${line.id}:${entityId}`, status: "failed", severity: "error", message: "同一中心线重复引用来源实体", evidence: [`STEP 实体 #${entityId}`] });
+      lineEntityIds.add(entityId);
+    }
+  }
+  const memberIds = new Set(input.topology.members.map((member) => member.id));
+  if (memberIds.size !== input.topology.members.length) checks.push({ code: "duplicate:member", status: "failed", severity: "error", message: "工程杆件 ID 重复", evidence: [] });
+  const nodeIds = new Set(input.topology.nodes.map((node) => node.id));
+  if (nodeIds.size !== input.topology.nodes.length) checks.push({ code: "duplicate:node", status: "failed", severity: "error", message: "拓扑节点 ID 重复", evidence: [] });
+  for (const member of input.topology.members) {
+    if (!member.parentId || !member.startNodeId || !member.endNodeId || member.startNodeId === member.endNodeId || !nodeIds.has(member.startNodeId) || !nodeIds.has(member.endNodeId) || !Array.isArray(member.range) || member.range.length !== 2 || member.range.some((value) => !finite(value))) checks.push({ code: `schema:member:${member.id}`, status: "failed", severity: "error", message: "工程杆件拓扑引用无效", evidence: [member.id] });
+  }
+  for (const section of sections) {
+    const properties = section.properties;
+    const complete = properties && [properties.areaM2, properties.secondMomentYM4, properties.secondMomentZM4, properties.torsionalConstantM4].every((value) => finite(value) && value > 0);
+    checks.push({ code: `section:${section.id}`, status: section.status === "verified" && complete ? "passed" : "failed", severity: "error", message: section.status === "verified" && complete ? "A/Iy/Iz/J 已由确定性几何计算或用户引用确认" : section.issues.concat(complete ? [] : ["A/Iy/Iz/J 必须为正有限值"]).join("；"), evidence: section.sourceEntityIds.map((id) => `STEP 实体 #${id}`) });
+  }
   checks.push({ code: "material", status: material.status === "verified" ? "passed" : "needs-user-confirmation", severity: "error", message: material.status === "verified" ? "材料参数已由用户/目录确认" : material.issues.join("；"), evidence: material.name ? [material.name] : [] });
   checks.push({ code: "rigid-joints", status: joint.status === "confirmed" ? "passed" : "needs-user-confirmation", severity: "error", message: joint.evidence, evidence: joint.status === "confirmed" ? ["用户刚接确认记录"] : [] });
   for (const issue of input.topology.issues) checks.push({ code: `topology:${issue.code}`, status: issue.severity === "blocking" ? "failed" : "needs-user-confirmation", severity: issue.severity === "blocking" ? "error" : "warning", message: issue.message, evidence: issue.sourceEntityIds?.map((id) => `STEP 实体 #${id}`) ?? [] });
   const status: CadResourceStatus = checks.some((check) => check.status === "failed") ? "blocked" : checks.some((check) => check.status === "needs-user-confirmation") ? "needs-user-confirmation" : "verified";
-  const request = { schemaVersion: 1 as const, ...(input.geometryHash ? { geometryHash: input.geometryHash } : {}), sections: sections.map((section) => ({ id: section.id, memberIds: section.memberIds, sourceEntityIds: section.sourceEntityIds, status: section.status, properties: section.properties, basis: section.basis, issues: section.issues })), material: { name: material.name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3, source: material.source, confirmed: material.confirmed }, joint: { kind: joint.kind, status: joint.status, source: joint.source }, checks };
-  return { schemaVersion: 1, status, sections, material, joint, checks, ai: { status: "not-requested", request } };
+  const request = { schemaVersion: 1 as const, ...(input.geometryHash ? { geometryHash: input.geometryHash } : {}), sections: sections.map((section) => ({ id: section.id, memberIds: section.memberIds, sourceEntityIds: section.sourceEntityIds, status: section.status, properties: section.properties, basis: section.basis, issues: section.issues })), material: { name: material.name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3, source: material.source, confirmed: material.confirmed }, joint: { kind: joint.kind, status: joint.status, source: joint.source }, corrections: structuredClone(corrections), checks };
+  return { schemaVersion: 1, status, sections, material, joint, checks, corrections, ai: { status: "not-requested", request } };
 }
 
 export function buildCadAiVerificationInput(review: CadResourceReview): CadAiVerification["request"] { return structuredClone(review.ai.request); }
@@ -237,10 +283,39 @@ export function applyCadAiVerification(review: CadResourceReview, response: unkn
       if (!item.evidence.length || item.evidence.some((e) => !check.evidence.includes(e))) throw new Error(`AI 检查 ${item.checkCode} 未引用程序证据`);
       return { checkCode: item.checkCode, decision: item.decision as "accept" | "reject" | "needs-human", evidence: item.evidence as string[], message: item.message };
     });
+    if (new Set(findings.map((item) => item.checkCode)).size !== findings.length) throw new Error("AI 核验不能重复引用同一检查");
     const complete = review.checks.every((check) => findings.some((item) => item.checkCode === check.code));
     const accepted = decision === "accept" && review.checks.length > 0 && complete && review.status === "verified" && !review.checks.some((check) => check.status !== "passed") && findings.every((item) => item.decision === "accept");
-    const next = structuredClone(review); next.ai = { status: accepted ? "accepted" : decision === "reject" ? "rejected" : decision === "needs-human" ? "needs-human" : complete ? "rejected" : "invalid", request: buildCadAiVerificationInput(review), response: { decision, findings } }; return next;
-  } catch {
-    return { ...structuredClone(review), ai: { status: "invalid", request: buildCadAiVerificationInput(review) } };
+    const needsHuman = decision === "needs-human" || findings.some((item) => item.decision === "needs-human");
+    const rejected = decision === "reject" || findings.some((item) => item.decision === "reject") || complete;
+    const next = structuredClone(review); next.ai = { status: accepted ? "accepted" : needsHuman ? "needs-human" : rejected ? "rejected" : "invalid", request: buildCadAiVerificationInput(review), response: { decision, findings } }; return next;
+  } catch (error) {
+    return { ...structuredClone(review), ai: { status: "format-error", request: buildCadAiVerificationInput(review), error: error instanceof Error ? error.message : "AI 核验响应格式错误" } };
   }
+}
+
+/** Run the configured online model with a bounded request. The model receives only
+ * the deterministic, already-redacted request and cannot mutate the review. */
+export async function requestCadAiVerification(review: CadResourceReview, transport: CadAiVerificationTransport, options: { requestId?: string; timeoutMs?: number } = {}): Promise<CadResourceReview> {
+  const requestId = options.requestId ?? `cad-resource-review:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+  const request = buildCadAiVerificationInput(review);
+  const pending = structuredClone(review);
+  pending.ai = { status: "pending", request };
+  const timeoutMs = options.timeoutMs ?? 30_000;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeout = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("AI 核验请求超时")), timeoutMs); });
+    const result = await Promise.race([transport.chatDeepSeek({ requestId, messages: [
+      { role: "system", content: "你是只读 CAD 资源核验器。只能引用 request 中已有的 checkCode 和 evidence，不能修改数值或拓扑。返回 JSON：{decision:'accept'|'reject'|'needs-human',findings:[{checkCode,decision,evidence,message}]}。" },
+      { role: "user", content: JSON.stringify(request) },
+    ] }), timeout]);
+    if (result.status !== "success" || !result.assistant?.content) return { ...pending, ai: { status: "failed", request, error: result.message || `AI 状态 ${result.status}` } };
+    let parsed: unknown;
+    try { parsed = JSON.parse(result.assistant.content); } catch { return { ...pending, ai: { status: "format-error", request, error: "AI 返回内容不是 JSON" } }; }
+    return applyCadAiVerification(review, parsed);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "AI 核验失败";
+    if (transport.cancelDeepSeekChat) await transport.cancelDeepSeekChat(requestId).catch(() => undefined);
+    return { ...pending, ai: { status: message.includes("超时") ? "timeout" : "failed", request, error: message } };
+  } finally { if (timer) clearTimeout(timer); }
 }
