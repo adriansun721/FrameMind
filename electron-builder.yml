@@ -13,6 +13,8 @@ files:
 extraResources:
   - from: native/bin
     to: native
+  - from: scripts/cad-parser-worker.mjs
+    to: cad/cad-parser-worker.mjs
   - from: release-assets
     to: 交付资料
 win:

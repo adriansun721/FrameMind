@@ -16,6 +16,8 @@ export const enum DesktopChannel {
   TestDeepSeekConnection = "deepseek:test",
   ChatDeepSeek = "deepseek:chat",
   CancelDeepSeekChat = "deepseek:chat-cancel",
+  ImportStep = "cad:step-import",
+  CancelCadImport = "cad:step-cancel",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
   ExportReportData = "report:data",
@@ -99,6 +101,64 @@ export type OpenProjectResult =
   | { status: "opened"; path: string; content: string; savedAt?: string }
   | { status: "cancelled" };
 
+export interface CadImportRequest {
+  /** An explicit path is used for drag-and-drop; null asks the main process to show its picker. */
+  path: string | null;
+  projectContent: string;
+  formalSave: RecoverySaveRequest["formalSave"];
+  retryOf?: string;
+}
+
+export interface CadKernelInfo {
+  name: string;
+  version: string;
+  build: string;
+  license: string;
+  runtime: "bundled";
+}
+
+export interface CadParsePhase {
+  kind: "phase";
+  requestId: string;
+  record: { stage: "read" | "parse" | "finalize"; startedAt: string };
+}
+
+export interface CadParseError {
+  code: string;
+  message: string;
+  stage: "read" | "parse" | "finalize" | "startup";
+  entityId?: number;
+  line?: number;
+  parserVersion?: string;
+  kernel?: CadKernelInfo;
+}
+
+export interface CadParseResult {
+  kind: "result";
+  requestId: string;
+  parserVersion: string;
+  kernel: CadKernelInfo;
+  input: { sha256: string; sizeBytes: number; extension: ".step" | ".stp" };
+  diagnostics: {
+    products: number;
+    solidBreps: number;
+    assemblyInstances: number;
+    entities: number;
+    header: { application?: string; schema?: string; units?: string };
+  };
+  intermediateState: {
+    schemaVersion: 1;
+    source: { inputSha256: string; parserVersion: string };
+    entities: Array<{ id: number; type: string; line: number }>;
+    warnings: string[];
+  };
+}
+
+export type CadImportResult =
+  | { status: "cancelled" }
+  | { status: "parsed"; path: string; checkpointed: true; phases: CadParsePhase[]; result: CadParseResult }
+  | { status: "failed"; path: string; checkpointed: true; phases: CadParsePhase[]; error: CadParseError; requestId: string; retryOf?: string };
+
 export interface FrameMindDesktopApi {
   runNativeAnalysis(request: unknown): Promise<unknown[]>;
   cancelNativeAnalysis(requestId: string): Promise<void>;
@@ -120,4 +180,6 @@ export interface FrameMindDesktopApi {
   testDeepSeekConnection(): Promise<DeepSeekResult>;
   chatDeepSeek(request: DeepSeekChatRequest): Promise<DeepSeekChatResult>;
   cancelDeepSeekChat(requestId: string): Promise<void>;
+  importStep(request: CadImportRequest): Promise<CadImportResult>;
+  cancelCadImport(requestId: string): Promise<void>;
 }

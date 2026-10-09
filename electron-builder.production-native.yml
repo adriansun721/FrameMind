@@ -5,5 +5,7 @@ directories:
 extraResources:
   - from: native/bin
     to: native
+  - from: scripts/cad-parser-worker.mjs
+    to: cad/cad-parser-worker.mjs
   - from: docs/decisions/0048-native-production-isolation.md
     to: native/T2-15-acceptance-scope.md

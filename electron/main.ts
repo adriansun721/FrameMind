@@ -1,6 +1,8 @@
 import { app, BrowserWindow, dialog, ipcMain, safeStorage, type IpcMainInvokeEvent } from "electron";
 import { join } from "node:path";
 import { stat } from "node:fs/promises";
+import { extname, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import {
   DesktopChannel,
@@ -9,6 +11,9 @@ import {
   type SaveProjectResult,
   type ExportReportWordRequest,
   type ExportReportPdfRequest,
+  type CadImportRequest,
+  type CadImportResult,
+  type CadParsePhase,
 } from "./contracts";
 import { ProjectFileStore } from "./project-files";
 import { ChatHistoryStore } from "./chat-history";
@@ -16,11 +21,15 @@ import { RecoveryStore } from "./recovery-store";
 import { DeepSeekConnection } from "./deepseek";
 import { renderReportPdf } from "./report-pdf";
 import { NativeAnalysisHost } from "./native-analysis";
+import { CadParserHost } from "./cad-parser";
 
 const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
   ? join(process.resourcesPath, "native", "framemind-core.exe")
   : join(__dirname, "../native/bin/framemind-core.exe"));
-app.on("before-quit", () => nativeAnalysis.dispose());
+const cadParser = new CadParserHost({ worker: app.isPackaged
+  ? join(process.resourcesPath, "cad", "cad-parser-worker.mjs")
+  : join(__dirname, "../scripts/cad-parser-worker.mjs") });
+app.on("before-quit", () => { nativeAnalysis.dispose(); cadParser.dispose(); });
 
 const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
@@ -50,6 +59,33 @@ ipcMain.handle(DesktopChannel.CancelNativeAnalysis, (event, requestId: string) =
   requireTrustedSender(event);
   if (typeof requestId !== "string") throw new Error("原生请求身份无效");
   nativeAnalysis.cancel(event.sender.id, requestId);
+});
+ipcMain.handle(DesktopChannel.CancelCadImport, (event, requestId: unknown) => {
+  requireTrustedSender(event);
+  if (typeof requestId !== "string") throw new Error("CAD 任务身份无效");
+  cadParser.cancel(event.sender.id, requestId);
+});
+ipcMain.handle(DesktopChannel.ImportStep, async (event, request: CadImportRequest): Promise<CadImportResult> => {
+  requireTrustedSender(event);
+  if (!request || typeof request.projectContent !== "string" || request.projectContent.length > 64 * 1024 * 1024) throw new Error("导入前恢复内容无效");
+  let targetPath = request.path ?? process.env.FRAMEMIND_E2E_STEP_PATH ?? null;
+  if (!targetPath) {
+    const result = await dialog.showOpenDialog({ title: "导入 STEP 装配", properties: ["openFile"], filters: [{ name: "STEP CAD 文件", extensions: ["step", "stp"] }] });
+    if (result.canceled || result.filePaths.length === 0) return { status: "cancelled" };
+    targetPath = result.filePaths[0];
+  }
+  if (typeof targetPath !== "string" || !targetPath || ![".step", ".stp"].includes(extname(targetPath).toLowerCase())) throw new Error("CAD 输入必须是 .step 或 .stp 文件");
+  targetPath = resolve(targetPath);
+  // The checkpoint is the only project write in this operation. The parser can only
+  // produce an intermediate result, so a crash cannot change the formal model.
+  await recoveries.save({ content: request.projectContent, formalSave: request.formalSave ?? null });
+  const taskId = `cad_${randomUUID()}`;
+  const messages = await cadParser.run(event.sender.id, { requestId: taskId, inputPath: targetPath, ...(request.retryOf ? { retryOf: request.retryOf } : {}) });
+  const phases = messages.filter((message): message is CadParsePhase => message.kind === "phase");
+  const terminal = messages.at(-1);
+  if (terminal?.kind === "result") return { status: "parsed", path: targetPath, checkpointed: true, phases, result: terminal };
+  const error = terminal?.kind === "error" ? terminal.error : { code: "cad-no-result", message: "CAD 解析未返回结果", stage: "startup" as const };
+  return { status: "failed", path: targetPath, checkpointed: true, phases, error, requestId: taskId, ...(request.retryOf ? { retryOf: request.retryOf } : {}) };
 });
 ipcMain.handle(DesktopChannel.SaveDeepSeekSettings, (event, request: unknown) => {
   requireTrustedSender(event); return deepSeek.save(request);
@@ -114,9 +150,9 @@ function createWindow(): void {
 
   window.once("ready-to-show", () => window.show());
   const owner = window.webContents.id;
-  window.webContents.on("destroyed", () => nativeAnalysis.cancelOwner(owner));
-  window.webContents.on("render-process-gone", () => nativeAnalysis.cancelOwner(owner));
-  window.webContents.on("did-start-loading", () => nativeAnalysis.cancelOwner(owner));
+  window.webContents.on("destroyed", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
+  window.webContents.on("render-process-gone", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
+  window.webContents.on("did-start-loading", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event, url) => {
     if (url !== trustedUrl && url !== `${trustedUrl}/`) event.preventDefault();

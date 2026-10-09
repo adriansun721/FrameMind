@@ -72,7 +72,9 @@
     "evidence:plan2:t243": "npm run build && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-43-mainlines.spec.ts && node scripts/verify-plan2-t243.mjs",
     "evidence:plan2:p2501": "node scripts/register-p25-01.mjs",
     "evidence:plan2:p2501:inspect": "node scripts/inspect-p25-01-step.mjs",
-    "test:plan2:p2501": "node --test scripts/register-p25-01.test.mjs scripts/inspect-p25-01-step.test.mjs"
+    "evidence:plan2:p2502": "node scripts/run-p25-02-step.mjs",
+    "test:plan2:p2501": "node --test scripts/register-p25-01.test.mjs scripts/inspect-p25-01-step.test.mjs",
+    "test:plan2:p2502": "node --test scripts/run-p25-02-step.test.mjs"
   },
   "dependencies": {
     "docx": "^9.7.1",

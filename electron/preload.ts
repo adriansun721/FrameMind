@@ -29,6 +29,8 @@ const desktopApi: FrameMindDesktopApi = {
   testDeepSeekConnection: () => ipcRenderer.invoke(DesktopChannel.TestDeepSeekConnection),
   chatDeepSeek: (request) => ipcRenderer.invoke(DesktopChannel.ChatDeepSeek, request),
   cancelDeepSeekChat: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelDeepSeekChat, requestId),
+  importStep: (request) => ipcRenderer.invoke(DesktopChannel.ImportStep, request),
+  cancelCadImport: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelCadImport, requestId),
 };
 
 contextBridge.exposeInMainWorld("frameMind", desktopApi);

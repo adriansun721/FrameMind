@@ -177,6 +177,8 @@ export function App() {
   const [loadCombinationManagerOpen, setLoadCombinationManagerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
+  const [cadImportBusy, setCadImportBusy] = useState(false);
+  const [cadRetryOf, setCadRetryOf] = useState<string | undefined>();
   const [drawingEnabled, setDrawingEnabled] = useState(false);
   const [drawingReset, setDrawingReset] = useState(0);
   useEffect(() => { if (resultView !== "model") setDrawingEnabled(false); }, [resultView]);
@@ -342,6 +344,26 @@ export function App() {
       const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProject(opened); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}` });
       setFormalSave({ path: result.path, savedAt: result.savedAt ?? opened.updatedAt }); setRecoverySource(null);
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" }); }
+  };
+  const importStep = async (path: string | null = null, retryOf = cadRetryOf) => {
+    if (cadImportBusy) return;
+    const source = activeProjectRef.current;
+    const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
+    setCadImportBusy(true);
+    try {
+      const result = await window.frameMind.importStep({ path, projectContent: encodeProject(source), formalSave: formalSaveRef.current, ...(retryOf ? { retryOf } : {}) });
+      if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
+      if (result.status === "cancelled") return;
+      if (result.status === "parsed") {
+        setCadRetryOf(undefined);
+        setStatus({ tone: "success", text: `STEP 已隔离解析：${filename(result.path) ?? "文件"} · ${result.result.diagnostics.entities} 个实体；正式模型未修改` });
+      } else {
+        setCadRetryOf(result.requestId);
+        setStatus({ tone: "error", text: `STEP 解析失败（${result.error.code}）：${result.error.message}；正式模型未修改` });
+      }
+    } catch (error) {
+      if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "STEP 导入失败；正式模型未修改" });
+    } finally { setCadImportBusy(false); }
   };
   const saveProject = async () => {
     const source = activeProjectRef.current;
@@ -638,7 +660,13 @@ export function App() {
     setStatus({ tone: "neutral", text: "已恢复自动快照；当前工作尚未手动保存，任务等待用户选择继续" });
   }} />;
 
-  return <UnitPresetContext.Provider value={project.displayUnitPreset ?? "m-kN"}><main className="app-shell">
+  return <UnitPresetContext.Provider value={project.displayUnitPreset ?? "m-kN"}><main className="app-shell" onDragOver={(event) => { if ([...event.dataTransfer.items].some((item) => item.kind === "file")) event.preventDefault(); }} onDrop={(event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0] as (File & { path?: string }) | undefined;
+    const path = file?.path;
+    if (path && /\.(step|stp)$/i.test(path)) void importStep(path);
+    else if (file) setStatus({ tone: "error", text: "只支持拖入 .STEP 或 .STP 文件；正式模型未修改" });
+  }}>
     <header className="topbar">
       <div className="brand-and-file">
         <div className="brand-block"><div className="brand-mark"><Hexagon size={15} strokeWidth={1.5} /></div><span className="brand-name">FrameMind</span></div>
@@ -647,6 +675,7 @@ export function App() {
           {fileMenuOpen && <div className="file-menu" role="menu" aria-label="文件">
             <MenuAction icon={<FilePlus2 size={14} />} label="新建项目" shortcut="Ctrl+N" onSelect={() => { setFileMenuOpen(false); beginNewProject(); }} />
             <MenuAction icon={<FolderOpen size={14} />} label="打开项目" shortcut="Ctrl+O" onSelect={() => { setFileMenuOpen(false); void openProject(); }} />
+            <MenuAction icon={<Box size={14} />} label="导入 STEP" shortcut="" onSelect={() => { setFileMenuOpen(false); void importStep(); }} />
             <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
           </div>}
         </div>

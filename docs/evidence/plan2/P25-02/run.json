@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "task": "P25-02",
+  "runId": "4f9a3d31-b353-491f-ad24-89e895660756",
+  "recordedAt": "2026-10-09T03:38:42.374Z",
+  "runtime": {
+    "process": "isolated child process",
+    "executable": "bundled Node/Electron runtime",
+    "worker": "cad-parser-worker.mjs",
+    "kernel": {
+      "name": "FrameMind STEP Part 21 reader",
+      "version": "1.0.0",
+      "build": "framemind-step-reader-1",
+      "license": "MIT",
+      "runtime": "bundled"
+    },
+    "license": "MIT"
+  },
+  "input": {
+    "identity": "sha256-of-original-bytes",
+    "sha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+    "sizeBytes": 960432,
+    "extension": ".step",
+    "sourcePathRecorded": false
+  },
+  "protocol": {
+    "taskIdentity": true,
+    "inputHash": true,
+    "parserVersion": true,
+    "phases": [
+      {
+        "kind": "phase",
+        "requestId": "cad_0e4068c1-2861-44e2-a471-fb7e669ec32b",
+        "record": {
+          "stage": "read",
+          "startedAt": "2026-10-09T03:38:30.137Z"
+        }
+      },
+      {
+        "kind": "phase",
+        "requestId": "cad_0e4068c1-2861-44e2-a471-fb7e669ec32b",
+        "record": {
+          "stage": "parse",
+          "startedAt": "2026-10-09T03:38:30.143Z"
+        }
+      },
+      {
+        "kind": "phase",
+        "requestId": "cad_0e4068c1-2861-44e2-a471-fb7e669ec32b",
+        "record": {
+          "stage": "finalize",
+          "startedAt": "2026-10-09T03:38:41.995Z"
+        }
+      }
+    ],
+    "terminal": "result",
+    "absolutePathInMessages": false
+  },
+  "failureInjection": {
+    "corrupt": {
+      "terminal": {
+        "kind": "error",
+        "requestId": "cad_1a017c0d-ca12-47e0-97f1-f85b02925756",
+        "error": {
+          "code": "cad-invalid-step",
+          "message": "文件不是完整的 ISO 10303-21 STEP 文档",
+          "stage": "parse",
+          "parserVersion": "framemind-step-reader/1.0.0",
+          "kernel": {
+            "name": "FrameMind STEP Part 21 reader",
+            "version": "1.0.0",
+            "build": "framemind-step-reader-1",
+            "license": "MIT",
+            "runtime": "bundled"
+          },
+          "line": 1
+        }
+      },
+      "processExitCode": 1
+    },
+    "crash": {
+      "processExitCode": 9,
+      "terminal": null
+    },
+    "timeout": {
+      "timedOut": true,
+      "terminal": null
+    },
+    "absolutePathInMessages": false
+  },
+  "checkpointBoundary": {
+    "createdBeforeParse": "implemented by electron IPC before CadParserHost.run",
+    "formalProjectMutation": "none; worker only returns intermediate state",
+    "recoveryOwner": "electron/RecoveryStore",
+    "workerOnlyRunMeasuredFormalHash": false
+  },
+  "acceptance": {
+    "realSpecifiedStepParsed": true,
+    "corruptInputContained": true,
+    "crashContained": true,
+    "timeoutContained": true,
+    "sourcePathRedacted": true,
+    "formalModelUntouched": "requires desktop IPC evidence"
+  }
+}
