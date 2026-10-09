@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "task": "P25-01",
+  "runId": "902ad048-6e73-4401-b8d0-3ff45a73510f",
+  "recordedAt": "2026-10-09T01:21:07.261Z",
+  "input": {
+    "identity": "sha256-of-original-bytes",
+    "sha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+    "sizeBytes": 960432,
+    "headerBytesCaptured": 512,
+    "headerHex": "49534f2d31303330332d32313b0d0a4845414445523b0d0a46494c455f4445534352495054494f4e2028282027535445502041503230332720292c0d0a2020202027312720293b0d0a46494c455f4e414d45202827cdead5fbb8d6bcdcd7b0c5e42e53544550272c0d0a2020202027323032362d31302d30325430333a34333a3135272c0d0a202020202820272720292c0d0a202020202820272720292c0d0a202020202753775354455020322e30272c0d0a2020202027536f6c6964576f726b732032303235272c0d0a20202020272720293b0d0a46494c455f534348454d412028282027434f4e4649475f434f4e54524f4c5f44455349474e272029293b0d0a454e445345433b0d0a0d0a444154413b0d0a2331203d204c494e45202820274e4f4e45272c2023393039362c2023393734302029203b0d0a2332203d20464143455f4f555445525f424f554e44202820274e4f4e45272c2023323932332c202e542e2029203b0d0a2333203d2041584953325f504c4143454d454e545f3344202820274e4f4e45272c20233737312c2023333839382c2023313736362029203b0d0a2334203d2043415254455349414e5f504f494e54202820274e4f4e45272c202028202d312e3234323034343132383033343633353933302c202d32352e31323434313534303537373730393938362c203130302e3030303030303030",
+    "headerUtf8": "ISO-10303-21;\r\nHEADER;\r\nFILE_DESCRIPTION (( 'STEP AP203' ),\r\n    '1' );\r\nFILE_NAME ('�����ּ�װ��.STEP',\r\n    '2026-10-02T03:43:15',\r\n    ( '' ),\r\n    ( '' ),\r\n    'SwSTEP 2.0',\r\n    'SolidWorks 2025',\r\n    '' );\r\nFILE_SCHEMA (( 'CONFIG_CONTROL_DESIGN' ));\r\nENDSEC;\r\n\r\nDATA;\r\n#1 = LINE ( 'NONE', #9096, #9740 ) ;\r\n#2 = FACE_OUTER_BOUND ( 'NONE', #2923, .T. ) ;\r\n#3 = AXIS2_PLACEMENT_3D ( 'NONE', #771, #3898, #1766 ) ;\r\n#4 = CARTESIAN_POINT ( 'NONE',  ( -1.242044128034635930, -25.12441540577709986, 100.00000000",
+    "sourcePathRecorded": false,
+    "originalCopied": false
+  },
+  "independentReference": {
+    "status": "not-recorded",
+    "tool": null,
+    "toolVersion": null,
+    "toolBuildOrSourceHash": null,
+    "method": null,
+    "reviewedAt": null,
+    "reviewer": null,
+    "counts": {
+      "products": null,
+      "entityDefinitions": null,
+      "assemblyInstances": null,
+      "candidateMembers": null,
+      "splitEngineeringMembers": null
+    },
+    "observations": [],
+    "ignoredCandidates": [],
+    "unverified": [
+      "independent CAD structure and geometry reference",
+      "instance transforms",
+      "member lengths",
+      "section properties",
+      "connections",
+      "ignored candidates"
+    ]
+  },
+  "acceptance": {
+    "inputIdentityFrozen": true,
+    "independentReferenceRecorded": false,
+    "status": "baseline-incomplete"
+  }
+}
