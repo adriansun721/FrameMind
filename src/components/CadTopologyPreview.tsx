@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import type { CadParseResult } from "../../electron/contracts";
 import { buildCadTopologyPreview, type CadPoint } from "../workspace/cad-topology";
 import { cadBounds, cadBoundsCorners, transformCadPoint, type CadPose, type CadPoseDecision } from "../workspace/cad-geometry";
 import { PagedItems } from "./ProcessDisclosure";
-import { applyCadAiVerification, buildCadResourceReview, buildCadAiVerificationInput, requestCadAiVerification, type CadMaterialResource, type CadAiVerification, type CadSectionProperties } from "../workspace/cad-resources";
+import { buildCadResourceReview, buildCadAiVerificationInput, type CadResourceDraft } from "../workspace/cad-resources";
+import { CadResourceReviewPanel } from "./CadResourceReviewPanel";
 const vector = (p: CadPoint) => [p.x, p.y, p.z];
 const text = (p: number[]) => p.map((v) => v.toPrecision(6)).join(", ");
 const boxEdges = [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]];
@@ -13,20 +14,14 @@ function projectView(points: number[][]) {
   const scale = Math.min(620 / Math.max(hi[0] - lo[0], .1), 280 / Math.max(hi[1] - lo[1], .1));
   return (p: number[]) => [40 + (p[0] - .55 * p[1] - lo[0]) * scale, 320 - (p[2] - .3 * p[1] - lo[1]) * scale];
 }
-export function CadTopologyPreview({ result, pose, decisions, approvedContactIds, onPoseChange, onContactsChange, onClose }: {
+export function CadTopologyPreview({ result, pose, decisions, approvedContactIds, onPoseChange, onContactsChange, onClose, resourceDraft, onResourceChange }: {
   result: CadParseResult; pose: CadPose; decisions: CadPoseDecision[]; approvedContactIds: string[];
+  resourceDraft: CadResourceDraft; onResourceChange: Dispatch<SetStateAction<CadResourceDraft>>;
   onPoseChange(pose: CadPose): void; onContactsChange(ids: string[]): void; onClose(): void;
 }) {
   const topology = useMemo(() => buildCadTopologyPreview(result.intermediateState, approvedContactIds), [result, approvedContactIds]);
   const [fields, setFields] = useState(() => [...pose.translationM, ...pose.rotationDegrees].map(String));
   const [error, setError] = useState(""), [notice, setNotice] = useState(""), [located, setLocated] = useState<number[]>([]);
-  const [material, setMaterial] = useState<Partial<CadMaterialResource>>({ source: "user" });
-  const [manualSections, setManualSections] = useState<Record<string, { properties: CadSectionProperties; reference: string; confirmed: boolean; recordedAt?: string; recordedBy?: "user" }>>({});
-  const [rigidJointsConfirmed, setRigidJointsConfirmed] = useState(false);
-  const [aiRequestVisible, setAiRequestVisible] = useState(false);
-  const [aiResponse, setAiResponse] = useState("");
-  const [aiVerification, setAiVerification] = useState<CadAiVerification | null>(null);
-  const [aiBusy, setAiBusy] = useState(false);
   const transform = (p: number[]) => transformCadPoint(p, pose);
   const solids = (result.intermediateState.engineeringGeometry?.solidInstances ?? []).map((solid) => ({ ...solid, corners: cadBoundsCorners(solid.bounds).map(transform) }));
   const nodes = topology.nodes.map((node) => ({ ...node, position: transform(vector(node.position)) }));
@@ -34,21 +29,19 @@ export function CadTopologyPreview({ result, pose, decisions, approvedContactIds
   const bounds = cadBounds([...nodes.map((node) => node.position), ...solids.flatMap((solid) => solid.corners)]);
   const boundsCorners = bounds ? cadBoundsCorners(bounds) : [];
   const projection = projectView(boundsCorners);
+  const posedCenterlines = useMemo(() => (result.intermediateState.engineeringGeometry?.centerlines ?? []).map((line) => {
+    const start = transformCadPoint(line.start, pose), end = transformCadPoint(line.end, pose);
+    const direction = end.map((v, i) => (v - start[i]) / line.lengthM);
+    return { ...line, start, end, direction, endSections: line.endSections.map((section) => section.map((p) => transformCadPoint(p, pose))) };
+  }), [result, pose]);
   const resourceReview = useMemo(() => buildCadResourceReview({
-    topology,
-    centerlines: result.intermediateState.engineeringGeometry?.centerlines ?? [],
-    geometryHash: result.intermediateState.geometryHash,
-    material,
-    rigidJointsConfirmed,
-    manualSections,
-  }), [topology, result, material, rigidJointsConfirmed, manualSections]);
-  const runOnlineAiVerification = async () => {
-    if (!window.frameMind?.chatDeepSeek) { setNotice("当前环境没有在线 AI 通道；不能生成核验通过回执"); return; }
-    setAiBusy(true); setAiVerification({ status: "pending", request: buildCadAiVerificationInput(resourceReview) });
-    const review = await requestCadAiVerification(resourceReview, window.frameMind, { timeoutMs: 30_000 });
-    setAiVerification(review.ai); setAiBusy(false);
-    setNotice(review.ai.status === "accepted" ? "在线 AI 已完成只读核验" : `在线 AI 未通过：${review.ai.status}`);
-  };
+    topology: { ...topology, nodes: topology.nodes.map((n) => { const [x, y, z] = transformCadPoint(vector(n.position), pose); return { ...n, position: { x, y, z } }; }) },
+    centerlines: posedCenterlines, geometryHash: result.intermediateState.geometryHash, units: result.intermediateState.units,
+    material: resourceDraft.material, rigidJointsConfirmed: resourceDraft.rigidJointsConfirmed,
+    manualSections: resourceDraft.manualSections, correctionHistory: resourceDraft.correctionHistory, acceptedWarningCodes: resourceDraft.acceptedWarningCodes,
+  }), [topology, posedCenterlines, result, pose, resourceDraft]);
+  const inputKey = JSON.stringify([buildCadAiVerificationInput(resourceReview), pose, approvedContactIds]);
+  const verification = resourceDraft.verification?.inputKey === inputKey ? resourceDraft.verification.ai : resourceReview.ai;
   const line = (a: number[], b: number[], key: string, className: string) => {
     const [x1, y1] = projection(a), [x2, y2] = projection(b);
     return <line key={key} x1={x1} y1={y1} x2={x2} y2={y2} className={className} />;
@@ -58,7 +51,7 @@ export function CadTopologyPreview({ result, pose, decisions, approvedContactIds
       const payload = { schemaVersion: 1, task: "P25-04", previewOnly: true, recordedAt: new Date().toISOString(), requestId: result.requestId,
         inputSha256: result.input.sha256, geometryHash: result.intermediateState.geometryHash, intermediateState: result.intermediateState,
         pose, poseDecisions: decisions, contactDecisions: { geometryHash: result.intermediateState.geometryHash, approvedContactIds },
-        topology, posedNodes: nodes, posedBoundingBox: bounds, resourceReview, aiVerification: aiVerification ?? resourceReview.ai };
+        topology, posedNodes: nodes, posedBoundingBox: bounds, resourceReview, resourceDraft, aiVerification: verification };
       const saved = await window.frameMind.exportCadPreview({ suggestedName: `framemind-p25-04-${result.input.sha256.slice(0, 12)}`, content: JSON.stringify(payload, null, 2) });
       setNotice(saved.status === "saved" ? "预览 JSON 已导出" : "导出已取消");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "导出失败"); }
@@ -110,41 +103,7 @@ export function CadTopologyPreview({ result, pose, decisions, approvedContactIds
         {topology.contacts.length > 0 && <section aria-label="接触候选"><h3>接触候选 · 明确确认后才合并草稿节点</h3>
           <PagedItems items={topology.contacts} label="接触候选">{(items) => <>{items.map((contact) => <label className="cad-contact" key={contact.id}><input type="checkbox" checked={approvedContactIds.includes(contact.id)} onChange={(event) => onContactsChange(event.target.checked ? [...approvedContactIds, contact.id] : approvedContactIds.filter((id) => id !== contact.id))} />{contact.memberIds.join(" / ")} · 距离 {(contact.distanceM * 1000).toPrecision(4)} mm · {contact.basis}</label>)}</>}</PagedItems>
         </section>}
-        <section className="cad-resource-review" aria-label="截面材料与刚接核验">
-          <h3>截面、材料与刚接假设 · {resourceReview.status === "verified" ? "资源已核验" : resourceReview.status === "blocked" ? "存在阻塞" : "待用户补齐"}</h3>
-          <p className="dialog-copy">程序只从端截面证据计算 A、Iy、Iz 和 Saint-Venant J。材料与刚接是独立用户决定；AI 只能读取下方脱敏证据并逐项返回建议。</p>
-          <div className="cad-resource-grid">
-            {resourceReview.sections.map((section) => {
-              const lineId = result.intermediateState.engineeringGeometry?.centerlines.find((line) => section.id === `cad-section:${line.solidId}`)?.id;
-              const manual = lineId ? manualSections[lineId] : undefined;
-              const updateManual = (patch: Partial<NonNullable<typeof manual>>) => { if (!lineId) return; setManualSections((current) => ({ ...current, [lineId]: { properties: { areaM2: manual?.properties.areaM2 ?? section.properties?.areaM2 ?? 0, secondMomentYM4: manual?.properties.secondMomentYM4 ?? section.properties?.secondMomentYM4 ?? 0, secondMomentZM4: manual?.properties.secondMomentZM4 ?? section.properties?.secondMomentZM4 ?? 0, torsionalConstantM4: manual?.properties.torsionalConstantM4 ?? section.properties?.torsionalConstantM4 ?? 0 }, reference: manual?.reference ?? "", confirmed: manual?.confirmed ?? false, ...patch } })); };
-              return <article className={`cad-resource-card ${section.status}`} key={section.id}>
-              <strong>{section.id}</strong><span>{section.memberIds.length ? `工程杆件：${section.memberIds.join("、")}` : "未关联工程杆件"}</span>
-              {section.properties ? <dl><div><dt>A</dt><dd>{section.properties.areaM2.toPrecision(8)} m²</dd></div><div><dt>Iy</dt><dd>{section.properties.secondMomentYM4.toPrecision(8)} m⁴</dd></div><div><dt>Iz</dt><dd>{section.properties.secondMomentZM4.toPrecision(8)} m⁴</dd></div><div><dt>J</dt><dd>{section.properties.torsionalConstantM4?.toPrecision(8) ?? "未计算"} m⁴</dd></div></dl> : null}
-              <small>{section.basis.method} · {section.basis.applicability} · 不确定性：{section.basis.uncertainty}</small>
-              <small>参考：{section.basis.references.join("；") || "未登记独立参考"}</small>
-              {section.issues.map((issue) => <span className="cad-resource-issue" key={issue}>{issue}</span>)}
-              <small>来源实体：{section.sourceEntityIds.map((id) => `#${id}`).join(", ") || "无"}</small>
-              {section.status === "blocked" && lineId && <fieldset className="cad-manual-section"><legend>人工截面补齐（必须附独立参考）</legend>
-                {(["areaM2", "secondMomentYM4", "secondMomentZM4", "torsionalConstantM4"] as const).map((key) => <label key={key}>{key}<input type="number" step="any" value={manual?.properties[key] ?? section.properties?.[key] ?? ""} onChange={(event) => updateManual({ confirmed: false, recordedAt: undefined, properties: { areaM2: manual?.properties.areaM2 ?? section.properties?.areaM2 ?? 0, secondMomentYM4: manual?.properties.secondMomentYM4 ?? section.properties?.secondMomentYM4 ?? 0, secondMomentZM4: manual?.properties.secondMomentZM4 ?? section.properties?.secondMomentZM4 ?? 0, torsionalConstantM4: manual?.properties.torsionalConstantM4 ?? section.properties?.torsionalConstantM4 ?? 0, [key]: Number(event.target.value) } })} /></label>)}
-                <label>独立参考<input value={manual?.reference ?? ""} onChange={(event) => updateManual({ reference: event.target.value, confirmed: false, recordedAt: undefined })} placeholder="CAD/人工测量记录" /></label>
-                <label className="cad-joint-confirm"><input type="checkbox" checked={Boolean(manual?.confirmed)} onChange={(event) => updateManual({ confirmed: event.target.checked, recordedAt: new Date().toISOString(), recordedBy: "user" })} />确认人工参数与参考</label>
-              </fieldset>}
-            </article>;
-            })}
-          </div>
-          <fieldset className="cad-resource-controls"><legend>材料（缺失时必须由用户确认）</legend>
-            <label>名称<input aria-label="导入材料名称" value={material.name ?? ""} onChange={(event) => setMaterial((current) => ({ ...current, name: event.target.value, confirmed: false }))} /></label>
-            <label>E（GPa）<input aria-label="导入材料弹性模量" type="number" step="any" value={material.elasticModulusGPa ?? ""} onChange={(event) => setMaterial((current) => ({ ...current, elasticModulusGPa: event.target.value === "" ? undefined : Number(event.target.value), confirmed: false }))} /></label>
-            <label>ν<input aria-label="导入材料泊松比" type="number" step="any" value={material.poissonRatio ?? ""} onChange={(event) => setMaterial((current) => ({ ...current, poissonRatio: event.target.value === "" ? undefined : Number(event.target.value), confirmed: false }))} /></label>
-            <label>ρ（kg/m³）<input aria-label="导入材料密度" type="number" step="any" value={material.densityKgM3 ?? ""} onChange={(event) => setMaterial((current) => ({ ...current, densityKgM3: event.target.value === "" ? undefined : Number(event.target.value), confirmed: false }))} /></label>
-            <label className="cad-joint-confirm"><input type="checkbox" checked={Boolean(material.confirmed)} onChange={(event) => setMaterial((current) => ({ ...current, confirmed: event.target.checked }))} />确认材料来源与参数</label>
-          </fieldset>
-          <label className="cad-joint-confirm"><input type="checkbox" checked={rigidJointsConfirmed} onChange={(event) => setRigidJointsConfirmed(event.target.checked)} />我明确确认已审查的工程连接按刚接建模（几何接触不自动代表刚接）</label>
-          <div className="cad-resource-checks"><strong>确定性检查</strong>{resourceReview.checks.map((check) => <div key={check.code} className={`cad-resource-check ${check.status}`}><span>{check.status === "passed" ? "通过" : check.status === "failed" ? "阻塞" : "待确认"} · {check.code}</span><small>{check.message}</small></div>)}</div>
-          <button className="button ghost" type="button" onClick={() => setAiRequestVisible((visible) => !visible)}>{aiRequestVisible ? "隐藏" : "生成"} AI 只读核验摘要</button>
-          {aiRequestVisible && <><pre className="cad-ai-evidence">{JSON.stringify(buildCadAiVerificationInput(resourceReview), null, 2)}</pre><button className="button ghost" type="button" disabled={aiBusy} onClick={() => void runOnlineAiVerification()}>{aiBusy ? "在线核验中…" : "在线 AI 只读核验"}</button><label className="cad-ai-response">粘贴 AI 结构化核验响应（只接受引用上述 evidence 的条目）<textarea value={aiResponse} onChange={(event) => setAiResponse(event.target.value)} rows={4} /></label><button className="button ghost" type="button" onClick={() => { const reviewed = applyCadAiVerification(resourceReview, (() => { try { return JSON.parse(aiResponse); } catch { return null; } })()); setAiVerification(reviewed.ai); setNotice(reviewed.ai.status === "accepted" ? "AI 核验响应已接受" : "AI 核验响应无效或未通过；不能生成通过回执"); }}>校验粘贴响应</button>{aiVerification && <p role="status">AI 状态：{aiVerification.status}{aiVerification.error ? ` · ${aiVerification.error}` : ""}（程序阻塞项不会被 AI 覆盖）</p>}</>}
-        </section>
+        <CadResourceReviewPanel review={resourceReview} draft={resourceDraft} inputKey={inputKey} onChange={onResourceChange} />
         <details className="cad-topology-details"><summary>实例位置与主轴依据</summary>
           {solids.map((solid) => <p key={`${solid.instanceId}:${solid.solidId}`}>实例 #{solid.instanceId ?? "定义"} · 实体 #{solid.solidId} · {solid.status} · 原位移 {text(solid.transform.slice(0, 3).map((r) => r[3]))} m · 当前范围 {text(cadBounds(solid.corners)!.min)} → {text(cadBounds(solid.corners)!.max)}</p>)}
           <PagedItems items={result.intermediateState.engineeringGeometry?.centerlines ?? []} label="主轴来源">{(items) => <>{items.map((axis) => <p key={axis.id}>{axis.id} · L {axis.lengthM.toPrecision(8)} m · 两端截面顶点 {axis.endSections[0].length} / {axis.endSections[1].length} · {axis.method}</p>)}</>}</PagedItems>

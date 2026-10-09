@@ -51,6 +51,7 @@ import { ModelEditConfirmation } from "./workspace/model-edits";
 import { TopologyEditor } from "./components/TopologyEditor";
 import { NodeMergeEditor } from "./components/NodeMergeEditor";
 import { CadTopologyPreview } from "./components/CadTopologyPreview";
+import { createCadResourceDraft } from "./workspace/cad-resources";
 import { CAD_ORIGINAL_POSE, type CadPose, type CadPoseDecision } from "./workspace/cad-geometry";
 import { calculateMemberGeometry } from "./domain/member-geometry";
 import {
@@ -186,6 +187,7 @@ export function App() {
   const [cadPose, setCadPose] = useState<CadPose>(CAD_ORIGINAL_POSE);
   const [cadPoseDecisions, setCadPoseDecisions] = useState<CadPoseDecision[]>([]);
   const [cadContacts, setCadContacts] = useState<string[]>([]);
+  const [cadResourceDraft, setCadResourceDraft] = useState(createCadResourceDraft);
   const [drawingEnabled, setDrawingEnabled] = useState(false);
   const [drawingReset, setDrawingReset] = useState(0);
   useEffect(() => { if (resultView !== "model") setDrawingEnabled(false); }, [resultView]);
@@ -359,7 +361,7 @@ export function App() {
     const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
     setCadImportBusy(true);
     setStatus({ tone: "neutral", text: "正在隔离解析 STEP，正式模型保持原状" });
-    setCadPreview(null); setCadPreviewOpen(false); setCadContacts([]); setCadPoseDecisions([]); setCadPose(CAD_ORIGINAL_POSE);
+    setCadPreview(null); setCadPreviewOpen(false); setCadContacts([]); setCadPoseDecisions([]); setCadPose(CAD_ORIGINAL_POSE); setCadResourceDraft(createCadResourceDraft());
     try {
       const result = await window.frameMind.importStep({ path, projectContent: encodeProject(source), formalSave: formalSaveRef.current, ...(retryOf ? { retryOf } : {}) });
       if (!isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
@@ -999,7 +1001,7 @@ export function App() {
     {loadCombinationManagerOpen && <LoadCombinationManager project={project} onChange={(next) => { activateProject(next, false); setSelection(null); setFormError(null); }} onClose={() => setLoadCombinationManagerOpen(false)} />}
     {comparisonOpen && <AnalysisComparisonDialog key={`${comparisonPair?.beforeId ?? ""}:${comparisonPair?.afterId ?? ""}`} project={project} pair={comparisonPair} onPairChange={setComparisonPair} onClose={() => setComparisonOpen(false)} onLocate={(kind, id) => { setComparisonOpen(false); selectObject({ kind, id } as Selection); setDiagnosticFitRequest((value) => value + 1); }} />}
     {reportOpen && <EngineeringReportDialog key={project.id} project={project} initialAnalysisId={caseResult?.id} onClose={() => setReportOpen(false)} onStatus={(tone, text) => setStatus({ tone, text })} />}
-    {cadPreview && cadPreviewOpen && <CadTopologyPreview key={cadPreview.requestId} result={cadPreview} pose={cadPose} decisions={cadPoseDecisions} approvedContactIds={cadContacts} onContactsChange={setCadContacts} onPoseChange={(pose) => {
+    {cadPreview && cadPreviewOpen && <CadTopologyPreview key={cadPreview.requestId} result={cadPreview} pose={cadPose} decisions={cadPoseDecisions} approvedContactIds={cadContacts} resourceDraft={cadResourceDraft} onResourceChange={setCadResourceDraft} onContactsChange={setCadContacts} onPoseChange={(pose) => {
       setCadPose(pose); setCadPoseDecisions((current) => [...current, { revision: current.length + 1, recordedAt: new Date().toISOString(), inputSha256: cadPreview.input.sha256, geometryHash: cadPreview.intermediateState.geometryHash ?? "", pose, source: "user" }]);
     }} onClose={() => setCadPreviewOpen(false)} />}
   </main></UnitPresetContext.Provider>;

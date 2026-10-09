@@ -1,5 +1,8 @@
 import type { CadCenterline } from "./cad-geometry";
 import type { CadTopologyPreview } from "./cad-topology";
+import { calculateMemberGeometry } from "../domain/member-geometry";
+import type { SectionGeometry } from "../domain/section-geometry";
+import { sectionMechanicalProperties, sectionParameterBasis } from "../domain/section-geometry";
 
 export const CAD_SECTION_TOLERANCE_M = 1e-7;
 export const CAD_SECTION_METHOD = "planar-polygon-v1";
@@ -21,7 +24,9 @@ export interface CadSectionResource {
   status: CadResourceStatus;
   properties?: CadSectionProperties;
   profile?: { verticesM: Array<[number, number]>; centroidM: [number, number]; normal: [number, number, number] };
-  memberProfiles?: Array<{ memberId: string; verticesM: Array<[number, number]>; normal: [number, number, number] }>;
+  centerlineIds?: string[];
+  geometry?: SectionGeometry;
+  memberProfiles?: Array<{ memberId: string; centerlineId: string; verticesM: Array<[number, number]>; normal: [number, number, number]; localY: [number, number, number]; localZ: [number, number, number]; rotationDegrees: number }>;
   basis: {
     method: string;
     units: { area: "m²"; secondMoment: "m⁴"; torsion: "m⁴" };
@@ -41,7 +46,32 @@ export interface CadSectionCorrection {
   confirmed: boolean;
   recordedAt?: string;
   recordedBy?: "user";
+  originalRotationDegrees?: number;
+  rotationDegrees?: number;
+  geometry?: SectionGeometry;
 }
+
+export interface CadManualSectionInput {
+  properties: CadSectionProperties;
+  reference: string;
+  confirmed: boolean;
+  rotationDegrees?: number;
+  recordedAt?: string;
+  recordedBy?: "user";
+  originalProperties?: CadSectionProperties;
+  originalRotationDegrees?: number;
+  geometry?: SectionGeometry;
+}
+
+export interface CadResourceDraft {
+  material: Partial<CadMaterialResource>;
+  rigidJointsConfirmed: boolean;
+  manualSections: Record<string, CadManualSectionInput>;
+  correctionHistory: CadSectionCorrection[];
+  acceptedWarningCodes: string[];
+  verification?: { inputKey: string; ai: CadAiVerification };
+}
+export const createCadResourceDraft = (): CadResourceDraft => ({ material: { source: "user" }, rigidJointsConfirmed: false, manualSections: {}, correctionHistory: [], acceptedWarningCodes: [] });
 
 export interface CadMaterialResource {
   status: CadResourceStatus;
@@ -81,10 +111,11 @@ export interface CadResourceCheck {
 }
 
 export interface CadAiVerification {
-  status: "not-requested" | "pending" | "accepted" | "rejected" | "needs-human" | "invalid" | "format-error" | "timeout" | "failed";
-  request: { schemaVersion: 1; geometryHash?: string; sections: unknown[]; material: unknown; joint: unknown; corrections?: CadSectionCorrection[]; checks: CadResourceCheck[] };
+  status: "not-requested" | "pending" | "accepted" | "rejected" | "needs-human" | "invalid" | "format-error" | "timeout" | "failed" | "cancelled";
+  request: { schemaVersion: 1; geometryHash?: string; sections: unknown[]; material: unknown; joint: unknown; topology?: unknown; corrections?: CadSectionCorrection[]; checks: CadResourceCheck[] };
   response?: { decision: "accept" | "reject" | "needs-human"; findings: Array<{ checkCode: string; decision: "accept" | "reject" | "needs-human"; evidence: string[]; message: string }> };
   error?: string;
+  origin?: "online" | "manual";
 }
 
 export interface CadAiVerificationTransport {
@@ -162,12 +193,31 @@ function rectangularProfile(points: Point2[], centroid: Point2): { width: number
 }
 
 function profilesEquivalent(a: CadSectionResource, b: CadSectionResource): boolean {
+  if (a.geometry && b.geometry && a.geometry.shape === b.geometry.shape) {
+    const dimensions = Object.entries(a.geometry).filter(([key]) => key !== "shape");
+    const otherDimensions = new Map(Object.entries(b.geometry));
+    return dimensions.every(([key, value]) => Math.abs(Number(value) - Number(otherDimensions.get(key))) <= CAD_SECTION_TOLERANCE_M);
+  }
   if (!a.profile || !b.profile || a.profile.verticesM.length !== b.profile.verticesM.length) return false;
   return a.profile.verticesM.every((point) => b.profile!.verticesM.some((other) => Math.hypot(point[0] - other[0], point[1] - other[1]) <= CAD_SECTION_TOLERANCE_M));
 }
 
-export function calculateCadSectionResource(centerline: CadCenterline, memberIds: string[] = [], manual?: { properties: CadSectionProperties; reference: string; confirmed: boolean }): CadSectionResource {
-  const base = { id: `cad-section:${centerline.solidId}`, sourceEntityIds: [...centerline.sourceEntityIds], memberIds: [...memberIds], basis: { method: CAD_SECTION_METHOD, units: { area: "m²" as const, secondMoment: "m⁴" as const, torsion: "m⁴" as const }, applicability: "平面、闭合、直边、恒截面且中心对称的端截面；主轴和端截面来自确定性 CAD 几何识别", uncertainty: "顶点坐标和识别容差传播；未对圆角、孔洞、曲线边界或制造偏差作外推", references: ["独立 CAD/人工截面测量须在确认前登记"] }, issues: [] as string[] };
+export function calculateCadSectionResource(centerline: CadCenterline, memberIds: string[] = [], manual?: CadManualSectionInput): CadSectionResource {
+  const base = { id: `cad-section:${centerline.id}`, centerlineIds: [centerline.id], sourceEntityIds: [...centerline.sourceEntityIds], memberIds: [...memberIds], basis: { method: CAD_SECTION_METHOD, units: { area: "m²" as const, secondMoment: "m⁴" as const, torsion: "m⁴" as const }, applicability: "平面、闭合、直边、恒截面且中心对称的端截面；主轴和端截面来自确定性 CAD 几何识别", uncertainty: "顶点坐标和识别容差传播；未对圆角、孔洞、曲线边界或制造偏差作外推", references: ["独立 CAD/人工截面测量须在确认前登记"] }, issues: [] as string[] };
+  if (manual) {
+    try {
+      if (!manual.confirmed || typeof manual.reference !== "string" || !manual.reference.trim()
+        || ![manual.properties.areaM2, manual.properties.secondMomentYM4, manual.properties.secondMomentZM4, manual.properties.torsionalConstantM4].every((v) => finite(v) && v > 0)
+        || !finite(manual.rotationDegrees ?? 0)) throw new Error("人工 A/Iy/Iz/J、转角、独立参考必须有效并由用户重新确认");
+      const frame = calculateMemberGeometry({ x: centerline.start[0], y: centerline.start[1], z: centerline.start[2] }, { x: centerline.end[0], y: centerline.end[1], z: centerline.end[2] }, manual.rotationDegrees ?? 0);
+      if (manual.geometry) {
+        const expected = sectionMechanicalProperties(manual.geometry);
+        if (Object.entries(expected).some(([key, value]) => Math.abs(manual.properties[key as keyof CadSectionProperties]! / value - 1) > 1e-9)) throw new Error("截面属性与用户确认尺寸的 A/I/J 不一致");
+      }
+      const parameterBasis = manual.geometry ? sectionParameterBasis(manual.geometry.shape) : undefined;
+      return { ...base, status: "verified", geometry: manual.geometry ? structuredClone(manual.geometry) : undefined, properties: structuredClone(manual.properties), memberProfiles: memberIds.map((memberId) => ({ memberId, centerlineId: centerline.id, verticesM: [], normal: [frame.localX.x, frame.localX.y, frame.localX.z], localY: [frame.localY.x, frame.localY.y, frame.localY.z], localZ: [frame.localZ.x, frame.localZ.y, frame.localZ.z], rotationDegrees: manual.rotationDegrees ?? 0 })), basis: { ...base.basis, method: parameterBasis?.method ?? "user-supplied-section-v1", applicability: parameterBasis?.notes ?? "用户明确确认 A/Iy/Iz/J 和正式求解局部轴转角", uncertainty: "人工参考的物理正确性仍须独立复核；正有限值不代表物理证明", references: [manual.reference, ...(parameterBasis ? [parameterBasis.source, parameterBasis.url] : [])] } };
+    } catch (cause) { return { ...base, status: "blocked", issues: [cause instanceof Error ? cause.message : "人工资源无效"] }; }
+  }
   try {
     if (!centerline.endSections?.length || centerline.endSections.some((section) => section.length < 3)) throw new Error("缺少可靠端截面顶点");
     const basis = profileBasis(centerline.direction, centerline.endSections[0]);
@@ -177,19 +227,20 @@ export function calculateCadSectionResource(centerline: CadCenterline, memberIds
     const props = polygonProperties(projected), ordered = orderProfile(projected), rectangle = rectangularProfile(ordered, props.centroid);
     if (!rectangle) throw new Error("一般多边形的 Saint-Venant J 未经独立参考验证，不能猜测");
     const torsionalConstantM4 = rectangleTorsion(rectangle.width, rectangle.height);
-    const profile = { verticesM: ordered.map(([y, z]) => [round(y), round(z)] as [number, number]), centroidM: [round(props.centroid[0]), round(props.centroid[1])] as [number, number], normal: basis.n };
-    return { ...base, status: "verified", profile, memberProfiles: memberIds.map((memberId) => ({ memberId, verticesM: profile.verticesM, normal: profile.normal })), properties: { areaM2: props.area, secondMomentYM4: props.iy, secondMomentZM4: props.iz, torsionalConstantM4 }, basis: { ...base.basis, method: `${CAD_SECTION_METHOD}+${CAD_RECTANGULAR_TORSION_METHOD}`, applicability: `${base.basis.applicability}；矩形端截面使用 SCI P385 矩形 Saint-Venant 近似` } };
+    const profile = { verticesM: ordered.map(([y, z]) => [round(y - props.centroid[0]), round(z - props.centroid[1])] as [number, number]), centroidM: [round(props.centroid[0]), round(props.centroid[1])] as [number, number], normal: basis.n };
+    const start = { x: centerline.start[0], y: centerline.start[1], z: centerline.start[2] }, end = { x: centerline.end[0], y: centerline.end[1], z: centerline.end[2] };
+    const frame = calculateMemberGeometry(start, end, 0);
+    const rotationDegrees = Math.atan2(dot(basis.u, Object.values(frame.localZ)), dot(basis.u, Object.values(frame.localY))) * 180 / Math.PI;
+    return { ...base, status: "verified", geometry: { shape: "rectangle", width: rectangle.width, height: rectangle.height }, profile, memberProfiles: memberIds.map((memberId) => ({ memberId, centerlineId: centerline.id, verticesM: profile.verticesM, normal: profile.normal, localY: basis.u, localZ: basis.v, rotationDegrees })), properties: { areaM2: props.area, secondMomentYM4: props.iy, secondMomentZM4: props.iz, torsionalConstantM4 }, basis: { ...base.basis, method: `${CAD_SECTION_METHOD}+${CAD_RECTANGULAR_TORSION_METHOD}`, applicability: `${base.basis.applicability}；矩形端截面使用 SCI P385 矩形 Saint-Venant 近似` } };
   } catch (error) {
-    if (manual?.confirmed && [manual.properties.areaM2, manual.properties.secondMomentYM4, manual.properties.secondMomentZM4, manual.properties.torsionalConstantM4].every((value) => finite(value) && value > 0) && manual.reference.trim() && centerline.direction.every(finite) && norm(centerline.direction) > CAD_SECTION_TOLERANCE_M) {
-      return { ...base, status: "verified", memberProfiles: memberIds.map((memberId) => ({ memberId, verticesM: [], normal: unit(centerline.direction) })), properties: structuredClone(manual.properties), basis: { ...base.basis, method: "user-supplied-section-v1", applicability: "几何无法可靠计算；用户明确提供并确认 A/Iy/Iz/J", uncertainty: "依赖用户提供值及其独立参考", references: [manual.reference] }, issues: [error instanceof Error ? error.message : "几何参数未采用；已使用用户确认值"] };
-    }
     return { ...base, status: "blocked", issues: [error instanceof Error ? error.message : "截面几何无法核验"] };
   }
 }
 
 export function validateCadMaterial(input: Partial<CadMaterialResource> | null | undefined): CadMaterialResource {
   const issues: string[] = [];
-  if (!input || !input.name?.trim()) issues.push("材料名称未确认");
+  const name = typeof input?.name === "string" ? input.name.trim() : undefined;
+  if (!name) issues.push("材料名称未确认");
   if (!finite(input?.elasticModulusGPa) || input!.elasticModulusGPa! <= 0) issues.push("E 必须为正有限 GPa");
   if (!finite(input?.poissonRatio) || input!.poissonRatio! <= -1 || input!.poissonRatio! >= 0.5) issues.push("ν 必须位于 (-1, 0.5)");
   if (!finite(input?.densityKgM3) || input!.densityKgM3! <= 0) issues.push("ρ 必须为正有限 kg/m³");
@@ -197,20 +248,35 @@ export function validateCadMaterial(input: Partial<CadMaterialResource> | null |
   if (!["user", "step", "catalog", "missing"].includes(source)) issues.push("材料来源类型无效");
   if (source === "missing") issues.push("材料来源未确认");
   if (!input?.confirmed) issues.push("材料尚未由用户明确确认");
-  return { status: issues.length ? "needs-user-confirmation" : "verified", name: input?.name?.trim(), elasticModulusGPa: input?.elasticModulusGPa, poissonRatio: input?.poissonRatio, densityKgM3: input?.densityKgM3, source, confirmed: input?.confirmed, issues };
+  return { status: issues.length ? "needs-user-confirmation" : "verified", name, elasticModulusGPa: input?.elasticModulusGPa, poissonRatio: input?.poissonRatio, densityKgM3: input?.densityKgM3, source, confirmed: input?.confirmed === true, issues };
 }
 
 export function makeRigidJointAssumption(confirmed = false): CadJointAssumption {
   return { kind: "rigid", status: confirmed ? "confirmed" : "needs-user-confirmation", source: confirmed ? "user" : "unset", evidence: confirmed ? "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实" : "待用户明确确认；几何接触不自动推断连接刚度" };
 }
 
-export function buildCadResourceReview(input: { topology: CadTopologyPreview; centerlines: CadCenterline[]; geometryHash?: string; material?: Partial<CadMaterialResource> | null; rigidJointsConfirmed?: boolean; manualSections?: Record<string, { properties: CadSectionProperties; reference: string; confirmed: boolean; recordedAt?: string; recordedBy?: "user" }> }): CadResourceReview {
+const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+const point3 = (v: unknown): v is Point3 => Array.isArray(v) && v.length === 3 && v.every(finite);
+function validReviewGeometry(topology: CadTopologyPreview, centerlines: CadCenterline[]): boolean {
+  if (!record(topology) || !Array.isArray(topology.nodes) || !Array.isArray(topology.members) || !Array.isArray(topology.issues) || !Array.isArray(centerlines)) return false;
+  return topology.nodes.every((n) => record(n) && typeof n.id === "string" && record(n.position) && [n.position.x, n.position.y, n.position.z].every(finite))
+    && topology.members.every((m) => record(m) && typeof m.id === "string" && typeof m.parentId === "string" && typeof m.startNodeId === "string" && typeof m.endNodeId === "string" && Array.isArray(m.sourceEntityIds) && Array.isArray(m.range) && m.range.length === 2 && m.range.every(finite))
+    && topology.issues.every((issue) => record(issue) && typeof issue.code === "string" && typeof issue.message === "string" && ["warning", "blocking"].includes(issue.severity))
+    && centerlines.every((line) => record(line) && typeof line.id === "string" && Number.isInteger(line.solidId) && (line.instanceId === null || Number.isInteger(line.instanceId)) && Array.isArray(line.sourceEntityIds) && point3(line.start) && point3(line.end) && point3(line.direction) && finite(line.lengthM) && Array.isArray(line.endSections) && line.endSections.length === 2 && line.endSections.every((section) => Array.isArray(section) && section.length >= 3 && section.every(point3)));
+}
+
+export function buildCadResourceReview(input: { topology: CadTopologyPreview; centerlines: CadCenterline[]; geometryHash?: string; units?: { explicit: boolean; length: string; lengthToM: number; areaToM2: number; inertiaToM4: number; torsionToM4: number }; material?: Partial<CadMaterialResource> | null; rigidJointsConfirmed?: boolean; acceptedWarningCodes?: string[]; correctionHistory?: CadSectionCorrection[]; manualSections?: Record<string, CadManualSectionInput> }): CadResourceReview {
+  if (!validReviewGeometry(input.topology, input.centerlines)) {
+    const check: CadResourceCheck = { code: "schema:geometry", status: "failed", severity: "error", message: "中间态拓扑和中心线 schema 或有限值无效", evidence: ["check:schema:geometry"] };
+    const material = validateCadMaterial(input.material), joint = makeRigidJointAssumption(false);
+    return { schemaVersion: 1, status: "blocked", sections: [], material, joint, corrections: [], checks: [check], ai: { status: "not-requested", request: { schemaVersion: 1, sections: [], material: {}, joint: {}, checks: [check] } } };
+  }
   const byId = new Map(input.centerlines.map((line) => [line.id, line]));
   const membersByLine = new Map<string, string[]>();
   for (const member of input.topology.members) membersByLine.set(member.parentId, [...(membersByLine.get(member.parentId) ?? []), member.id]);
   const originalCalculated = input.centerlines.map((line) => calculateCadSectionResource(line, membersByLine.get(line.id) ?? []));
   const calculated = input.centerlines.map((line) => calculateCadSectionResource(line, membersByLine.get(line.id) ?? [], input.manualSections?.[line.id]));
-  const corrections: CadSectionCorrection[] = Object.entries(input.manualSections ?? {}).map(([sectionId, manual]) => ({ sectionId, original: originalCalculated.find((section) => section.id === `cad-section:${input.centerlines.find((line) => line.id === sectionId)?.solidId}`)?.properties, replacement: structuredClone(manual.properties), reference: manual.reference, confirmed: manual.confirmed, ...(manual.recordedAt ? { recordedAt: manual.recordedAt } : {}), recordedBy: manual.recordedBy ?? "user" }));
+  const corrections: CadSectionCorrection[] = input.correctionHistory ? structuredClone(input.correctionHistory) : Object.entries(input.manualSections ?? {}).map(([sectionId, manual]) => ({ sectionId, original: originalCalculated.find((section) => section.id === `cad-section:${sectionId}`)?.properties, replacement: structuredClone(manual.properties), reference: manual.reference, confirmed: manual.confirmed, ...(manual.recordedAt ? { recordedAt: manual.recordedAt } : {}), recordedBy: manual.recordedBy ?? "user" }));
   // A resource is shared only when all calculated properties agree within the
   // registered geometry tolerance. Blocked sections stay separate so one
   // unresolved solid cannot hide another solid's provenance.
@@ -224,13 +290,21 @@ export function buildCadResourceReview(input: { topology: CadTopologyPreview; ce
     if (match) {
       match.memberIds = [...new Set([...match.memberIds, ...section.memberIds])];
       match.memberProfiles = [...(match.memberProfiles ?? []), ...(section.memberProfiles ?? [])];
+      match.centerlineIds = [...(match.centerlineIds ?? []), ...(section.centerlineIds ?? [])];
       match.sourceEntityIds = [...new Set([...match.sourceEntityIds, ...section.sourceEntityIds])].sort((a, b) => a - b);
+      match.basis.references = [...new Set([...match.basis.references, ...section.basis.references])];
     } else sections.push(section);
   }
   for (const member of input.topology.members) if (!byId.has(member.parentId)) sections.push({ id: `cad-section:missing:${member.parentId}`, sourceEntityIds: member.sourceEntityIds, memberIds: [member.id], status: "blocked", basis: { method: CAD_SECTION_METHOD, units: { area: "m²", secondMoment: "m⁴", torsion: "m⁴" }, applicability: "需要中心线端截面", uncertainty: "无几何依据", references: [] }, issues: ["工程杆件缺少可追溯中心线"] });
   const material = validateCadMaterial(input.material);
   const joint = makeRigidJointAssumption(input.rigidJointsConfirmed);
   const checks: CadResourceCheck[] = [];
+  if (input.units) {
+    const units = input.units;
+    const valid = units.explicit && units.length === "m" && [units.lengthToM, units.areaToM2, units.inertiaToM4, units.torsionToM4].every((v) => finite(v) && v > 0)
+      && Math.abs(units.areaToM2 / units.lengthToM ** 2 - 1) < 1e-10 && Math.abs(units.inertiaToM4 / units.lengthToM ** 4 - 1) < 1e-10 && Math.abs(units.torsionToM4 / units.lengthToM ** 4 - 1) < 1e-10;
+    checks.push({ code: "units", status: valid ? "passed" : "failed", severity: "error", message: valid ? "明确长度单位及二次/四次量纲转换一致" : "单位不明确或面积/惯性矩/J 换算不一致", evidence: [] });
+  }
   if (!sections.length) checks.push({ code: "sections-present", status: "failed", severity: "error", message: "没有可追溯的工程截面资源", evidence: [] });
   const seenCenterlineIds = new Set<string>();
   for (const line of input.centerlines) {
@@ -239,6 +313,7 @@ export function buildCadResourceReview(input: { topology: CadTopologyPreview; ce
     seenCenterlineIds.add(line.id);
     if (![...line.start, ...line.end, ...line.direction].every(finite)) checks.push({ code: `schema:coordinates:${line.id}`, status: "failed", severity: "error", message: "中心线坐标和方向必须为有限数值", evidence: [line.id] });
     if (!Number.isFinite(line.lengthM) || line.lengthM <= CAD_SECTION_TOLERANCE_M) checks.push({ code: `zero-length:${line.id}`, status: "failed", severity: "error", message: "中心线长度必须为正有限值", evidence: [line.id] });
+    if (Math.abs(norm(sub(line.end, line.start)) - line.lengthM) > CAD_SECTION_TOLERANCE_M || Math.abs(norm(line.direction) - 1) > 1e-8 || norm(sub(line.direction, sub(line.end, line.start).map((v) => v / line.lengthM))) > 1e-8) checks.push({ code: `axis:${line.id}`, status: "failed", severity: "error", message: "主轴方向、端点与长度不一致", evidence: [line.id] });
     const lineEntityIds = new Set<number>();
     for (const entityId of line.sourceEntityIds) {
       if (!Number.isInteger(entityId) || entityId < 0) checks.push({ code: `schema:entity:${line.id}:${entityId}`, status: "failed", severity: "error", message: "来源实体 ID 无效", evidence: [line.id] });
@@ -250,8 +325,11 @@ export function buildCadResourceReview(input: { topology: CadTopologyPreview; ce
   if (memberIds.size !== input.topology.members.length) checks.push({ code: "duplicate:member", status: "failed", severity: "error", message: "工程杆件 ID 重复", evidence: [] });
   const nodeIds = new Set(input.topology.nodes.map((node) => node.id));
   if (nodeIds.size !== input.topology.nodes.length) checks.push({ code: "duplicate:node", status: "failed", severity: "error", message: "拓扑节点 ID 重复", evidence: [] });
+  for (const node of input.topology.nodes) if (!Object.values(node.position).every(finite)) checks.push({ code: `finite:node:${node.id}`, status: "failed", severity: "error", message: "节点坐标必须为有限数值", evidence: [node.id] });
   for (const member of input.topology.members) {
-    if (!member.parentId || !member.startNodeId || !member.endNodeId || member.startNodeId === member.endNodeId || !nodeIds.has(member.startNodeId) || !nodeIds.has(member.endNodeId) || !Array.isArray(member.range) || member.range.length !== 2 || member.range.some((value) => !finite(value))) checks.push({ code: `schema:member:${member.id}`, status: "failed", severity: "error", message: "工程杆件拓扑引用无效", evidence: [member.id] });
+    const start = input.topology.nodes.find((n) => n.id === member.startNodeId), end = input.topology.nodes.find((n) => n.id === member.endNodeId);
+    if (!member.parentId || !member.startNodeId || !member.endNodeId || member.startNodeId === member.endNodeId || !nodeIds.has(member.startNodeId) || !nodeIds.has(member.endNodeId) || !Array.isArray(member.range) || member.range.length !== 2 || member.range.some((value) => !finite(value)) || member.range[0] < 0 || member.range[1] > 1 || member.range[1] <= member.range[0]) checks.push({ code: `schema:member:${member.id}`, status: "failed", severity: "error", message: "工程杆件拓扑引用或分段范围无效", evidence: [member.id] });
+    if (start && end && Math.hypot(...sub(Object.values(start.position), Object.values(end.position))) <= CAD_SECTION_TOLERANCE_M) checks.push({ code: `zero-length:member:${member.id}`, status: "failed", severity: "error", message: "工程分段长度为零", evidence: [member.id] });
   }
   for (const section of sections) {
     const properties = section.properties;
@@ -260,28 +338,45 @@ export function buildCadResourceReview(input: { topology: CadTopologyPreview; ce
   }
   checks.push({ code: "material", status: material.status === "verified" ? "passed" : "needs-user-confirmation", severity: "error", message: material.status === "verified" ? "材料参数已由用户/目录确认" : material.issues.join("；"), evidence: material.name ? [material.name] : [] });
   checks.push({ code: "rigid-joints", status: joint.status === "confirmed" ? "passed" : "needs-user-confirmation", severity: "error", message: joint.evidence, evidence: joint.status === "confirmed" ? ["用户刚接确认记录"] : [] });
-  for (const issue of input.topology.issues) checks.push({ code: `topology:${issue.code}`, status: issue.severity === "blocking" ? "failed" : "needs-user-confirmation", severity: issue.severity === "blocking" ? "error" : "warning", message: issue.message, evidence: issue.sourceEntityIds?.map((id) => `STEP 实体 #${id}`) ?? [] });
+  for (const [index, issue] of input.topology.issues.entries()) {
+    const code = `topology:${issue.code}:${index}`;
+    const evidence = issue.sourceEntityIds?.map((id) => `STEP 实体 #${id}`) ?? [];
+    checks.push({ code, status: issue.severity === "blocking" ? "failed" : input.acceptedWarningCodes?.includes(code) ? "passed" : "needs-user-confirmation", severity: issue.severity === "blocking" ? "error" : "warning", message: issue.message, evidence });
+  }
+  // Opaque program evidence ids also let the model cite checks with no STEP entity
+  // (e.g. missing resources). They cannot be promoted to acceptance by the model.
+  for (const check of checks) check.evidence.unshift(`check:${check.code}`);
   const status: CadResourceStatus = checks.some((check) => check.status === "failed") ? "blocked" : checks.some((check) => check.status === "needs-user-confirmation") ? "needs-user-confirmation" : "verified";
-  const request = { schemaVersion: 1 as const, ...(input.geometryHash ? { geometryHash: input.geometryHash } : {}), sections: sections.map((section) => ({ id: section.id, memberIds: section.memberIds, sourceEntityIds: section.sourceEntityIds, status: section.status, properties: section.properties, basis: section.basis, issues: section.issues })), material: { name: material.name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3, source: material.source, confirmed: material.confirmed }, joint: { kind: joint.kind, status: joint.status, source: joint.source }, corrections: structuredClone(corrections), checks };
+  const request = { schemaVersion: 1 as const, ...(input.geometryHash ? { geometryHash: input.geometryHash } : {}), sections: sections.map((section) => ({ id: section.id, memberIds: section.memberIds, sourceEntityIds: section.sourceEntityIds, status: section.status, properties: section.properties, memberAxes: section.memberProfiles?.map(({ memberId, localY, localZ, rotationDegrees }) => ({ memberId, localY, localZ, rotationDegrees })), basis: section.basis, issues: section.issues })), material: { name: material.name, elasticModulusGPa: material.elasticModulusGPa, poissonRatio: material.poissonRatio, densityKgM3: material.densityKgM3, source: material.source, confirmed: material.confirmed }, joint: { kind: joint.kind, status: joint.status, source: joint.source }, topology: { nodes: input.topology.nodes.map(({ id, position }) => ({ id, position })), members: input.topology.members.map(({ id, parentId, instanceId, startNodeId, endNodeId, range }) => ({ id, parentId, instanceId, startNodeId, endNodeId, range })) }, corrections: structuredClone(corrections), checks };
   return { schemaVersion: 1, status, sections, material, joint, checks, corrections, ai: { status: "not-requested", request } };
 }
 
-export function buildCadAiVerificationInput(review: CadResourceReview): CadAiVerification["request"] { return structuredClone(review.ai.request); }
+export function redactCadEvidenceText(text: string): string {
+  return text.replace(/[A-Za-z]:[\\/][^\s"<>，；]+|\\\\[^\s"<>，；]+|(?:^|(?<=\s))\/[^\s"<>，；]+/g, "[本机路径已隐藏]")
+    .replace(/\bsk-[A-Za-z0-9_-]+|Bearer\s+\S+/gi, "[凭据已隐藏]")
+    .replace(/ISO-10303-21[\s\S]*?END-ISO-10303-21/gi, "[STEP 原文已隐藏]");
+}
+export function buildCadAiVerificationInput(review: CadResourceReview): CadAiVerification["request"] {
+  const clean = (v: unknown): unknown => typeof v === "string" ? redactCadEvidenceText(v) : Array.isArray(v) ? v.map(clean) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, item]) => [k, clean(item)])) : v;
+  return clean(review.ai.request) as CadAiVerification["request"];
+}
 
 export function applyCadAiVerification(review: CadResourceReview, response: unknown): CadResourceReview {
   try {
     if (!response || typeof response !== "object" || Array.isArray(response)) throw new Error("AI 核验响应必须为对象");
     const value = response as Record<string, unknown>, decision = value.decision;
+    if (Object.keys(value).some((key) => !["decision", "findings"].includes(key))) throw new Error("AI 核验包含未知字段或修改请求");
     if (decision !== "accept" && decision !== "reject" && decision !== "needs-human") throw new Error("AI 核验结论无效");
     if (!Array.isArray(value.findings)) throw new Error("AI 核验必须逐项返回 findings");
     const findings = value.findings.map((raw) => {
       if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("AI 核验条目无效");
       const item = raw as Record<string, unknown>;
+      if (Object.keys(item).some((key) => !["checkCode", "decision", "evidence", "message"].includes(key))) throw new Error("AI 条目包含未知字段");
       if (typeof item.checkCode !== "string" || !["accept", "reject", "needs-human"].includes(String(item.decision)) || !Array.isArray(item.evidence) || !item.evidence.every((e) => typeof e === "string") || typeof item.message !== "string") throw new Error("AI 核验条目必须包含结论、证据和说明");
-      const check = review.checks.find((candidate) => candidate.code === item.checkCode);
+      const check = buildCadAiVerificationInput(review).checks.find((candidate) => candidate.code === item.checkCode);
       if (!check) throw new Error(`AI 引用了未知检查 ${item.checkCode}`);
       if (!item.evidence.length || item.evidence.some((e) => !check.evidence.includes(e))) throw new Error(`AI 检查 ${item.checkCode} 未引用程序证据`);
-      return { checkCode: item.checkCode, decision: item.decision as "accept" | "reject" | "needs-human", evidence: item.evidence as string[], message: item.message };
+      return { checkCode: item.checkCode, decision: item.decision as "accept" | "reject" | "needs-human", evidence: item.evidence as string[], message: redactCadEvidenceText(item.message) };
     });
     if (new Set(findings.map((item) => item.checkCode)).size !== findings.length) throw new Error("AI 核验不能重复引用同一检查");
     const complete = review.checks.every((check) => findings.some((item) => item.checkCode === check.code));
@@ -294,28 +389,35 @@ export function applyCadAiVerification(review: CadResourceReview, response: unkn
   }
 }
 
+export function canApplyCadResourceReview(review: CadResourceReview, ai: CadAiVerification): boolean {
+  return review.status === "verified" && ai.status === "accepted" && ai.origin === "online" && JSON.stringify(ai.request) === JSON.stringify(buildCadAiVerificationInput(review));
+}
+
 /** Run the configured online model with a bounded request. The model receives only
  * the deterministic, already-redacted request and cannot mutate the review. */
-export async function requestCadAiVerification(review: CadResourceReview, transport: CadAiVerificationTransport, options: { requestId?: string; timeoutMs?: number } = {}): Promise<CadResourceReview> {
-  const requestId = options.requestId ?? `cad-resource-review:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+export async function requestCadAiVerification(review: CadResourceReview, transport: CadAiVerificationTransport, options: { requestId?: string; timeoutMs?: number; signal?: AbortSignal } = {}): Promise<CadResourceReview> {
+  const requestId = options.requestId ?? `cad-review-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
   const request = buildCadAiVerificationInput(review);
   const pending = structuredClone(review);
   pending.ai = { status: "pending", request };
   const timeoutMs = options.timeoutMs ?? 30_000;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let cancel: (() => void) | undefined;
   try {
+    if (options.signal?.aborted) throw new Error("AI 核验已取消");
     const timeout = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("AI 核验请求超时")), timeoutMs); });
+    const cancelled = new Promise<never>((_, reject) => { cancel = () => reject(new Error("AI 核验已取消")); options.signal?.addEventListener("abort", cancel, { once: true }); });
     const result = await Promise.race([transport.chatDeepSeek({ requestId, messages: [
-      { role: "system", content: "你是只读 CAD 资源核验器。只能引用 request 中已有的 checkCode 和 evidence，不能修改数值或拓扑。返回 JSON：{decision:'accept'|'reject'|'needs-human',findings:[{checkCode,decision,evidence,message}]}。" },
+      { role: "system", content: '你是只读 CAD 资源核验器。禁止调用工具或修改数值/拓扑。对每个 checks.code 恰好返回一个 findings 条目，checkCode 必须原样引用，evidence 只选该检查已有标识。任何 failed 检查不能接受；缺输入或需人工复核用 needs-human。只返回严格 JSON（双引号，无 Markdown）：{"decision":"accept|reject|needs-human","findings":[{"checkCode":"已有检查编号","decision":"accept|reject|needs-human","evidence":["已有证据标识"],"message":"说明"}]}。' },
       { role: "user", content: JSON.stringify(request) },
-    ] }), timeout]);
-    if (result.status !== "success" || !result.assistant?.content) return { ...pending, ai: { status: "failed", request, error: result.message || `AI 状态 ${result.status}` } };
+    ] }), timeout, cancelled]);
+    if (result.status !== "success" || !result.assistant?.content) return { ...pending, ai: { status: result.status === "timeout" ? "timeout" : "failed", request, origin: "online", error: redactCadEvidenceText(result.message || `AI 状态 ${result.status}`) } };
     let parsed: unknown;
-    try { parsed = JSON.parse(result.assistant.content); } catch { return { ...pending, ai: { status: "format-error", request, error: "AI 返回内容不是 JSON" } }; }
-    return applyCadAiVerification(review, parsed);
+    try { parsed = JSON.parse(result.assistant.content); } catch { return { ...pending, ai: { status: "format-error", request, origin: "online", error: "AI 返回内容不是 JSON" } }; }
+    const verified = applyCadAiVerification(review, parsed); verified.ai.origin = "online"; return verified;
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI 核验失败";
-    if (transport.cancelDeepSeekChat) await transport.cancelDeepSeekChat(requestId).catch(() => undefined);
-    return { ...pending, ai: { status: message.includes("超时") ? "timeout" : "failed", request, error: message } };
-  } finally { if (timer) clearTimeout(timer); }
+    if (transport.cancelDeepSeekChat) void transport.cancelDeepSeekChat(requestId).catch(() => undefined);
+    return { ...pending, ai: { status: options.signal?.aborted ? "cancelled" : message.includes("超时") ? "timeout" : "failed", request, origin: "online", error: redactCadEvidenceText(message) } };
+  } finally { if (timer) clearTimeout(timer); if (cancel) options.signal?.removeEventListener("abort", cancel); }
 }
