@@ -1,8 +1,8 @@
 import { app, BrowserWindow, dialog, ipcMain, safeStorage, type IpcMainInvokeEvent } from "electron";
 import { join } from "node:path";
-import { stat } from "node:fs/promises";
+import { stat, readFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import {
   DesktopChannel,
@@ -25,6 +25,7 @@ import { CadParserHost } from "./cad-parser";
 import { ProjectHistoryStore } from "./project-history-store";
 import { ProjectCandidates } from "./project-candidates";
 import { ReverseDesignService } from "./reverse-design";
+import { ReverseDesignRounds } from "./reverse-design-round";
 import { CadImportSources } from "./cad-import-sources";
 
 const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
@@ -45,6 +46,17 @@ const reverseDesign = new ReverseDesignService(projectCheckpoints, projectCandid
 const cadImportSources = new CadImportSources();
 
 let deepSeek: DeepSeekConnection;
+const reverseDesignRounds = new ReverseDesignRounds(projectCheckpoints, projectCandidates, reverseDesign, nativeAnalysis, {
+  mode: "online", model: async () => (await deepSeek.getSettings()).model,
+  chat: (requestId, messages, tools, expectedModel) => deepSeek.agentChat({ requestId, messages }, tools, expectedModel),
+  cancel: (requestId) => deepSeek.cancelChat(requestId),
+}, async () => {
+  const digest = createHash("sha256");
+  for (const file of ["reverse-design-round.js", "reverse-design-round-contract.js", "reverse-native-domain.cjs", "reverse-design-fixture.js", "deepseek.js", "native-analysis.js"])
+    digest.update(await readFile(join(__dirname, file)));
+  digest.update(await readFile(app.isPackaged ? join(process.resourcesPath, "native", "framemind-core.exe") : join(__dirname, "../native/bin/framemind-core.exe")));
+  return digest.digest("hex");
+});
 const productionUrl = pathToFileURL(join(__dirname, "../dist/index.html")).href;
 const developmentUrl = app.isPackaged ? undefined : process.env.VITE_DEV_SERVER_URL;
 const trustedUrl = developmentUrl ?? productionUrl;
@@ -58,10 +70,12 @@ ipcMain.handle(DesktopChannel.RecordProjectCheckpoints, (event, request) => { re
 ipcMain.handle(DesktopChannel.ListProjectCheckpoints, (event, projectId: string) => { requireTrustedSender(event); return projectCheckpoints.list(projectId); });
 ipcMain.handle(DesktopChannel.ReadProjectCheckpoint, (event, request) => { requireTrustedSender(event); return projectCheckpoints.read(request.projectId, request.commit); });
 ipcMain.handle(DesktopChannel.ReadProjectCheckpointEvidence, (event, request) => { requireTrustedSender(event); return projectCheckpoints.readEvidence(request.projectId, request.commit); });
-ipcMain.handle(DesktopChannel.SyncCandidateContext, (event, request) => { requireTrustedSender(event); projectCandidates.sync(event.sender.id, request); reverseDesign.sync(event.sender.id, request); });
+ipcMain.handle(DesktopChannel.SyncCandidateContext, (event, request) => { requireTrustedSender(event); projectCandidates.sync(event.sender.id, request); reverseDesign.sync(event.sender.id, request); reverseDesignRounds.contextChanged(event.sender.id); });
 ipcMain.handle(DesktopChannel.PrepareReverseDesign, (event) => { requireTrustedSender(event); return reverseDesign.prepare(event.sender.id); });
 ipcMain.handle(DesktopChannel.ConfirmReverseDesign, (event, confirmationId) => { requireTrustedSender(event); return reverseDesign.confirm(event.sender.id, confirmationId); });
 ipcMain.handle(DesktopChannel.GenerateReverseDesign, (event, request) => { requireTrustedSender(event); return reverseDesign.generate(event.sender.id, request); });
+ipcMain.handle(DesktopChannel.RunReverseDesignRound, (event, confirmationId) => { requireTrustedSender(event); return reverseDesignRounds.run(event.sender.id, confirmationId); });
+ipcMain.handle(DesktopChannel.CancelReverseDesignRound, (event) => { requireTrustedSender(event); reverseDesignRounds.cancel(event.sender.id); });
 ipcMain.handle(DesktopChannel.CandidateTool, (event, request) => { requireTrustedSender(event); return projectCandidates.tool(event.sender.id, request); });
 ipcMain.handle(DesktopChannel.InspectCandidate, (event, taskId) => { requireTrustedSender(event); return projectCandidates.inspect(event.sender.id, taskId); });
 ipcMain.handle(DesktopChannel.MergeCandidate, (event, request) => {
@@ -196,9 +210,9 @@ function createWindow(): void {
 
   window.once("ready-to-show", () => window.show());
   const owner = window.webContents.id;
-  window.webContents.on("destroyed", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); projectCandidates.close(owner); reverseDesign.close(owner); });
-  window.webContents.on("render-process-gone", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
-  window.webContents.on("did-start-loading", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
+  window.webContents.on("destroyed", () => { reverseDesignRounds.cancel(owner); nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); projectCandidates.close(owner); reverseDesign.close(owner); });
+  window.webContents.on("render-process-gone", () => { reverseDesignRounds.cancel(owner); nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
+  window.webContents.on("did-start-loading", () => { reverseDesignRounds.cancel(owner); nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event, url) => {
     if (url !== trustedUrl && url !== `${trustedUrl}/`) event.preventDefault();

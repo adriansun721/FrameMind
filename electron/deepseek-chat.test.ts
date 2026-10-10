@@ -20,6 +20,21 @@ async function setup(fetcher: typeof fetch, timeoutMs = 15_000) {
   return connection;
 }
 
+test("host agent calls keep separate tools and reject a changed frozen model", async () => {
+  const requests: RequestInit[] = [];
+  const connection = await setup(async (_url, init) => {
+    requests.push(init!);
+    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "received" } }] }));
+  });
+  const tools = [{ type: "function", function: { name: "finish_work", parameters: { type: "object", properties: {}, additionalProperties: false } } }];
+  const request = { requestId: "agent_frozen_model", messages: [{ role: "user" as const, content: "Generate candidate" }] };
+  expect((await connection.agentChat(request, tools, "deepseek-flash")).status).toBe("success");
+  expect(JSON.parse(requests[0].body as string)).toMatchObject({ tools, temperature: 0, model: "deepseek-flash" });
+  await connection.save({ model: "deepseek-v4-pro", apiKey: "" });
+  expect((await connection.agentChat(request, tools, "deepseek-flash")).status).toBe("cancelled");
+  expect(requests).toHaveLength(1);
+});
+
 test("a selected-object conversation receives read-only tool calls and sends their real results on the next round", async () => {
   const requests: { url: unknown; init?: RequestInit }[] = [];
   const toolCall = { id: "call-selection", type: "function", function: { name: "read_selection", arguments: "{}" } };

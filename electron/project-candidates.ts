@@ -104,13 +104,20 @@ export class ProjectCandidates {
     }
   }
 
-  fork(owner: number, retryOf?: string, inputPolicy?: ProjectCandidate["inputPolicy"]): Promise<CandidateSnapshot> {
+  fork(owner: number, retryOf?: string, inputPolicy?: ProjectCandidate["inputPolicy"], roundParent?: CandidateSnapshot): Promise<CandidateSnapshot> {
     return this.access(owner, async (repository, c) => {
       if (retryOf) { const old = this.task(c.projectId, retryOf); if (!terminal(old) && old.state !== "blocked") throw new Error("在途任务不能重复重试；请先取消"); inputPolicy = old.inputPolicy; }
       if (inputPolicy === "reverse-design-v1") validateReverseDesignParent(c.content);
       const taskId = `task_${randomUUID()}`, candidateId = `candidate_${randomUUID()}`, p = parseCandidateProject(c.content);
       const guard = () => { if (this.context(owner) !== c) throw new Error("创建候选期间父状态变化；请重试"); };
-      const [parent] = await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate-round", content: c.content, taskId, candidateId }] }, { beforePublish: async (_records, original) => { guard(); if (inputPolicy === "reverse-design-v1" && original && reverseDesignParentState(await this.history.read(c.projectId, original)) !== reverseDesignParentState(c.content)) throw new Error("反向设计 Git 父状态已变化；请重开并重新确认"); guard(); }, validatePublished: guard, rollback: async () => undefined, committed: async () => undefined }); guard();
+      if (roundParent) {
+        const original = this.task(c.projectId, roundParent.candidate.taskId);
+        this.current(owner, original);
+        if (original.inputPolicy !== inputPolicy || roundParent.parentContent !== (await this.snapshot(original)).parentContent) throw new Error("同轮父快照身份无效");
+        await this.verifyMainParent(original, (await this.history.checkpoints.mainReference(c.projectId))!);
+        guard();
+      }
+      const [parent] = roundParent ? [{ commit: roundParent.candidate.parentCommit }] : await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate-round", content: c.content, taskId, candidateId }] }, { beforePublish: async (_records, original) => { guard(); if (inputPolicy === "reverse-design-v1" && original && reverseDesignParentState(await this.history.read(c.projectId, original)) !== reverseDesignParentState(c.content)) throw new Error("反向设计 Git 父状态已变化；请重开并重新确认"); guard(); }, validatePublished: guard, rollback: async () => undefined, committed: async () => undefined }); guard();
       const branch = `candidate/${taskId}`;
       const [record] = await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate", content: c.content, taskId, candidateId }] }, undefined, { name: branch, parentCommit: parent.commit, guard }); guard();
       const task: ProjectCandidate = { inputPolicy, schemaVersion: 1, projectId: c.projectId, historyId: (p.projectHistory as { id?: string } | undefined)?.id, taskId, candidateId, ...(retryOf ? { retryOf } : {}), sessionId: c.sessionId,

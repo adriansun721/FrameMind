@@ -14,6 +14,23 @@ function processFixture() {
 }
 afterEach(() => { vi.clearAllMocks(); vi.useRealTimers(); });
 
+it("queues work behind a manual process and cancels waiting work without launching another process", async () => {
+  const manual = processFixture(), host = new NativeAnalysisHost("fixed.exe");
+  const running = host.run(1, { requestId: "request_manual" });
+  const firstSignal = new AbortController(), secondSignal = new AbortController(), started: string[] = [];
+  const first = host.runQueued(2, { requestId: "request_work1" }, firstSignal.signal, () => started.push("first"));
+  const second = host.runQueued(3, { requestId: "request_work2" }, secondSignal.signal, () => started.push("second"));
+  const rejection = expect(second).rejects.toThrow(/取消/); secondSignal.abort(); await rejection;
+  expect(transport.spawn).toHaveBeenCalledTimes(1); expect(started).toEqual([]);
+  const work = processFixture();
+  manual.stdout.write('{"kind":"result","requestId":"request_manual"}\n'); manual.emit("close", 0, null); await running;
+  await vi.waitFor(() => expect(started).toEqual(["first"]));
+  work.stdout.write('{"kind":"result","requestId":"request_work1"}\n'); work.emit("close", 0, null);
+  await first;
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(transport.spawn).toHaveBeenCalledTimes(2); expect(started).toEqual(["first"]);
+});
+
 it("returns a launch failure with no invented native stages", async () => {
   const child = processFixture();
   const promise = new NativeAnalysisHost("fixed.exe").run(1, { requestId: "request_test" });

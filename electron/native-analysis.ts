@@ -10,8 +10,38 @@ interface PhaseMessage { kind: "phase"; requestId: string; record: { stage: stri
 export class NativeAnalysisHost {
   private readonly active = new Map<string, { cancel(): void }>();
   private disposed = false;
+  private queued: Promise<unknown> = Promise.resolve();
+  private readonly idleListeners = new Set<() => void>();
 
   constructor(private readonly executable: string) {}
+
+  /** Uses the same single-process resource as manual analysis; waiting is part of the caller budget. */
+  runQueued(owner: number, request: unknown, signal: AbortSignal, onStart?: () => void, onFinish?: () => void): Promise<unknown[]> {
+    const action = this.queued.catch(() => undefined).then(async () => {
+      while (this.active.size) {
+        await new Promise<void>((resolve, reject) => {
+          const cleanup = () => { this.idleListeners.delete(idle); signal.removeEventListener("abort", abort); };
+          const idle = () => { cleanup(); resolve(); };
+          const abort = () => { cleanup(); reject(new Error("求解排队已取消")); };
+          if (signal.aborted) { abort(); return; }
+          this.idleListeners.add(idle); signal.addEventListener("abort", abort, { once: true });
+        });
+      }
+      if (signal.aborted) throw new Error("求解已取消");
+      const requestId = (request as { requestId: string }).requestId;
+      const abort = () => this.cancel(owner, requestId);
+      signal.addEventListener("abort", abort, { once: true });
+      try { onStart?.(); return await this.run(owner, request); }
+      finally { onFinish?.(); signal.removeEventListener("abort", abort); }
+    });
+    this.queued = action;
+    let abortWait!: () => void;
+    const cancelled = new Promise<never>((_resolve, reject) => {
+      abortWait = () => reject(new Error("求解排队或执行已取消"));
+      if (signal.aborted) abortWait(); else signal.addEventListener("abort", abortWait, { once: true });
+    });
+    return Promise.race([action, cancelled]).finally(() => signal.removeEventListener("abort", abortWait));
+  }
 
   run(owner: number, request: unknown, onPhase?: (message: PhaseMessage) => void): Promise<unknown[]> {
     const packet = request as { requestId?: unknown };
@@ -77,6 +107,7 @@ export class NativeAnalysisHost {
       child.stdin.on("error", (error) => finish("native-runtime-error", `原生输入发送失败：${error.message}`));
       child.on("close", (code, signal) => {
         this.active.delete(key);
+        for (const idle of [...this.idleListeners]) idle();
         if (settled) return;
         pending += decoder.end();
         if (pending.trim()) line(pending);

@@ -6,7 +6,10 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "npm run build:main && concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
-    "build:main": "tsc -p tsconfig.electron.json",
+    "build:main": "tsc -p tsconfig.electron.json && node scripts/build-reverse-native.mjs",
+    "test:plan2:p2510": "vitest run electron/reverse-design-round.test.ts electron/native-analysis.test.ts electron/deepseek-chat.test.ts --maxWorkers=2 --testTimeout=60000",
+    "evidence:plan2:p2510": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-10-agents.spec.ts --workers=1 --retries=0",
+    "evidence:plan2:p2510:online": "npm run build && cross-env FRAMEMIND_P2510_ONLINE=1 node scripts/run-e2e-isolated.cjs e2e/p25-10-agents.spec.ts --workers=1 --retries=0 && node scripts/verify-p25-10.mjs",
     "fixture:plan2:p2509": "node scripts/build-p25-09-fixture.mjs",
     "test:plan2:p2509": "vitest run electron/reverse-design.test.ts --maxWorkers=2",
     "evidence:plan2:p2509": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-09-reverse-design.spec.ts && node scripts/verify-p25-09.mjs",

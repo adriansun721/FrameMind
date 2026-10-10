@@ -55,6 +55,8 @@ export const enum DesktopChannel {
   PrepareReverseDesign = "reverse-design:prepare",
   ConfirmReverseDesign = "reverse-design:confirm",
   GenerateReverseDesign = "reverse-design:generate",
+  RunReverseDesignRound = "reverse-design:run-round",
+  CancelReverseDesignRound = "reverse-design:cancel-round",
   VerifyCadImportSource = "cad:source-verify",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
@@ -299,6 +301,8 @@ export interface FrameMindDesktopApi {
   prepareReverseDesign(): Promise<ReverseDesignDraft>;
   confirmReverseDesign(confirmationId: string): Promise<string>;
   generateReverseDesign(request: ReverseDesignGenerateRequest): Promise<ReverseDesignGenerated>;
+  runReverseDesignRound(confirmationId: string): Promise<import("./reverse-design-round-contract").ReverseDesignRound>;
+  cancelReverseDesignRound(): Promise<void>;
   candidateTool(request: CandidateToolRequest): Promise<CandidateToolResult>;
   inspectCandidate(taskId: string): Promise<ProjectCandidate>;
   mergeCandidate(request: { taskId: string; expectedCommit: string }): Promise<string>;

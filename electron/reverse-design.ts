@@ -33,6 +33,14 @@ export class ReverseDesignService {
     this.confirmations.set(owner, { context, draft, confirmed: false, busy: false });
     return structuredClone(draft);
   }
+  confirmedParent(owner: number, id: string): { content: string; guard(): void } {
+    const confirmation = this.confirmation(owner, id);
+    if (!confirmation.confirmed || confirmation.busy) throw new Error("请先完成固定输入确认");
+    const content = confirmation.context.content;
+    return { content, guard: () => {
+      if (this.confirmation(owner, id) !== confirmation || reverseDesignParentState(confirmation.context.content) !== reverseDesignParentState(content)) throw new Error("父快照已变化；本轮已过期");
+    } };
+  }
   async confirm(owner: number, id: string): Promise<string> {
     const confirmation = this.confirmation(owner, id), c = confirmation.context;
     if (confirmation.busy) throw new Error("固定输入确认正在进行");

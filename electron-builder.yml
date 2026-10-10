@@ -8,6 +8,7 @@ npmRebuild: false
 files:
   - dist/**
   - dist-electron/*.js
+  - dist-electron/*.cjs
   - '!dist-electron/*.test.js'
   - package.json
 extraResources:
