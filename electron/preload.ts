@@ -36,6 +36,11 @@ const desktopApi: FrameMindDesktopApi = {
   listProjectCheckpoints: (projectId) => ipcRenderer.invoke(DesktopChannel.ListProjectCheckpoints, projectId),
   readProjectCheckpoint: (request) => ipcRenderer.invoke(DesktopChannel.ReadProjectCheckpoint, request),
   readProjectCheckpointEvidence: (request) => ipcRenderer.invoke(DesktopChannel.ReadProjectCheckpointEvidence, request),
+  syncCandidateContext: (request) => ipcRenderer.invoke(DesktopChannel.SyncCandidateContext, request),
+  candidateTool: (request) => ipcRenderer.invoke(DesktopChannel.CandidateTool, request),
+  inspectCandidate: (taskId) => ipcRenderer.invoke(DesktopChannel.InspectCandidate, taskId),
+  mergeCandidate: (request) => ipcRenderer.invoke(DesktopChannel.MergeCandidate, request),
+  restoreProjectCheckpoint: (selector) => ipcRenderer.invoke(DesktopChannel.RestoreProjectCheckpoint, selector),
   verifyCadImportSource: (request) => ipcRenderer.invoke(DesktopChannel.VerifyCadImportSource, request),
 };
 

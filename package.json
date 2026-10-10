@@ -71,6 +71,8 @@
     "evidence:plan2:t242": "node scripts/verify-plan2-t242.mjs",
     "evidence:plan2:t243": "npm run build && node scripts/run-e2e-isolated.cjs e2e/plan2-t2-43-mainlines.spec.ts && node scripts/verify-plan2-t243.mjs",
     "evidence:plan2:p2507": "npm run build:main && node scripts/run-p25-07-history.mjs",
+    "test:plan2:p2508": "vitest run electron/project-candidates.test.ts electron/project-checkpoints.test.ts electron/project-history-store.test.ts --maxWorkers=2",
+    "evidence:plan2:p2508": "npm run build && node scripts/run-p25-08-candidates.mjs && node scripts/run-e2e-isolated.cjs e2e/p25-08-candidates.spec.ts",
     "test:plan2:p2507": "vitest run electron/project-history-store.test.ts electron/project-checkpoints.test.ts",
     "evidence:plan2:p2501": "node scripts/register-p25-01.mjs",
     "evidence:plan2:p2501:inspect": "node scripts/inspect-p25-01-step.mjs",

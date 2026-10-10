@@ -47,6 +47,11 @@ export const enum DesktopChannel {
   ListProjectCheckpoints = "project:checkpoint-list",
   ReadProjectCheckpoint = "project:checkpoint-read",
   ReadProjectCheckpointEvidence = "project:checkpoint-evidence-read",
+  SyncCandidateContext = "project:candidate-context",
+  CandidateTool = "project:candidate-tool",
+  InspectCandidate = "project:candidate-inspect",
+  MergeCandidate = "project:candidate-merge",
+  RestoreProjectCheckpoint = "project:controlled-restore",
   VerifyCadImportSource = "cad:source-verify",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
@@ -144,12 +149,30 @@ export interface CadImportRequest {
 
 export interface ProjectCheckpointRequest {
   projectId: string;
-  snapshots: Array<{ kind: "initial" | "save" | "copied-from" | "confirmation-before" | "confirmation-after" | "candidate-round" | "merge-before" | "restore" | "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; candidateId?: string; inputSha256?: string; resultSha256?: string; evidenceIndex?: string[]; copiedFrom?: { historyId: string; commit: string }; evidence?: { content: string; sha256: string } }>;
+  snapshots: Array<{ kind: "initial" | "save" | "copied-from" | "confirmation-before" | "confirmation-after" | "candidate-round" | "candidate" | "merge-before" | "merge-after" | "restore" | "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; candidateId?: string; inputSha256?: string; resultSha256?: string; evidenceIndex?: string[]; copiedFrom?: { historyId: string; commit: string }; evidence?: { content: string; sha256: string } }>;
 }
 export interface ProjectCheckpointRecord {
   schemaVersion: 1; projectId: string; revision: number; kind: ProjectCheckpointRequest["snapshots"][number]["kind"];
   recordedAt: string; contentSha256: string; commit: string; taskId?: string; inputSha256?: string; evidenceSha256?: string;
   candidateId?: string; resultSha256?: string; evidenceIndex?: string[]; copiedFrom?: { historyId: string; commit: string };
+}
+
+export interface CandidateContextRequest { content: string; sessionId: string; reason?: "edit" | "restore" | "switch"; }
+export interface ProjectCandidate {
+  schemaVersion: 1; projectId: string; historyId?: string; taskId: string; candidateId: string; retryOf?: string;
+  sessionId: string; parentCommit: string; parentRevision: number; parentInputSha256: string; parentContentSha256: string;
+  branch: string; commit: string; createdAt: string; state: "working" | "submitted" | "blocked" | "passed" | "stale" | "cancelled" | "merged";
+  inputSha256?: string; resultSha256?: string; evidenceIndex?: string[]; diagnostic?: string; mergedCommit?: string; inspectionSha256?: string;
+}
+export type CandidateToolRequest = { tool: "fork"; retryOf?: string } | { tool: "submit"; submission: CandidateSubmitRequest } | { tool: "list" } | { tool: "read" | "cancel"; taskId: string };
+export type CandidateToolResult = CandidateSnapshot | ProjectCandidate | ProjectCandidate[];
+export interface CandidateSubmitRequest {
+  projectId: string; taskId: string; content: string; inputSha256: string; resultContent: string; resultSha256: string; evidenceIndex: string[];
+}
+export interface CandidateSnapshot { candidate: ProjectCandidate; parentContent: string; candidateContent: string; }
+export interface CandidateInspection {
+  candidateId: string; commit: string; inputSha256: string; resultSha256: string;
+  checks: Array<{ name: string; passed: boolean; value: number; threshold: number; evidenceSha256: string }>;
 }
 
 export interface CadKernelInfo {
@@ -261,5 +284,10 @@ export interface FrameMindDesktopApi {
   listProjectCheckpoints(projectId: string): Promise<ProjectCheckpointRecord[]>;
   readProjectCheckpoint(request: { projectId: string; commit: string }): Promise<string>;
   readProjectCheckpointEvidence(request: { projectId: string; commit: string }): Promise<string>;
+  syncCandidateContext(request: CandidateContextRequest): Promise<void>;
+  candidateTool(request: CandidateToolRequest): Promise<CandidateToolResult>;
+  inspectCandidate(taskId: string): Promise<ProjectCandidate>;
+  mergeCandidate(request: { taskId: string; expectedCommit: string }): Promise<string>;
+  restoreProjectCheckpoint(selector: { commit?: string; taskId?: string; snapshot?: string }): Promise<string>;
   verifyCadImportSource(request: { requestId: string; inputSha256: string }): Promise<void>;
 }

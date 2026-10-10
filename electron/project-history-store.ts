@@ -57,6 +57,10 @@ export class ProjectHistoryStore {
       return this.checkpoints.record(request);
     });
   }
+  /** Candidate operations share the project's save/checkpoint queue and verified sidecar binding. */
+  access<T>(projectId: string, content: string, action: (repository: string) => Promise<T>): Promise<T> {
+    return this.serialized(projectId, async () => { await this.ensure(projectId, content); return action(this.checkpoints.location(projectId)); });
+  }
   list(projectId: string) { return this.serialized(projectId, () => { if (this.unavailable.has(projectId)) throw new Error(this.unavailable.get(projectId)); return this.checkpoints.list(projectId); }); }
   read(projectId: string, commit: string) { if (this.unavailable.has(projectId)) throw new Error(this.unavailable.get(projectId)); return this.checkpoints.read(projectId, commit); }
   readEvidence(projectId: string, commit: string) { if (this.unavailable.has(projectId)) throw new Error(this.unavailable.get(projectId)); return this.checkpoints.readEvidence(projectId, commit); }

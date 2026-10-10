@@ -10,6 +10,18 @@ afterEach(async () => { for (const directory of directories.splice(0)) await rm(
 const projectId = "project_98ec9b5d-5a3b-4024-b8d3-1581ea2658d5";
 const content = (revision: number) => JSON.stringify({ format: "framemind-project", id: projectId, revision });
 
+it("compensates a publication when cancellation arrives during Git update-ref", async () => {
+  const root = await mkdtemp(join(tmpdir(), "project-checkpoints-")); directories.push(root);
+  const store = new ProjectCheckpoints(root);
+  const [initial] = await store.record({ projectId, snapshots: [{ kind: "initial", content: content(0) }] });
+  let rolledBack = false;
+  await expect(store.record({ projectId, snapshots: [{ kind: "merge-before", content: content(0) }, { kind: "merge-after", content: content(1) }] }, {
+    beforePublish: async () => undefined, validatePublished: () => { throw new Error("cancelled during publication"); },
+    rollback: async () => { rolledBack = true; }, committed: async () => { throw new Error("must not report committed"); },
+  })).rejects.toThrow(/cancelled/);
+  expect(await store.head(projectId)).toBe(initial.commit); expect(rolledBack).toBe(true);
+}, 30_000);
+
 it("rejects persisted evidence with a different hash before publishing either checkpoint", async () => {
   const root = await mkdtemp(join(tmpdir(), "project-checkpoints-")); directories.push(root);
   const store = new ProjectCheckpoints(root);

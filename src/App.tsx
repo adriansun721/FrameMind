@@ -64,6 +64,7 @@ import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { applyCadImport, createCadImportDraft, encodeCadImportDraft, getCadImportReadiness, type CadImportDraft, type CadImportConfirmation } from "./workspace/cad-import";
 import { CadImportHistory } from "./components/CadImportHistory";
+import { ProjectCandidatesDialog } from "./components/ProjectCandidates";
 import { prepareCheckpointRestore } from "./workspace/checkpoint-restore";
 import { applyProjectEdits } from "./domain/project-operations";
 import { prepareDrawnMemberEdits } from "./domain/work-plane";
@@ -137,6 +138,11 @@ export function App() {
   const captureRecoveryRef = useRef<() => void>(() => {});
   const [selection, setSelection] = useState<Selection>(null);
   const projectHistoryRef = useRef(new ProjectHistory());
+  const candidateSessionRef = useRef(crypto.randomUUID());
+  const [candidatesOpen, setCandidatesOpen] = useState(false);
+  useEffect(() => {
+    void window.frameMind.syncCandidateContext({ content: encodeProject(project), sessionId: candidateSessionRef.current }).catch((cause: unknown) => setStatus({ tone: "error", text: cause instanceof Error ? cause.message : "候选上下文同步失败" }));
+  }, [project]);
   const frameConfirmationRef = useRef(new FrameStageConfirmation());
   const taskDraftConfirmationRef = useRef(new TaskDraftStageConfirmation());
   const editConfirmationRef = useRef(new ModelEditConfirmation());
@@ -305,12 +311,47 @@ export function App() {
         setAnalysisPhase(null);
       }
     }
+    if (newSession) candidateSessionRef.current = crypto.randomUUID();
+    void window.frameMind.syncCandidateContext({ content: encodeProject(next), sessionId: candidateSessionRef.current,
+      ...(newSession ? { reason: "switch" as const } : historyMode === "restore" ? { reason: "restore" as const } : {}) }).catch((cause: unknown) => setStatus({ tone: "error", text: cause instanceof Error ? cause.message : "候选状态同步失败" }));
     activeProjectRef.current = next; setProject(next);
     if (newSession && next.cadImportDraft) {
       const draft = next.cadImportDraft;
       setCadDraftId(draft.id); setCadParent(draft.parent); setCadDraftRestored(true); setCadPreview(draft.result); setCadPose(draft.pose); setCadPoseDecisions(draft.poseDecisions);
       setCadContacts(draft.approvedContactIds); setCadResourceDraft({ ...draft.resources, verification: undefined });
     }
+  };
+  const restoreCheckpoint = async (selector: { taskId?: string; commit?: string }) => {
+    const current = activeProjectRef.current;
+    // Decode the exact immutable snapshot before publishing a restoration checkpoint.
+    if (selector.taskId) {
+      const result = await window.frameMind.candidateTool({ tool: "read", taskId: selector.taskId });
+      if (Array.isArray(result) || !("parentContent" in result)) throw new Error("恢复候选身份无效");
+      prepareCheckpointRestore(current, decodeProject(result.parentContent));
+    } else prepareCheckpointRestore(current, decodeProject(await window.frameMind.readProjectCheckpoint({ projectId: current.id, commit: selector.commit! })));
+    if (cadCommitLockRef.current || activeProjectRef.current !== current) throw new Error("恢复上下文已变化，请重新查看差异");
+    cadCommitLockRef.current = true; setCadCommitBusy(true);
+    try {
+      const next = decodeProject(await window.frameMind.restoreProjectCheckpoint(selector));
+      const frozenInput = captureAnalysisInput(next);
+      if (frozenInput.projectId !== next.id) throw new Error("恢复输入项目身份不一致");
+      const currentResults = next.analysisResults.filter((result) => isAnalysisResultCurrent(next, result)).length;
+      cadCommitLockRef.current = false; activateProject(next, true); setSelection(null); setCadHistoryOpen(false); setProjectHistoryOpen(false); setCandidatesOpen(false); setSavedProject(null); setSavedRevision(-1);
+      setStatus({ tone: "neutral", text: `已恢复项目 checkpoint；旧任务与导入确认已失效；已复核冻结输入，${currentResults}/${next.analysisResults.length} 项历史结果仍有效。请保存恢复后的项目` });
+    } finally { cadCommitLockRef.current = false; setCadCommitBusy(false); }
+  };
+  const mergeCandidate = async (taskId: string, expectedCommit: string) => {
+    const current = activeProjectRef.current;
+    const snapshot = await window.frameMind.candidateTool({ tool: "read", taskId });
+    if (Array.isArray(snapshot) || !("candidateContent" in snapshot) || snapshot.candidate.commit !== expectedCommit) throw new Error("候选确认版本已变化");
+    decodeProject(snapshot.candidateContent);
+    if (cadCommitLockRef.current || activeProjectRef.current !== current || analysisTaskRef.current) throw new Error("项目正在变化或计算，请重新确认候选差异");
+    cadCommitLockRef.current = true; setCadCommitBusy(true);
+    try {
+      const next = decodeProject(await window.frameMind.mergeCandidate({ taskId, expectedCommit }));
+      cadCommitLockRef.current = false; activateProject(next, true); setCandidatesOpen(false); setSavedProject(null); setSavedRevision(-1);
+      setStatus({ tone: "success", text: "已受控合并检查通过的候选；合并前恢复点已保存，请保存项目" });
+    } finally { cadCommitLockRef.current = false; setCadCommitBusy(false); }
   };
   const restoreHistory = async (direction: "undo" | "redo") => {
     if (cadCommitLockRef.current) return;
@@ -802,6 +843,7 @@ export function App() {
             <MenuAction icon={<Box size={14} />} label="STEP 导入历史" shortcut="" onSelect={() => { setFileMenuOpen(false); setCadHistoryOpen(true); }} />
             <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
             <MenuAction icon={<Box size={14} />} label="项目历史" shortcut="" onSelect={() => { setFileMenuOpen(false); setProjectHistoryOpen(true); }} />
+            <MenuAction icon={<Box size={14} />} label="候选与差异" shortcut="" onSelect={() => { setFileMenuOpen(false); setCandidatesOpen(true); }} />
             <MenuAction icon={<Save size={14} />} label="另存为（复制历史）" shortcut="" onSelect={() => { setFileMenuOpen(false); void saveProject(true); }} />
             <MenuAction icon={<Save size={14} />} label="另存为（新历史）" shortcut="" onSelect={() => { setFileMenuOpen(false); void saveProject(true, "new"); }} />
           </div>}
@@ -1081,17 +1123,8 @@ export function App() {
     {cadPreview && cadPreviewOpen && <CadTopologyPreview key={cadPreview.requestId} project={project} draftId={cadDraftId} parent={cadParent} restored={cadDraftRestored} onApply={confirmCadImport} onSaveDraft={saveCadDraft} result={cadPreview} pose={cadPose} decisions={cadPoseDecisions} approvedContactIds={cadContacts} resourceDraft={cadResourceDraft} onResourceChange={setCadResourceDraft} onContactsChange={setCadContacts} onPoseChange={(pose) => {
       setCadPose(pose); setCadPoseDecisions((current) => [...current, { revision: current.length + 1, recordedAt: new Date().toISOString(), inputSha256: cadPreview.input.sha256, geometryHash: cadPreview.intermediateState.geometryHash ?? "", pose, source: "user" }]);
     }} onClose={() => setCadPreviewOpen(false)} />}
-    {(cadHistoryOpen || projectHistoryOpen) && <CadImportHistory general={projectHistoryOpen} project={project} onClose={() => { setCadHistoryOpen(false); setProjectHistoryOpen(false); }} onRestore={async (content) => {
-      const next = prepareCheckpointRestore(project, decodeProject(content));
-      if (cadCommitLockRef.current || activeProjectRef.current !== project || next.id !== project.id) throw new Error("恢复上下文已变化，请重新打开当前项目历史");
-      cadCommitLockRef.current = true; setCadCommitBusy(true);
-      try {
-        await window.frameMind.recordProjectCheckpoints({ projectId: next.id, snapshots: [{ kind: "restore", content: encodeProject(next) }] });
-        cadCommitLockRef.current = false;
-        activateProject(next, true); setSelection(null); setCadHistoryOpen(false); setProjectHistoryOpen(false); setSavedProject(null); setSavedRevision(-1);
-        setStatus({ tone: "neutral", text: "已恢复项目 checkpoint；旧任务与导入确认已失效，请保存恢复后的项目" });
-      } finally { cadCommitLockRef.current = false; setCadCommitBusy(false); }
-    }} />}
+    {(cadHistoryOpen || projectHistoryOpen) && <CadImportHistory general={projectHistoryOpen} project={project} onClose={() => { setCadHistoryOpen(false); setProjectHistoryOpen(false); }} onRestore={async (_content, commit) => restoreCheckpoint({ commit })} />}
+    {candidatesOpen && <ProjectCandidatesDialog project={project} onClose={() => setCandidatesOpen(false)} onMerge={mergeCandidate} onRestore={(taskId) => restoreCheckpoint({ taskId })} />}
     {cadCommitBusy && <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label="正在提交导入"><p className="node-dialog" role="status">正在写入并核对项目 checkpoint…</p></div>}
   </main></UnitPresetContext.Provider>;
 }

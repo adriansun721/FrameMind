@@ -49,12 +49,15 @@ export class ProjectCheckpoints {
     beforePublish(records: ProjectCheckpointRecord[], original: string): Promise<void>;
     rollback(): Promise<void>;
     committed(): Promise<void>;
-  }): Promise<ProjectCheckpointRecord[]> {
+    validatePublished?(): void;
+  }, branch?: { name: string; parentCommit: string; guard(): void }): Promise<ProjectCheckpointRecord[]> {
     request = structuredClone(request);
     const repository = this.repository(request.projectId);
+    if (branch && (!/^candidate\/task_[a-f0-9-]{36}$/.test(branch.name) || !commitIdentity.test(branch.parentCommit))) throw new Error("候选分支身份无效");
+    const reference = branch ? `refs/heads/${branch.name}` : "refs/heads/main";
     if (!Array.isArray(request.snapshots) || request.snapshots.length < 1 || request.snapshots.length > 2) throw new Error("checkpoint 数量无效");
     for (const snapshot of request.snapshots) {
-      if (!["initial", "save", "copied-from", "confirmation-before", "confirmation-after", "candidate-round", "merge-before", "restore", "step-before", "step-confirmed", "step-undo", "step-redo"].includes(snapshot.kind) || typeof snapshot.content !== "string" || snapshot.content.length > 64 * 1024 * 1024) throw new Error("checkpoint 内容无效");
+      if (!["initial", "save", "copied-from", "confirmation-before", "confirmation-after", "candidate-round", "candidate", "merge-before", "merge-after", "restore", "step-before", "step-confirmed", "step-undo", "step-redo"].includes(snapshot.kind) || typeof snapshot.content !== "string" || snapshot.content.length > 64 * 1024 * 1024) throw new Error("checkpoint 内容无效");
       const project = JSON.parse(snapshot.content);
       if (project.format !== "framemind-project" || project.id !== request.projectId || !Number.isSafeInteger(project.revision) || project.revision < 0) throw new Error("checkpoint 项目身份无效");
       if (snapshot.evidence && (typeof snapshot.evidence.content !== "string" || snapshot.evidence.content.length > 64 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(snapshot.evidence.sha256))) throw new Error("checkpoint 证据无效");
@@ -71,8 +74,9 @@ export class ProjectCheckpoints {
       await lock.writeFile(JSON.stringify({ pid: process.pid }));
       await this.git(repository, ["init", "--bare", "--initial-branch=main", repository]);
       let parent = "";
-      try { parent = (await this.git(repository, ["rev-parse", "--verify", "refs/heads/main"])).trim(); } catch { /* New repository. */ }
+      try { parent = (await this.git(repository, ["rev-parse", "--verify", reference])).trim(); } catch { /* New repository/branch. */ }
       const original = parent, records: ProjectCheckpointRecord[] = [];
+      if (branch) { await this.read(request.projectId, branch.parentCommit); parent ||= branch.parentCommit; }
       for (const snapshot of request.snapshots) {
         const project = JSON.parse(snapshot.content), revision = project.revision as number;
         const engineeringFields = ["id", "units", "nodes", "members", "materials", "sections", "supports", "nodalLoads", "uniformLoads", "selfWeight", "loadCases", "loadCombinations", "analysisCases", "psdSpectra"];
@@ -96,14 +100,20 @@ export class ProjectCheckpoints {
         records.push({ ...metadata, commit: parent });
       }
       // A single compare-and-swap publishes the whole pair. Earlier failures leave only unreachable objects.
-      try { if (transaction) await transaction.beforePublish(records, original); await this.git(repository, ["update-ref", "refs/heads/main", parent, original || "0".repeat(40)]); }
+      try { if (transaction) await transaction.beforePublish(records, original); branch?.guard(); await this.git(repository, ["update-ref", reference, parent, original || "0".repeat(40)]); }
       catch (cause) {
         // A subprocess timeout is not proof that the reference was never published.
-        const actual = (await this.git(repository, ["for-each-ref", "--format=%(objectname)", "refs/heads/main"])).trim();
+        const actual = (await this.git(repository, ["for-each-ref", "--format=%(objectname)", reference])).trim();
         if (actual !== parent) {
           if (actual === original) { if (transaction) await transaction.rollback(); throw cause; }
           throw new Error("checkpoint 发布结果无法确认；保留保存恢复日志，未回滚文件，请重新打开项目复核");
         }
+      }
+      try { transaction?.validatePublished?.(); }
+      catch (cause) {
+        // Cancellation may arrive while update-ref is running. Compensate before reporting success.
+        await this.git(repository, ["update-ref", reference, original || "0".repeat(40), parent]);
+        await transaction!.rollback(); throw cause;
       }
       published = true;
       if (transaction) await transaction.committed();
@@ -136,6 +146,13 @@ export class ProjectCheckpoints {
     if (!commitIdentity.test(commit)) throw new Error("checkpoint 提交身份无效");
     const repository = this.repository(projectId);
     await this.git(repository, ["merge-base", "--is-ancestor", commit, "refs/heads/main"]);
+    return (await this.snapshot(repository, projectId, commit)).content;
+  }
+
+  async readCandidate(projectId: string, branch: string, commit: string): Promise<string> {
+    if (!/^candidate\/task_[a-f0-9-]{36}$/.test(branch) || !commitIdentity.test(commit)) throw new Error("候选分支或提交身份无效");
+    const repository = this.repository(projectId);
+    await this.git(repository, ["merge-base", "--is-ancestor", commit, `refs/heads/${branch}`]);
     return (await this.snapshot(repository, projectId, commit)).content;
   }
 

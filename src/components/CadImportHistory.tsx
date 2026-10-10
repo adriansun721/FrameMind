@@ -6,7 +6,7 @@ import { diffProjectSnapshots, type ProjectSnapshotChange } from "../workspace/p
 import { PagedItems } from "./ProcessDisclosure";
 import { prepareCheckpointRestore } from "../workspace/checkpoint-restore";
 
-export function CadImportHistory({ project, general = false, onClose, onRestore }: { project: FrameProject; general?: boolean; onClose(): void; onRestore(content: string): Promise<void> }) {
+export function CadImportHistory({ project, general = false, onClose, onRestore }: { project: FrameProject; general?: boolean; onClose(): void; onRestore(content: string, commit: string): Promise<void> }) {
   const [records, setRecords] = useState<ProjectCheckpointRecord[]>([]), [busy, setBusy] = useState(true), [error, setError] = useState("");
   const [preview, setPreview] = useState<{ record: ProjectCheckpointRecord; content: string; parent: FrameProject; changes: ProjectSnapshotChange[] } | null>(null);
   useEffect(() => {
@@ -16,13 +16,15 @@ export function CadImportHistory({ project, general = false, onClose, onRestore 
   }, [project.id]);
   useEffect(() => { setPreview(null); }, [project]);
   const receipt = project.cadImports?.at(-1);
+  const [filter, setFilter] = useState("");
   return <div className="dialog-backdrop"><section className="node-dialog wide-dialog" role="dialog" aria-modal="true" aria-label={general ? "项目历史" : "STEP 导入历史"}>
     <header><h2>{general ? "项目历史" : "STEP 导入历史"}</h2><button className="icon-button" disabled={busy} onClick={onClose} aria-label="关闭">×</button></header>
     {general && <p>本地独立 Git 历史 · 确认、保存与恢复点。另存为默认复制历史，也可选择从新历史开始。</p>}
+    {general && <label>按任务 / 快照 / 提交查找<input aria-label="历史任务或提交筛选" value={filter} onChange={(event) => setFilter(event.target.value)} /></label>}
     {receipt && <div><p>确认回执 {receipt.id} · R{receipt.parentRevision} → R{receipt.appliedRevision} · {receipt.mappings.length} 根工程杆件</p><p>{receipt.source.name} · 导入 {receipt.source.importedAt} · 确认 {receipt.confirmedAt}</p><p>输入 SHA-256 {receipt.inputSha256}</p><p>草稿 SHA-256 {receipt.draftHash}</p><p>导入时刚接已确认，支座与荷载未设置。项目中保存来源摘要；完整中间态与 AI 核验依据保存在确认 checkpoint 的旁车证据。</p></div>}
     {busy && <p role="status">正在读取 checkpoint…</p>}
     {!busy && !records.length && <p role="status">本机项目历史旁车缺失或不可读取。正式模型仍可编辑和保存；无法恢复旧 checkpoint 或复核历史提交。</p>}
-    <div className="cad-preview-body">{records.filter((record) => general || record.kind.startsWith("step-")).map((record) => <p key={record.commit}>{record.kind} · R{record.revision} · {record.recordedAt} · {record.commit.slice(0, 12)}{record.taskId && <span> · 任务 {record.taskId}</span>}{record.copiedFrom && <span> · 复制自 {record.copiedFrom.commit.slice(0, 12)}</span>} <button className="button ghost" disabled={busy} onClick={() => {
+    <div className="cad-preview-body">{records.filter((record) => (general || record.kind.startsWith("step-")) && (!filter || [record.commit, record.taskId, record.candidateId].some((v) => v?.includes(filter)))).map((record) => <p key={record.commit}>{record.kind} · R{record.revision} · {record.recordedAt} · {record.commit.slice(0, 12)}{record.taskId && <span> · 任务 {record.taskId}</span>}{record.copiedFrom && <span> · 复制自 {record.copiedFrom.commit.slice(0, 12)}</span>} <button className="button ghost" disabled={busy} onClick={() => {
       setBusy(true); setError(""); setPreview(null);
       void window.frameMind.readProjectCheckpoint({ projectId: project.id, commit: record.commit }).then((content) => {
         const target = prepareCheckpointRestore(project, decodeProject(content));
@@ -37,7 +39,7 @@ export function CadImportHistory({ project, general = false, onClose, onRestore 
       <button className="button" disabled={busy} onClick={() => {
         if (!window.confirm(`已查看 ${preview.changes.length} 项差异。恢复 ${preview.record.kind} / R${preview.record.revision} 将替换当前项目全部状态，是否继续？`)) return;
         setBusy(true); setError("");
-        void onRestore(preview.content).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "恢复失败，当前模型未修改")).finally(() => setBusy(false));
+        void onRestore(preview.content, preview.record.commit).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "恢复失败，当前模型未修改")).finally(() => setBusy(false));
       }}>确认整体恢复</button>
     </section>}
     {error && <p role="alert">{error}</p>}
