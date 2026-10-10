@@ -1,11 +1,12 @@
 import { _electron as electron, expect, test } from "@playwright/test";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { createProject } from "../src/domain/project";
 import { encodeProject, decodeProject } from "../src/domain/project-file";
 import { enterWorkbenchWithoutRecovery } from "./electron-app";
+import { createNode } from "./modeling-actions";
 
 test("P25-07 desktop: independent history, copy/new lineage, recovery and missing history", async () => {
   test.setTimeout(180_000);
@@ -40,13 +41,18 @@ test("P25-07 desktop: independent history, copy/new lineage, recovery and missin
     const copiedRecords = await page.evaluate((id) => window.frameMind.listProjectCheckpoints(id), parent.id);
     expect(copiedRecords[0].copiedFrom?.historyId).toBe(original.projectHistory!.id);
     expect(copiedRecords.map((r) => r.kind)).toContain("candidate-round");
+    await createNode(page, ["2", "0", "0"]);
+    await action("保存项目"); await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+    await expect(page.getByTestId("viewport-node-count")).toHaveText("1 个节点");
     await action("项目历史"); const history = page.getByRole("dialog", { name: "项目历史", exact: true });
     await expect(history.getByText(/复制自/)).toBeVisible();
-    await history.locator("p").filter({ hasText: /^save ·/ }).first().getByRole("button", { name: "查看恢复差异" }).click();
+    await history.locator("p").filter({ hasText: /^save ·/ }).last().getByRole("button", { name: "查看恢复差异" }).click();
     await expect(history.getByRole("region", { name: "checkpoint 恢复差异" })).toBeVisible();
+    await expect(history.getByRole("region", { name: "checkpoint 恢复差异" })).toContainText("nodes");
     await page.screenshot({ path: join(evidence, "history.png") });
     page.once("dialog", (dialog) => dialog.accept()); await history.getByRole("button", { name: "确认整体恢复" }).click();
     await expect(history).toBeHidden(); await expect(page.locator('footer[role="status"]')).toContainText("旧任务与导入确认已失效");
+    await expect(page.getByTestId("viewport-node-count")).toHaveText("0 个节点");
     await action("保存项目"); await expect(page.locator('footer[role="status"]')).toContainText("已保存");
     expect(decodeProject(await readFile(copyPath, "utf8")).projectHistory?.id).toBe(copied.projectHistory?.id);
     await app.evaluate((_electron, target) => { process.env.FRAMEMIND_E2E_SAVE_AS_PATH = target; }, newPath);
@@ -63,7 +69,10 @@ test("P25-07 desktop: independent history, copy/new lineage, recovery and missin
     for (const [file, source] of [["original.framemind", path], ["copied.framemind", copyPath], ["new.framemind", newPath]]) await cp(source, join(evidence, file));
     const hash = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
     const artifacts = Object.fromEntries(await Promise.all(["history.png", "missing-history.png", "history.json", "original.framemind", "copied.framemind", "new.framemind"].map(async (file) => [file, hash(await readFile(join(evidence, file)))])));
-    const sources = ["electron/project-history-store.ts", "electron/project-checkpoints.ts", "electron/main.ts", "src/App.tsx", "e2e/p25-07-history.spec.ts", "dist/index.html", "dist-electron/main.js"];
+    const sources = ["electron/project-history-store.ts", "electron/project-checkpoints.ts", "electron/main.ts", "src/App.tsx",
+      "src/components/AiConversationPanel.tsx", "src/components/CadImportHistory.tsx", "src/workspace/checkpoint-restore.ts",
+      "e2e/p25-07-history.spec.ts", "dist/index.html", "dist-electron/main.js",
+      ...(await readdir(resolve("dist/assets"))).filter((file) => /\.(js|css)$/.test(file)).map((file) => `dist/assets/${file}`)];
     const sourceHashes = Object.fromEntries(await Promise.all(sources.map(async (file) => [file, hash(await readFile(file))])));
     await writeFile(join(evidence, "run.json"), JSON.stringify({ task: "P25-07", runId, recordedAt: new Date().toISOString(), mode: "local-real-git", status: "passed", sourceRepositoryUnchanged: true, artifacts, sourceHashes, reverify: "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-07-history.spec.ts" }, null, 2));
   } finally {

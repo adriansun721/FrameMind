@@ -1,0 +1,39 @@
+{
+  "task": "P25-07",
+  "runId": "db18b4b3-4f3e-4207-8e51-0958249f8c91",
+  "recordedAt": "2026-10-10T05:20:13.389Z",
+  "mode": "local-real-git",
+  "status": "passed",
+  "sourceRepositoryUnchanged": true,
+  "artifacts": {
+    "history.png": "cec888e19877ea91ae7033190a8b090690f779d3ae06f48a9eda549f0a9055e4",
+    "missing-history.png": "d147e7189b36f3af3da30439ff2cef470519476c99b180163e7694a75a62fe6c",
+    "history.json": "863e2cd4c52bc3a1916becb287d46ed378143fd85f76c97f4b593c1d7e2382ba",
+    "original.framemind": "7553b181c62bffbdec198e1f962bc93ef98b487c7017a69ddc158472d7783f8b",
+    "copied.framemind": "070ff85c321fb735dbefd4b52bcf34b75ce09658a5ca15123437ccbe0b944402",
+    "new.framemind": "b85041195f443f6004ccab8a36ccab816039489efd3be1f19b30ac0e91355219"
+  },
+  "sourceHashes": {
+    "electron/project-history-store.ts": "7d9f117ffa2271b9249a061841e8b39063bda077a6c9f62211128d9200586613",
+    "electron/project-checkpoints.ts": "2a747e872cbe5021ab75537fa0d336ca2440ab6d856bf4febf57697de08cfe5d",
+    "electron/main.ts": "fec3a1e5707fd1e7e903e1649c4bd05f34fa213d167e3d40709a4320f503f640",
+    "src/App.tsx": "f57c3afbe8c20157c7cbe4e18c812e6ea92c6c8fff7fc00421234510c9225589",
+    "src/components/AiConversationPanel.tsx": "ed6cb41ad80ef24405af601f19480821ea2deb6c434d0a677b985f30d378bfe6",
+    "src/components/CadImportHistory.tsx": "8b8636f2e842aa49a553a67133d6625d6936b8e3eadb251f2b6b6f1f077b79dc",
+    "src/workspace/checkpoint-restore.ts": "8b8ca686ae02ab369c5afcf9f26dfb5838d3f1255d7316506126ea2bf13b4f1a",
+    "e2e/p25-07-history.spec.ts": "7da3bfd6556a195d79f9b2ad1072900fd5ecd828c7694172fc24e197d53fc896",
+    "dist/index.html": "7d0134ae50dd65b856345d966b4d17dc1ee6707528d3c149e287636095be5f34",
+    "dist-electron/main.js": "d53f5705d19d213e90aed02e19cdc04f72b2a36537d70fb4aaa143219a94ada1",
+    "dist/assets/analysis-worker-BFSHcyX4.js": "1af15d56c2d60acab5ef78559dcb25be52fffe7c9867ba7a6ba8f443c5c6baf8",
+    "dist/assets/index-C1DUzFW9.css": "a1aa41471d22b5a14acb2c458f71a76c71cb7ca554e9b3248abb2956942e8242",
+    "dist/assets/index-CsT572fc.js": "0eca21822519f57ef23a0223d7160bb33b67fa9f5aa2b1ec95ce6d57a6f9e3c6",
+    "dist/assets/jszip.min-B6P9DqUX.js": "cd1cc9fe882115a27a84d046835012b7dfcdd2e51a1fef973e6556ce8dc02a0f",
+    "dist/assets/random-report-content-CRXrY7Ym.js": "e8f1aaf91d3dae3fda527207e3e06e243fc1d0f8260026b39f6c533ea2647b2a",
+    "dist/assets/random-report-data-DfLBJprb.js": "44399d4b1a60d07daa046dd99a3491b0245c38dfc0673fc710c90290527b2a7e",
+    "dist/assets/report-content-CLnpGlWt.js": "90f54061d94f3c7c9556f4d9c9ba9bb6e6ce2ee443866e78a7ff1035f2667f2c",
+    "dist/assets/report-pdf-DRl8ZJOM.js": "1988c4d0a148b30b8a9436c7f40507fdc2cb336470ac2b74eabe00fd06fe1322",
+    "dist/assets/report-word-B8M4CIDD.js": "1b02ab1d04276b3c46be2a16ab5f4a201bfc9a5b68ddae8f8c32c3ce80a41303",
+    "dist/assets/report-worker-WVwdyEJP.js": "08d05d43b72ac7464c72daa9c1c1dd20c3be4d24247c97f9606f0bcb58b3324c"
+  },
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-07-history.spec.ts"
+}

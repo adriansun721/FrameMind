@@ -6,7 +6,7 @@ import { ProjectFileStore } from "./project-files";
 import type { ProjectCheckpointRequest, ProjectCheckpointRecord } from "./contracts";
 
 interface HistoryIdentity { schemaVersion: 1; projectId: string; historyId: string; }
-interface SaveJournal { schemaVersion: 1; projectId: string; before: string | null; after: string; original: string; commit: string; beforeIndex: string | null; afterIndex: string; }
+interface SaveJournal { schemaVersion: 1; projectId: string; before: string | null; after: string; original: string; commit: string; beforeIndex: string | null; afterIndex: string; beforeSha256: string | null; }
 const hash = (content: string) => createHash("sha256").update(content).digest("hex");
 async function optionalRead(path: string): Promise<string | null> {
   try { return await readFile(path, "utf8"); } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return null; throw error; }
@@ -25,7 +25,7 @@ export class ProjectHistoryStore {
   private readonly paths = new Map<string, string>();
   private readonly queues = new Map<string, Promise<unknown>>();
   private readonly unavailable = new Map<string, string>();
-  constructor(private readonly root: string, private readonly files = new ProjectFileStore(), executable = "git") {
+  constructor(root: string, private readonly files = new ProjectFileStore(), executable = "git") {
     this.checkpoints = new ProjectCheckpoints(root, executable);
   }
   private async serialized<T>(key: string, action: () => Promise<T>): Promise<T> {
@@ -81,11 +81,25 @@ export class ProjectHistoryStore {
     await recoveryLock.writeFile(JSON.stringify({ pid: process.pid }));
     const journal: SaveJournal = JSON.parse(source);
     if (journal.schemaVersion !== 1 || journal.projectId !== projectId || identity(journal.after).id !== projectId || !/^[a-f0-9]{40}$/.test(journal.commit)) throw new Error("保存恢复日志无效；未改写项目");
-    const head = await this.checkpoints.head(projectId);
+    const head = await this.checkpoints.mainReference(projectId);
     if (head !== journal.commit && head !== journal.original) throw new Error("保存恢复引用已变化；保留日志供诊断，未改写项目");
+    const manifest: HistoryIdentity = JSON.parse((await optionalRead(join(repository, "history.json")))!);
+    if (journal.before !== null && (identity(journal.before).id !== projectId || hash(journal.before) !== journal.beforeSha256)) throw new Error("保存恢复原文件哈希无效；保留日志，未改写项目");
+    if (head === journal.commit && await this.checkpoints.read(projectId, journal.commit) !== journal.after) throw new Error("保存恢复新文件与 Git 不一致；保留日志，未改写项目");
+    const afterIndex = JSON.parse(journal.afterIndex);
+    if (afterIndex.schemaVersion !== 1 || afterIndex.projectId !== projectId || afterIndex.historyId !== manifest.historyId || afterIndex.commit !== journal.commit || afterIndex.contentSha256 !== hash(journal.after)) throw new Error("保存恢复新索引无效；保留日志，未改写项目");
+    if (journal.beforeIndex !== null) {
+      if (journal.before === null) throw new Error("保存恢复原索引缺少对应文件；保留日志");
+      await this.validateIndex(projectId, manifest.historyId, journal.beforeIndex, journal.before);
+    }
     await this.restoreFiles(path, repository, journal, head === journal.commit);
     await unlink(journalPath);
     } finally { await recoveryLock.close(); await unlink(lockPath); }
+  }
+  private async validateIndex(projectId: string, historyId: string, source: string, content: string): Promise<void> {
+    const saved = JSON.parse(source);
+    if (saved.schemaVersion !== 1 || saved.projectId !== projectId || saved.historyId !== historyId || saved.contentSha256 !== hash(content)
+      || hash(await this.checkpoints.read(projectId, saved.commit)) !== saved.contentSha256) throw new Error("项目文件与保存索引身份或哈希不一致；保留模型，历史需复核");
   }
   private async restoreFiles(path: string, repository: string, journal: SaveJournal, committed: boolean): Promise<void> {
     const content = committed ? journal.after : journal.before, index = committed ? journal.afterIndex : journal.beforeIndex;
@@ -116,10 +130,10 @@ export class ProjectHistoryStore {
           if (history.schemaVersion !== 1 || history.projectId !== project.id || (project.projectHistory && history.historyId !== project.projectHistory.id)) throw new Error("项目与历史目录身份不一致；未使用该历史，模型仍可打开");
           await this.recover(path, project.id);
           const index = await optionalRead(join(`${path}.git`, "saved.json"));
-          if (index) {
-            const saved = JSON.parse(index), content = await this.files.open(path);
-            if (saved.contentSha256 !== hash(content) || hash(await this.checkpoints.read(project.id, saved.commit)) !== saved.contentSha256) throw new Error("项目文件与保存索引不一致；保留模型，历史需复核");
-          }
+          const recoveredProject = identity(await this.files.open(path));
+          if (recoveredProject.projectHistory && recoveredProject.projectHistory.id !== history.historyId) throw new Error("恢复项目与历史身份不一致；保留模型，历史需复核");
+          if (!index && recoveredProject.projectHistory) throw new Error("已保存项目的历史索引缺失；保留模型，历史需复核");
+          if (index) await this.validateIndex(project.id, history.historyId, index, await this.files.open(path));
         }
       } catch (error) { warning = error instanceof Error ? error.message : "项目历史不可读取；模型仍可打开"; }
       if (warning && !warning.includes("目录缺失")) this.unavailable.set(project.id, warning);
@@ -168,7 +182,15 @@ export class ProjectHistoryStore {
           await this.files.save(join(destination, "history.json"), JSON.stringify({ schemaVersion: 1, projectId: project.id, historyId: `history_${randomUUID()}` }));
         }
         const manifest = await this.ensure(project.id, changingPath ? JSON.stringify({ ...JSON.parse(content), projectHistory: undefined }) : content);
-        const savedContent = `${JSON.stringify({ ...JSON.parse(content), projectHistory: { id: manifest.historyId } })}\n`;
+        const savedProject = JSON.parse(content);
+        if (changingPath && previousPath !== undefined) {
+          savedProject.taskState = undefined;
+          if (savedProject.cadImportDraft) {
+            savedProject.cadImportDraft.restored = true;
+            savedProject.cadImportDraft.resources.verification = undefined;
+          }
+        }
+        const savedContent = `${JSON.stringify({ ...savedProject, projectHistory: { id: manifest.historyId } })}\n`;
         await this.recover(path, project.id);
         let journal: SaveJournal | undefined;
         const journalPath = join(destination, "save-transaction.json");
@@ -177,7 +199,8 @@ export class ProjectHistoryStore {
           beforePublish: async (records, original) => {
             const record = records.at(-1)!;
             journal = { schemaVersion: 1, projectId: project.id, before: await optionalRead(path), after: savedContent, original, commit: record.commit,
-              beforeIndex: await optionalRead(join(destination, "saved.json")), afterIndex: JSON.stringify({ schemaVersion: 1, projectId: project.id, historyId: manifest.historyId, commit: record.commit, contentSha256: hash(savedContent) }) };
+              beforeIndex: changingPath ? null : await optionalRead(join(destination, "saved.json")), afterIndex: JSON.stringify({ schemaVersion: 1, projectId: project.id, historyId: manifest.historyId, commit: record.commit, contentSha256: hash(savedContent) }), beforeSha256: null };
+            journal.beforeSha256 = journal.before === null ? null : hash(journal.before);
             await this.files.save(journalPath, JSON.stringify(journal));
             await this.files.save(path, savedContent);
             await this.files.save(join(destination, "saved.json"), journal.afterIndex);

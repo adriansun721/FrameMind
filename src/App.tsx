@@ -64,6 +64,7 @@ import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
 import { applyCadImport, createCadImportDraft, encodeCadImportDraft, getCadImportReadiness, type CadImportDraft, type CadImportConfirmation } from "./workspace/cad-import";
 import { CadImportHistory } from "./components/CadImportHistory";
+import { prepareCheckpointRestore } from "./workspace/checkpoint-restore";
 import { applyProjectEdits } from "./domain/project-operations";
 import { prepareDrawnMemberEdits } from "./domain/work-plane";
 import { captureAnalysisInput, getMemberResponseSamples, getMemberSectionForces, getSelfWeightSummary, getActiveAnalysisResult, getAnalysisResultForSource, isAnalysisResultCurrent, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "./domain/analysis";
@@ -123,6 +124,7 @@ export function App() {
   const u = unitPresentation(project.displayUnitPreset);
   const [aiPreview, setAiPreview] = useState<FramePreview | null>(null);
   const activeProjectRef = useRef(project); const activeSessionRef = useRef(0); activeProjectRef.current = project;
+  const renderedSession = activeSessionRef.current;
   const [projectPath, setProjectPath] = useState<string | null>(null); const [savedRevision, setSavedRevision] = useState(0); const [savedProject, setSavedProject] = useState<FrameProject | null>(null);
   const [startupReady, setStartupReady] = useState(false);
   const [recoverySource, setRecoverySource] = useState<RecoveryEntry | null>(null);
@@ -444,11 +446,13 @@ export function App() {
   };
   const saveProject = async (saveAs = false, historyMode: "copy" | "new" = "copy") => {
     if (cadCommitLockRef.current) return;
+    if (analysisBusy || analysisHandlesRef.current.size) { setStatus({ tone: "neutral", text: "本地分析仍在运行，请等待结果完成后保存或另存为" }); return; }
     const source = activeProjectRef.current;
     const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
     cadCommitLockRef.current = true; setCadCommitBusy(true);
     try {
-      const result = await window.frameMind.saveProject({ path: projectPath, content: encodeProject(source), saveAs, historyMode });
+      const saveSource = saveAs ? prepareCheckpointRestore(source, source) : source;
+      const result = await window.frameMind.saveProject({ path: projectPath, content: encodeProject(saveSource), saveAs, historyMode });
       if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
       const saved = result.content ? decodeProject(result.content) : source;
       cadCommitLockRef.current = false;
@@ -566,6 +570,7 @@ export function App() {
 
   const runAnalysis = async (showResults = false, requestedSourceId?: string, frozenInput?: AnalysisInputSnapshot): Promise<AiToolResult> => {
     const current = activeProjectRef.current;
+    if (cadCommitLockRef.current) return { status: "failed", message: "项目历史正在写入，请保存完成后重新运行分析", context: captureAiSnapshot(current, []).context };
     requestedSourceId ??= current.activeAnalysisCaseId ?? current.activeLoadCombinationId ?? current.activeLoadCaseId;
     if (requestedSourceId && ![...current.loadCases, ...current.loadCombinations, ...current.analysisCases].some((item) => item.id === requestedSourceId)) return { status: "missing-input", message: `任务分析来源 ${requestedSourceId} 已删除，请明确新的来源`, context: captureAiSnapshot(current, []).context };
     const source = selectAnalysisSource(current, requestedSourceId);
@@ -995,13 +1000,14 @@ export function App() {
         </BottomProperties>
       </section>
 
-      <AiConversationPanel key={`${project.id}:${activeSessionRef.current}`} project={project} sessionId={activeSessionRef.current} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
+      <AiConversationPanel key={`${project.id}:${renderedSession}`} project={project} sessionId={renderedSession} selection={aiSelection} open={assistantPanelOpen} onClose={() => setAssistantPanelOpen(false)} onSettings={() => setSettingsDialogOpen(true)} onPreview={setAiPreview}
         onTaskStateChange={(state) => {
           const current = activeProjectRef.current;
-          if (state.projectId !== current.id) return;
+          if (state.projectId !== current.id || renderedSession !== activeSessionRef.current) return;
           const analyses = new Map(state.analyses.map((item) => [item.taskId, item]));
           for (const [taskId, input] of pendingAnalysisInputsRef.current) if (input.projectId === current.id && state.scheduled.some((task) => task.id === taskId && !["completed", "cancelled"].includes(task.status))) analyses.set(taskId, { taskId, input });
           const nextState = { ...state, analyses: [...analyses.values()] };
+          if (!current.taskState && !nextState.conversations.length && !nextState.scheduled.length && !nextState.analyses.length) return;
           if (sameInputValue(current.taskState, nextState)) return;
           const next = { ...current, taskState: nextState };
           activeProjectRef.current = next; setProject(next);
@@ -1076,8 +1082,7 @@ export function App() {
       setCadPose(pose); setCadPoseDecisions((current) => [...current, { revision: current.length + 1, recordedAt: new Date().toISOString(), inputSha256: cadPreview.input.sha256, geometryHash: cadPreview.intermediateState.geometryHash ?? "", pose, source: "user" }]);
     }} onClose={() => setCadPreviewOpen(false)} />}
     {(cadHistoryOpen || projectHistoryOpen) && <CadImportHistory general={projectHistoryOpen} project={project} onClose={() => { setCadHistoryOpen(false); setProjectHistoryOpen(false); }} onRestore={async (content) => {
-      const restored = decodeProject(content);
-      const next = { ...restored, projectHistory: project.projectHistory, taskState: undefined, cadImportDraft: restored.cadImportDraft ? { ...restored.cadImportDraft, restored: true, resources: { ...restored.cadImportDraft.resources, verification: undefined } } : undefined };
+      const next = prepareCheckpointRestore(project, decodeProject(content));
       if (cadCommitLockRef.current || activeProjectRef.current !== project || next.id !== project.id) throw new Error("恢复上下文已变化，请重新打开当前项目历史");
       cadCommitLockRef.current = true; setCadCommitBusy(true);
       try {

@@ -1,0 +1,2 @@
+# Evidence hashes describe exact artifact bytes; preserve them across checkouts.
+runs/** -text

@@ -35,7 +35,6 @@ import { projectInput, persistTaskState, recoveredTurns, recoveryIssues, mergeLo
 import { redactPersistence } from "../../electron/persistence-redaction";
 
 // Full conversation history is local; engineering task summaries travel with the project.
-const sessionHistories = new Map<string, ConversationHistory[]>();
 interface Props {
   project: FrameProject;
   sessionId: number;
@@ -80,7 +79,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   const [showHome, setShowHome] = useState(true);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [conversationId, setConversationId] = useState<string>(() => crypto.randomUUID());
-  const [conversations, setConversations] = useState(() => persistedProject.taskState?.conversations ?? sessionHistories.get(project.id) ?? []);
+  const [conversations, setConversations] = useState(() => persistedProject.taskState?.conversations ?? []);
   const [restoring, setRestoring] = useState(Boolean(persistedProject.taskState?.conversations.length));
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [chatLoaded, setChatLoaded] = useState(false);
@@ -166,7 +165,6 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
         conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested,
         requestPrompt: requestPromptRef.current, baselineId: baselineRef.current, modelEdits, modelEditsSource, taskDraft, taskDraftSource, targets: taskTargets, analysisSourceId: analysisSourceRef.current },
       ...previous.filter((item) => item.id !== conversationId)];
-      sessionHistories.set(project.id, next);
       return next;
     });
   }, [turns, conversationId, project.id, proposal, proposalSource, conditions, conditionsSource, sectionChange, sectionSource, sectionSelection, calculationRequested, modelEdits, modelEditsSource, taskDraft, taskDraftSource, taskTargets]);
@@ -573,7 +571,7 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
       {busy && <button className="icon-button" aria-label="取消对话" title="结束本次对话请求" onClick={() => { taskRef.current?.cancel(); setCalculationRequested(false); continuationRef.current = null; }}><X size={14} /></button>}
       <button className="icon-button" aria-label="清空对话" title="清空对话" disabled={busy || analysisBusy || proposalDirty || conditionsDirty || sectionDirty || Boolean(taskDraft) || turns.length === 0} onClick={() => {
         const next = conversations.filter((item) => item.id !== conversationId);
-        setConversations(next); sessionHistories.set(project.id, next); newConversation();
+        setConversations(next); newConversation();
       }}><Trash2 size={14} /></button>
       <button className="icon-button" aria-label="收起 AI 对话" title="收起 AI 对话" onClick={onClose}><X size={15} /></button>
     </div></div>

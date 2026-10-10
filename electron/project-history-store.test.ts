@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ProjectHistoryStore } from "./project-history-store";
 import { ProjectFileStore } from "./project-files";
+import { createHash } from "node:crypto";
 const directories: string[] = [];
 afterEach(async () => { for (const directory of directories.splice(0)) await rm(directory, { recursive: true, force: true }); });
 const id = "project_98ec9b5d-5a3b-4024-b8d3-1581ea2658d5";
@@ -35,7 +36,8 @@ it("Save As copies history by default with a distinct lineage, or starts an expl
   const originalHistory = JSON.parse(first.content).projectHistory.id;
   const originalCommits = (await store.list(id)).map((r) => r.commit);
   const copyPath = join(directory, "copy.framemind");
-  const copy = await store.save(copyPath, first.content);
+  const copy = await store.save(copyPath, JSON.stringify({ ...JSON.parse(first.content), taskState: { scheduled: [{ id: "old-task", status: "running" }] } }));
+  expect(JSON.parse(copy.content).taskState).toBeUndefined();
   expect(JSON.parse(copy.content).projectHistory.id).not.toBe(originalHistory);
   expect((await store.list(id))[0].copiedFrom).toEqual({ historyId: originalHistory, commit: originalCommits[0] });
   expect((await store.list(id))[1].commit).toBe(originalCommits[0]);
@@ -90,7 +92,7 @@ it("recovers an interrupted file/index replacement according to the published re
   const nextContent = JSON.stringify({ ...JSON.parse(old.content), revision: 1 });
   const unpublished = await store.record({ projectId: id, snapshots: [{ kind: "save", content: nextContent }] });
   const newIndex = JSON.stringify({ ...JSON.parse(oldIndex), commit: unpublished[0].commit, contentSha256: unpublished[0].contentSha256 });
-  const journal = { schemaVersion: 1, projectId: id, before: old.content, after: nextContent, original, commit: unpublished[0].commit, beforeIndex: oldIndex, afterIndex: newIndex };
+  const journal = { schemaVersion: 1, projectId: id, before: old.content, after: nextContent, original, commit: unpublished[0].commit, beforeIndex: oldIndex, afterIndex: newIndex, beforeSha256: createHash("sha256").update(old.content).digest("hex") };
   await writeFile(`${path}.git/save-transaction.json`, JSON.stringify(journal));
   // A process may die after the original file is moved aside and before replacement.
   await rename(path, `${path}.interrupted-backup`);
@@ -99,9 +101,34 @@ it("recovers an interrupted file/index replacement according to the published re
   expect(await readFile(path, "utf8")).toBe(nextContent);
   expect(await readFile(`${path}.git/saved.json`, "utf8")).toBe(newIndex);
   // If publication never happened, the journal must restore the previous bytes instead.
-  await writeFile(`${path}.git/save-transaction.json`, JSON.stringify({ ...journal, original: journal.commit, commit: "f".repeat(40) }));
+  await writeFile(`${path}.git/save-transaction.json`, JSON.stringify({ ...journal, original: journal.commit, commit: "f".repeat(40), afterIndex: JSON.stringify({ ...JSON.parse(newIndex), commit: "f".repeat(40) }) }));
   expect((await reopened.open(path)).historyWarning).toBeUndefined();
   expect(await readFile(path, "utf8")).toBe(old.content);
+}, 30_000);
+
+it("keeps model bytes and recovery evidence when journal bytes or saved-index identity are damaged", async () => {
+  const { path, root, store } = await fixture();
+  const saved = await store.save(path, content(0)), record = (await store.list(id))[0];
+  const indexPath = `${path}.git/saved.json`, index = await readFile(indexPath, "utf8"), journalPath = `${path}.git/save-transaction.json`;
+  const altered = JSON.stringify({ ...JSON.parse(saved.content), nodes: [] });
+  const journal = { schemaVersion: 1, projectId: id, before: saved.content, after: altered, original: record.commit, commit: record.commit, beforeIndex: index, afterIndex: index, beforeSha256: createHash("sha256").update(saved.content).digest("hex") };
+  await writeFile(journalPath, JSON.stringify(journal));
+  const reopened = new ProjectHistoryStore(root);
+  expect((await reopened.open(path)).historyWarning).toContain("新文件与 Git 不一致");
+  expect(await readFile(path, "utf8")).toBe(saved.content);
+  expect(await readFile(journalPath, "utf8")).toBe(JSON.stringify(journal));
+  await rm(journalPath);
+  await writeFile(indexPath, JSON.stringify({ ...JSON.parse(index), historyId: "history_00000000-0000-0000-0000-000000000000" }));
+  expect((await reopened.open(path)).historyWarning).toContain("不一致");
+  await rm(indexPath);
+  expect((await reopened.open(path)).historyWarning).toContain("索引缺失");
+  expect(await readFile(path, "utf8")).toBe(saved.content);
+  await writeFile(indexPath, index);
+  await writeFile(journalPath, JSON.stringify({ ...journal, original: "", before: null, beforeIndex: null, beforeSha256: null, after: saved.content }));
+  const unavailableGit = new ProjectHistoryStore(root, new ProjectFileStore(), "framemind-no-git.exe");
+  expect((await unavailableGit.open(path)).historyWarning).toContain("Git 不可用");
+  expect(await readFile(path, "utf8")).toBe(saved.content);
+  expect(await readFile(journalPath, "utf8")).toBeTruthy();
 }, 30_000);
 
 it("refuses an unknown nonempty sidecar and a live writer without changing the model or history", async () => {

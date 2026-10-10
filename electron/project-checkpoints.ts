@@ -24,6 +24,9 @@ export class ProjectCheckpoints {
     try { return (await this.git(this.repository(projectId), ["rev-parse", "--verify", "refs/heads/main"])).trim(); }
     catch { return ""; }
   }
+  async mainReference(projectId: string): Promise<string> {
+    return (await this.git(this.repository(projectId), ["for-each-ref", "--format=%(objectname)", "refs/heads/main"])).trim();
+  }
 
   private git(repository: string, args: string[], input?: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -56,7 +59,7 @@ export class ProjectCheckpoints {
       if (project.format !== "framemind-project" || project.id !== request.projectId || !Number.isSafeInteger(project.revision) || project.revision < 0) throw new Error("checkpoint 项目身份无效");
       if (snapshot.evidence && (typeof snapshot.evidence.content !== "string" || snapshot.evidence.content.length > 64 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(snapshot.evidence.sha256))) throw new Error("checkpoint 证据无效");
       for (const hash of [snapshot.inputSha256, snapshot.resultSha256]) if (hash !== undefined && !/^[a-f0-9]{64}$/.test(hash)) throw new Error("checkpoint 输入/结果哈希无效");
-      if (snapshot.evidenceIndex && (!Array.isArray(snapshot.evidenceIndex) || snapshot.evidenceIndex.some((id) => typeof id !== "string" || !/^[A-Za-z0-9_.:/-]{1,200}$/.test(id) || id.includes("..") || id.startsWith("/")))) throw new Error("checkpoint 证据索引无效");
+      if (snapshot.evidenceIndex && (!Array.isArray(snapshot.evidenceIndex) || snapshot.evidenceIndex.some((id) => typeof id !== "string" || !/^[A-Za-z0-9_.:/-]{1,200}$/.test(id) || id.includes("..") || id.startsWith("/") || /^[A-Za-z]:/.test(id)))) throw new Error("checkpoint 证据索引无效");
     }
     const operation = (this.queues.get(request.projectId) ?? Promise.resolve()).catch(() => undefined).then(async () => {
       await mkdir(repository, { recursive: true });
@@ -94,7 +97,14 @@ export class ProjectCheckpoints {
       }
       // A single compare-and-swap publishes the whole pair. Earlier failures leave only unreachable objects.
       try { if (transaction) await transaction.beforePublish(records, original); await this.git(repository, ["update-ref", "refs/heads/main", parent, original || "0".repeat(40)]); }
-      catch (cause) { if (transaction) await transaction.rollback(); throw cause; }
+      catch (cause) {
+        // A subprocess timeout is not proof that the reference was never published.
+        const actual = (await this.git(repository, ["for-each-ref", "--format=%(objectname)", "refs/heads/main"])).trim();
+        if (actual !== parent) {
+          if (actual === original) { if (transaction) await transaction.rollback(); throw cause; }
+          throw new Error("checkpoint 发布结果无法确认；保留保存恢复日志，未回滚文件，请重新打开项目复核");
+        }
+      }
       published = true;
       if (transaction) await transaction.committed();
       return records;
@@ -111,10 +121,13 @@ export class ProjectCheckpoints {
     const repository = this.repository(projectId);
     let commits: string;
     try { commits = await this.git(repository, ["log", "-100", "--format=%H", "refs/heads/main"]); } catch { return []; }
-    const records: ProjectCheckpointRecord[] = [];
-    for (const commit of commits.trim().split("\n").filter(Boolean)) {
-      await this.read(projectId, commit);
-      const metadata = JSON.parse(await this.git(repository, ["show", `${commit}:checkpoint.json`])); records.push({ ...metadata, commit });
+    const records: ProjectCheckpointRecord[] = [], identities = commits.trim().split("\n").filter(Boolean);
+    for (let offset = 0; offset < identities.length; offset += 4) {
+      const page = await Promise.all(identities.slice(offset, offset + 4).map(async (commit) => {
+        const { metadata } = await this.snapshot(repository, projectId, commit);
+        return { ...metadata, commit };
+      }));
+      records.push(...page);
     }
     return records;
   }
@@ -123,10 +136,15 @@ export class ProjectCheckpoints {
     if (!commitIdentity.test(commit)) throw new Error("checkpoint 提交身份无效");
     const repository = this.repository(projectId);
     await this.git(repository, ["merge-base", "--is-ancestor", commit, "refs/heads/main"]);
-    const content = await this.git(repository, ["show", `${commit}:project.framemind`]);
-    const metadata = JSON.parse(await this.git(repository, ["show", `${commit}:checkpoint.json`]));
-    if (metadata.projectId !== projectId || metadata.contentSha256 !== createHash("sha256").update(content).digest("hex")) throw new Error("checkpoint 哈希或项目身份不一致");
-    return content;
+    return (await this.snapshot(repository, projectId, commit)).content;
+  }
+
+  private async snapshot(repository: string, projectId: string, commit: string): Promise<{ content: string; metadata: Omit<ProjectCheckpointRecord, "commit"> }> {
+    const [content, metadataContent] = await Promise.all([this.git(repository, ["show", `${commit}:project.framemind`]), this.git(repository, ["show", `${commit}:checkpoint.json`])]);
+    const metadata = JSON.parse(metadataContent);
+    const project = JSON.parse(content);
+    if (project.format !== "framemind-project" || project.id !== projectId || project.revision !== metadata.revision || metadata.projectId !== projectId || metadata.contentSha256 !== createHash("sha256").update(content).digest("hex")) throw new Error("checkpoint 哈希或项目身份不一致");
+    return { content, metadata };
   }
 
   async readEvidence(projectId: string, commit: string): Promise<string> {

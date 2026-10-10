@@ -4,6 +4,7 @@ import type { ProjectCheckpointRecord } from "../../electron/contracts";
 import { decodeProject } from "../domain/project-file";
 import { diffProjectSnapshots, type ProjectSnapshotChange } from "../workspace/project-snapshot-diff";
 import { PagedItems } from "./ProcessDisclosure";
+import { prepareCheckpointRestore } from "../workspace/checkpoint-restore";
 
 export function CadImportHistory({ project, general = false, onClose, onRestore }: { project: FrameProject; general?: boolean; onClose(): void; onRestore(content: string): Promise<void> }) {
   const [records, setRecords] = useState<ProjectCheckpointRecord[]>([]), [busy, setBusy] = useState(true), [error, setError] = useState("");
@@ -24,7 +25,7 @@ export function CadImportHistory({ project, general = false, onClose, onRestore 
     <div className="cad-preview-body">{records.filter((record) => general || record.kind.startsWith("step-")).map((record) => <p key={record.commit}>{record.kind} · R{record.revision} · {record.recordedAt} · {record.commit.slice(0, 12)}{record.taskId && <span> · 任务 {record.taskId}</span>}{record.copiedFrom && <span> · 复制自 {record.copiedFrom.commit.slice(0, 12)}</span>} <button className="button ghost" disabled={busy} onClick={() => {
       setBusy(true); setError(""); setPreview(null);
       void window.frameMind.readProjectCheckpoint({ projectId: project.id, commit: record.commit }).then((content) => {
-        const target = decodeProject(content);
+        const target = prepareCheckpointRestore(project, decodeProject(content));
         setPreview({ record, content, parent: project, changes: diffProjectSnapshots(project, target) });
       }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "历史读取失败，当前模型未修改")).finally(() => setBusy(false));
     }}>查看恢复差异</button>{record.evidenceSha256 && <button className="button ghost" disabled={busy} onClick={() => {

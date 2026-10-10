@@ -4,7 +4,7 @@
   "timezone": "Asia/Taipei",
   "typecheck": "passed",
   "build": "passed",
-  "focusedTests": { "command": "npm run test:plan2:p2507", "status": "passed", "latestCountsInRunLog": true },
+  "focusedTests": { "command": "npm run test:plan2:p2507", "status": "passed", "testsPassed": 13, "testsFailed": 0 },
   "fullSuite": {
     "command": "npm test -- --maxWorkers=2",
     "filesPassed": 94, "filesFailed": 2, "testsPassed": 739, "testsFailed": 2,
@@ -16,7 +16,16 @@
   },
   "desktop": {
     "projectHistory": "passed", "stepImportAnalyticPrism": "passed", "stepImportSpecifiedBlockedDraft": "passed", "naturalLanguageBasicEditConfirmation": "passed",
-    "mode": "local-real-git; STEP AI verification uses explicitly marked replay transport"
+    "mode": "local-real-git; STEP AI verification uses explicitly marked replay transport",
+    "command": "node scripts/run-e2e-isolated.cjs e2e/p25-07-history.spec.ts e2e/p25-06-import.spec.ts e2e/t20-basic-edit-tools.spec.ts",
+    "testsPassed": 4,
+    "testsFailed": 0
   },
+  "finalEvidence": {
+    "backendRunId": "dc3884d5-171d-4e3b-bd29-97d8e1a9d095",
+    "desktopRunId": "db18b4b3-4f3e-4207-8e51-0958249f8c91",
+    "sourceBuildArtifactHashesVerified": 34
+  },
+  "codeReview": { "report": "review.md", "standardsFindingsResolved": 2, "specFindingsResolved": 3, "unresolved": 0 },
   "remainingAcceptance": ["P25-08 candidate isolation and merge", "P25-16 packaged Git on clean Windows", "upstream independent CAD reference and online AI acceptance"]
 }
