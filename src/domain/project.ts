@@ -91,6 +91,7 @@ export interface FrameProject {
   revision: number;
   units: { length: "m"; force: "kN"; moment: "kN·m"; };
   displayUnitPreset?: UnitPresetId;
+  projectHistory?: { id: string };
   nodes: FrameNode[];
   materials: FrameMaterial[];
   sections: FrameSection[];

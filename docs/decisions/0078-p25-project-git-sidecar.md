@@ -1,0 +1,21 @@
+# ADR-0078：项目 Git sidecar、保存事务与历史复制
+
+日期：2026-10-10（Asia/Taipei）
+
+范围：PLAN2.5 P25-07。候选分支、inspect 门槛和受控合并属于 P25-08 及后续任务。
+
+每个已保存项目使用 `<完整项目文件名>.git/` 的 bare Git 仓库。未保存项目的 checkpoint 暂存在应用数据目录 `project-history/<projectId>/`，首次保存复制到 sidecar。主分支为 `refs/heads/main`；没有工作目录、远程配置或 push 操作。当前使用本机 Git 2.53.0.windows.1 验证，固定参数调用 Git plumbing，无 shell；清除继承的 `GIT_*`，禁用全局/系统配置、替换对象、hooks 和签名。Windows Git 随安装包提供的实现及许可验证仍归 P25-16，当前不宣称干净 Windows 打包验收完成。
+
+`history.json` 绑定 projectId 与独立 historyId；项目正文只新增可选 `projectHistory.id`，工程格式和原扩展名保持兼容。`saved.json` 记录最后成功保存的提交及字节 SHA-256。打开时只检查文件旁的仓库，不回退到同 projectId 的应用缓存或其他目录。目录缺失仍打开模型并提示；身份、索引或哈希不一致时禁用该历史，用户可另存为并显式建立新历史。
+
+checkpoint 的 Git tree 包含 `project.framemind`、`checkpoint.json` 和可选 `cad-draft.json`。元数据关联工程修订、任务、候选、输入/结果哈希、证据索引及复制来源。调用方提供的 inputSha256 保持原义（例如 STEP 原字节）；未提供时对固定工程字段集合的 JSON 计算输入摘要，不冒充求解器冻结输入哈希。默认结果摘要对持久化 analysisResults 计算。read/list 验证项目身份、内容哈希及主历史可达性；证据读取另验内容 SHA-256。
+
+确认前后两条提交先生成不可达对象，回读验证后，以一次 compare-and-swap 发布整对。每个进程按项目排队，sidecar 的 `framemind.lock` 排斥其他进程的写入；复制源也取得该锁。锁记 PID，打开时只自动移除确认已退出进程的锁，无法确认所有者的锁保留诊断。
+
+保存顺序：构造并校验提交 → 原子写 `save-transaction.json`（旧/新文件、旧/新索引及预期引用）→ 替换项目 → 替换保存索引 → CAS 发布 main → 清理日志。文件、索引或引用失败时恢复旧字节与旧索引，不返回成功。进程中断后根据引用是否已发布选择整体回滚或补齐；若引用超出日志记录的两种状态则保留日志并禁用历史。发布成功后仅日志清理失败不否认已完成事务，重开补清理。这里只承诺进程/文件操作故障恢复；断电、磁盘控制器写缓存及文件系统损坏不属于已验证耐久性。
+
+另存为默认完整复制对象和证据，并创建带 copiedFrom 的提交；复制件获得新 historyId。显式新历史只保留当前模型作为初始提交，不删除源历史。工程 projectId 及既有冻结分析来源不被重写，运行时通过新会话取消旧任务，历史恢复也清除可执行任务描述与旧 AI 核验。历史提交中的旧身份作为证据保留，恢复时使用当前项目的 historyId。
+
+候选轮次和合并前恢复点已经具备受控 checkpoint 类型与元数据接口；真实候选隔离和合并演示仍由 P25-08—P25-13 交付，不以 P25-07 的接口测试代替。
+
+复验：`npm run test:plan2:p2507`、`npm run evidence:plan2:p2507`、`npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-07-history.spec.ts e2e/p25-06-import.spec.ts`。

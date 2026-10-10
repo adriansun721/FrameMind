@@ -37,7 +37,7 @@ for (const source of ["analytic-prism", "specified"] as const) test(`P25-06 ${so
       expect(saved.nodes).toEqual(parent.nodes); expect(saved.members).toEqual([]); expect(saved.cadImportDraft?.restored).toBe(true);
       await writeFile(join(evidence, "pending.framemind"), await readFile(projectPath));
       await dialog.getByRole("button", { name: "关闭预览", exact: true }).click();
-      await action("打开项目"); await action("重开 STEP 预览");
+      await action("打开项目"); await expect(page.locator('footer[role="status"]')).toContainText("已打开"); await action("重开 STEP 预览");
       await expect(dialog.getByText(/已恢复待修复草稿/)).toBeVisible();
       await expect(resources.getByLabel("导入材料名称", { exact: true })).toHaveValue("S355JR");
       await expect(dialog.getByRole("button", { name: "确认整体导入", exact: true })).toBeDisabled();
@@ -62,7 +62,7 @@ for (const source of ["analytic-prism", "specified"] as const) test(`P25-06 ${so
       await expect(dialog.getByRole("alert")).toContainText("字节已变化");
       await expect(page.getByTestId("viewport-node-count")).toHaveText("1 个节点");
       await writeFile(inputPath, prismStep());
-      const repository = join(directory, "project-history", parent.id), lock = join(repository, "refs/heads/main.lock");
+      const repository = `${projectPath}.git`, lock = join(repository, "refs/heads/main.lock");
       await writeFile(lock, "P25-06 fault injection");
       await dialog.getByRole("button", { name: "确认整体导入", exact: true }).click();
       await expect(dialog.getByRole("alert")).toContainText("checkpoint 失败");

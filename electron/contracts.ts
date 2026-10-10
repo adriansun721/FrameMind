@@ -96,6 +96,8 @@ export interface DeepSeekChatResult {
 export interface SaveProjectRequest {
   path: string | null;
   content: string;
+  saveAs?: boolean;
+  historyMode?: "copy" | "new";
 }
 
 export interface RecoverySaveRequest {
@@ -124,11 +126,11 @@ export interface ExportReportPdfRequest {
 }
 
 export type SaveProjectResult =
-  | { status: "saved"; path: string; savedAt?: string }
+  | { status: "saved"; path: string; savedAt?: string; content?: string; historyWarning?: string }
   | { status: "cancelled" };
 
 export type OpenProjectResult =
-  | { status: "opened"; path: string; content: string; savedAt?: string }
+  | { status: "opened"; path: string; content: string; savedAt?: string; historyWarning?: string }
   | { status: "cancelled" };
 
 export interface CadImportRequest {
@@ -142,11 +144,12 @@ export interface CadImportRequest {
 
 export interface ProjectCheckpointRequest {
   projectId: string;
-  snapshots: Array<{ kind: "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; inputSha256?: string; evidence?: { content: string; sha256: string } }>;
+  snapshots: Array<{ kind: "initial" | "save" | "copied-from" | "confirmation-before" | "confirmation-after" | "candidate-round" | "merge-before" | "restore" | "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; candidateId?: string; inputSha256?: string; resultSha256?: string; evidenceIndex?: string[]; copiedFrom?: { historyId: string; commit: string }; evidence?: { content: string; sha256: string } }>;
 }
 export interface ProjectCheckpointRecord {
   schemaVersion: 1; projectId: string; revision: number; kind: ProjectCheckpointRequest["snapshots"][number]["kind"];
   recordedAt: string; contentSha256: string; commit: string; taskId?: string; inputSha256?: string; evidenceSha256?: string;
+  candidateId?: string; resultSha256?: string; evidenceIndex?: string[]; copiedFrom?: { historyId: string; commit: string };
 }
 
 export interface CadKernelInfo {

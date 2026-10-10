@@ -196,6 +196,7 @@ export function App() {
   const [cadCommitBusy, setCadCommitBusy] = useState(false);
   const cadCommitLockRef = useRef(false);
   const [cadHistoryOpen, setCadHistoryOpen] = useState(false);
+  const [projectHistoryOpen, setProjectHistoryOpen] = useState(false);
   const [drawingEnabled, setDrawingEnabled] = useState(false);
   const [drawingReset, setDrawingReset] = useState(0);
   useEffect(() => { if (resultView !== "model") setDrawingEnabled(false); }, [resultView]);
@@ -358,7 +359,7 @@ export function App() {
     activateProject(deleteUniformLoad(project, selectedUniform.id), false); setSelection(null); setFormError(null); setStatus({ tone: "success", text: "已删除均布荷载" });
   };
 
-  const beginNewProject = () => { if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setFormalSave(null); setRecoverySource(null); setSavedRevision(0); setSavedProject(next); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
+  const beginNewProject = () => { if (cadCommitLockRef.current) return; if (dirty && !window.confirm("当前项目有未保存修改，确定新建项目吗？")) return; const next = createProject(); activateProject(next, true); setProjectPath(null); setFormalSave(null); setRecoverySource(null); setSavedRevision(0); setSavedProject(next); setSelection(null); setStatus({ tone: "neutral", text: "已创建空白项目" }); };
   const switchSidebarModule = (module: typeof sidebarModule) => {
     setResourcePanelOpen((open) => module === sidebarModule ? !open : true);
     setSidebarModule(module);
@@ -373,11 +374,12 @@ export function App() {
     } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "加入项目失败" }); }
   };
   const openProject = async () => {
+    if (cadCommitLockRef.current) return;
     if (dirty && !window.confirm("当前项目有未保存修改，确定打开其他项目吗？")) return;
     const checkpoint = captureProjectCheckpoint(project, activeSessionRef.current);
     try {
       const result = await window.frameMind.openProject(); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) return;
-      const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProject(opened); setSelection(null); setStatus({ tone: "success", text: `已打开 ${filename(result.path)}${opened.cadImports?.length || opened.cadImportDraft ? "；原 STEP 和项目历史尚未重新核验，可继续编辑本地模型" : ""}` });
+      const opened = decodeProject(result.content); activateProject(opened, true); setProjectPath(result.path); setSavedRevision(opened.revision); setSavedProject(opened); setSelection(null); setStatus({ tone: result.historyWarning ? "neutral" : "success", text: `已打开 ${filename(result.path)}${result.historyWarning ? `；${result.historyWarning}` : ""}${opened.cadImports?.length || opened.cadImportDraft ? "；原 STEP 尚未重新核验，可继续编辑本地模型" : ""}` });
       setFormalSave({ path: result.path, savedAt: result.savedAt ?? opened.updatedAt }); setRecoverySource(null);
     } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "打开项目失败" }); }
   };
@@ -436,18 +438,58 @@ export function App() {
     const saved = await window.frameMind.saveProject({ path: projectPath, content: encodeProject(pending) });
     if (saved.status === "cancelled") throw new Error("待修复草稿保存已取消");
     if (source !== activeProjectRef.current || session !== activeSessionRef.current) throw new Error("旧项目草稿已保存，当前项目未修改");
-    activateProject(pending, false); setProjectPath(saved.path); setSavedProject(pending); setSavedRevision(source.revision);
+    const persisted = saved.content ? decodeProject(saved.content) : pending;
+    activateProject(persisted, false); setProjectPath(saved.path); setSavedProject(persisted); setSavedRevision(source.revision);
     setFormalSave({ path: saved.path, savedAt: saved.savedAt ?? new Date().toISOString() });
   };
-  const saveProject = async () => {
+  const saveProject = async (saveAs = false, historyMode: "copy" | "new" = "copy") => {
+    if (cadCommitLockRef.current) return;
     const source = activeProjectRef.current;
     const checkpoint = captureProjectCheckpoint(source, activeSessionRef.current);
-    const content = encodeProject(source);
+    cadCommitLockRef.current = true; setCadCommitBusy(true);
     try {
-      const result = await window.frameMind.saveProject({ path: projectPath, content }); if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
-      setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProject(source); setStatus({ tone: "success", text: isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "exact") ? `已保存 ${filename(result.path)}` : `已保存 R${checkpoint.revision}，当前模型仍有未保存修改` });
+      const result = await window.frameMind.saveProject({ path: projectPath, content: encodeProject(source), saveAs, historyMode });
+      if (result.status === "cancelled" || !isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) return;
+      const saved = result.content ? decodeProject(result.content) : source;
+      cadCommitLockRef.current = false;
+      if (saveAs) activateProject(saved, true);
+      else { const next = { ...activeProjectRef.current, projectHistory: saved.projectHistory }; activeProjectRef.current = next; setProject(next); }
+      setProjectPath(result.path); setSavedRevision(checkpoint.revision); setSavedProject(saved);
+      setStatus({ tone: "success", text: `已保存 ${filename(result.path)}${saveAs ? historyMode === "new" ? "；已建立新历史，旧任务已失效" : "；已复制历史，旧任务已失效" : ""}` });
       setFormalSave({ path: result.path, savedAt: result.savedAt ?? new Date().toISOString() }); setRecoverySource(null);
-    } catch (error) { if (isProjectCheckpointCurrent(checkpoint, activeProjectRef.current, activeSessionRef.current, "identity")) setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，原文件未更改" }); }
+    } catch (error) { setStatus({ tone: "error", text: error instanceof Error ? error.message : "保存项目失败，未报告成功" }); }
+    finally { cadCommitLockRef.current = false; setCadCommitBusy(false); }
+  };
+  const confirmWithHistory = async (taskId: string, apply: (source: FrameProject) => { project: FrameProject; result: AiToolResult }): Promise<AiToolResult> => {
+    const source = activeProjectRef.current, session = activeSessionRef.current;
+    const context = captureAiSnapshot(source, []).context;
+    if (cadCommitLockRef.current) return { status: "failed", message: "项目历史仍在写入，请稍后重试", context };
+    cadCommitLockRef.current = true; setCadCommitBusy(true);
+    try {
+      const outcome = apply(source);
+      if (outcome.project !== source) {
+        await window.frameMind.recordProjectCheckpoints({ projectId: source.id, snapshots: [
+          { kind: "confirmation-before", content: encodeProject(source), taskId },
+          { kind: "confirmation-after", content: encodeProject(outcome.project), taskId },
+        ] });
+        if (activeProjectRef.current.revision !== source.revision || session !== activeSessionRef.current) throw new Error("确认上下文已变化，checkpoint 保留为证据，模型未应用");
+        cadCommitLockRef.current = false;
+        activateProject(outcome.project, false);
+        setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setSelection(null); setFormError(null);
+      }
+      setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
+      return outcome.result;
+    } catch (error) {
+      // Failed publication must not leave an in-memory idempotency receipt claiming success.
+      frameConfirmationRef.current = new FrameStageConfirmation();
+      taskDraftConfirmationRef.current = new TaskDraftStageConfirmation();
+      editConfirmationRef.current = new ModelEditConfirmation();
+      sectionConfirmationRef.current = new SectionStageConfirmation();
+      conditionsConfirmationRef.current = new ConditionsStageConfirmation();
+      const message = error instanceof Error ? error.message : "确认 checkpoint 失败，正式模型未应用";
+      setStatus({ tone: "error", text: message });
+      return { status: "failed", message, context };
+    } finally { cadCommitLockRef.current = false; setCadCommitBusy(false); }
   };
 
   const submitNode = (event: React.FormEvent) => {
@@ -754,6 +796,9 @@ export function App() {
             {cadPreview && <MenuAction icon={<Box size={14} />} label="重开 STEP 预览" shortcut="" onSelect={() => { setFileMenuOpen(false); setCadPreviewOpen(true); }} />}
             <MenuAction icon={<Box size={14} />} label="STEP 导入历史" shortcut="" onSelect={() => { setFileMenuOpen(false); setCadHistoryOpen(true); }} />
             <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
+            <MenuAction icon={<Box size={14} />} label="项目历史" shortcut="" onSelect={() => { setFileMenuOpen(false); setProjectHistoryOpen(true); }} />
+            <MenuAction icon={<Save size={14} />} label="另存为（复制历史）" shortcut="" onSelect={() => { setFileMenuOpen(false); void saveProject(true); }} />
+            <MenuAction icon={<Save size={14} />} label="另存为（新历史）" shortcut="" onSelect={() => { setFileMenuOpen(false); void saveProject(true, "new"); }} />
           </div>}
         </div>
         <nav className="task-tabs" role="tablist" aria-label="工作任务">
@@ -963,34 +1008,10 @@ export function App() {
         }}
         onResumeAnalysis={(input) => runAnalysis(true, getAnalysisSourceId(input), input)}
         onPersistenceError={(message) => setStatus({ tone: "error", text: message })}
-        onEditsConfirm={(confirmation) => {
-          const current = activeProjectRef.current;
-          const outcome = editConfirmationRef.current.confirm(current, confirmation);
-          if (outcome.project !== current) {
-            activateProject(outcome.project, false);
-            setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setSelection(null); setFormError(null);
-          }
-          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
-          return outcome.result;
-        }}
-        onTaskConfirm={(confirmation) => {
-          const current = activeProjectRef.current;
-          const outcome = taskDraftConfirmationRef.current.confirm(current, confirmation);
-          if (outcome.project !== current) {
-            activateProject(outcome.project, false);
-            setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set()); setSelection(null); setFormError(null);
-          }
-          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
-          return outcome.result;
-        }}
+        onEditsConfirm={(confirmation) => confirmWithHistory(confirmation.requestId, (current) => editConfirmationRef.current.confirm(current, confirmation))}
+        onTaskConfirm={(confirmation) => confirmWithHistory(confirmation.requestId, (current) => taskDraftConfirmationRef.current.confirm(current, confirmation))}
         comparison={comparisonPair} onComparison={(pair, open) => { setComparisonPair(pair); if (open) setComparisonOpen(true); }}
-        onSectionConfirm={(confirmation) => {
-          const current = activeProjectRef.current;
-          const outcome = sectionConfirmationRef.current.confirm(current, confirmation.selection, confirmation);
-          if (outcome.project !== current) activateProject(outcome.project, false);
-          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
-          return outcome.result;
-        }}
+        onSectionConfirm={(confirmation) => confirmWithHistory(confirmation.requestId, (current) => sectionConfirmationRef.current.confirm(current, confirmation.selection, confirmation))}
         onLocateTargets={(targets) => {
           const nodes = targets.filter((target) => target.kind === "node" && project.nodes.some((item) => item.id === target.id));
           const members = targets.filter((target) => target.kind === "member" && project.members.some((item) => item.id === target.id));
@@ -1024,21 +1045,8 @@ export function App() {
           setDiagnosticFitRequest((value) => value + 1);
         }}
         analysisBusy={analysisBusy} scheduler={analysisSchedulerRef.current} onAnalyze={(sourceId) => runAnalysis(true, sourceId)} onCancelAnalysis={cancelAnalysis}
-        onConditionsConfirm={(confirmation) => {
-          const current = activeProjectRef.current;
-          const outcome = conditionsConfirmationRef.current.confirm(current, confirmation);
-          // This reviewed source selection belongs to the same confirmed task and must keep its continuation.
-          if (outcome.project !== current) activateProject(outcome.project, false, "record");
-          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
-          return outcome.result;
-        }}
-        onConfirm={(confirmation) => {
-          const current = activeProjectRef.current;
-          const outcome = frameConfirmationRef.current.confirm(current, confirmation);
-          if (outcome.project !== current) activateProject(outcome.project, false);
-          setStatus({ tone: outcome.result.status === "applied" ? "success" : "error", text: outcome.result.message });
-          return outcome.result;
-        }} />
+        onConditionsConfirm={(confirmation) => confirmWithHistory(confirmation.requestId, (current) => conditionsConfirmationRef.current.confirm(current, confirmation))}
+        onConfirm={(confirmation) => confirmWithHistory(confirmation.requestId, (current) => frameConfirmationRef.current.confirm(current, confirmation))} />
     </ResizableWorkspace>
 
     <footer className={`statusbar ${recoveryError ? "error" : status.tone}`} role="status"><span className="status-indicator" /><span>{status.text}</span>
@@ -1067,15 +1075,16 @@ export function App() {
     {cadPreview && cadPreviewOpen && <CadTopologyPreview key={cadPreview.requestId} project={project} draftId={cadDraftId} parent={cadParent} restored={cadDraftRestored} onApply={confirmCadImport} onSaveDraft={saveCadDraft} result={cadPreview} pose={cadPose} decisions={cadPoseDecisions} approvedContactIds={cadContacts} resourceDraft={cadResourceDraft} onResourceChange={setCadResourceDraft} onContactsChange={setCadContacts} onPoseChange={(pose) => {
       setCadPose(pose); setCadPoseDecisions((current) => [...current, { revision: current.length + 1, recordedAt: new Date().toISOString(), inputSha256: cadPreview.input.sha256, geometryHash: cadPreview.intermediateState.geometryHash ?? "", pose, source: "user" }]);
     }} onClose={() => setCadPreviewOpen(false)} />}
-    {cadHistoryOpen && <CadImportHistory project={project} onClose={() => setCadHistoryOpen(false)} onRestore={async (content) => {
-      const next = decodeProject(content);
+    {(cadHistoryOpen || projectHistoryOpen) && <CadImportHistory general={projectHistoryOpen} project={project} onClose={() => { setCadHistoryOpen(false); setProjectHistoryOpen(false); }} onRestore={async (content) => {
+      const restored = decodeProject(content);
+      const next = { ...restored, projectHistory: project.projectHistory, taskState: undefined, cadImportDraft: restored.cadImportDraft ? { ...restored.cadImportDraft, restored: true, resources: { ...restored.cadImportDraft.resources, verification: undefined } } : undefined };
       if (cadCommitLockRef.current || activeProjectRef.current !== project || next.id !== project.id) throw new Error("恢复上下文已变化，请重新打开当前项目历史");
       cadCommitLockRef.current = true; setCadCommitBusy(true);
       try {
-        await window.frameMind.recordProjectCheckpoints({ projectId: next.id, snapshots: [{ kind: "step-undo", content }] });
+        await window.frameMind.recordProjectCheckpoints({ projectId: next.id, snapshots: [{ kind: "restore", content: encodeProject(next) }] });
         cadCommitLockRef.current = false;
-        activateProject(next, true); setSelection(null); setCadHistoryOpen(false); setSavedProject(null); setSavedRevision(-1);
-        setStatus({ tone: "neutral", text: "已恢复 STEP checkpoint；旧导入确认已失效，请保存恢复后的项目" });
+        activateProject(next, true); setSelection(null); setCadHistoryOpen(false); setProjectHistoryOpen(false); setSavedProject(null); setSavedRevision(-1);
+        setStatus({ tone: "neutral", text: "已恢复项目 checkpoint；旧任务与导入确认已失效，请保存恢复后的项目" });
       } finally { cadCommitLockRef.current = false; setCadCommitBusy(false); }
     }} />}
     {cadCommitBusy && <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label="正在提交导入"><p className="node-dialog" role="status">正在写入并核对项目 checkpoint…</p></div>}

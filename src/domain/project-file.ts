@@ -539,6 +539,10 @@ export function decodeProject(source: string): FrameProject {
   if (latestAnalysis && latestAnalysis.projectId !== project.id) throw new Error("分析结果项目标识与文件不一致");
   if (latestAnalysis && latestAnalysis.projectRevision >= project.revision) throw new Error("分析结果版本必须早于当前项目版本");
   project.confirmedOperations = decodeConfirmedOperations(value.confirmedOperations, project.id);
+  if (value.projectHistory !== undefined) {
+    if (!isRecord(value.projectHistory) || typeof value.projectHistory.id !== "string" || !/^history_[a-f0-9-]{36}$/.test(value.projectHistory.id)) throw new Error("项目历史身份无效");
+    project.projectHistory = { id: value.projectHistory.id };
+  }
   project.taskState = decodeTaskState(value.taskState, project, decodeProject, decodeAnalysisInput);
   const cadImports = decodeCadImportReceipts(value.cadImports, project.id, project.revision);
   const cadImportDraft = decodeCadImportDraft(value.cadImportDraft, project.id);

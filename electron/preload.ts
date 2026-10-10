@@ -18,7 +18,7 @@ const desktopApi: FrameMindDesktopApi = {
   exportReportWord: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportWord, request),
   exportReportData: (request) => ipcRenderer.invoke(DesktopChannel.ExportReportData, request),
   setTheme: (theme) => ipcRenderer.invoke(DesktopChannel.SetTheme, theme),
-  saveProject: (request: { path: string | null; content: string }) =>
+  saveProject: (request) =>
     ipcRenderer.invoke(DesktopChannel.SaveProject, request),
   openProject: () => ipcRenderer.invoke(DesktopChannel.OpenProject),
   saveChatHistory: (request) => ipcRenderer.invoke(DesktopChannel.SaveChatHistory, request),

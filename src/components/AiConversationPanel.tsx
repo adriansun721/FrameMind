@@ -45,15 +45,15 @@ interface Props {
   onLocateTargets(targets: readonly AiObjectRef[]): void;
   comparison?: AnalysisPairIds;
   onComparison(pair: AnalysisPairIds, open: boolean): void;
-  onSectionConfirm(confirmation: SectionConfirmation): AiToolResult;
+  onSectionConfirm(confirmation: SectionConfirmation): AiToolResult | Promise<AiToolResult>;
   open: boolean;
   onClose(): void;
   onSettings(): void;
   onPreview(preview: FramePreview | null): void;
-  onConfirm(confirmation: FrameConfirmation): AiToolResult;
-  onEditsConfirm(confirmation: PreparedModelEditConfirmation): AiToolResult;
-  onTaskConfirm(confirmation: TaskDraftConfirmation): AiToolResult;
-  onConditionsConfirm(confirmation: ConditionsConfirmation): AiToolResult;
+  onConfirm(confirmation: FrameConfirmation): AiToolResult | Promise<AiToolResult>;
+  onEditsConfirm(confirmation: PreparedModelEditConfirmation): AiToolResult | Promise<AiToolResult>;
+  onTaskConfirm(confirmation: TaskDraftConfirmation): AiToolResult | Promise<AiToolResult>;
+  onConditionsConfirm(confirmation: ConditionsConfirmation): AiToolResult | Promise<AiToolResult>;
   onAnalyze(sourceId?: string): Promise<AiToolResult>;
   onResumeAnalysis(input: AnalysisInputSnapshot): Promise<AiToolResult>;
   onCancelAnalysis(): void;
@@ -279,17 +279,17 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
   };
   const rejectModelEdits = (completed = false) => { const draft = modelEditsRef.current; if (draft) releaseWaitingTask(draft.id, completed); modelEditsRef.current = undefined; taskRef.current?.cancel(); setModelEdits(undefined); setModelEditsSource(project); };
   const rejectTaskDraft = (completed = false) => { const draft = taskDraftRef.current; if (draft) releaseWaitingTask(draft.id, completed); resolveStage(draft, completed ? "confirmed" : "cancelled"); taskDraftRef.current = undefined; taskRef.current?.cancel(); setTaskDraft(undefined); setTaskDraftSource(project); };
-  const confirmModelEdits = () => {
+  const confirmModelEdits = async () => {
     if (!modelEditsConfirmation || busy || analysisBusy || conflicts.length || !modelEditsCurrent || modelEditsRef.current !== modelEdits || proposal || conditions || sectionChange || taskDraft) return;
-    const result = onEditsConfirm(modelEditsConfirmation);
+    const result = await onEditsConfirm(modelEditsConfirmation);
     const draft = modelEdits!;
     setTurns((previous) => [...previous, { id: crypto.randomUUID(), origin: "confirmation", prompt: "确认应用基础编辑", context: modelEditsConfirmation.baseProject === project ? snapshot.context : captureAiSnapshot(modelEditsSource, []).context, sourceProject: modelEditsSource,
       result: { ...result, workKind: "agent", records: [{ round: 0, call: { id: modelEditsConfirmation.requestId, type: "function", function: { name: "confirm_model_edits", arguments: JSON.stringify({ proposalId: draft.id, proposalVersion: draft.version, baseRevision: draft.baseRevision }) } }, result }] } }]);
     if (result.status === "applied") rejectModelEdits(true);
   };
-  const confirmTaskDraft = () => {
+  const confirmTaskDraft = async () => {
     if (!taskDraftConfirmation || busy || analysisBusy || conflicts.length || !taskDraftCurrent || taskDraftRef.current !== taskDraft || proposal || conditions || sectionChange || modelEdits) return;
-    const result = onTaskConfirm(taskDraftConfirmation);
+    const result = await onTaskConfirm(taskDraftConfirmation);
     const draft = taskDraft!;
     setTurns((previous) => [...previous, { id: crypto.randomUUID(), origin: "confirmation", prompt: "确认应用完整任务草案", context: taskDraftConfirmation.context, sourceProject: taskDraftConfirmation.baseProject,
       result: { ...result, workKind: "agent", records: [{ round: 0, call: { id: taskDraftConfirmation.requestId, type: "function", function: { name: "confirm_task_draft", arguments: JSON.stringify({ taskId: draft.id, taskVersion: draft.version, baseRevision: taskDraftConfirmation.context.modelRevision }) } }, result }] } }]);
@@ -302,9 +302,9 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
       resolveStage(taskDraftRef.current, "confirmed"); rejectTaskDraft(true);
     }
   };
-  const confirmSection = () => {
+  const confirmSection = async () => {
     if (!sectionConfirmation || busy || analysisBusy || conflicts.length || sectionDirty || !sectionCurrent || sectionRef.current !== sectionChange || proposal || conditions || taskDraft) return;
-    const result = onSectionConfirm(sectionConfirmation);
+    const result = await onSectionConfirm(sectionConfirmation);
     setTurns((previous) => [...previous, { id: crypto.randomUUID(), workflowId: stageWorkflow(sectionChange!.id), origin: "confirmation", prompt: "确认应用截面修改阶段", context: snapshot.context, sourceProject: project,
       result: { ...result, workKind: "agent", records: [{ round: 0, call: { id: sectionConfirmation.requestId, type: "function", function: { name: "confirm_section_change", arguments: JSON.stringify({ proposalId: sectionChange!.id, memberIds: sectionChange!.memberIds, baseRevision: project.revision }) } }, result }] } }]);
     if (result.status === "applied") {
@@ -338,9 +338,9 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
     setTurns((previous) => previous.map((turn) => turn.id === id ? { ...turn, result: { ...result, workKind: "agent", records: [{ round: 0,
       call: { id, type: "function", function: { name: "run_analysis", arguments: JSON.stringify({ projectId: context.projectId, modelRevision: context.modelRevision }) } }, result }] } } : turn));
   };
-  const confirmConditions = () => {
+  const confirmConditions = async () => {
     if (!conditionsConfirmation || busy || analysisBusy || conflicts.length || conditionsDirty || !conditionsCurrent || conditionsRef.current !== conditions || proposal || sectionChange || taskDraft) return;
-    const result = onConditionsConfirm(conditionsConfirmation);
+    const result = await onConditionsConfirm(conditionsConfirmation);
     setTurns((previous) => [...previous, { id: crypto.randomUUID(), workflowId: stageWorkflow(conditions!.id), origin: "confirmation", prompt: "确认应用分析条件阶段",
       context: conditionsConfirmation.context, sourceProject: conditionsConfirmation.baseProject, result: { ...result, workKind: "agent", records: [{ round: 0,
         call: { id: conditionsConfirmation.requestId, type: "function", function: { name: "confirm_analysis_conditions", arguments: JSON.stringify({ proposalId: conditions!.id, proposalVersion: conditions!.version, baseRevision: conditionsConfirmation.context.modelRevision }) } }, result }] } }]);
@@ -352,9 +352,9 @@ export function AiConversationPanel({ project: persistedProject, sessionId, sele
       if (calculationRequestedRef.current) continuationRef.current = "analyze";
     }
   };
-  const confirmProposal = () => {
+  const confirmProposal = async () => {
     if (!confirmation || busy || analysisBusy || conflicts.length || proposalDirty || !proposalCurrent || proposalRef.current !== proposal || sectionChange || taskDraft) return;
-    const result = onConfirm(confirmation);
+    const result = await onConfirm(confirmation);
     setTurns((previous) => [...previous, { id: crypto.randomUUID(), workflowId: stageWorkflow(proposal!.id), origin: "confirmation", prompt: "确认应用建模阶段",
       context: confirmation.context, sourceProject: confirmation.baseProject,
        result: { ...result, workKind: "agent", records: [{ round: 0, call: { id: confirmation.requestId, type: "function",

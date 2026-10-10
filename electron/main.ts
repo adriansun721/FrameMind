@@ -22,7 +22,7 @@ import { DeepSeekConnection } from "./deepseek";
 import { renderReportPdf } from "./report-pdf";
 import { NativeAnalysisHost } from "./native-analysis";
 import { CadParserHost } from "./cad-parser";
-import { ProjectCheckpoints } from "./project-checkpoints";
+import { ProjectHistoryStore } from "./project-history-store";
 import { CadImportSources } from "./cad-import-sources";
 
 const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
@@ -37,7 +37,7 @@ const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
 const chatHistories = new ChatHistoryStore(join(app.getPath("userData"), "chat-history"));
 const recoveries = new RecoveryStore(join(app.getPath("userData"), "recovery"));
-const projectCheckpoints = new ProjectCheckpoints(join(app.getPath("userData"), "project-history"));
+const projectCheckpoints = new ProjectHistoryStore(join(app.getPath("userData"), "project-history"));
 const cadImportSources = new CadImportSources();
 
 let deepSeek: DeepSeekConnection;
@@ -198,7 +198,8 @@ function createWindow(): void {
 ipcMain.handle(DesktopChannel.SaveProject, async (event, request: SaveProjectRequest): Promise<SaveProjectResult> => {
   requireTrustedSender(event);
   const automatedPath = process.env.FRAMEMIND_E2E_PROJECT_PATH;
-  let targetPath = request.path ?? automatedPath ?? null;
+  if (!request || typeof request.content !== "string" || (request.historyMode !== undefined && !["copy", "new"].includes(request.historyMode))) throw new Error("项目保存请求无效");
+  let targetPath = request.saveAs ? process.env.FRAMEMIND_E2E_SAVE_AS_PATH ?? null : request.path ?? automatedPath ?? null;
 
   if (!targetPath) {
     const result = await dialog.showSaveDialog({
@@ -212,8 +213,9 @@ ipcMain.handle(DesktopChannel.SaveProject, async (event, request: SaveProjectReq
     targetPath = result.filePath;
   }
 
-  await projectFiles.save(targetPath, request.content);
-  return { status: "saved" as const, path: targetPath, savedAt: (await stat(targetPath)).mtime.toISOString() };
+  if (!targetPath.toLowerCase().endsWith(".framemind")) targetPath += ".framemind";
+  const saved = await projectCheckpoints.save(targetPath, request.content, request.historyMode);
+  return { status: "saved" as const, path: targetPath, ...saved, savedAt: (await stat(targetPath)).mtime.toISOString() };
 });
 
 ipcMain.handle(DesktopChannel.OpenProject, async (event): Promise<OpenProjectResult> => {
@@ -236,7 +238,7 @@ ipcMain.handle(DesktopChannel.OpenProject, async (event): Promise<OpenProjectRes
   return {
     status: "opened" as const,
     path: targetPath,
-    content: await projectFiles.open(targetPath),
+    ...await projectCheckpoints.open(targetPath),
     savedAt: (await stat(targetPath)).mtime.toISOString(),
   };
 });
