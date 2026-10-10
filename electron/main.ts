@@ -26,6 +26,7 @@ import { ProjectHistoryStore } from "./project-history-store";
 import { ProjectCandidates } from "./project-candidates";
 import { ReverseDesignService } from "./reverse-design";
 import { ReverseDesignRounds } from "./reverse-design-round";
+import { ReverseDesignInspector } from "./reverse-design-inspection";
 import { CadImportSources } from "./cad-import-sources";
 
 const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
@@ -41,7 +42,7 @@ if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.en
 const chatHistories = new ChatHistoryStore(join(app.getPath("userData"), "chat-history"));
 const recoveries = new RecoveryStore(join(app.getPath("userData"), "recovery"));
 const projectCheckpoints = new ProjectHistoryStore(join(app.getPath("userData"), "project-history"));
-const projectCandidates = new ProjectCandidates(projectCheckpoints);
+const projectCandidates = new ProjectCandidates(projectCheckpoints, new ReverseDesignInspector());
 const reverseDesign = new ReverseDesignService(projectCheckpoints, projectCandidates);
 const cadImportSources = new CadImportSources();
 
@@ -52,7 +53,7 @@ const reverseDesignRounds = new ReverseDesignRounds(projectCheckpoints, projectC
   cancel: (requestId) => deepSeek.cancelChat(requestId),
 }, async () => {
   const digest = createHash("sha256");
-  for (const file of ["reverse-design-round.js", "reverse-design-round-contract.js", "reverse-native-domain.cjs", "reverse-design-fixture.js", "deepseek.js", "native-analysis.js"])
+  for (const file of ["reverse-design-round.js", "reverse-design-round-contract.js", "reverse-design-inspection.js", "reverse-design-comparison.js", "project-candidates.js", "reverse-native-domain.cjs", "reverse-design-fixture.js", "deepseek.js", "native-analysis.js"])
     digest.update(await readFile(join(__dirname, file)));
   digest.update(await readFile(app.isPackaged ? join(process.resourcesPath, "native", "framemind-core.exe") : join(__dirname, "../native/bin/framemind-core.exe")));
   return digest.digest("hex");

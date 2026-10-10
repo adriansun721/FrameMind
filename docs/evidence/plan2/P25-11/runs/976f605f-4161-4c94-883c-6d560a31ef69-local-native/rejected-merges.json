@@ -1,0 +1,27 @@
+[
+  {
+    "taskId": "task_ae445467-b2d5-420b-857b-cc78cb64a863",
+    "decision": "merge-rejected",
+    "state": "blocked"
+  },
+  {
+    "taskId": "task_44f8b6a1-84c6-40a8-b681-34e4950c47be",
+    "decision": "merge-rejected",
+    "state": "blocked"
+  },
+  {
+    "taskId": "task_dfecd990-1486-4c2a-9438-f3f8ea1991fe",
+    "decision": "merge-rejected",
+    "state": "blocked"
+  },
+  {
+    "taskId": "task_dded0a67-01a9-4667-a241-e4b8e167795e",
+    "decision": "merge-rejected",
+    "state": "blocked"
+  },
+  {
+    "taskId": "task_390678e8-5339-4c2f-80eb-95873a6a2734",
+    "decision": "merge-rejected",
+    "state": "blocked"
+  }
+]

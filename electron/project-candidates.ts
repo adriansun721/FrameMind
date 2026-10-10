@@ -199,12 +199,14 @@ export class ProjectCandidates {
         const snapshot = await this.snapshot(task), result = await readFile(join(repository, "candidates", taskId, "result.json"), "utf8");
         if (sha256(result) !== task.resultSha256) throw new Error("结果证据哈希不一致");
         const report = await this.inspector.inspect(snapshot, result); this.current(owner, task);
-        const limits: Record<string, number> = { source: 1, resources: 1, stiffness: 1, "horizontal-displacement": 15, "force-balance": 1e-7, "moment-balance": 1e-7, mass: 1 };
-        if (!report || report.candidateId !== task.candidateId || report.commit !== task.commit || report.inputSha256 !== task.inputSha256 || report.resultSha256 !== task.resultSha256 || !Array.isArray(report.checks) || report.checks.length !== 7 || new Set(report.checks.map((x) => x.name)).size !== 7 || report.checks.some((check) => limits[check.name] !== check.threshold || check.passed !== true || !Number.isFinite(check.value) || !digest.test(check.evidenceSha256) || check.value < 0 || (["horizontal-displacement", "force-balance", "moment-balance"].includes(check.name) ? check.value > check.threshold : check.value !== 1))) throw new Error("inspect 结构、来源或数值门槛未通过；无强制合并入口");
+        const limits: Record<string, number> = { source: 1, resources: 1, stiffness: 1, "horizontal-displacement": 15, "force-balance": 1e-7, "moment-balance": 1e-7, mass: task.inputPolicy === "reverse-design-v1" ? 1e-9 : 1 };
+        const numericChecks = ["horizontal-displacement", "force-balance", "moment-balance", ...(task.inputPolicy === "reverse-design-v1" ? ["mass"] : [])];
+        if (!report || report.candidateId !== task.candidateId || report.commit !== task.commit || report.inputSha256 !== task.inputSha256 || report.resultSha256 !== task.resultSha256 || !Array.isArray(report.checks) || report.checks.length !== 7 || new Set(report.checks.map((x) => x.name)).size !== 7 || report.checks.some((check) => limits[check.name] !== check.threshold || !Number.isFinite(check.value) || check.evidenceSha256 !== task.resultSha256 || check.value < 0 || check.passed !== (numericChecks.includes(check.name) ? check.value <= check.threshold : check.value === 1))) throw new Error("inspect 结构、来源或数值门槛未通过；无强制合并入口");
         const reportContent = JSON.stringify(report);
         await this.files.save(join(repository, "candidates", taskId, "inspect.json"), reportContent); this.current(owner, task);
         task.inspectionSha256 = sha256(reportContent);
-        task.state = "passed"; task.diagnostic = undefined;
+        task.state = report.checks.every((check) => check.passed) ? "passed" : "blocked";
+        task.diagnostic = task.state === "passed" ? undefined : "数值门槛未通过；失败报告已保存，无强制合并入口";
       } catch (cause) { if (!terminal(task)) task.state = "blocked"; task.diagnostic = cause instanceof Error ? cause.message : "inspect 失败"; }
       await this.persist(repository, task); return structuredClone(task);
     });

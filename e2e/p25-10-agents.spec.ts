@@ -10,9 +10,10 @@ import type { ReverseDesignRound } from "../electron/reverse-design-round-contra
 
 test("P25-10 desktop round records independent work and inspect or explicit unfinished offline status", async () => {
   test.setTimeout(300_000);
+  const task = process.env.FRAMEMIND_P2511 === "1" ? "P25-11" : "P25-10";
   const online = process.env.FRAMEMIND_P2510_ONLINE === "1";
   const directory = await mkdtemp(join(tmpdir(), "framemind-p2510-desktop-")), runId = randomUUID();
-  const evidence = resolve("docs/evidence/plan2/P25-10/runs", `${runId}-${online ? "online" : "offline"}`);
+  const evidence = resolve(`docs/evidence/plan2/${task}/runs`, `${runId}-${online ? "online" : "offline"}`);
   await mkdir(evidence, { recursive: true });
   const path = join(directory, "frame.framemind");
   await writeFile(path, encodeProject(createProject()));
@@ -58,7 +59,16 @@ test("P25-10 desktop round records independent work and inspect or explicit unfi
       expect(round.status).toBe("failed"); expect(round.main.status).toBe("failed"); expect(round.apiCalls).toBe(0);
       await expect(dialog.getByRole("region", { name: "多 agent 轮次记录" })).toContainText("禁止合并");
     }
-    expect(round.decision).toBe("awaiting-P25-11");
+    expect(round.decision).toBe(online ? round.comparison?.selected ? "merge-proposed" : "no-feasible" : "blocked");
+    if (online) {
+      await expect(dialog.getByRole("region", { name: "可行候选比较", exact: true })).toBeVisible();
+      for (const work of round.works) if (work.candidate?.state !== "passed") {
+        expect(work.candidate?.state).toBe("blocked");
+        const refusal = await page.evaluate(async ({ taskId, expectedCommit }) => { try { await window.frameMind.mergeCandidate(taskId, expectedCommit); return false; } catch { return true; } }, { taskId: work.taskId, expectedCommit: work.candidate!.commit });
+        expect(refusal).toBe(true);
+      }
+      if (round.mergeRequest) await expect(dialog.getByRole("region", { name: "main 合并请求", exact: true })).toBeVisible();
+    }
     if (Array.isArray(tasks)) for (const task of tasks) {
       if (task.resultSha256) await copyFile(join(`${path}.git`, "candidates", task.taskId, "result.json"), join(evidence, `${task.taskId}-result.json`));
       const snapshot = await page.evaluate((taskId) => window.frameMind.candidateTool({ tool: "read", taskId }), task.taskId);
@@ -72,9 +82,9 @@ test("P25-10 desktop round records independent work and inspect or explicit unfi
     status = "passed";
   } finally {
     const artifacts = Object.fromEntries(await Promise.all((await readdir(evidence)).filter((f) => f !== "run.json").map(async (f) => [f, hash(await readFile(join(evidence, f)))])));
-    const files = ["electron/reverse-design-round.ts", "electron/reverse-design-round-contract.ts", "electron/project-candidates.ts", "electron/reverse-design.ts", "electron/deepseek.ts", "electron/native-analysis.ts", "electron/main.ts", "electron/preload.ts", "electron/contracts.ts", "scripts/reverse-native-domain.ts", "src/components/ReverseDesignDialog.tsx", "dist-electron/reverse-design-round.js", "dist-electron/reverse-native-domain.cjs", "native/bin/framemind-core.exe", "dist/index.html", ...(await readdir("dist/assets")).filter((f) => /\.(js|css)$/.test(f)).map((f) => `dist/assets/${f}`)];
+    const files = ["electron/reverse-design-inspection.ts", "electron/reverse-design-comparison.ts", "electron/reverse-design-round.ts", "electron/reverse-design-round-contract.ts", "electron/project-candidates.ts", "electron/reverse-design.ts", "electron/deepseek.ts", "electron/native-analysis.ts", "electron/main.ts", "electron/preload.ts", "electron/contracts.ts", "scripts/reverse-native-domain.ts", "src/components/ReverseDesignDialog.tsx", "dist-electron/reverse-design-round.js", "dist-electron/reverse-native-domain.cjs", "native/bin/framemind-core.exe", "dist/index.html", ...(await readdir("dist/assets")).filter((f) => /\.(js|css)$/.test(f)).map((f) => `dist/assets/${f}`)];
     const sourceHashes = Object.fromEntries(await Promise.all(files.map(async (f) => [f, hash(await readFile(f))])));
-    await writeFile(join(evidence, "run.json"), JSON.stringify({ task: "P25-10", runId, recordedAt: new Date().toISOString(), mode: online ? "online" : "offline-failure-regression", status,
+    await writeFile(join(evidence, "run.json"), JSON.stringify({ task, runId, recordedAt: new Date().toISOString(), mode: online ? "online" : "offline-failure-regression", status,
       orchestrationStatus: round?.status ?? "not-run", artifacts, sourceHashes, reverify: "node scripts/verify-p25-10.mjs", onlineAcceptance: online && status === "passed" }, null, 2));
     if (app) await app.close();
     if (!resolve(directory).startsWith(resolve(tmpdir()) + sep)) throw new Error("Unsafe desktop test profile");

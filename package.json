@@ -5,6 +5,9 @@
   "description": "FrameMind - AI-assisted spatial frame analysis desktop application",
   "main": "dist-electron/main.js",
   "scripts": {
+    "test:plan2:p2511": "vitest run electron/reverse-design-comparison.test.ts electron/reverse-design-round.test.ts electron/project-candidates.test.ts --maxWorkers=2 --testTimeout=60000",
+    "evidence:plan2:p2511": "npm run build && node scripts/run-p25-11.mjs && node scripts/verify-p25-11.mjs",
+    "evidence:plan2:p2511:online": "npm run build && cross-env FRAMEMIND_P2511=1 FRAMEMIND_P2510_ONLINE=1 node scripts/run-e2e-isolated.cjs e2e/p25-10-agents.spec.ts --workers=1 --retries=0 && cross-env FRAMEMIND_P2511=1 node scripts/verify-p25-10.mjs",
     "dev": "npm run build:main && concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
     "build:main": "tsc -p tsconfig.electron.json && node scripts/build-reverse-native.mjs",
     "test:plan2:p2510": "vitest run electron/reverse-design-round.test.ts electron/native-analysis.test.ts electron/deepseek-chat.test.ts --maxWorkers=2 --testTimeout=60000",

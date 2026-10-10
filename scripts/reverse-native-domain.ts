@@ -1,4 +1,4 @@
-import { captureAnalysisInput, NATIVE_STATIC_SOLVER } from "../src/domain/analysis";
+import { captureAnalysisInput, NATIVE_STATIC_SOLVER, ANALYSIS_SOLVER, solveFrame } from "../src/domain/analysis";
 import { createAnalysisRequest } from "../src/domain/analysis-service";
 import { decodeProject, decodeAnalysisResult } from "../src/domain/project-file";
 import { canonicalJson } from "../electron/candidate-model";
@@ -8,6 +8,7 @@ export function createRequest(content: string) {
   validateReverseDesignParent(content);
   return createAnalysisRequest({ ...captureAnalysisInput(decodeProject(content)), solver: { ...NATIVE_STATIC_SOLVER } });
 }
+export function validateProject(content: string): void { decodeProject(content); }
 
 /** Decode the real native wire at the existing domain boundary, then recompute observations. */
 export function inspectResult(content: string, request: ReturnType<typeof createRequest>, messages: unknown[]) {
@@ -16,12 +17,18 @@ export function inspectResult(content: string, request: ReturnType<typeof create
   const result = decodeAnalysisResult(packets.at(-1)!.result);
   if (result.id !== request.analysisId || result.service?.requestId !== request.requestId || canonicalJson(result.input) !== canonicalJson(request.input)) throw new Error("原生结果与冻结输入不一致");
   const project = decodeProject(content);
-  if (result.nodes.length !== project.nodes.length || result.members.length !== project.members.length || result.nodes.some((n) => !project.nodes.some((p) => p.id === n.nodeId))) throw new Error("原生结果数据不完整");
+  if (result.nodes.length !== project.nodes.length || result.members.length !== project.members.length || new Set(result.nodes.map((n) => n.nodeId)).size !== project.nodes.length || new Set(result.members.map((m) => m.memberId)).size !== project.members.length || result.nodes.some((n) => !project.nodes.some((p) => p.id === n.nodeId)) || result.members.some((m) => !project.members.some((p) => p.id === m.memberId))) throw new Error("原生结果数据不完整");
+  if (canonicalJson(request.input) !== canonicalJson(createRequest(content).input) || result.service?.status !== "complete") throw new Error("冻结输入或原生求解状态无效");
+  // For this 12-node fixed scenario the independent reference reconstructs the
+  // frozen loads and checks its own registered pivot threshold. It never replaces the native result.
+  const reference = solveFrame({ ...request.input, solver: { ...ANALYSIS_SOLVER } });
   const force = [0, 0, 0], moment = [0, 0, 0];
   if (!result.process || result.process.loadVector.length !== project.nodes.length * 6) throw new Error("缺少真实求解荷载向量");
+  const loadVector = reference.process!.loadVector;
+  if (result.process.loadVector.some((value, i) => !Number.isFinite(value) || Math.abs(value - loadVector[i]) > 1e-9)) throw new Error("原生荷载向量与冻结荷载不一致");
   for (const [index, node] of project.nodes.entries()) {
     const response = result.nodes.find((n) => n.nodeId === node.id)!;
-    const load = result.process.loadVector.slice(index * 6, index * 6 + 6);
+    const load = loadVector.slice(index * 6, index * 6 + 6);
     const f = [response.reaction.x + load[0], response.reaction.y + load[1], response.reaction.z + load[2]];
     const m = [response.reactionMoment.x + load[3], response.reactionMoment.y + load[4], response.reactionMoment.z + load[5]];
     const { x, y, z } = node.position;

@@ -40,7 +40,7 @@ export function ReverseDesignDialog({ project, sessionId, onApply, onClose }: { 
         <p>全结构自重 g=(0,0,-9.81) m/s²。屋面 (6,0,6) m 节点 F=(5,0,0) kN，力矩为零；屋面 (0,0,6)→(6,0,6) m 梁全局 q=(0,0,-2) kN/m。</p>
         <p>所选用户演示组合：恒载×1 + 演示外荷载×1.5。全结构最大水平合位移 √(ux²+uy²) ≤ {draft.rules.horizontalLimitMm} mm。</p>
         <p>目标：最小化结构总质量 ΣρAL。当前父快照质量 {draft.initialMassKg.toFixed(3)} kg。变量仅为梁组与柱组的已核验库截面；面积变化后重算自重。</p>
-        <p>预算：最多 {draft.rules.maxRounds} 轮或 {draft.rules.maxDurationSeconds / 60} 分钟；work 最多 {draft.rules.workTimeoutSeconds} 秒、{draft.rules.maxToolRetries} 次工具重试，inspect 最多 {draft.rules.inspectTimeoutSeconds} 秒。当前可运行一轮三个 work 与独立 inspect；反馈搜索和受控合并等待后续任务。</p>
+        <p>预算：最多 {draft.rules.maxRounds} 轮或 {draft.rules.maxDurationSeconds / 60} 分钟；work 最多 {draft.rules.workTimeoutSeconds} 秒、{draft.rules.maxToolRetries} 次工具重试，inspect 最多 {draft.rules.inspectTimeoutSeconds} 秒。当前可运行一轮三个 work、独立 inspect 和可行比较；后续轮次反馈搜索待接入。</p>
         <details><summary>核验截面库与来源</summary><table><thead><tr><th>条目</th><th>A (m²)</th><th>Iy / Iz / J (m⁴)</th><th>来源</th></tr></thead><tbody>{draft.catalog.map((s) => <tr key={s.provenance.catalogId}><td>{s.name}</td><td>{s.areaM2}</td><td>{s.secondMomentYM4} / {s.secondMomentZM4} / {s.torsionalConstantM4}</td><td><a href={s.catalogBasis.source.url} target="_blank" rel="noreferrer">{s.catalogBasis.source.publisher}</a> · {s.catalogBasis.location}</td></tr>)}</tbody></table></details>
         <details><summary>父快照与确认身份</summary><p>{draft.confirmationId}</p><p>父输入 SHA-256：{draft.parentInputSha256}</p></details>
         <button className="button primary" disabled={busy || confirmed} onClick={() => run(async () => {
@@ -74,10 +74,16 @@ export function ReverseDesignDialog({ project, sessionId, onApply, onClose }: { 
     {error && <p role="alert">{error}</p>}
     {round && <section aria-label="多 agent 轮次记录"><h3>多 agent 轮次记录</h3>
       <p>{round.mode === "online" ? "在线" : "回放"} · 第 {round.round} 轮 · {round.status} · {((round.elapsedMs ?? 0) / 1000).toFixed(1)} 秒 · API 调用 {round.apiCalls} 次</p>
-      <p>{round.diagnostic}</p><p>候选比较与受控合并尚未开放。</p><p>main：{round.main.status} · 实际 API 调用 {round.main.apiCalls} 次</p>
+      <p>{round.diagnostic}</p><p>main：{round.main.status} · 实际 API 调用 {round.main.apiCalls} 次</p>
       <table><thead><tr><th>策略</th><th>状态</th><th>质量 (kg)</th><th>最大水平位移 (mm)</th><th>API 调用</th></tr></thead><tbody>{round.works.map((w) => <tr key={w.agentId}><td>{({ aggressive: "激进减重", conservative: "稳健逐级缩小", independent: "独立探索" })[w.strategy]}</td><td>{w.status}</td><td>{w.massKg?.toFixed(3) ?? "未完成"}</td><td>{w.checks?.find((c) => c.name === "horizontal-displacement")?.value.toFixed(6) ?? "未完成"}</td><td>{w.apiCalls}</td></tr>)}</tbody></table>
       <p>inspect：{round.inspection?.status ?? "未完成"}</p>
-      {round.inspection?.reports.map((report) => <details key={report.taskId}><summary>{report.candidateId} · 检查证据</summary>{report.checks.map((c) => <p key={c.name}>{c.name}：{c.value} / 阈值 {c.threshold} · {c.passed ? "通过" : "未通过"}</p>)}</details>)}
+      {round.inspection?.reports.map((report) => <details key={report.taskId}><summary>{report.candidateId} · {report.feasibility} · 检查证据</summary><p>整体平衡：全局坐标，参考点 (0,0,0) m；力 kN，力矩 kN·m。质量为冻结输入 ΣρAL，mass 检查为质量来源误差 kg。</p>{report.checks.map((c) => <p key={c.name}>{c.name}：{c.value} / 阈值 {c.threshold} · {c.passed ? "通过" : "未通过"} · {c.passed ? "info" : "error"} · 证据 {c.evidenceSha256}</p>)}{report.recommendations.map((r) => <p key={r}>{r}</p>)}</details>)}
+      {round.comparison && <section aria-label="可行候选比较"><h3>可行候选比较</h3><p>仅比较全部门槛通过的候选。相同质量优先更少截面组和种类；差异小于 0.5% 时优先更简单方案。选择依据：{round.comparison.reason}。</p>
+        <table><thead><tr><th>候选</th><th>质量 (kg)</th><th>截面组 / 种类</th><th>选择</th></tr></thead><tbody>{round.comparison.eligible.map((c) => <tr key={c.taskId}><td>{c.candidateId}</td><td>{c.massKg.toFixed(3)}</td><td>{c.sectionGroups} / {c.sectionKinds}</td><td>{round.comparison?.selected?.taskId === c.taskId ? "main 推荐" : "可行"}</td></tr>)}</tbody></table>
+        {!round.comparison.eligible.length && <p>本轮无可行候选，禁止合并。</p>}
+        <p>被排除候选：{round.comparison.excluded.length} 个。未通过或受阻候选保留检查证据。</p>
+      </section>}
+      {round.mergeRequest && <section aria-label="main 合并请求"><h3>main 合并请求 · 等待确认</h3><p>{round.mergeRequest.candidateId} · 提交 {round.mergeRequest.expectedCommit}</p><p>父提交 {round.mergeRequest.parentCommit}</p><p>输入 {round.mergeRequest.inputSha256} · 结果 {round.mergeRequest.resultSha256}</p><p>关闭本窗口后，在“文件 → 候选与差异”查看修改，并确认合并此版本。正式输入变化后请求失效。</p></section>}
       <details><summary>身份与并发时间线</summary><p>{round.runId} · 父提交 {round.parentCommit}</p><p>父输入 SHA-256：{round.parentInputSha256}</p>{round.works.map((w) => <p key={w.taskId}>{w.strategy} · {w.taskId} · {w.branch}</p>)}{round.timeline.map((e, i) => <p key={i}>{e.at} · {e.agentId} · {e.event}</p>)}</details>
     </section>}
     {busy && <p role="status">正在处理固定输入与候选…</p>}

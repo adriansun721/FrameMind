@@ -1,6 +1,6 @@
 import type { ProjectCandidate, CandidateInspection } from "./contracts";
-export const REVERSE_AGENT_SCHEMA = "reverse-agents/1";
-export const REVERSE_AGENT_PROMPT = "p25-10/2";
+export const REVERSE_AGENT_SCHEMA = "reverse-agents/2";
+export const REVERSE_AGENT_PROMPT = "p25-11/1";
 export const WORK_STRATEGIES = ["aggressive", "conservative", "independent"] as const;
 export type WorkStrategy = typeof WORK_STRATEGIES[number];
 export interface RoundWork {
@@ -12,7 +12,7 @@ export interface RoundWork {
 }
 export interface RoundInspection {
   agentId: string; status: "completed" | "failed" | "cancelled"; apiCalls: number; apiAttempts: number; startedAt: string; endedAt: string;
-  reports: Array<{ taskId: string; candidateId: string; commit: string; parentCommit: string; inputSha256: string; resultSha256: string; checks: CandidateInspection["checks"]; severity: "info" | "error"; recommendations: string[] }>;
+  reports: Array<import("./reverse-design-comparison").ReverseDesignChoice & { severity: "info" | "error"; recommendations: string[]; balanceBasis: { coordinates: "global"; referencePointM: [0, 0, 0]; forceUnit: "kN"; momentUnit: "kN·m" }; }>;
   diagnostic?: string;
 }
 export interface ReverseDesignRound {
@@ -20,7 +20,9 @@ export interface ReverseDesignRound {
   parentCommit: string; parentInputSha256: string; model: string; buildSha256: string; promptVersion: string; promptSha256: string; schemaVersionId: string; toolsSha256: string;
   sampling: { temperature: 0; thinking: "disabled"; maxTokens: 2048 }; startedAt: string; endedAt?: string; elapsedMs?: number; apiCalls: number; apiAttempts: number;
   main: { agentId: string; apiCalls: number; apiAttempts: number; status: "pending" | "completed" | "failed"; startedAt: string; endedAt?: string };
-  works: RoundWork[]; inspection?: RoundInspection; decision: "awaiting-P25-11"; diagnostic?: string;
+  works: RoundWork[]; inspection?: RoundInspection; decision: "pending" | "no-feasible" | "merge-proposed" | "blocked"; diagnostic?: string;
+  comparison?: import("./reverse-design-comparison").ReverseDesignComparison;
+  mergeRequest?: { taskId: string; candidateId: string; expectedCommit: string; parentCommit: string; inputSha256: string; resultSha256: string; confirmationRequired: true };
   timeline: Array<{ agentId: string; event: string; at: string }>;
   tools: Array<{ agentId: string; name: string; at: string; status: "completed" | "rejected"; evidenceSha256?: string }>;
   artifacts: Record<string, string>;
@@ -37,8 +39,9 @@ export const INSPECT_TOOLS = [
 ];
 export const MAIN_TOOLS = [tool("read_parent", "Read the real confirmed parent snapshot and fixed rules before dispatch.", {}),
   tool("dispatch_round", "Actually dispatch three isolated work agents and independent inspect for ONE round. Returns only controlled evidence. Cannot merge or change rules.", {}),
-  tool("finish_main", "Finish the dispatch round after receiving work and inspect evidence, including infeasible results. Takes empty arguments. Comparison/merge await the next feature.", {})];
-export const MAIN_PROMPT = "You are main. Call read_parent to read the real parent, then dispatch_round to start three isolated work agents and read-only inspect, then finish_main with an EMPTY object. One dispatch only. Receive actual infeasible or blocked evidence without claiming feasibility. You cannot edit the parent, change limits or merge; comparison and next-round policy are not enabled yet.";
+  tool("propose_merge", "Request ONLY the program-selected feasible candidate using its exact task, commit and hashes from comparison.selected. This records a request for user confirmation; never applies it.", { taskId: { type: "string" }, expectedCommit: { type: "string" }, inputSha256: { type: "string" }, resultSha256: { type: "string" } }),
+  tool("finish_main", "Finish with an EMPTY object. If comparison.selected exists, first call propose_merge with its exact identity. If none exists, finish without a merge request.", {})];
+export const MAIN_PROMPT = "You are main. Call read_parent, then dispatch_round exactly once to start three isolated work agents and read-only inspect. Read the program comparison. If comparison.selected exists, call propose_merge with its taskId, commit as expectedCommit, inputSha256 and resultSha256 exactly. Otherwise no merge is allowed. Then finish_main with an EMPTY object. Text cannot pass checks or authorize merge. You cannot change rules or apply the request. User confirmation is required. Feedback rounds are not enabled yet.";
 export const STRATEGY_PROMPTS: Record<WorkStrategy, string> = {
   aggressive: "Explore aggressive mass reduction: try the smallest catalog beam and column. You own only this work's tools and candidate.",
   conservative: "Explore conservative stepwise reduction: reduce one group by one available catalog step and keep the other group unchanged.",

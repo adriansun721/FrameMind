@@ -7,7 +7,9 @@ import { ProjectCandidates } from "./project-candidates";
 import { ProjectHistoryStore } from "./project-history-store";
 import { ReverseDesignService } from "./reverse-design";
 import { redactPersistence } from "./persistence-redaction";
-import { generateReverseDesignCandidate, REVERSE_DESIGN_RULES, reverseDesignCatalog } from "./reverse-design-model";
+import { generateReverseDesignCandidate, REVERSE_DESIGN_RULES, reverseDesignCatalog, validateReverseDesignParent } from "./reverse-design-model";
+import { inspectReverseEvidence, nativeDomain, type ReverseNativeDomain } from "./reverse-design-inspection";
+import { compareReverseDesignCandidates } from "./reverse-design-comparison";
 import { MAIN_TOOLS, MAIN_PROMPT, INSPECT_TOOLS, WORK_TOOLS, WORK_STRATEGIES, STRATEGY_PROMPTS, WORK_PROMPT, INSPECT_PROMPT, REVERSE_AGENT_PROMPT, REVERSE_AGENT_SCHEMA, type ReverseDesignRound, type RoundWork, type RoundInspection } from "./reverse-design-round-contract";
 import type { CandidateSnapshot, DeepSeekChatMessage, DeepSeekChatResult } from "./contracts";
 
@@ -21,10 +23,6 @@ export interface ReverseAgentTransport {
 }
 export interface ReverseNativeTransport {
   runQueued(owner: number, request: unknown, signal: AbortSignal, onStart?: () => void, onFinish?: () => void): Promise<unknown[]>;
-}
-interface NativeDomain {
-  createRequest(content: string): { requestId: string; input: unknown; analysisId: string };
-  inspectResult(content: string, request: unknown, messages: unknown[]): { massKg: number; checks: Array<{ name: string; value: number; threshold: number; passed: boolean }> };
 }
 interface ActiveRound { controller: AbortController; guard(): void; round: ReverseDesignRound; taskIds: string[]; pending: Set<Promise<unknown>>; }
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
@@ -62,7 +60,7 @@ export class ReverseDesignRounds {
   constructor(private readonly history: ProjectHistoryStore, private readonly candidates: ProjectCandidates,
     private readonly service: ReverseDesignService, private readonly native: ReverseNativeTransport,
     private readonly agents: ReverseAgentTransport, private readonly buildHash: () => Promise<string>,
-    private readonly domain: () => NativeDomain = () => require("./reverse-native-domain.cjs")) {}
+    private readonly domain: () => ReverseNativeDomain = nativeDomain) {}
 
   contextChanged(owner: number): void {
     const active = this.active.get(owner);
@@ -79,7 +77,7 @@ export class ReverseDesignRounds {
       schemaVersion: 1, runId: `round_${randomUUID()}`, round: 1, mode: this.agents.mode, status: "running", parentCommit: "", parentInputSha256: hash(candidateInput(parent.content)),
       model: "pending", buildSha256: "", promptVersion: REVERSE_AGENT_PROMPT, promptSha256: hash(canonicalJson({ REVERSE_AGENT_PROMPT, MAIN_PROMPT, STRATEGY_PROMPTS, WORK_PROMPT, INSPECT_PROMPT })), schemaVersionId: REVERSE_AGENT_SCHEMA,
       toolsSha256: hash(canonicalJson([MAIN_TOOLS, WORK_TOOLS, INSPECT_TOOLS])), sampling: { temperature: 0, thinking: "disabled", maxTokens: 2048 },
-      startedAt: now(), apiCalls: 0, apiAttempts: 0, main: { agentId: `main_${randomUUID()}`, apiCalls: 0, apiAttempts: 0, status: "pending", startedAt: now() }, works: [], timeline: [], tools: [], artifacts: {}, decision: "awaiting-P25-11",
+      startedAt: now(), apiCalls: 0, apiAttempts: 0, main: { agentId: `main_${randomUUID()}`, apiCalls: 0, apiAttempts: 0, status: "pending", startedAt: now() }, works: [], timeline: [], tools: [], artifacts: {}, decision: "pending",
     };
     const active: ActiveRound = { controller, guard: parent.guard, round, taskIds: [], pending: new Set() };
     this.active.set(owner, active);
@@ -102,9 +100,25 @@ export class ReverseDesignRounds {
       await bounded(save("main-context.json", mainMessages), mainBudget.signal);
       event(round.main.agentId, "main-start");
       await this.loop(active, round.main, mainMessages, MAIN_TOOLS, mainBudget.signal, async (name, args) => {
+        if (name === "propose_merge") {
+          exactKeys(args, ["taskId", "expectedCommit", "inputSha256", "resultSha256"]); check();
+          const selected = round.comparison?.selected;
+          if (round.inspection?.status !== "completed" || !selected || round.mergeRequest || args.taskId !== selected.taskId || args.expectedCommit !== selected.commit || args.inputSha256 !== selected.inputSha256 || args.resultSha256 !== selected.resultSha256) throw new Error("只能请求程序选中的可行候选");
+          const current = (await this.candidates.read(owner, selected.taskId)).candidate; check();
+          if (current.state !== "passed" || current.commit !== selected.commit || current.inputSha256 !== selected.inputSha256 || current.resultSha256 !== selected.resultSha256) throw new Error("检查身份已变化");
+          round.mergeRequest = { taskId: current.taskId, candidateId: current.candidateId, expectedCommit: current.commit, parentCommit: current.parentCommit, inputSha256: current.inputSha256!, resultSha256: current.resultSha256!, confirmationRequired: true };
+          round.decision = "merge-proposed";
+          await save("main-decision.json", { decision: round.decision, comparison: round.comparison, mergeRequest: round.mergeRequest }); check();
+          return { data: round.mergeRequest };
+        }
         exactKeys(args, []); check();
         if (name === "read_parent") { readParent = true; return { data: { input: JSON.parse(candidateInput(parent.content)), catalog: reverseDesignCatalog(), rules: REVERSE_DESIGN_RULES } }; }
-        if (name === "finish_main" && dispatched) return { done: true, data: { status: "completed", decision: round.decision } };
+        if (name === "finish_main" && dispatched) {
+          if (round.inspection?.status !== "completed" || !round.comparison || round.comparison.selected && !round.mergeRequest) throw new Error("检查或 main 结构化决策未完成");
+          if (!round.comparison.selected) round.decision = "no-feasible";
+          await save("main-decision.json", { decision: round.decision, comparison: round.comparison, mergeRequest: round.mergeRequest }); check();
+          return { done: true, data: { status: "completed", decision: round.decision } };
+        }
         if (name !== "dispatch_round" || !readParent || dispatched) throw new Error("main 必须读取父状态且只能派发一次");
         dispatched = true;
         const snapshots: CandidateSnapshot[] = [];
@@ -122,11 +136,15 @@ export class ReverseDesignRounds {
         check();
         round.inspection = await this.inspect(owner, active, check, event, save);
         check();
-        return { data: { works: round.works, inspection: round.inspection, decision: round.decision } };
+        if (round.inspection.status === "completed") {
+          round.comparison = compareReverseDesignCandidates(round.inspection.reports);
+          await save("comparison.json", round.comparison); check();
+        }
+        return { data: { works: round.works, inspection: round.inspection, comparison: round.comparison, decision: round.decision } };
       }, event, save);
       round.main.status = "completed";
       round.status = round.works.length === 3 && round.works.every((w) => w.status === "completed") && round.inspection?.status === "completed" ? "completed" : "failed";
-      round.diagnostic = round.status === "completed" ? "编排完成；候选比较与受控合并尚未开放。" : "work 或 inspect 未完成；禁止合并。";
+      round.diagnostic = round.status === "completed" ? round.decision === "merge-proposed" ? "可行候选已比较；main 合并请求等待用户确认具体版本。" : "没有满足全部数值门槛的候选；禁止合并。" : "work 或 inspect 未完成；禁止合并。";
     } catch {
       round.main.status = "failed";
       if (round.status === "running") round.status = controller.signal.aborted ? "cancelled" : "failed";
@@ -136,6 +154,7 @@ export class ReverseDesignRounds {
       controller.abort();
       await Promise.allSettled([...active.pending]);
       if (round.status !== "completed") await Promise.allSettled(active.taskIds.map((id) => this.candidates.cancel(owner, id)));
+      if (round.status !== "completed") { round.decision = "blocked"; round.mergeRequest = undefined; }
       round.endedAt = now(); round.elapsedMs = performance.now() - started;
       round.apiCalls = round.main.apiCalls + round.works.reduce((n, w) => n + w.apiCalls, 0) + (round.inspection?.apiCalls ?? 0);
       round.apiAttempts = round.main.apiAttempts + round.works.reduce((n, w) => n + w.apiAttempts, 0) + (round.inspection?.apiAttempts ?? 0);
@@ -275,19 +294,27 @@ export class ReverseDesignRounds {
           if (typeof args.taskId !== "string" || !active.taskIds.includes(args.taskId)) throw new Error("不属于同轮候选");
           const snapshot = await this.candidates.read(owner, args.taskId); check();
           const task = snapshot.candidate;
+          try {
           if (task.state !== "submitted" || task.parentCommit !== active.round.parentCommit || task.parentInputSha256 !== active.round.parentInputSha256) throw new Error("候选未提交或父身份变化");
           const bytes = await this.history.access(task.projectId, snapshot.parentContent, async (repository) => readFile(join(repository, "candidates", task.taskId, "result.json"), "utf8")); check();
-          if (hash(bytes) !== task.resultSha256) throw new Error("结果证据哈希无效");
-          const evidence = JSON.parse(bytes);
-          if (evidence.runId !== active.round.runId || evidence.taskId !== task.taskId || evidence.candidateId !== task.candidateId || evidence.parentCommit !== task.parentCommit || evidence.parentInputSha256 !== task.parentInputSha256 || evidence.candidateContentSha256 !== hash(snapshot.candidateContent) || evidence.inputSha256 !== task.inputSha256) throw new Error("求解来源无效");
-          const expectedRequest = this.domain().createRequest(snapshot.candidateContent);
-          if (canonicalJson(expectedRequest.input) !== canonicalJson(evidence.request.input) || hash(canonicalJson(evidence.request.input)) !== evidence.frozenInputSha256 || hash(canonicalJson(evidence.messages.at(-1))) !== evidence.nativeResultSha256) throw new Error("冻结输入或结果哈希不匹配候选");
-          const observed = this.domain().inspectResult(snapshot.candidateContent, evidence.request, evidence.messages);
-          if (observed.massKg !== evidence.massKg) throw new Error("质量来源不一致");
-          const report: RoundInspection["reports"][number] = { taskId: task.taskId, candidateId: task.candidateId, commit: task.commit, parentCommit: task.parentCommit, inputSha256: task.inputSha256!, resultSha256: task.resultSha256!, checks: observed.checks.map((c) => ({ ...c, evidenceSha256: task.resultSha256! })),
+          const observed = inspectReverseEvidence(snapshot, bytes, this.domain(), active.round.runId);
+          const sections = validateReverseDesignParent(snapshot.candidateContent).sections;
+          const report: RoundInspection["reports"][number] = { taskId: task.taskId, candidateId: task.candidateId, commit: task.commit, parentCommit: task.parentCommit, inputSha256: task.inputSha256!, resultSha256: task.resultSha256!, ...observed,
+            sectionGroups: sections.length, sectionKinds: new Set(sections.map((s) => s.provenance.catalogId)).size, feasibility: observed.checks.every((c) => c.passed) ? "feasible" : "infeasible",
+            balanceBasis: { coordinates: "global", referencePointM: [0, 0, 0], forceUnit: "kN", momentUnit: "kN·m" },
             severity: observed.checks.every((c) => c.passed) ? "info" : "error", recommendations: observed.checks.filter((c) => !c.passed).map((c) => `请依据 ${c.name} 的失败证据重新派发；禁止合并本候选。`) };
           receipts.set(task.taskId, report);
           return { data: { ...report, massKg: observed.massKg, commit: task.commit } };
+          } catch {
+            check();
+            const report: RoundInspection["reports"][number] = { taskId: task.taskId, candidateId: task.candidateId, commit: task.commit, parentCommit: task.parentCommit,
+              inputSha256: task.inputSha256 ?? hash(candidateInput(snapshot.candidateContent)), resultSha256: task.resultSha256 ?? "", massKg: 0, sectionGroups: 2, sectionKinds: 0,
+              feasibility: "blocked", severity: "error", balanceBasis: { coordinates: "global", referencePointM: [0, 0, 0], forceUnit: "kN", momentUnit: "kN·m" },
+              checks: [{ name: "source", value: 0, threshold: 1, passed: false, evidenceSha256: hash(snapshot.candidateContent) }],
+              recommendations: ["来源、冻结输入、资源或求解证据未能完成核验；其余数值未验证。请创建新候选并重检，禁止合并。"] };
+            receipts.set(task.taskId, report);
+            return { data: report };
+          }
         }
         if (name === "submit_inspection") {
           exactKeys(args, ["reports"]);
@@ -300,7 +327,15 @@ export class ReverseDesignRounds {
             ids.add(receipt.taskId);
           }
           inspection.reports = [...receipts.values()];
-          return { done: true, data: { status: "completed", reports: inspection.reports, decision: "awaiting-P25-11" } };
+          for (const report of inspection.reports) {
+            check();
+            const before = (await this.candidates.read(owner, report.taskId)).candidate; check();
+            const candidate = before.state === "submitted" ? await this.candidates.inspect(owner, report.taskId) : before; check();
+            const work = active.round.works.find((w) => w.taskId === report.taskId)!;
+            work.candidate = candidate;
+            if (candidate.state !== "passed") { report.feasibility = report.checks.every((c) => c.passed) ? "blocked" : "infeasible"; report.severity = "error"; }
+          }
+          return { done: true, data: { status: "completed", reports: inspection.reports } };
         }
         throw new Error("inspect 只允许读取证据和提交报告");
       }, event, save);

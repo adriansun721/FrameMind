@@ -7,7 +7,8 @@ const require = createRequire(import.meta.url);
 const { candidateInput, canonicalJson } = require("../dist-electron/candidate-model.js");
 const { createRequest, inspectResult } = require("../dist-electron/reverse-native-domain.cjs");
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
-const root = resolve("docs/evidence/plan2/P25-10/runs");
+const task = process.env.FRAMEMIND_P2511 === "1" ? "P25-11" : "P25-10";
+const root = resolve(`docs/evidence/plan2/${task}/runs`);
 const runs = await Promise.all((await readdir(root)).map(async (name) => {
   try { return { directory: join(root, name), manifest: JSON.parse(await readFile(join(root, name, "run.json"), "utf8")) }; } catch { return null; }
 }));
@@ -16,7 +17,7 @@ assert.ok(run, "No passed online P25-10 run; run npm run evidence:plan2:p2510:on
 for (const [file, digest] of Object.entries(run.manifest.artifacts)) assert.equal(hash(await readFile(join(run.directory, file))), digest, `artifact: ${file}`);
 for (const [file, digest] of Object.entries(run.manifest.sourceHashes)) assert.equal(hash(await readFile(file)), digest, `source/build changed: ${file}; create a new run`);
 const round = JSON.parse(await readFile(join(run.directory, "round.json"), "utf8"));
-assert.equal(round.status, "completed"); assert.equal(round.mode, "online"); assert.equal(round.decision, "awaiting-P25-11");
+assert.equal(round.status, "completed"); assert.equal(round.mode, "online"); assert.equal(round.decision, round.comparison?.selected ? "merge-proposed" : "no-feasible");
 assert.equal(round.works.length, 3); assert.equal(new Set(round.works.map((w) => w.taskId)).size, 3);
 assert.equal(new Set(round.works.map((w) => w.branch)).size, 3);
 assert.equal(round.inspection.status, "completed"); assert.equal(round.inspection.reports.length, 3);
@@ -33,7 +34,7 @@ for (const agent of [round.main, ...round.works, round.inspection]) {
 assert.deepEqual(round.timeline.filter((e) => ["solve-start", "solve-end"].includes(e.event)).map((e) => e.event), ["solve-start", "solve-end", "solve-start", "solve-end", "solve-start", "solve-end"]);
 for (const [name, digest] of Object.entries(round.artifacts)) assert.equal(hash(await readFile(join(run.directory, name))), digest);
 for (const work of round.works) {
-  assert.equal(work.status, "completed"); assert.equal(work.candidate.state, "submitted"); assert.equal(work.candidate.parentCommit, round.parentCommit);
+  assert.equal(work.status, "completed"); assert.ok(["passed", "blocked"].includes(work.candidate.state)); assert.equal(work.candidate.parentCommit, round.parentCommit);
   assert.equal(work.candidate.parentInputSha256, round.parentInputSha256);
   assert.ok(Date.parse(work.endedAt) - Date.parse(work.startedAt) <= 120_500);
   const content = await readFile(join(run.directory, `${work.taskId}.framemind`), "utf8");
@@ -53,4 +54,12 @@ for (const work of round.works) {
 const independent = await readFile(join(run.directory, "work-independent-context.json"), "utf8");
 for (const work of round.works.filter((w) => w.strategy !== "independent")) assert.ok(!independent.includes(work.taskId) && !independent.includes(work.candidateId));
 assert.ok(!/[A-Z]:\\|Bearer\s|\bsk-[A-Za-z0-9_-]+/i.test(independent));
-console.log(`P25-10 online evidence verified: ${run.manifest.runId}; 3 isolated work, queued native solves, independent inspect. Decision awaits P25-11.`);
+const { compareReverseDesignCandidates } = require("../dist-electron/reverse-design-comparison.js");
+assert.equal(canonicalJson(compareReverseDesignCandidates(round.inspection.reports)), canonicalJson(round.comparison));
+if (round.mergeRequest) {
+  const selected = round.comparison.selected;
+  assert.equal(round.mergeRequest.taskId, selected.taskId); assert.equal(round.mergeRequest.expectedCommit, selected.commit);
+  assert.equal(round.mergeRequest.inputSha256, selected.inputSha256); assert.equal(round.mergeRequest.resultSha256, selected.resultSha256);
+  assert.equal(round.mergeRequest.confirmationRequired, true);
+} else assert.equal(round.comparison.eligible.length, 0);
+console.log(`${task} online evidence verified: ${run.manifest.runId}; 3 isolated work, queued native solves, independent inspect; ${round.decision}.`);
