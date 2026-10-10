@@ -1,0 +1,1217 @@
+{
+  "schemaVersion": 1,
+  "runId": "round_b0ddcfcf-3a0e-4e13-a1a6-63b3c93a5a3f",
+  "round": 1,
+  "mode": "replay",
+  "status": "completed",
+  "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+  "parentInputSha256": "0f5eca97e5ad7349c392c0cfab90358b25fe4f9a8c37752b3936443ea941d1cb",
+  "model": "deterministic-evidence-replay",
+  "buildSha256": "ebec3db778d48df1155c402306c09e0f1ac71e91d5e50d9d546423665df8a6b4",
+  "promptVersion": "p25-11/1",
+  "promptSha256": "ee240eb21f798f662ba5818600e3c2e5c110d583b393e6cc1ee41656e3897a6a",
+  "schemaVersionId": "reverse-agents/2",
+  "toolsSha256": "f0d6f6f972643562b95a55b084db1172a8b2969e1a3a50e1ff3a4569d808d8b4",
+  "sampling": {
+    "temperature": 0,
+    "thinking": "disabled",
+    "maxTokens": 2048
+  },
+  "startedAt": "2026-10-10T15:59:24.635Z",
+  "apiCalls": 0,
+  "apiAttempts": 14,
+  "main": {
+    "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+    "apiCalls": 0,
+    "apiAttempts": 3,
+    "status": "completed",
+    "startedAt": "2026-10-10T15:59:24.635Z",
+    "endedAt": "2026-10-10T15:59:42.589Z"
+  },
+  "works": [
+    {
+      "strategy": "aggressive",
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "taskId": "task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+      "candidateId": "candidate_534502bd-3222-401f-9aa8-9f4bc49d275a",
+      "branch": "candidate/task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+      "outputId": "candidates/task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+      "apiCalls": 0,
+      "apiAttempts": 3,
+      "status": "completed",
+      "feasibility": "infeasible",
+      "unresolved": [
+        "horizontal-displacement: 471.14349762712163 > 15"
+      ],
+      "startedAt": "2026-10-10T15:59:33.761Z",
+      "changes": [
+        {
+          "group": "column",
+          "memberIds": [
+            "member_0001",
+            "member_0002",
+            "member_0004",
+            "member_0006",
+            "member_0009",
+            "member_0010",
+            "member_0012",
+            "member_0014"
+          ],
+          "beforeCatalogId": "arcelor-hea200",
+          "afterCatalogId": "arcelor-ipe100",
+          "source": {
+            "kind": "catalog",
+            "catalogId": "arcelor-ipe100",
+            "source": {
+              "publisher": "ArcelorMittal Europe - Long Products",
+              "title": "Sections and Merchant Bars - ArcelorMittal",
+              "edition": "V2026-1, EN sections sheet",
+              "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+              "accessedOn": "2026-10-06",
+              "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+            }
+          }
+        },
+        {
+          "group": "beam",
+          "memberIds": [
+            "member_0003",
+            "member_0005",
+            "member_0007",
+            "member_0008",
+            "member_0011",
+            "member_0013",
+            "member_0015",
+            "member_0016"
+          ],
+          "beforeCatalogId": "arcelor-ipe200",
+          "afterCatalogId": "arcelor-ipe100",
+          "source": {
+            "kind": "catalog",
+            "catalogId": "arcelor-ipe100",
+            "source": {
+              "publisher": "ArcelorMittal Europe - Long Products",
+              "title": "Sections and Merchant Bars - ArcelorMittal",
+              "edition": "V2026-1, EN sections sheet",
+              "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+              "accessedOn": "2026-10-06",
+              "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+            }
+          }
+        }
+      ],
+      "candidate": {
+        "inputPolicy": "reverse-design-v1",
+        "schemaVersion": 1,
+        "projectId": "project_e0273eaf-94be-4211-ac37-fc46343a382e",
+        "taskId": "task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+        "candidateId": "candidate_534502bd-3222-401f-9aa8-9f4bc49d275a",
+        "sessionId": "92a1fc1f-df88-4ba0-88cd-8bfc39690c11",
+        "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+        "parentRevision": 1,
+        "parentInputSha256": "0f5eca97e5ad7349c392c0cfab90358b25fe4f9a8c37752b3936443ea941d1cb",
+        "parentContentSha256": "72d0604775dcb1c5d8734197233a56efce47eab691a9ab3d6eafb5295e3c9217",
+        "parentStateSha256": "0c95f84328fe41cbd5ca668c7a839c3cb72f1356e3256a382f0a28c259ccb65e",
+        "branch": "candidate/task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+        "commit": "da4fca83ca47e51bb18994579f29e14d9cb0c226",
+        "createdAt": "2026-10-10T15:59:28.511Z",
+        "state": "blocked",
+        "inputSha256": "27ae2d082c7a814c93d246bd8b4a45c592b40488ab9fc54e718fa0859a84a961",
+        "resultSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e",
+        "evidenceIndex": [
+          "result.json"
+        ],
+        "inspectionSha256": "cdff124458e8ad5832a4d599e23e27f25aac4a2d92f63ec821f1f60e1b005914",
+        "diagnostic": "数值门槛未通过；失败报告已保存，无强制合并入口"
+      },
+      "inputSha256": "27ae2d082c7a814c93d246bd8b4a45c592b40488ab9fc54e718fa0859a84a961",
+      "resultSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e",
+      "massKg": 517.4720000000001,
+      "frozenInputSha256": "9ee48d1bd734e6b75723d701f002df9d9d2ec172c0ddd8d62fe4d90ce3c2fa76",
+      "nativeResultSha256": "ff304ec30f09e918b8790e5691fa1ee2076b14311862ae9d54742eeb35d98426",
+      "checks": [
+        {
+          "name": "source",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        },
+        {
+          "name": "resources",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        },
+        {
+          "name": "stiffness",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        },
+        {
+          "name": "horizontal-displacement",
+          "value": 471.14349762712163,
+          "threshold": 15,
+          "passed": false,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        },
+        {
+          "name": "force-balance",
+          "value": 7.006653043900136e-14,
+          "threshold": 1e-7,
+          "passed": true,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        },
+        {
+          "name": "moment-balance",
+          "value": 4.629460975650759e-12,
+          "threshold": 1e-7,
+          "passed": true,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        },
+        {
+          "name": "mass",
+          "value": 0,
+          "threshold": 1e-9,
+          "passed": true,
+          "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+        }
+      ],
+      "endedAt": "2026-10-10T15:59:39.376Z"
+    },
+    {
+      "strategy": "conservative",
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "taskId": "task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+      "candidateId": "candidate_dd6498b0-3139-4d81-b094-a69562686268",
+      "branch": "candidate/task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+      "outputId": "candidates/task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+      "apiCalls": 0,
+      "apiAttempts": 3,
+      "status": "completed",
+      "feasibility": "infeasible",
+      "unresolved": [
+        "horizontal-displacement: 50.82309435477505 > 15"
+      ],
+      "startedAt": "2026-10-10T15:59:33.762Z",
+      "changes": [
+        {
+          "group": "column",
+          "memberIds": [
+            "member_0001",
+            "member_0002",
+            "member_0004",
+            "member_0006",
+            "member_0009",
+            "member_0010",
+            "member_0012",
+            "member_0014"
+          ],
+          "beforeCatalogId": "arcelor-hea200",
+          "afterCatalogId": "arcelor-hea200",
+          "source": {
+            "kind": "catalog",
+            "catalogId": "arcelor-hea200",
+            "source": {
+              "publisher": "ArcelorMittal Europe - Long Products",
+              "title": "Sections and Merchant Bars - ArcelorMittal",
+              "edition": "V2026-1, EN sections sheet",
+              "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+              "accessedOn": "2026-10-06",
+              "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+            }
+          }
+        },
+        {
+          "group": "beam",
+          "memberIds": [
+            "member_0003",
+            "member_0005",
+            "member_0007",
+            "member_0008",
+            "member_0011",
+            "member_0013",
+            "member_0015",
+            "member_0016"
+          ],
+          "beforeCatalogId": "arcelor-ipe200",
+          "afterCatalogId": "arcelor-ipe100",
+          "source": {
+            "kind": "catalog",
+            "catalogId": "arcelor-ipe100",
+            "source": {
+              "publisher": "ArcelorMittal Europe - Long Products",
+              "title": "Sections and Merchant Bars - ArcelorMittal",
+              "edition": "V2026-1, EN sections sheet",
+              "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+              "accessedOn": "2026-10-06",
+              "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+            }
+          }
+        }
+      ],
+      "candidate": {
+        "inputPolicy": "reverse-design-v1",
+        "schemaVersion": 1,
+        "projectId": "project_e0273eaf-94be-4211-ac37-fc46343a382e",
+        "taskId": "task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+        "candidateId": "candidate_dd6498b0-3139-4d81-b094-a69562686268",
+        "sessionId": "92a1fc1f-df88-4ba0-88cd-8bfc39690c11",
+        "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+        "parentRevision": 1,
+        "parentInputSha256": "0f5eca97e5ad7349c392c0cfab90358b25fe4f9a8c37752b3936443ea941d1cb",
+        "parentContentSha256": "72d0604775dcb1c5d8734197233a56efce47eab691a9ab3d6eafb5295e3c9217",
+        "parentStateSha256": "0c95f84328fe41cbd5ca668c7a839c3cb72f1356e3256a382f0a28c259ccb65e",
+        "branch": "candidate/task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+        "commit": "0abc2a52419d55727359a8c54b842f2ec6b3c0c3",
+        "createdAt": "2026-10-10T15:59:30.980Z",
+        "state": "blocked",
+        "inputSha256": "5b3a1473ef33a6dca96e928a9e41cc14a931ce91aef10371518b340a108eaeee",
+        "resultSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349",
+        "evidenceIndex": [
+          "result.json"
+        ],
+        "inspectionSha256": "0ab9501d59267b98f41492a75ba77a35e8992f92e8b3a3f29f34e5c02409e61b",
+        "diagnostic": "数值门槛未通过；失败报告已保存，无强制合并入口"
+      },
+      "inputSha256": "5b3a1473ef33a6dca96e928a9e41cc14a931ce91aef10371518b340a108eaeee",
+      "resultSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349",
+      "massKg": 1337.0120000000004,
+      "frozenInputSha256": "7a3840609bbd3f31dd0f86d20d3da07cf7702efa4911dce314e110ed3eb3722c",
+      "nativeResultSha256": "88d0fce68b115449b95ccf625a4f40906aa36ed00108c947b36732a026b7deea",
+      "checks": [
+        {
+          "name": "source",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        },
+        {
+          "name": "resources",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        },
+        {
+          "name": "stiffness",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        },
+        {
+          "name": "horizontal-displacement",
+          "value": 50.82309435477505,
+          "threshold": 15,
+          "passed": false,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        },
+        {
+          "name": "force-balance",
+          "value": 2.1711030533106224e-13,
+          "threshold": 1e-7,
+          "passed": true,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        },
+        {
+          "name": "moment-balance",
+          "value": 1.3497687065525034e-12,
+          "threshold": 1e-7,
+          "passed": true,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        },
+        {
+          "name": "mass",
+          "value": 0,
+          "threshold": 1e-9,
+          "passed": true,
+          "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+        }
+      ],
+      "endedAt": "2026-10-10T15:59:35.841Z"
+    },
+    {
+      "strategy": "independent",
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "taskId": "task_3928a733-ae22-46e9-a093-8a926d788108",
+      "candidateId": "candidate_4c2f7f66-749e-4a15-94fe-06b688f1cc6f",
+      "branch": "candidate/task_3928a733-ae22-46e9-a093-8a926d788108",
+      "outputId": "candidates/task_3928a733-ae22-46e9-a093-8a926d788108",
+      "apiCalls": 0,
+      "apiAttempts": 3,
+      "status": "completed",
+      "feasibility": "infeasible",
+      "unresolved": [
+        "horizontal-displacement: 50.82309435477505 > 15"
+      ],
+      "startedAt": "2026-10-10T15:59:33.763Z",
+      "changes": [
+        {
+          "group": "column",
+          "memberIds": [
+            "member_0001",
+            "member_0002",
+            "member_0004",
+            "member_0006",
+            "member_0009",
+            "member_0010",
+            "member_0012",
+            "member_0014"
+          ],
+          "beforeCatalogId": "arcelor-hea200",
+          "afterCatalogId": "arcelor-hea200",
+          "source": {
+            "kind": "catalog",
+            "catalogId": "arcelor-hea200",
+            "source": {
+              "publisher": "ArcelorMittal Europe - Long Products",
+              "title": "Sections and Merchant Bars - ArcelorMittal",
+              "edition": "V2026-1, EN sections sheet",
+              "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+              "accessedOn": "2026-10-06",
+              "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+            }
+          }
+        },
+        {
+          "group": "beam",
+          "memberIds": [
+            "member_0003",
+            "member_0005",
+            "member_0007",
+            "member_0008",
+            "member_0011",
+            "member_0013",
+            "member_0015",
+            "member_0016"
+          ],
+          "beforeCatalogId": "arcelor-ipe200",
+          "afterCatalogId": "arcelor-ipe100",
+          "source": {
+            "kind": "catalog",
+            "catalogId": "arcelor-ipe100",
+            "source": {
+              "publisher": "ArcelorMittal Europe - Long Products",
+              "title": "Sections and Merchant Bars - ArcelorMittal",
+              "edition": "V2026-1, EN sections sheet",
+              "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+              "accessedOn": "2026-10-06",
+              "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+            }
+          }
+        }
+      ],
+      "candidate": {
+        "inputPolicy": "reverse-design-v1",
+        "schemaVersion": 1,
+        "projectId": "project_e0273eaf-94be-4211-ac37-fc46343a382e",
+        "taskId": "task_3928a733-ae22-46e9-a093-8a926d788108",
+        "candidateId": "candidate_4c2f7f66-749e-4a15-94fe-06b688f1cc6f",
+        "sessionId": "92a1fc1f-df88-4ba0-88cd-8bfc39690c11",
+        "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+        "parentRevision": 1,
+        "parentInputSha256": "0f5eca97e5ad7349c392c0cfab90358b25fe4f9a8c37752b3936443ea941d1cb",
+        "parentContentSha256": "72d0604775dcb1c5d8734197233a56efce47eab691a9ab3d6eafb5295e3c9217",
+        "parentStateSha256": "0c95f84328fe41cbd5ca668c7a839c3cb72f1356e3256a382f0a28c259ccb65e",
+        "branch": "candidate/task_3928a733-ae22-46e9-a093-8a926d788108",
+        "commit": "6f9f61f6357b2ab708c51eabad56d1a9e55411e3",
+        "createdAt": "2026-10-10T15:59:33.357Z",
+        "state": "blocked",
+        "inputSha256": "5b3a1473ef33a6dca96e928a9e41cc14a931ce91aef10371518b340a108eaeee",
+        "resultSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d",
+        "evidenceIndex": [
+          "result.json"
+        ],
+        "inspectionSha256": "27f4009e7dd142eac97625cea3860ca635dd799a4963c48d098f3e6b84127a06",
+        "diagnostic": "数值门槛未通过；失败报告已保存，无强制合并入口"
+      },
+      "inputSha256": "5b3a1473ef33a6dca96e928a9e41cc14a931ce91aef10371518b340a108eaeee",
+      "resultSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d",
+      "massKg": 1337.0120000000004,
+      "frozenInputSha256": "7a3840609bbd3f31dd0f86d20d3da07cf7702efa4911dce314e110ed3eb3722c",
+      "nativeResultSha256": "aa558345fb125364f2e3956e7686d5c097aa6841013b23e31c5b15386938af62",
+      "checks": [
+        {
+          "name": "source",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        },
+        {
+          "name": "resources",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        },
+        {
+          "name": "stiffness",
+          "value": 1,
+          "threshold": 1,
+          "passed": true,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        },
+        {
+          "name": "horizontal-displacement",
+          "value": 50.82309435477505,
+          "threshold": 15,
+          "passed": false,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        },
+        {
+          "name": "force-balance",
+          "value": 2.1711030533106224e-13,
+          "threshold": 1e-7,
+          "passed": true,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        },
+        {
+          "name": "moment-balance",
+          "value": 1.3497687065525034e-12,
+          "threshold": 1e-7,
+          "passed": true,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        },
+        {
+          "name": "mass",
+          "value": 0,
+          "threshold": 1e-9,
+          "passed": true,
+          "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+        }
+      ],
+      "endedAt": "2026-10-10T15:59:37.604Z"
+    }
+  ],
+  "timeline": [
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "main-start",
+      "at": "2026-10-10T15:59:24.647Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:24.648Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:24.653Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:24.653Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:24.670Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:24.682Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:24.682Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "work-start",
+      "at": "2026-10-10T15:59:33.761Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "work-start",
+      "at": "2026-10-10T15:59:33.762Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "work-start",
+      "at": "2026-10-10T15:59:33.763Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:33.770Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:33.772Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:33.775Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:33.780Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:33.780Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:33.787Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:33.787Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:33.792Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:33.792Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:33.805Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:33.808Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:33.813Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:33.818Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:33.818Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "solve-queued",
+      "at": "2026-10-10T15:59:33.844Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:33.846Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:33.846Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "solve-queued",
+      "at": "2026-10-10T15:59:33.850Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:33.852Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:33.852Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "solve-queued",
+      "at": "2026-10-10T15:59:33.857Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "solve-start",
+      "at": "2026-10-10T15:59:33.858Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "solve-end",
+      "at": "2026-10-10T15:59:33.942Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "solve-start",
+      "at": "2026-10-10T15:59:33.942Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "solve-end",
+      "at": "2026-10-10T15:59:34.082Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "solve-start",
+      "at": "2026-10-10T15:59:34.083Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "solve-end",
+      "at": "2026-10-10T15:59:34.159Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:35.803Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:35.816Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:35.816Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "agent-stopped",
+      "at": "2026-10-10T15:59:35.830Z"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "event": "work-end",
+      "at": "2026-10-10T15:59:35.841Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:37.578Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:37.587Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:37.587Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "agent-stopped",
+      "at": "2026-10-10T15:59:37.597Z"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "event": "work-end",
+      "at": "2026-10-10T15:59:37.604Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:39.355Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:39.362Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:39.362Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "agent-stopped",
+      "at": "2026-10-10T15:59:39.370Z"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "event": "work-end",
+      "at": "2026-10-10T15:59:39.376Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "inspect-start",
+      "at": "2026-10-10T15:59:39.380Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:39.384Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:39.386Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:39.386Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:40.480Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:40.486Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:40.486Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "agent-stopped",
+      "at": "2026-10-10T15:59:42.520Z"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "event": "inspect-end",
+      "at": "2026-10-10T15:59:42.529Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-start",
+      "at": "2026-10-10T15:59:42.550Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-end",
+      "at": "2026-10-10T15:59:42.561Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "api-status-success",
+      "at": "2026-10-10T15:59:42.561Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "agent-stopped",
+      "at": "2026-10-10T15:59:42.578Z"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "event": "main-end",
+      "at": "2026-10-10T15:59:42.589Z"
+    }
+  ],
+  "tools": [
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "name": "read_parent",
+      "at": "2026-10-10T15:59:24.659Z",
+      "status": "completed",
+      "evidenceSha256": "32734a47013364adf2e425d87ced315bc87449e80750c80355aa5cf7c7f2fb45"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "name": "generate_candidate",
+      "at": "2026-10-10T15:59:33.786Z",
+      "status": "completed",
+      "evidenceSha256": "0591650d4c70f7b2076ca29791fa9f45983ec07cc1b0328d3984354c106a23db"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "name": "generate_candidate",
+      "at": "2026-10-10T15:59:33.792Z",
+      "status": "completed",
+      "evidenceSha256": "6ae017d3f5125203b3c5bf1bab51f5ebb5ace6de6106d7d7d79695424817edc9"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "name": "generate_candidate",
+      "at": "2026-10-10T15:59:33.797Z",
+      "status": "completed",
+      "evidenceSha256": "5a1a906f1e7b57fdd8ed6f78fd62c1be242d7c91032acb2848a4ab2682f22f70"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "name": "solve_candidate",
+      "at": "2026-10-10T15:59:35.743Z",
+      "status": "completed",
+      "evidenceSha256": "25585a49df2a29595616bd98d4fb0a73c6a67f5276d8d8a0f8ca9ed6778027a3"
+    },
+    {
+      "agentId": "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81",
+      "name": "finish_work",
+      "at": "2026-10-10T15:59:35.818Z",
+      "status": "completed",
+      "evidenceSha256": "1864571d963a0adaa1ee2f4e7828cbfaa002c7272104d7cbcc4ba5d7ace3ed5d"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "name": "solve_candidate",
+      "at": "2026-10-10T15:59:37.511Z",
+      "status": "completed",
+      "evidenceSha256": "11125cc978753f5d6e21e1fa2ff23a04db7afbc354aa2867683c28321b4f427f"
+    },
+    {
+      "agentId": "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c",
+      "name": "finish_work",
+      "at": "2026-10-10T15:59:37.589Z",
+      "status": "completed",
+      "evidenceSha256": "3bcd4b61a0b4e8dc6ab87d89b49f20fbc7c5ff506904a20d0adb9dd455046c65"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "name": "solve_candidate",
+      "at": "2026-10-10T15:59:39.348Z",
+      "status": "completed",
+      "evidenceSha256": "09449f8f462e12822303df1ef97fee2ee40538b720fd09111e43f8bb035df465"
+    },
+    {
+      "agentId": "work_4cb8904f-7839-4f92-b187-4df82c20b3da",
+      "name": "finish_work",
+      "at": "2026-10-10T15:59:39.363Z",
+      "status": "completed",
+      "evidenceSha256": "89e8ebd864abe9ffcd9807e1e4ae88dd5c264243b9779a9ce714652effba7579"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "name": "read_candidate_evidence",
+      "at": "2026-10-10T15:59:39.721Z",
+      "status": "completed",
+      "evidenceSha256": "5e443519354f9bbdf698170b47e53c68bdebf135119c5c4804889ff7ccd12648"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "name": "read_candidate_evidence",
+      "at": "2026-10-10T15:59:40.110Z",
+      "status": "completed",
+      "evidenceSha256": "7afa56dd778403b2dc37b36d9194cf4b8cfa62086ad8f30ff5986ad0b2ff05f7"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "name": "read_candidate_evidence",
+      "at": "2026-10-10T15:59:40.473Z",
+      "status": "completed",
+      "evidenceSha256": "dd55f288acfcfe9bbc12c854d5fd307e261ccc4c91c23f24386fb6afd87caa1b"
+    },
+    {
+      "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+      "name": "submit_inspection",
+      "at": "2026-10-10T15:59:42.513Z",
+      "status": "completed",
+      "evidenceSha256": "4ab8a3f3c1eea8d789c6bda3a109e09aed16cf335e351873c129170703bbe120"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "name": "dispatch_round",
+      "at": "2026-10-10T15:59:42.539Z",
+      "status": "completed",
+      "evidenceSha256": "5c26f25475b14140f7bf69a29fa3fd3b0d2fabbe31933da4252c94b7aa2ad597"
+    },
+    {
+      "agentId": "main_265eda00-b110-4e34-bd8c-82431fd013f0",
+      "name": "finish_main",
+      "at": "2026-10-10T15:59:42.568Z",
+      "status": "completed",
+      "evidenceSha256": "e67068d9153e25ece48c8ffb20b8d7bf3fa061f5f64ab8e5ca7d945c162c597a"
+    }
+  ],
+  "artifacts": {
+    "main-context.json": "a98f9627212823d79b63635072798da7ef77624ab38568c2d24554f1284dbbf4",
+    "main_265eda00-b110-4e34-bd8c-82431fd013f0-calls.json": "a310ecbacfedec66d6f96eb4825810277d2b9904a5de5daa34f3c379e406f1ac",
+    "parent.json": "0f5eca97e5ad7349c392c0cfab90358b25fe4f9a8c37752b3936443ea941d1cb",
+    "work-conservative-context.json": "ded7c32ee2bc02cc3ef1513e71a843ded693ab4ea6bf9e57052f4dd25f6f80eb",
+    "work-independent-context.json": "b980fc92b638637319b7f01d7bfa988e34e6df611a8ed71770cb43eb33d3cf66",
+    "work-aggressive-context.json": "b7055061c89226446676c63630aadf1bc45346a939300dbfa831e51e2b89fd38",
+    "work_6aaf2790-9c35-43a5-83e7-0f229db51c0c-calls.json": "14d875c4e5dbcfae42500978e9ccbfdba6766c26bb0a7fccfb0eba3c4a07980d",
+    "work_3b7332ea-073a-4f99-9dc5-a190e48a7e81-calls.json": "b925729f830f7810e1ed7f6d45eb5309942d5bc9e5794a33f03deeda10b5464c",
+    "work_4cb8904f-7839-4f92-b187-4df82c20b3da-calls.json": "3ccff2bf07cbdded31937faf17c6f5bbbe720aeb05b412004992c072db6c2f1b",
+    "work-conservative-request.json": "798b980048e9fecf92eee4db050634c2e5c6b17ac2d6fdc539c29a0ff236941f",
+    "work-independent-request.json": "5e655dc8395e680c05509d5f642f3a7d58317407363747501f79e38db8afc60a",
+    "work-aggressive-request.json": "c509b5ef2b8ffa7d257c7b2a83c7a336d3583c0834956023e3fe3f3146577ba0",
+    "work-conservative-native.json": "64f5a57792218af1db4dca8bd9d1e8b933e83de8c81b915a84ed78bddb5731f3",
+    "work-independent-native.json": "2a2922ac859919ab40a0fc4b83cddd5a444935b844fccd9eb611f8e80904ad5e",
+    "work-aggressive-native.json": "ec85648c406a7cb86858cf9da152ea93a275af8d8e9ceced5baf7e6577f3c2c0",
+    "work-conservative-output.json": "fccb8040716dc56aa661cdff014781d5d9f3deb7b6b153ae93f3be92e1523016",
+    "work-independent-output.json": "6fa5d7ef6c078d1ca06d1101317cdddd6fc905458fa3f2699f5ea230ea2c387d",
+    "work-aggressive-output.json": "c726ee8077399734d05e6e09c24dc59c1dda300aa43f0f5c543ab90fb39bd83b",
+    "inspect-context.json": "ce82d9b89f016c276859a98fd7cb69f18169c735a36c8b8739c2bde26a79742a",
+    "inspect_3ccef119-77bc-4eaf-8a69-514c09316125-calls.json": "445a90fa2788658a2c56a3a2439c29b084d2dc3eef896b93940f65fe5ecbb444",
+    "inspect-output.json": "ec323738508e65516e99d77e11e93ce063f57d8c6ed88b34bf13d9f8072046e9",
+    "comparison.json": "30cc34c34fa254d978986b793f2963212cdd616c66aadcb641bd8c0693e33725",
+    "main-decision.json": "52feec9d053d7e9618431a86e319fa60ae50ed73e7a24fa10c2aafaac3bfec39"
+  },
+  "decision": "no-feasible",
+  "inspection": {
+    "agentId": "inspect_3ccef119-77bc-4eaf-8a69-514c09316125",
+    "status": "completed",
+    "apiCalls": 0,
+    "apiAttempts": 2,
+    "startedAt": "2026-10-10T15:59:39.380Z",
+    "endedAt": "2026-10-10T15:59:42.529Z",
+    "reports": [
+      {
+        "taskId": "task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+        "candidateId": "candidate_534502bd-3222-401f-9aa8-9f4bc49d275a",
+        "commit": "da4fca83ca47e51bb18994579f29e14d9cb0c226",
+        "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+        "inputSha256": "27ae2d082c7a814c93d246bd8b4a45c592b40488ab9fc54e718fa0859a84a961",
+        "resultSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e",
+        "massKg": 517.4720000000001,
+        "checks": [
+          {
+            "name": "source",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          },
+          {
+            "name": "resources",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          },
+          {
+            "name": "stiffness",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          },
+          {
+            "name": "horizontal-displacement",
+            "value": 471.14349762712163,
+            "threshold": 15,
+            "passed": false,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          },
+          {
+            "name": "force-balance",
+            "value": 7.006653043900136e-14,
+            "threshold": 1e-7,
+            "passed": true,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          },
+          {
+            "name": "moment-balance",
+            "value": 4.629460975650759e-12,
+            "threshold": 1e-7,
+            "passed": true,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          },
+          {
+            "name": "mass",
+            "value": 0,
+            "threshold": 1e-9,
+            "passed": true,
+            "evidenceSha256": "dadf501afa1f1bf7c3fd7ff8fe80ce5a0f243fd3b558a4b333d54585535fd50e"
+          }
+        ],
+        "sectionGroups": 2,
+        "sectionKinds": 1,
+        "feasibility": "infeasible",
+        "balanceBasis": {
+          "coordinates": "global",
+          "referencePointM": [
+            0,
+            0,
+            0
+          ],
+          "forceUnit": "kN",
+          "momentUnit": "kN·m"
+        },
+        "severity": "error",
+        "recommendations": [
+          "请依据 horizontal-displacement 的失败证据重新派发；禁止合并本候选。"
+        ]
+      },
+      {
+        "taskId": "task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+        "candidateId": "candidate_dd6498b0-3139-4d81-b094-a69562686268",
+        "commit": "0abc2a52419d55727359a8c54b842f2ec6b3c0c3",
+        "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+        "inputSha256": "5b3a1473ef33a6dca96e928a9e41cc14a931ce91aef10371518b340a108eaeee",
+        "resultSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349",
+        "massKg": 1337.0120000000004,
+        "checks": [
+          {
+            "name": "source",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          },
+          {
+            "name": "resources",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          },
+          {
+            "name": "stiffness",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          },
+          {
+            "name": "horizontal-displacement",
+            "value": 50.82309435477505,
+            "threshold": 15,
+            "passed": false,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          },
+          {
+            "name": "force-balance",
+            "value": 2.1711030533106224e-13,
+            "threshold": 1e-7,
+            "passed": true,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          },
+          {
+            "name": "moment-balance",
+            "value": 1.3497687065525034e-12,
+            "threshold": 1e-7,
+            "passed": true,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          },
+          {
+            "name": "mass",
+            "value": 0,
+            "threshold": 1e-9,
+            "passed": true,
+            "evidenceSha256": "913c23cf15cd6cc6292f8fd0cf69928ebcb45548e6f6d9dc2bfec1a2ebbc1349"
+          }
+        ],
+        "sectionGroups": 2,
+        "sectionKinds": 2,
+        "feasibility": "infeasible",
+        "balanceBasis": {
+          "coordinates": "global",
+          "referencePointM": [
+            0,
+            0,
+            0
+          ],
+          "forceUnit": "kN",
+          "momentUnit": "kN·m"
+        },
+        "severity": "error",
+        "recommendations": [
+          "请依据 horizontal-displacement 的失败证据重新派发；禁止合并本候选。"
+        ]
+      },
+      {
+        "taskId": "task_3928a733-ae22-46e9-a093-8a926d788108",
+        "candidateId": "candidate_4c2f7f66-749e-4a15-94fe-06b688f1cc6f",
+        "commit": "6f9f61f6357b2ab708c51eabad56d1a9e55411e3",
+        "parentCommit": "e69a61ea472ff78bca64b3869ab406c3253f324d",
+        "inputSha256": "5b3a1473ef33a6dca96e928a9e41cc14a931ce91aef10371518b340a108eaeee",
+        "resultSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d",
+        "massKg": 1337.0120000000004,
+        "checks": [
+          {
+            "name": "source",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          },
+          {
+            "name": "resources",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          },
+          {
+            "name": "stiffness",
+            "value": 1,
+            "threshold": 1,
+            "passed": true,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          },
+          {
+            "name": "horizontal-displacement",
+            "value": 50.82309435477505,
+            "threshold": 15,
+            "passed": false,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          },
+          {
+            "name": "force-balance",
+            "value": 2.1711030533106224e-13,
+            "threshold": 1e-7,
+            "passed": true,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          },
+          {
+            "name": "moment-balance",
+            "value": 1.3497687065525034e-12,
+            "threshold": 1e-7,
+            "passed": true,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          },
+          {
+            "name": "mass",
+            "value": 0,
+            "threshold": 1e-9,
+            "passed": true,
+            "evidenceSha256": "8a5a8703a5f9d0e920050e31d67b2ac45d2a48652ee50346e1fc3c627dcb875d"
+          }
+        ],
+        "sectionGroups": 2,
+        "sectionKinds": 2,
+        "feasibility": "infeasible",
+        "balanceBasis": {
+          "coordinates": "global",
+          "referencePointM": [
+            0,
+            0,
+            0
+          ],
+          "forceUnit": "kN",
+          "momentUnit": "kN·m"
+        },
+        "severity": "error",
+        "recommendations": [
+          "请依据 horizontal-displacement 的失败证据重新派发；禁止合并本候选。"
+        ]
+      }
+    ]
+  },
+  "comparison": {
+    "eligible": [],
+    "excluded": [
+      "task_2fce0636-abcf-48b2-a3ec-d40b09ec3e70",
+      "task_38eeb75b-d32f-47b8-b098-f656a87ae33b",
+      "task_3928a733-ae22-46e9-a093-8a926d788108"
+    ],
+    "reason": "no-feasible"
+  },
+  "diagnostic": "没有满足全部数值门槛的候选；禁止合并。",
+  "endedAt": "2026-10-10T15:59:42.589Z",
+  "elapsedMs": 17953.1017
+}

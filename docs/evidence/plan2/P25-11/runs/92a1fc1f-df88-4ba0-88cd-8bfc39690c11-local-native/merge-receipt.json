@@ -1,0 +1,24 @@
+{
+  "inputPolicy": "reverse-design-v1",
+  "schemaVersion": 1,
+  "projectId": "project_e0273eaf-94be-4211-ac37-fc46343a382e",
+  "taskId": "task_eba728d2-c89d-456b-9973-3568bf3851c2",
+  "candidateId": "candidate_5865e385-e690-4e10-a29f-0cddc7a96a97",
+  "sessionId": "92a1fc1f-df88-4ba0-88cd-8bfc39690c11",
+  "parentCommit": "cb8cc9b67170707c8a4cf8625f46102ece66b089",
+  "parentRevision": 1,
+  "parentInputSha256": "0f5eca97e5ad7349c392c0cfab90358b25fe4f9a8c37752b3936443ea941d1cb",
+  "parentContentSha256": "72d0604775dcb1c5d8734197233a56efce47eab691a9ab3d6eafb5295e3c9217",
+  "parentStateSha256": "0c95f84328fe41cbd5ca668c7a839c3cb72f1356e3256a382f0a28c259ccb65e",
+  "branch": "candidate/task_eba728d2-c89d-456b-9973-3568bf3851c2",
+  "commit": "311e14b3573f0561c55c09ba9962edd0ea9fe4a3",
+  "createdAt": "2026-10-10T15:59:53.737Z",
+  "state": "merged",
+  "inputSha256": "8a2ecf10e88f44a374c1a035eabb3a4fa6230088f3e2ff8219d369fd20c72f4b",
+  "resultSha256": "73baeb338895288d72d6efc3cfff7c3f3c52e9ed1163d2c52dc6bbea0b42d23e",
+  "evidenceIndex": [
+    "result.json"
+  ],
+  "inspectionSha256": "3307382be7475c742180434f8f41a7eabce6f179fdd7e4732728b06e7a5b808c",
+  "mergedCommit": "223c243a7db4fc7654b423f4c72c1f8ea85c56b3"
+}
