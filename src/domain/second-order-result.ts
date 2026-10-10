@@ -4,6 +4,7 @@ import { mapMeshEngineeringResult, meshError } from "./mesh-result";
 import { requireProcessCorrespondence } from "./report-appendix";
 import { recoverSecondOrderCalculation, secondOrderNear, secondOrderSystem } from "./second-order-process";
 import { hermiteSlope } from "./initial-stress";
+import { expandNativeResponses, expandNativeVector } from "./native-response-encoding";
 
 export function decodeSecondOrderResult(value: Record<string, unknown>, input: AnalysisInputSnapshot, decode: (value: unknown) => AnalysisResult): AnalysisResult {
   const fail = () => { throw new Error("二阶实际加载／平衡、响应或冻结输入不一致"); };
@@ -13,6 +14,8 @@ export function decodeSecondOrderResult(value: Record<string, unknown>, input: A
   let previous: ReturnType<typeof mapMeshEngineeringResult> | undefined, mapped: typeof previous, converged = false;
   const runs = r.runs.map((run, index) => {
     const level = input.meshPlan!.levels[index], c = run.calculation;
+    expandNativeResponses(c?.members);
+    if (c?.linearRun && c.linearRun.members) expandNativeResponses(c.linearRun.members);
     if (!c || run.divisions !== level.divisions || converged || !Array.isArray(c.coordinates) || !Array.isArray(c.vector) || !c.vector.length || c.vector.length > s.maxEquations || c.coordinates.length !== c.vector.length || c.vector.some((x) => !Number.isFinite(x))) fail();
     const linear = decode(c.linearRun), expectedInput = secondOrderCalculationInput(input, level.divisions);
     if (linear.secondOrder || linear.discretization || linear.buckling || linear.modal || !secondOrderNear(linear.input, expectedInput) || Object.keys(linear.input).some((k) => !Object.hasOwn(expectedInput, k) && (linear.input as unknown as Record<string, unknown>)[k] !== undefined)
@@ -49,6 +52,8 @@ export function decodeSecondOrderResult(value: Record<string, unknown>, input: A
     if (!Array.isArray(c.iterations) || !c.iterations.length || c.iterations.length > s.loadSteps * s.maxIterations) fail();
     let step = 1, iteration = 1, before = c.vector.map(() => 0);
     for (const [i, record] of c.iterations.entries()) {
+      record.displacement = expandNativeVector(record.displacement, c.vector.length);
+      record.correction = expandNativeVector(record.correction, c.vector.length);
       const alpha = step / s.loadSteps;
       if (record.step !== step || record.factor !== alpha || record.iteration !== iteration || !validVector(record.displacement) || !validVector(record.correction) || !secondOrderNear(record.displacement, before.map((x, j) => x + record.correction[j]))) fail();
       const afterResidual = residual(record.displacement, alpha), beforeResidual = residual(before, alpha), increment = scaledNorm(record.correction) / Math.max(1e-12, scaledNorm(record.displacement));

@@ -1,0 +1,38 @@
+{
+  "independentGitInspection": {
+    "bare": "true",
+    "branch": "refs/heads/main",
+    "remotes": "",
+    "commits": [
+      "ec8c369978c95b798a824a2554b13522f6d70a5b",
+      "aae0795d8bec5f7a74d99036bcbd6f521e199542",
+      "be3f3fbc665c0946a6782f3afdf009e8410a2775",
+      "5626a723e3287b38b51447c754bc7c79e00af856"
+    ]
+  },
+  "sourceRepository": {
+    "before": {
+      "head": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80",
+      "branch": "1a89c4fd9f3665938fff781372074e52c78c07caf36dfe90721c2e134de8c87f",
+      "index": "f8aeae75237b914a2ed0c14c13836438c83620030193b3913914d62eec9efd86"
+    },
+    "after": {
+      "head": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80",
+      "branch": "1a89c4fd9f3665938fff781372074e52c78c07caf36dfe90721c2e134de8c87f",
+      "index": "f8aeae75237b914a2ed0c14c13836438c83620030193b3913914d62eec9efd86"
+    },
+    "unchanged": true
+  },
+  "referenceLockFault": {
+    "diagnostic": "项目保存/历史提交失败；未报告保存成功，可重新打开恢复：项目 Git checkpoint 失败：fatal: update_ref failed for ref 'refs/heads/main': cannot lock ref 'refs/heads/main': Unable to create 'C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-p2507-evidence-5bqu33\\project.framemind.git/refs/heads/main.lock': File exists.\n\nAnother git process seems to be running in this repository, e.g.\nan editor opened by 'git commit'. Please make sure all processes\nare terminated then try again. If it still fails, a git process\nmay have crashed in this repository earlier:\nremove the file manually to continue.\n",
+    "filePreserved": true,
+    "indexPreserved": true,
+    "historyPreserved": true,
+    "retrySucceeded": true
+  },
+  "missingHistory": "项目历史目录缺失；模型仍可编辑和保存，旧 checkpoint 不可读取",
+  "copiedFrom": {
+    "historyId": "history_667c4017-9555-4d7e-97c1-d0c77bb40680",
+    "commit": "ec8c369978c95b798a824a2554b13522f6d70a5b"
+  }
+}

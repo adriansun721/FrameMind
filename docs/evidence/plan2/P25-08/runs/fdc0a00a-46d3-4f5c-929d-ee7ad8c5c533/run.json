@@ -1,0 +1,36 @@
+{
+  "task": "P25-08",
+  "runId": "fdc0a00a-46d3-4f5c-929d-ee7ad8c5c533",
+  "recordedAt": "2026-10-10T06:19:16.088Z",
+  "mode": "local-real-git-desktop",
+  "status": "passed",
+  "inputSha256": "47cb9b9122dbd90c385b20bce321073e01d8bd3d8547d1cc066809a8504d8b74",
+  "artifacts": {
+    "validation.json": "fc5e59263c05f4a952fa5e773f50c20f70406f4e5f0c824e7198eb185ac7a51a",
+    "restored.framemind": "0096c4c00253e207700d285ea08965e64caad78cd946b914110e14d0ba3bd4ee",
+    "candidate-difference.png": "c71731291a3ee190da0623bd72f17514cc0c0f825790d148dfc0d72a778466c6",
+    "manual-conflict.png": "78ba1cd38ce9f690169d76c16cdacda38c8b408b8a46a9f42a99f0ea952553fb",
+    "task-rollback.png": "a0ae0a2c805cc77a5f058d2ac8c1066c61c765333a87693951d50039d820dc3e"
+  },
+  "sourceHashes": {
+    "electron/project-candidates.ts": "22b5cc39a79574e548dac62cfe70fb4c68a8c66e33bcac35a4468c2e5db5b46e",
+    "electron/candidate-model.ts": "2fefe165e7018e51d324c9efcf74c0f947c21f04dee8d04f6efac7fed3e26b9a",
+    "electron/project-checkpoints.ts": "d572fe78af2bef2d08f8d6153e916f4a888b8705b37858d044198c9a92555c59",
+    "src/components/ProjectCandidates.tsx": "fb6c71364313d3b5b4ccfd79965b4dda0bdf55c76de1acf8464fe1bbc9d77a85",
+    "src/App.tsx": "680c65d4f757537f3c2aea9891277316fd5c47a7b47338e3a241dc04a406942b",
+    "e2e/p25-08-candidates.spec.ts": "acbfb7ed342699a0547102d92c0db018d8bc665a3a0d973dfd9062ec65dd4cf2",
+    "dist/index.html": "3ede5af7f37f0f21e17c87ef9ba78d4387cb0eb30aad277934dab486215cdfda",
+    "dist-electron/main.js": "a42aa2d9c935cddc476396b71a9524ff642d4f54ef1947f10beb8e6d19d1d192",
+    "dist/assets/analysis-worker-BFSHcyX4.js": "1af15d56c2d60acab5ef78559dcb25be52fffe7c9867ba7a6ba8f443c5c6baf8",
+    "dist/assets/index-C1DUzFW9.css": "a1aa41471d22b5a14acb2c458f71a76c71cb7ca554e9b3248abb2956942e8242",
+    "dist/assets/index-C8bOVH-U.js": "b43008721b390dc1c5774a80a54332167bf53d9328b43f8cbf63a0a168b2cf78",
+    "dist/assets/jszip.min-D4qavK44.js": "a56aebbe63db5995c1645abec1ee8cf29d5a85b891d1e304e81eb888721afb68",
+    "dist/assets/random-report-content-B5Q4Md_4.js": "c384ec6b0ecebf5ebd8443858c59e4a082270f022bc73ebd6d781361f05f8194",
+    "dist/assets/random-report-data-Gf6AUAlv.js": "c2b0c9851ae1cc95270a81d8b3060747e84560df6b971aaead7c7b68bf622acc",
+    "dist/assets/report-content-Cjpd86ME.js": "af10ba5d9f92f04afd197a01f0307dadf80f017f987acfcf20cd6b03a54a0598",
+    "dist/assets/report-pdf-D-8S7Kiq.js": "86aabee34fbc2bf30d4c5ad7342a711400d602e031b35bf21c3e19136a3862b6",
+    "dist/assets/report-word-DRD3S3mq.js": "75eb42da270e4f4ea18b14b663abf4f7d362e1c78e1b0b38e051ccf9cbaa8915",
+    "dist/assets/report-worker-WVwdyEJP.js": "08d05d43b72ac7464c72daa9c1c1dd20c3be4d24247c97f9606f0bcb58b3324c"
+  },
+  "reverify": "npm run evidence:plan2:p2508"
+}

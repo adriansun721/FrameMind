@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "task": "P25-04",
+  "runId": "11db1c9c-5b48-4bf4-a302-e9703019ff84",
+  "startedAt": "2026-10-09T11:34:11.284Z",
+  "endedAt": "2026-10-09T11:34:11.493Z",
+  "input": {
+    "sha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+    "sizeBytes": 960432,
+    "extension": ".step",
+    "sourcePathRecorded": false
+  },
+  "parser": {
+    "name": "FrameMind STEP Part 21 reader",
+    "version": "2.1.0",
+    "build": "framemind-step-reader-2.1",
+    "license": "MIT",
+    "runtime": "bundled"
+  },
+  "sourceHashes": {
+    "scripts/step-intermediate.mjs": "139cca7f8839ff791784a0d219b6d0b3f218815e810938cc12f7e1e35fbbd499",
+    "scripts/step-centerlines.mjs": "85f8a407b4323cc884ca9a5d5eb48d29de01702902e9a2637abe936095cf4515",
+    "scripts/cad-parser-worker.mjs": "fe874d72fe6d750c310fba9fc2b632f5b63e4c4e6257f51acd059872cdcc7db4",
+    "src/workspace/cad-topology.ts": "4a1ff262743d5dab97f98e0c617e80f131f5d362f2ebfd279c8ace3c75443379",
+    "src/workspace/cad-geometry.ts": "ab867dfaa494f78b45efd38960e3e073e617d4e16ce8f434e5ab75325f0ef370",
+    "src/components/CadTopologyPreview.tsx": "bf33e5271573d86f336b58b02bc56ff7ae224a88aeb65342a50add2c466b8eca",
+    "src/App.tsx": "7d82f674b0afa3a11fcde6aa868d262eb29a6db32322d5073e240445160f3cb8"
+  },
+  "buildHashes": {
+    "dist/index.html": "733b7bb631581a68269f07d728d3acdef3f8baf62d1ad6138bb4fefbd0b3a9aa",
+    "dist-electron/main.js": "411df5cfaeaf41203f43d5874f421f17ee1c9962ec783dbd8c438cdba60d72b5"
+  },
+  "intermediate": {
+    "geometryHash": "e541bdca727cea453e2b8cfd6fb665276e885024ba38b472ec0b5856839b7f3f",
+    "instanceCount": 8,
+    "solidCount": 3,
+    "rawLineCandidateCount": 822
+  },
+  "topology": {
+    "status": "blocked",
+    "nodeCount": 0,
+    "memberCount": 0,
+    "centerlineCount": 0,
+    "issueCounts": {
+      "blocking": 8,
+      "warning": 0
+    },
+    "hash": "a7a81ae4331aa85ec590038839dcd347c6fc436e5fe1d407a6f8e9a91f6ff25c",
+    "fullDiagnosticsInArtifact": true
+  },
+  "artifact": {
+    "name": "preview.json",
+    "sha256": "bc8a37fe0ab18745bd24442302ae6e15b3508675e8dbf57a2f5cef690a385f1c",
+    "bytes": 3407183
+  },
+  "checks": {
+    "deterministic": true,
+    "rawLineCandidatesUsedAsCenterlines": false,
+    "originalSourceExcluded": true,
+    "sourcePathExcluded": true
+  },
+  "desktopVerification": "not-executed-by-this-command",
+  "formalModelVerification": "desktop-test-required",
+  "independentCadReference": "pending-P25-01",
+  "taskAcceptance": "pending"
+}

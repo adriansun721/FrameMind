@@ -4,7 +4,7 @@ import { requireProcessCorrespondence } from "./report-appendix";
 import { validateBucklingMatrixCorrespondence } from "./buckling-matrices";
 import { decodeAnalysisRun } from "./analysis-service-contract";
 import { eigenShapeDisplayResult, type ModalRecord, type ModalShape } from "./modal";
-import { validateModalShapeMapping } from "./modal-shape";
+import { expandModalShapes, validateModalShapeMapping } from "./modal-shape";
 import { validateLoadCombination, type FrameProject, type LoadCombinationTerm } from "./project";
 
 export interface BucklingSettings {
@@ -17,7 +17,7 @@ export function validateBucklingSettings(project: Pick<FrameProject, "loadCases"
   const s = value as BucklingSettings;
   if (!s || Object.keys(s).sort().join() !== Object.keys(DEFAULT_BUCKLING_SETTINGS).sort().join()
     || !Number.isSafeInteger(s.modeCount) || s.modeCount < 1 || s.modeCount > 20
-    || ![1, 2, 4, 8, 16].includes(s.maxDivisions) || !Number.isSafeInteger(s.maxEquations) || s.maxEquations < 1 || s.maxEquations > 1200
+    || ![1, 2, 4, 8, 16].includes(s.maxDivisions) || !Number.isSafeInteger(s.maxEquations) || s.maxEquations < 1 || s.maxEquations > 2147483647
     || !Number.isFinite(s.factorTolerance) || s.factorTolerance <= 0 || s.factorTolerance > .01
     || !Array.isArray(s.fixed) || !Array.isArray(s.reference)) throw new Error("屈曲求解设置无效");
   const terms = (items: LoadCombinationTerm[], allowZero: boolean) => {
@@ -77,6 +77,7 @@ export function decodeBucklingResult(value: Record<string, unknown>, input: Anal
     || !Number.isSafeInteger(c.equations) || c.equations < 1 || c.equations > s.maxEquations || !Number.isSafeInteger(c.releaseCoordinates) || c.releaseCoordinates < 0
     || !p || p.matrixLimit !== 144 || !Array.isArray(p.coordinates) || p.coordinates.length !== c.equations || !Array.isArray(p.vectors) || p.vectors.length !== b.modes.length) fail();
   const finite3 = (v: { x: number; y: number; z: number }) => v && [v.x, v.y, v.z].every(Number.isFinite);
+  expandModalShapes(input, b);
   for (const [i, m] of b.modes.entries()) {
     if (m.number !== i + 1 || !Number.isFinite(m.factor) || m.factor <= 0 || i > 0 && m.factor < b.modes[i - 1].factor || !Number.isFinite(m.residual) || m.residual < 0 || m.residual > 1e-8
       || !Array.isArray(m.nodes) || m.nodes.length !== input.nodes.length || m.nodes.some((n, j) => n.nodeId !== input.nodes[j].id || !finite3(n.translation) || !finite3(n.rotation))

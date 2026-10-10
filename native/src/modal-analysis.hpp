@@ -33,87 +33,129 @@ static ModalLevelResult solveModalLevel(const Json& request, const Json& level, 
         }
         throw;
     }
+    // Modal recovery only needs the original element stiffness, frame
+    // transform, and release metadata. Drop dense matrices retained by the
+    // static publication path before allocating the eigen workspace.
+    Json calculationNodeIds=Json::array(); for (const auto& node:calculation["nodes"]) calculationNodeIds.push_back(node["id"]);
+    for (auto& element:assembly.elements) {
+        element.local.resize(0,0); element.global.resize(0,0); element.recovery.resize(0,0); element.releaseInverse.resize(0,0);
+    }
+    packet.clear(); calculation.clear();
     int releases=0; for (const auto& e:assembly.elements) releases+=static_cast<int>(e.released.size());
     const int nodal=static_cast<int>(assembly.free.size()), count=nodal+releases;
     if (!count) throw Failure("modal-no-free-dofs","No unconstrained inertial coordinates remain",nullptr,"restraints");
     if (count>maxEquations) throw Failure("modal-budget-exhausted","Modal equation budget exhausted",nullptr,"modal");
-    Matrix k=Matrix::Zero(count,count), mass=k; std::vector<Matrix> maps;
+    std::vector<Triplet> stiffnessEntries, massEntries;
+    stiffnessEntries.reserve(assembly.elements.size() * 144);
+    massEntries.reserve(assembly.elements.size() * 144);
+    std::vector<FreeElementRows> maps; maps.reserve(assembly.elements.size());
     std::map<std::string,Json> sections; for (const auto& s:input.at("sections")) sections[id(s["id"])]=s;
     std::vector<int> reducedIndex(assembly.size,-1); for (int i=0;i<nodal;++i) reducedIndex[assembly.free[i]]=i;
     int extra=nodal;
     for (size_t i=0;i<input.at("nodes").size();++i) {
         const auto& node=input["nodes"][i];
         const double point=node.contains("additionalMassKg") ? number(node.at("additionalMassKg"))/1000 : 0;
-        for (int axis=0;axis<3;++axis) { const int r=reducedIndex[i*6+axis]; if (r>=0) mass(r,r)+=point; }
+        for (int axis=0;axis<3;++axis) { const int r=reducedIndex[i*6+axis]; if (r>=0) massEntries.emplace_back(r,r,point); }
     }
     for (const auto& e:assembly.elements) {
-        Matrix b=Matrix::Zero(12,count);
-        for (int local=0;local<12;++local) for (int global=0;global<12;++global) {
-            const int r=reducedIndex[e.indices[global]]; if (r>=0) b(local,r)=e.transform(local,global);
-        }
-        for (int local:e.released) { b.row(local).setZero(); b(local,extra++)=1; }
+        const FreeElementRows b=freeElementRows(e,reducedIndex,extra);
         const auto& section=sections.at(id(e.member["sectionId"]));
         const Matrix localMass=modalMass(e,number(section["secondMomentYM4"])+number(section["secondMomentZM4"]));
-        k.noalias()+=b.transpose()*e.original*b; mass.noalias()+=b.transpose()*localMass*b; maps.push_back(std::move(b));
+        addMappedMatrix(e.original,b,stiffnessEntries); addMappedMatrix(localMass,b,massEntries); maps.push_back(b);
     }
-    k=(k+k.transpose()).eval()/2; mass=(mass+mass.transpose()).eval()/2;
-    if (!k.allFinite() || !mass.allFinite()) throw Failure("modal-nonfinite-matrices","Nonfinite stiffness or mass",nullptr,"modal");
-    // Diagonal equilibration makes mixed translations/rotations less sensitive
-    // to arbitrary coordinate units. No artificial stiffness/mass is introduced.
-    Vector scale(count);
-    for (int i=0;i<count;++i) {
-        if (!(mass(i,i)>0)) throw Failure("modal-singular-mass","Missing positive inertia at a free coordinate",nullptr,"densityKgM3");
-        scale[i]=1/std::sqrt(mass(i,i));
-    }
-    Matrix scaledK=scale.asDiagonal()*k*scale.asDiagonal(), scaledM=scale.asDiagonal()*mass*scale.asDiagonal();
-    if (!scaledK.allFinite() || !scaledM.allFinite()) throw Failure("modal-nonfinite-matrices","Equilibrated stiffness or mass exceeds finite numeric range",nullptr,"modal");
-    Eigen::LLT<Matrix> factor(scaledM);
-    if (factor.info()!=Eigen::Success || factor.matrixL().toDenseMatrix().diagonal().array().square().minCoeff()<=1e-12) throw Failure("modal-singular-mass","Mass matrix is not positive definite above the registered scaled pivot tolerance",nullptr,"densityKgM3");
+    require(extra==count,"Modal release-coordinate mapping is inconsistent");
+    Sparse k=sparseFromTriplets(count,stiffnessEntries), mass=sparseFromTriplets(count,massEntries);
+    for (int i=0;i<k.outerSize();++i) for (Sparse::InnerIterator it(k,i);it;++it) if (!std::isfinite(it.value())) throw Failure("modal-nonfinite-matrices","Nonfinite stiffness or mass",nullptr,"modal");
+    for (int i=0;i<mass.outerSize();++i) for (Sparse::InnerIterator it(mass,i);it;++it) if (!std::isfinite(it.value())) throw Failure("modal-nonfinite-matrices","Nonfinite stiffness or mass",nullptr,"modal");
+    for (int i=0;i<count;++i) if (!(mass.coeff(i,i)>0)) throw Failure("modal-singular-mass","Missing positive inertia at a free coordinate",nullptr,"densityKgM3");
     stage="solve"; if (onPhase) onPhase(stage);
-    Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> eig(scaledK,scaledM);
-    if (eig.info()!=Eigen::Success) throw Failure("modal-eigensolver-failed","Generalized self-adjoint eigensolver did not converge",nullptr,"modal");
-    const Matrix vectors=scale.asDiagonal()*eig.eigenvectors(); const Vector eigenvalues=eig.eigenvalues();
-    if (!vectors.allFinite() || !eigenvalues.allFinite()) throw Failure("modal-eigensolver-failed","Nonfinite generalized eigenpair",nullptr,"modal");
-    const double spectralScale=std::max(1.0,eigenvalues.cwiseAbs().maxCoeff()), zeroThreshold=spectralScale*1e-12;
-    int zeroCount=0; for (int i=0;i<count;++i) {
-        if (eigenvalues[i]<-zeroThreshold) throw Failure("modal-negative-stiffness","Negative eigenvalue exceeds the zero-energy tolerance",nullptr,"restraints");
-        if (std::abs(eigenvalues[i])<=zeroThreshold) ++zeroCount;
+    const int extracted=std::min(modeCount,count);
+    std::vector<Vector> eigenvectors; std::vector<double> eigenvalues;
+    double zeroThreshold=0; int zeroCount=0;
+    if (count<=1200) {
+        Vector scale(count); for (int i=0;i<count;++i) scale[i]=1/std::sqrt(mass.coeff(i,i));
+        const Matrix scaledK=scale.asDiagonal()*Matrix(k)*scale.asDiagonal(), scaledM=scale.asDiagonal()*Matrix(mass)*scale.asDiagonal();
+        Eigen::LLT<Matrix> factor(scaledM);
+        if (factor.info()!=Eigen::Success || factor.matrixL().toDenseMatrix().diagonal().array().square().minCoeff()<=1e-12) throw Failure("modal-singular-mass","Mass matrix is not positive definite above the registered scaled pivot tolerance",nullptr,"densityKgM3");
+        Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> eig(scaledK,scaledM);
+        if (eig.info()!=Eigen::Success || !eig.eigenvalues().allFinite() || !eig.eigenvectors().allFinite()) throw Failure("modal-eigensolver-failed","Generalized self-adjoint eigensolver did not converge",nullptr,"modal");
+        zeroThreshold=std::max(1.0,eig.eigenvalues().cwiseAbs().maxCoeff())*1e-12;
+        for (int i=0;i<count;++i) {
+            if (eig.eigenvalues()[i]<-zeroThreshold) throw Failure("modal-negative-stiffness","Negative eigenvalue exceeds the zero-energy tolerance",nullptr,"restraints");
+            if (std::abs(eig.eigenvalues()[i])<=zeroThreshold) ++zeroCount;
+        }
+        for (int i=0;i<extracted;++i) { eigenvectors.push_back(scale.asDiagonal()*eig.eigenvectors().col(i)); eigenvalues.push_back(eig.eigenvalues()[i]); }
+    } else {
+        Vector massScale(count); for (int i=0;i<count;++i) massScale[i]=1/std::sqrt(mass.coeff(i,i));
+        const Sparse scaledMass=massScale.asDiagonal()*mass*massScale.asDiagonal();
+        Eigen::SimplicialLLT<Sparse> massFactor(scaledMass);
+        if (massFactor.info()!=Eigen::Success) throw Failure("modal-singular-mass","Mass matrix is not positive definite",nullptr,"densityKgM3");
+        const Sparse massLower=massFactor.matrixL();
+        for (int i=0;i<count;++i) if (!std::isfinite(massLower.coeff(i,i)) || massLower.coeff(i,i)*massLower.coeff(i,i)<=1e-12)
+            throw Failure("modal-singular-mass","Scaled mass pivot is below the registered tolerance",nullptr,"densityKgM3");
+        // A small mass shift permits rigid-body modes without adding physical
+        // stiffness. Subtract it from the recovered eigenvalues and validate
+        // each pair against the original, unshifted matrices below.
+        const Sparse scaledStiffness=massScale.asDiagonal()*k*massScale.asDiagonal();
+        const auto maximum=largestSparseEigenpairs(scaledMass,scaledStiffness,1,"modal-spectrum",true,true);
+        zeroThreshold=std::max(1.0,maximum.values[0])*1e-12;
+        const double shift=zeroThreshold*10;
+        const Sparse shifted=k+shift*mass;
+        int spectralCount=extracted;
+        auto eig=largestSparseEigenpairs(shifted,mass,spectralCount,"modal");
+        while (spectralCount<count && std::abs(1/eig.values[spectralCount-1]-shift)<=zeroThreshold) {
+            spectralCount=std::min(count,std::max(spectralCount+8,spectralCount*2));
+            eig=largestSparseEigenpairs(shifted,mass,spectralCount,"modal");
+        }
+        for (int i=0;i<spectralCount;++i) if (std::abs(1/eig.values[i]-shift)<=zeroThreshold) ++zeroCount;
+        for (int i=0;i<extracted;++i) {
+            Vector q=eig.vectors.col(i); q/=std::sqrt(q.dot(mass*q));
+            const double value=1/eig.values[i]-shift;
+            if (!std::isfinite(value) || value < -zeroThreshold) throw Failure("modal-negative-stiffness","Negative sparse modal eigenvalue",nullptr,"restraints");
+            eigenvalues.push_back(value); eigenvectors.push_back(q);
+        }
     }
-    Json modes=Json::array(); const int extracted=std::min(modeCount,count);
-    const Matrix gram=vectors.leftCols(extracted).transpose()*mass*vectors.leftCols(extracted);
-    const double orthogonality=(gram-Matrix::Identity(extracted,extracted)).cwiseAbs().maxCoeff();
-    if (!gram.allFinite() || !std::isfinite(orthogonality) || orthogonality>1e-8) throw Failure("modal-orthogonality-failed","Mass orthogonality exceeds tolerance or finite numeric range",nullptr,"modal");
+    Json modes=Json::array(); double orthogonality=0;
+    for (int i=0;i<extracted;++i) for (int j=0;j<=i;++j) orthogonality=std::max(orthogonality,std::abs(eigenvectors[i].dot(mass*eigenvectors[j])-(i==j ? 1.0 : 0.0)));
+    if (!std::isfinite(orthogonality) || orthogonality>1e-8) throw Failure("modal-orthogonality-failed","Mass orthogonality exceeds tolerance",nullptr,"modal");
     for (int mode=0;mode<extracted;++mode) {
-        const Vector q=vectors.col(mode); const double lambda=std::abs(eigenvalues[mode])<=zeroThreshold ? 0 : eigenvalues[mode];
-        const Vector residualVector=k*q-lambda*mass*q;
-        const double denominator=k.norm()*q.norm()+std::abs(lambda)*(mass*q).norm();
-        if (!std::isfinite(denominator)) throw Failure("modal-residual-failed","Eigenpair residual scale exceeds finite numeric range",nullptr,"modal");
-        const double residual=residualVector.norm()/std::max(1e-30,denominator);
+        const Vector& q=eigenvectors[mode]; const double lambda=std::abs(eigenvalues[mode])<=zeroThreshold ? 0 : eigenvalues[mode];
+        const double residual=(k*q-lambda*(mass*q)).norm()/std::max(1e-30,k.norm()*q.norm()+std::abs(lambda)*(mass*q).norm());
         if (!std::isfinite(residual) || residual>1e-8) throw Failure("modal-residual-failed","Eigenpair residual exceeds tolerance",nullptr,"modal");
         Vector u=Vector::Zero(assembly.size); for (int i=0;i<nodal;++i) u[assembly.free[i]]=q[i];
         Json nodes=Json::array(), members=Json::array();
-        for (size_t i=0;i<input.at("nodes").size();++i) nodes.push_back({{"nodeId",input["nodes"][i]["id"]},{"translation",json3(u.segment<3>(i*6))},{"rotation",json3(u.segment<3>(i*6+3))}});
+        const bool compactShape=count>144;
+        if (compactShape) {
+            // For target-scale results the frozen eigenproblem vectors are the
+            // canonical shape representation. The renderer and random adapter
+            // reconstruct node/member samples from those vectors, avoiding a
+            // second multi-hundred-megabyte JSON tree in the native worker.
+            nodes=Json::array(); members=Json::array();
+        }
+        if (!compactShape) for (size_t i=0;i<input.at("nodes").size();++i) nodes.push_back({{"nodeId",input["nodes"][i]["id"]},{"translation",json3(u.segment<3>(i*6))},{"rotation",json3(u.segment<3>(i*6+3))}});
         size_t offset=0; const int divisions=level.at("divisions").get<int>();
-        for (const auto& m:input.at("members")) {
+        for (const auto& m:input.at("members")) if (!compactShape) {
             const double length=number(input["meshPlan"]["frames"][id(m["id"])]["length"]); Json samples=Json::array();
             for (int station=0;station<=16;++station) {
                 const int scaled=station*divisions, segment=std::min(divisions-1,scaled/16); const double t=(scaled-segment*16)/16.0;
-                const auto index=offset+segment; const auto& e=assembly.elements[index]; const Vector v=maps[index]*q;
+                const auto index=offset+segment; const auto& e=assembly.elements[index]; const Vector v=mappedLocalVector(maps[index],q);
                 const double h0=1-3*t*t+2*t*t*t, h1=e.length*(t-2*t*t+t*t*t), h2=3*t*t-2*t*t*t, h3=e.length*(-t*t+t*t*t);
                 const Vec3 local((1-t)*v[0]+t*v[6],h0*v[1]+h1*v[5]+h2*v[7]+h3*v[11],h0*v[2]-h1*v[4]+h2*v[8]-h3*v[10]);
                 samples.push_back({{"position",length*station/16},{"translation",json3(e.x*local.x()+e.y*local.y()+e.z*local.z())}});
             }
             members.push_back({{"memberId",m["id"]},{"samples",samples}}); offset+=divisions;
         }
-        modes.push_back({{"number",mode+1},{"eigenvalue",lambda},{"frequencyHz",std::sqrt(lambda)/(2*std::acos(-1.0))},{"kind",lambda==0 ? "zero-energy" : "elastic"},
-            {"residual",residual},{"massNorm",q.dot(mass*q)},{"nodes",nodes},{"members",members}});
+        Json record={{"number",mode+1},{"eigenvalue",lambda},{"frequencyHz",std::sqrt(lambda)/(2*std::acos(-1.0))},{"kind",lambda==0 ? "zero-energy" : "elastic"},
+            {"residual",residual},{"massNorm",q.dot(mass*q)},{"nodes",nodes},{"members",members}};
+        if (compactShape) record["shapeEncoding"]="eigenproblem-v1";
+        modes.push_back(std::move(record));
     }
     Json coordinates=Json::array(), capturedVectors=Json::array();
-    for (int index:assembly.free) coordinates.push_back({{"kind","node"},{"id",calculation["nodes"][index/6]["id"]},{"dof",dofOrder[index%6]}});
+    for (int index:assembly.free) coordinates.push_back({{"kind","node"},{"id",calculationNodeIds[index/6]},{"dof",dofOrder[index%6]}});
     for (const auto& e:assembly.elements) for (int index:e.released) coordinates.push_back({{"kind","release"},{"id",e.member["id"]},{"dof",std::string(index<6 ? "start." : "end.")+(index%6==4 ? "my" : "mz")}});
-    for (int i=0;i<extracted;++i) capturedVectors.push_back(jsonVector(vectors.col(i)));
+    for (int i=0;i<extracted;++i) capturedVectors.push_back(jsonVector(eigenvectors[i]));
     Json eigenproblem={{"matrixLimit",144},{"coordinates",coordinates},{"releaseNullRotations",assembly.releaseNullRotations},{"vectors",capturedVectors},
-        {"stiffness",count<=144 ? jsonMatrix(k) : Json(nullptr)},{"mass",count<=144 ? jsonMatrix(mass) : Json(nullptr)}};
+        {"stiffness",count<=144 ? jsonMatrix(Matrix(k)) : Json(nullptr)},{"mass",count<=144 ? jsonMatrix(Matrix(mass)) : Json(nullptr)}};
     return {modes,count,releases,zeroCount,orthogonality,zeroThreshold,eigenproblem};
 }
 
@@ -140,7 +182,7 @@ static Json calculateModal(const Json& request, Json& stages, std::string& stage
     const auto& settings=definition.at("settings").at("modal");
     require(settings.is_object() && settings.size()==4,"Invalid modal parameters");
     const double requested=number(settings.at("modeCount")), budget=number(settings.at("maxEquations")), divisionsValue=number(settings.at("maxDivisions")), tolerance=number(settings.at("frequencyTolerance"));
-    require(requested>=1 && requested<=50 && std::floor(requested)==requested && budget>=1 && budget<=1200 && std::floor(budget)==budget
+    require(requested>=1 && requested<=50 && std::floor(requested)==requested && budget>=1 && budget<=2147483647 && std::floor(budget)==budget
         && (divisionsValue==1 || divisionsValue==2 || divisionsValue==4 || divisionsValue==8 || divisionsValue==16) && tolerance>0 && tolerance<=0.01,"Invalid modal extraction parameters");
     const int modeCount=static_cast<int>(requested), maxEquations=static_cast<int>(budget), maxDivisions=static_cast<int>(divisionsValue);
     const auto& plan=input.at("meshPlan");

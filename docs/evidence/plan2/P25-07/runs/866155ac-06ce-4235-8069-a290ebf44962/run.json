@@ -1,0 +1,26 @@
+{
+  "task": "P25-07",
+  "runId": "866155ac-06ce-4235-8069-a290ebf44962",
+  "recordedAt": "2026-10-10T04:34:31.268Z",
+  "mode": "local-real-git",
+  "status": "passed",
+  "sourceRepositoryUnchanged": true,
+  "artifacts": {
+    "history.png": "397e92b709937a2ed1cdfe0d765df900b732a86b67bfe70dbde7bad497457b11",
+    "missing-history.png": "72acb22fa0ddff1b76e066f9785ef4a1154a50905647252ada680d70c90f3943",
+    "history.json": "df1a74ce2b399cf2c3e8161fda5e95889f95e0b4f3c444126eb1b86f43b2b1d5",
+    "original.framemind": "789a0857c040c150bc4b46388a67131c6db2a94da8533b5ead14635bb192eaba",
+    "copied.framemind": "01fd13f8666c5bfd8b2cc90f430577663439069962ca625a2f7bd805b7a32728",
+    "new.framemind": "18d7b48ab702e799c564a31f21e10768de6e2eabf2c4ba7f98ad56406b8cf0f3"
+  },
+  "sourceHashes": {
+    "electron/project-history-store.ts": "e8d97659d5b298bf751edf66111a25544a144bb1727b04fbd85bb05ac6c41ad9",
+    "electron/project-checkpoints.ts": "d84d942399e5309f9032a6564307a2ea4f03d90b124e02463b98f4de7b16c5d6",
+    "electron/main.ts": "fec3a1e5707fd1e7e903e1649c4bd05f34fa213d167e3d40709a4320f503f640",
+    "src/App.tsx": "1993afea10a6ac53614f6a7737d94e55f97dd7dfb9d69ab1191575d58798b22c",
+    "e2e/p25-07-history.spec.ts": "76efafd03d1c6e5a1196d6e6db7b3fc83c0fdd726ed7563b73f11640ce32c930",
+    "dist/index.html": "0d1aa498b7529eb726547e780c45e0b8512fcdeb8f4262a94fc4df05100a2f99",
+    "dist-electron/main.js": "d53f5705d19d213e90aed02e19cdc04f72b2a36537d70fb4aaa143219a94ada1"
+  },
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-07-history.spec.ts"
+}

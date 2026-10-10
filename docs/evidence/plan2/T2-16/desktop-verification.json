@@ -1,13 +1,13 @@
 {
   "passed": true,
-  "nativeSolver": "framemind-native/2",
+  "nativeSolver": "framemind-native/4",
   "sources": [
     "AC1",
     "AC2"
   ],
   "historyIds": [
-    "analysis_6e9ac831-b43f-48ac-be57-880150d68ffd",
-    "analysis_a7883fd8-2233-47b8-8d7e-12cae18d8427"
+    "analysis_85f83c66-bd61-4cc9-b6ac-05d314211dfc",
+    "analysis_0af5e616-fb28-4dec-b305-b4cfce353ba0"
   ],
   "frozenForceKN": 8,
   "tests": [

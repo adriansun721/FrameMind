@@ -1,9 +1,9 @@
 {
-  "runId": "6cee0f03-7a0a-43ef-a8d9-3d11fa948e2c",
-  "startedAt": "2026-10-03T05:52:40.420Z",
+  "runId": "185ce681-4faf-4cdb-9fee-a84050238c0d",
+  "startedAt": "2026-10-08T11:46:57.994Z",
   "outcome": "failed",
   "fixtureId": "T33-two-storey-v1",
-  "date": "2026-10-03",
+  "date": "2026-10-08",
   "theme": "dark",
   "mode": "replay",
   "network": "Fixed tool HTTP replay; real local Worker solve and report export",
@@ -17,12 +17,3560 @@
       "node": "24.21.0"
     }
   },
-  "stage": "first-use-guide",
+  "stage": "selected-column-change",
   "firstUse": "Pending real participant; automation is not AC-20 evidence",
   "fixtureSHA256": "e0520b9670303173eef3c2a31f409040c049bb167f391004d852e645ff5689ee",
-  "buildIndexSHA256": "c4dd4eb096e1c42bec9cf43233cfccac1f78a322026c086cbbd531feb96f9347",
+  "buildIndexSHA256": "aa031e550f4f73a54ea4b3f794378d75216b81aa7c5e58bbf1cf1e4f7657ff20",
   "model": "deepseek-flash",
-  "finishedAt": "2026-10-03T05:52:46.710Z",
-  "turns": [],
+  "beforeBalance": {
+    "reaction": {
+      "x": -7.500000000000307,
+      "y": -1.4038770146385104e-13,
+      "z": 36.722306520000004
+    },
+    "expected": {
+      "x": -7.5,
+      "y": 0,
+      "z": 36.722306520000004
+    },
+    "toleranceKN": 1e-7
+  },
+  "finishedAt": "2026-10-08T11:47:45.068Z",
+  "turns": [
+    {
+      "prompt": "建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。历史版本",
+      "status": "缺少输入 · 方案草稿需要补齐或澄清参数",
+      "renderedReferences": [],
+      "tools": [
+        {
+          "name": "整理建模参数",
+          "input": {
+            "parameters": {
+              "storeys": {
+                "value": 2,
+                "source": "user"
+              },
+              "xSpans": {
+                "value": [
+                  6
+                ],
+                "source": "user"
+              },
+              "storeyHeights": {
+                "value": [
+                  3,
+                  3
+                ],
+                "source": "user"
+              },
+              "origin": {
+                "value": [
+                  0,
+                  0,
+                  0
+                ],
+                "source": "user"
+              },
+              "material": {
+                "value": "en10025-s355jr",
+                "source": "user"
+              },
+              "columnSection": {
+                "value": "arcelor-hea200",
+                "source": "user"
+              },
+              "beamSection": {
+                "value": "arcelor-ipe200",
+                "source": "user"
+              },
+              "rotationDegrees": {
+                "value": 0,
+                "source": "user"
+              }
+            }
+          },
+          "output": {
+            "status": "missing-input",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 0,
+              "selection": [],
+              "goal": "建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。"
+            },
+            "proposal": {
+              "id": "proposal_760521fa-869b-4463-881c-c0ae12d68a55",
+              "version": 1,
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              },
+              "changes": [
+                {
+                  "field": "storeys",
+                  "after": 2
+                },
+                {
+                  "field": "xSpans",
+                  "after": [
+                    6
+                  ]
+                },
+                {
+                  "field": "storeyHeights",
+                  "after": [
+                    3,
+                    3
+                  ]
+                },
+                {
+                  "field": "origin",
+                  "after": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "field": "material",
+                  "after": "en10025-s355jr"
+                },
+                {
+                  "field": "columnSection",
+                  "after": "arcelor-hea200"
+                },
+                {
+                  "field": "beamSection",
+                  "after": "arcelor-ipe200"
+                },
+                {
+                  "field": "rotationDegrees",
+                  "after": 0
+                }
+              ]
+            },
+            "data": {
+              "issues": [
+                "尚缺 Y 向跨长 (m)"
+              ],
+              "counts": {
+                "nodes": 0,
+                "members": 0
+              },
+              "parameters": {
+                "storeys": {
+                  "value": 2,
+                  "source": "user"
+                },
+                "xSpans": {
+                  "value": [
+                    6
+                  ],
+                  "source": "user"
+                },
+                "storeyHeights": {
+                  "value": [
+                    3,
+                    3
+                  ],
+                  "source": "user"
+                },
+                "origin": {
+                  "value": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "source": "user"
+                },
+                "material": {
+                  "value": "en10025-s355jr",
+                  "source": "user"
+                },
+                "columnSection": {
+                  "value": "arcelor-hea200",
+                  "source": "user"
+                },
+                "beamSection": {
+                  "value": "arcelor-ipe200",
+                  "source": "user"
+                },
+                "rotationDegrees": {
+                  "value": 0,
+                  "source": "user"
+                }
+              }
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-frame",
+                "name": "propose_frame",
+                "initiated": true,
+                "completed": true,
+                "status": "missing-input"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 0
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "absent"
+              }
+            }
+          }
+        },
+        {
+          "name": "整理支座和荷载条件",
+          "input": {
+            "supports": [
+              {
+                "nodeId": "node_0001",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0002",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0003",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              },
+              {
+                "nodeId": "node_0004",
+                "restraints": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "source": "user"
+              }
+            ],
+            "loadCases": [
+              {
+                "ref": "dead",
+                "id": "LC1",
+                "name": "恒载",
+                "description": "结构自重",
+                "source": "user"
+              },
+              {
+                "ref": "live",
+                "name": "演示外荷载",
+                "description": "屋面均布力和水平节点力",
+                "source": "user"
+              }
+            ],
+            "nodalLoads": [
+              {
+                "nodeId": "node_0010",
+                "loadCaseId": "live",
+                "force": {
+                  "x": 5,
+                  "y": 0,
+                  "z": 0
+                },
+                "moment": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "source": "user"
+              }
+            ],
+            "uniformLoads": [
+              {
+                "memberId": "member_0011",
+                "loadCaseId": "live",
+                "coordinateSystem": "global",
+                "intensity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -2
+                },
+                "source": "user"
+              }
+            ],
+            "selfWeight": {
+              "enabled": true,
+              "loadCaseId": "dead",
+              "gravity": {
+                "x": 0,
+                "y": 0,
+                "z": -9.81
+              },
+              "source": "user"
+            },
+            "loadCombinations": [
+              {
+                "ref": "demo",
+                "name": "演示用户组合",
+                "terms": [
+                  {
+                    "loadCaseId": "dead",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "live",
+                    "factor": 1.5
+                  }
+                ],
+                "source": "user"
+              }
+            ],
+            "analysisSourceId": "demo"
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 1,
+              "selection": [],
+              "goal": "原请求：建立两层空间钢刚架并计算：X向一跨6米，两层层高均3米，原点(0,0,0)米，S355JR钢材，柱HEA200、梁IPE200、截面转角0度。Y向跨长先留空，由我在卡片填入。底层z=0四节点的六自由度全部固定。已有LC1命名恒载，说明结构自重，自重全局重力(0,0,-9.81)m/s²；新建演示外荷载工况，说明屋面均布力和水平节点力。在屋面(6,0,6)米节点施加全局(5,0,0)kN力，力矩全零；仅在屋面(0,0,6)到(6,0,6)米的梁施加全局(0,0,-2)kN/m整杆均布力，两项均属演示外荷载。用户组合演示用户组合：恒载1、演示外荷载1.5，确认后计算该组合。均为教学演示假设，先准备建模卡片，等我补齐并确认后，再准备全部分析条件卡片，第二次确认后本地求解。。建模阶段已确认。请读取当前正式节点、杆件、材料截面、支座、荷载和工况，用 propose_analysis_conditions 准备必要分析条件、荷载、自重、工况和用户自定义组合；未知条件保留缺失或标明建议，不要再次创建框架。"
+            },
+            "conditions": {
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "live",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "dead",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "id": "LC1",
+                  "ref": "dead",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "live",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "屋面均布力和水平节点力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "demo",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "dead",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "live",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "id": "conditions_6a597ed5-3ee9-4048-b0f3-8e42f75e3dc5",
+              "version": 1,
+              "analysisSourceId": "demo",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0010",
+                  "source": "user",
+                  "loadCaseId": "live",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ]
+            },
+            "data": {
+              "units": {
+                "length": "m",
+                "force": "kN",
+                "moment": "kN·m"
+              },
+              "issues": [],
+              "analysisSourceId": "demo",
+              "supports": [
+                {
+                  "nodeId": "node_0001",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0002",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0003",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                },
+                {
+                  "nodeId": "node_0004",
+                  "source": "user",
+                  "restraints": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                  ]
+                }
+              ],
+              "nodalLoads": [
+                {
+                  "nodeId": "node_0010",
+                  "source": "user",
+                  "loadCaseId": "live",
+                  "force": {
+                    "x": 5,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "moment": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              ],
+              "uniformLoads": [
+                {
+                  "memberId": "member_0011",
+                  "loadCaseId": "live",
+                  "coordinateSystem": "global",
+                  "intensity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -2
+                  },
+                  "source": "user"
+                }
+              ],
+              "selfWeight": {
+                "enabled": true,
+                "loadCaseId": "dead",
+                "gravity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -9.81
+                },
+                "source": "user"
+              },
+              "loadCases": [
+                {
+                  "id": "LC1",
+                  "ref": "dead",
+                  "name": "恒载",
+                  "source": "user",
+                  "description": "结构自重"
+                },
+                {
+                  "ref": "live",
+                  "name": "演示外荷载",
+                  "source": "user",
+                  "description": "屋面均布力和水平节点力"
+                }
+              ],
+              "loadCombinations": [
+                {
+                  "ref": "demo",
+                  "name": "演示用户组合",
+                  "source": "user",
+                  "terms": [
+                    {
+                      "loadCaseId": "dead",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "live",
+                      "factor": 1.5
+                    }
+                  ]
+                }
+              ],
+              "combinationBasis": "用户自定义 · 无量纲系数 · 线弹性"
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-loads",
+                "name": "propose_analysis_conditions",
+                "initiated": true,
+                "completed": true,
+                "status": "awaiting-confirmation"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 1
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "absent"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "解释当前组合的实际结果。读取结果概况，并逐项引用屋面(6,0,6)节点的全局x位移、底层(0,0,0)节点全局z反力、从(0,0,0)到(0,0,3)柱的起点N杆端内力。核对稳定对象并插入工具返回的结果引用，区分计算事实和原因推断，不作安全或规范符合性结论，不修改或重新计算，300字以内。 对象稳定标识已核对：屋面(6,0,6)是N10/node_0010，不是N12；底层节点是N1/node_0001；柱是M1/member_0001。请分别调用read_result核对node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N，并把三个返回token原样插入说明。历史版本",
+      "status": "已完成 · 已引用所选分析的实际结果",
+      "assistant": "计算事实：N10 · 位移 x = 0.013487276 mCB1 · 输入 R2 · 历史结果；N1 · 反力 z = 9.4724696 kNCB1 · 输入 R2 · 历史结果；M1 · 起点杆端作用力 N = 9.4724696 kNCB1 · 输入 R2 · 历史结果。原因推断：刚度与面积引起的自重共同影响响应，需结合冻结输入。不提供规范验算结论。",
+      "renderedReferences": [
+        "N10 · 位移 x = 0.013487276 mCB1 · 输入 R2 · 历史结果",
+        "N1 · 反力 z = 9.4724696 kNCB1 · 输入 R2 · 历史结果",
+        "M1 · 起点杆端作用力 N = 9.4724696 kNCB1 · 输入 R2 · 历史结果"
+      ],
+      "tools": [
+        {
+          "name": "读取分析结果",
+          "input": {
+            "collection": "summary"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 3,
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "analysis": {
+                "id": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "selection": [],
+              "goal": "解释当前组合的实际结果。读取结果概况，并逐项引用屋面(6,0,6)节点的全局x位移、底层(0,0,0)节点全局z反力、从(0,0,0)到(0,0,3)柱的起点N杆端内力。核对稳定对象并插入工具返回的结果引用，区分计算事实和原因推断，不作安全或规范符合性结论，不修改或重新计算，300字以内。 对象稳定标识已核对：屋面(6,0,6)是N10/node_0010，不是N12；底层节点是N1/node_0001；柱是M1/member_0001。请分别调用read_result核对node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N，并把三个返回token原样插入说明。"
+            },
+            "data": {
+              "method": "static",
+              "methodName": "线性静力",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "completion": "converged",
+              "current": true,
+              "inputRevision": 2,
+              "canonicalUnits": "m-kN-kN·m",
+              "solver": {
+                "algorithm": "sparse-ldlt",
+                "constraints": "free-dof-elimination",
+                "implementation": "framemind-native/4",
+                "relativePivotTolerance": 1e-12
+              },
+              "support": {
+                "name": "线性静力",
+                "available": true,
+                "loadCombination": true,
+                "responseSuperposition": true,
+                "resultComparison": true
+              },
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "createdAt": "2026-10-08T11:47:01Z",
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "assumptions": {
+                "localAxis": "member-geometry",
+                "rigidJoints": true,
+                "shearDeformation": "neglected",
+                "theory": "3d-euler-bernoulli-frame",
+                "units": "m-kN-kN·m"
+              },
+              "service": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "dependencies": [
+                  {
+                    "factor": 1,
+                    "loadCaseId": "LC1"
+                  },
+                  {
+                    "factor": 1.5,
+                    "loadCaseId": "LC2"
+                  }
+                ],
+                "origin": {
+                  "kind": "formal-model"
+                },
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "projectRevision": 2,
+                "requestId": "request_f28ecb5b-9cb3-4c9a-a7fc-117d39bd2ec7",
+                "solver": {
+                  "algorithm": "sparse-ldlt",
+                  "constraints": "free-dof-elimination",
+                  "implementation": "framemind-native/4",
+                  "relativePivotTolerance": 1e-12
+                },
+                "sourceId": "CB1",
+                "stages": [
+                  {
+                    "stage": "model-check",
+                    "startedAt": "2026-10-08T11:47:01Z"
+                  },
+                  {
+                    "stage": "assembly",
+                    "startedAt": "2026-10-08T11:47:01Z"
+                  },
+                  {
+                    "stage": "solve",
+                    "startedAt": "2026-10-08T11:47:01Z"
+                  },
+                  {
+                    "stage": "recovery",
+                    "startedAt": "2026-10-08T11:47:01Z"
+                  }
+                ],
+                "status": "complete",
+                "version": "framemind-analysis/1"
+              },
+              "meshPolicy": {
+                "displacementTolerance": 1e-12,
+                "forceTolerance": 1e-8,
+                "maxDivisions": 8,
+                "maxEquations": 12000,
+                "relativeTolerance": 0.000001
+              },
+              "discretization": {
+                "status": "converged",
+                "reason": "tolerance",
+                "selectedDivisions": 2,
+                "counts": {
+                  "engineeringNodes": 12,
+                  "engineeringMembers": 16,
+                  "calculationNodes": 28,
+                  "calculationElements": 32,
+                  "totalDofs": 168,
+                  "constrainedDofs": 24,
+                  "releaseGaugeDofs": 0,
+                  "equations": 144
+                },
+                "runs": [
+                  {
+                    "divisions": 1
+                  },
+                  {
+                    "divisions": 2,
+                    "error": {
+                      "displacement": 0.000006480454061525347,
+                      "reaction": 0.000060262905774691836,
+                      "sectionForce": 0.000003237544909683681
+                    }
+                  }
+                ]
+              },
+              "status": "当前模型结果",
+              "counts": {
+                "nodes": 12,
+                "members": 16
+              },
+              "displacementExtrema": [
+                {
+                  "nodeId": "node_0010",
+                  "component": "x",
+                  "value": 0.013487276381459835,
+                  "unit": "m",
+                  "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+                },
+                {
+                  "nodeId": "node_0011",
+                  "component": "y",
+                  "value": -0.00042234623820403157,
+                  "unit": "m",
+                  "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+                },
+                {
+                  "nodeId": "node_0010",
+                  "component": "z",
+                  "value": -0.00007892316064339476,
+                  "unit": "m",
+                  "criterion": "节点平移分量绝对值最大，非沿杆连续极值"
+                }
+              ],
+              "frozenConditions": {
+                "supports": [
+                  {
+                    "id": "support_0001",
+                    "label": "B1",
+                    "nodeId": "node_0001",
+                    "restraints": [
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true
+                    ]
+                  },
+                  {
+                    "id": "support_0002",
+                    "label": "B2",
+                    "nodeId": "node_0002",
+                    "restraints": [
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true
+                    ]
+                  },
+                  {
+                    "id": "support_0003",
+                    "label": "B3",
+                    "nodeId": "node_0003",
+                    "restraints": [
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true
+                    ]
+                  },
+                  {
+                    "id": "support_0004",
+                    "label": "B4",
+                    "nodeId": "node_0004",
+                    "restraints": [
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true
+                    ]
+                  }
+                ],
+                "nodalLoads": [
+                  {
+                    "id": "load_0001",
+                    "label": "L1",
+                    "nodeId": "node_0010",
+                    "loadCaseId": "LC1",
+                    "force": {
+                      "x": 7.5,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "moment": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  }
+                ],
+                "uniformLoads": [
+                  {
+                    "id": "uniform_load_0001",
+                    "label": "Q1",
+                    "kind": "uniform",
+                    "memberId": "member_0011",
+                    "coordinateSystem": "global",
+                    "loadCaseId": "LC1",
+                    "intensity": {
+                      "x": 0,
+                      "y": 0,
+                      "z": -3
+                    }
+                  }
+                ],
+                "selfWeight": {
+                  "enabled": true,
+                  "loadCaseId": "LC1",
+                  "gravity": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -9.81
+                  }
+                },
+                "originalCombinationLoads": {
+                  "nodalLoads": [
+                    {
+                      "id": "load_0001",
+                      "label": "L1",
+                      "nodeId": "node_0010",
+                      "loadCaseId": "LC2",
+                      "force": {
+                        "x": 5,
+                        "y": 0,
+                        "z": 0
+                      },
+                      "moment": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                      }
+                    }
+                  ],
+                  "uniformLoads": [
+                    {
+                      "id": "uniform_load_0001",
+                      "label": "Q1",
+                      "kind": "uniform",
+                      "memberId": "member_0011",
+                      "coordinateSystem": "global",
+                      "loadCaseId": "LC2",
+                      "intensity": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -2
+                      }
+                    }
+                  ],
+                  "selfWeight": [
+                    {
+                      "enabled": true,
+                      "loadCaseId": "LC1",
+                      "gravity": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -9.81
+                      }
+                    },
+                    {
+                      "enabled": false,
+                      "loadCaseId": "LC2",
+                      "gravity": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -9.81
+                      }
+                    }
+                  ],
+                  "scope": "仅供核对的原工况荷载，尚未乘组合系数；上层nodalLoads/uniformLoads/selfWeight是已加权有效荷载，禁止再次加权。各类原荷载最多limit项。"
+                },
+                "total": {
+                  "supports": 4,
+                  "nodalLoads": 1,
+                  "uniformLoads": 1
+                },
+                "limit": 50,
+                "scope": "冻结输入的有效条件；组合荷载已按用户系数加权。仅展示各类前limit项，不是完整大模型荷载清单。"
+              }
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-summary",
+                "name": "read_results",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 3,
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "analysisInputRevision": 2
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "核对结果引用",
+          "input": {
+            "kind": "node",
+            "id": "node_0010",
+            "quantity": "displacement",
+            "component": "x"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 3,
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "analysis": {
+                "id": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "selection": [],
+              "goal": "解释当前组合的实际结果。读取结果概况，并逐项引用屋面(6,0,6)节点的全局x位移、底层(0,0,0)节点全局z反力、从(0,0,0)到(0,0,3)柱的起点N杆端内力。核对稳定对象并插入工具返回的结果引用，区分计算事实和原因推断，不作安全或规范符合性结论，不修改或重新计算，300字以内。 对象稳定标识已核对：屋面(6,0,6)是N10/node_0010，不是N12；底层节点是N1/node_0001；柱是M1/member_0001。请分别调用read_result核对node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N，并把三个返回token原样插入说明。"
+            },
+            "reference": {
+              "token": "[[result:t33-node]]",
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "inputRevision": 2,
+              "createdAt": "2026-10-08T11:47:01Z",
+              "current": true,
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "method": "static",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "object": {
+                "kind": "node",
+                "id": "node_0010",
+                "label": "N10",
+                "position": {
+                  "x": 6,
+                  "y": 0,
+                  "z": 6
+                }
+              },
+              "quantity": "displacement",
+              "component": "x",
+              "coordinateSystem": "global XYZ",
+              "value": 0.013487276381459835,
+              "unit": "m"
+            },
+            "data": {
+              "token": "[[result:t33-node]]",
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "inputRevision": 2,
+              "createdAt": "2026-10-08T11:47:01Z",
+              "current": true,
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "method": "static",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "object": {
+                "kind": "node",
+                "id": "node_0010",
+                "label": "N10",
+                "position": {
+                  "x": 6,
+                  "y": 0,
+                  "z": 6
+                }
+              },
+              "quantity": "displacement",
+              "component": "x",
+              "coordinateSystem": "global XYZ",
+              "value": 0.013487276381459835,
+              "unit": "m",
+              "assumptions": {
+                "localAxis": "member-geometry",
+                "rigidJoints": true,
+                "shearDeformation": "neglected",
+                "theory": "3d-euler-bernoulli-frame",
+                "units": "m-kN-kN·m"
+              },
+              "solver": {
+                "algorithm": "sparse-ldlt",
+                "constraints": "free-dof-elimination",
+                "implementation": "framemind-native/4",
+                "relativePivotTolerance": 1e-12
+              }
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-node",
+                "name": "read_result",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "node",
+                  "id": "node_0010"
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 3,
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "analysisInputRevision": 2
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "核对结果引用",
+          "input": {
+            "kind": "node",
+            "id": "node_0001",
+            "quantity": "reaction",
+            "component": "z"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 3,
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "analysis": {
+                "id": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "selection": [],
+              "goal": "解释当前组合的实际结果。读取结果概况，并逐项引用屋面(6,0,6)节点的全局x位移、底层(0,0,0)节点全局z反力、从(0,0,0)到(0,0,3)柱的起点N杆端内力。核对稳定对象并插入工具返回的结果引用，区分计算事实和原因推断，不作安全或规范符合性结论，不修改或重新计算，300字以内。 对象稳定标识已核对：屋面(6,0,6)是N10/node_0010，不是N12；底层节点是N1/node_0001；柱是M1/member_0001。请分别调用read_result核对node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N，并把三个返回token原样插入说明。"
+            },
+            "reference": {
+              "token": "[[result:t33-reaction]]",
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "inputRevision": 2,
+              "createdAt": "2026-10-08T11:47:01Z",
+              "current": true,
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "method": "static",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "object": {
+                "kind": "node",
+                "id": "node_0001",
+                "label": "N1",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              "quantity": "reaction",
+              "component": "z",
+              "coordinateSystem": "global XYZ",
+              "value": 9.472469574430185,
+              "unit": "kN"
+            },
+            "data": {
+              "token": "[[result:t33-reaction]]",
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "inputRevision": 2,
+              "createdAt": "2026-10-08T11:47:01Z",
+              "current": true,
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "method": "static",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "object": {
+                "kind": "node",
+                "id": "node_0001",
+                "label": "N1",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              "quantity": "reaction",
+              "component": "z",
+              "coordinateSystem": "global XYZ",
+              "value": 9.472469574430185,
+              "unit": "kN",
+              "assumptions": {
+                "localAxis": "member-geometry",
+                "rigidJoints": true,
+                "shearDeformation": "neglected",
+                "theory": "3d-euler-bernoulli-frame",
+                "units": "m-kN-kN·m"
+              },
+              "solver": {
+                "algorithm": "sparse-ldlt",
+                "constraints": "free-dof-elimination",
+                "implementation": "framemind-native/4",
+                "relativePivotTolerance": 1e-12
+              }
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-reaction",
+                "name": "read_result",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "node",
+                  "id": "node_0001"
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 3,
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "analysisInputRevision": 2
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "核对结果引用",
+          "input": {
+            "kind": "member",
+            "id": "member_0001",
+            "quantity": "startEndForces",
+            "component": "N"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 3,
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "analysis": {
+                "id": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "selection": [],
+              "goal": "解释当前组合的实际结果。读取结果概况，并逐项引用屋面(6,0,6)节点的全局x位移、底层(0,0,0)节点全局z反力、从(0,0,0)到(0,0,3)柱的起点N杆端内力。核对稳定对象并插入工具返回的结果引用，区分计算事实和原因推断，不作安全或规范符合性结论，不修改或重新计算，300字以内。 对象稳定标识已核对：屋面(6,0,6)是N10/node_0010，不是N12；底层节点是N1/node_0001；柱是M1/member_0001。请分别调用read_result核对node_0010 displacement x、node_0001 reaction z、member_0001 startEndForces N，并把三个返回token原样插入说明。"
+            },
+            "reference": {
+              "token": "[[result:t33-member]]",
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "inputRevision": 2,
+              "createdAt": "2026-10-08T11:47:01Z",
+              "current": true,
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "method": "static",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "object": {
+                "kind": "member",
+                "id": "member_0001",
+                "label": "M1",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "endPosition": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 3
+                }
+              },
+              "quantity": "startEndForces",
+              "component": "N",
+              "coordinateSystem": "local xyz",
+              "value": 9.472469574430185,
+              "unit": "kN"
+            },
+            "data": {
+              "token": "[[result:t33-member]]",
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "inputRevision": 2,
+              "createdAt": "2026-10-08T11:47:01Z",
+              "current": true,
+              "source": {
+                "id": "CB1",
+                "name": "演示用户组合",
+                "kind": "combination",
+                "terms": [
+                  {
+                    "loadCaseId": "LC1",
+                    "factor": 1
+                  },
+                  {
+                    "loadCaseId": "LC2",
+                    "factor": 1.5
+                  }
+                ]
+              },
+              "method": "static",
+              "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+              "object": {
+                "kind": "member",
+                "id": "member_0001",
+                "label": "M1",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "endPosition": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 3
+                }
+              },
+              "quantity": "startEndForces",
+              "component": "N",
+              "coordinateSystem": "local xyz",
+              "value": 9.472469574430185,
+              "unit": "kN",
+              "assumptions": {
+                "localAxis": "member-geometry",
+                "rigidJoints": true,
+                "shearDeformation": "neglected",
+                "theory": "3d-euler-bernoulli-frame",
+                "units": "m-kN-kN·m"
+              },
+              "solver": {
+                "algorithm": "sparse-ldlt",
+                "constraints": "free-dof-elimination",
+                "implementation": "framemind-native/4",
+                "relativePivotTolerance": 1e-12
+              }
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-member",
+                "name": "read_result",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001"
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 3,
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "analysisInputRevision": 2
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "只把当前选中的这些柱改为自定义演示加大柱截面：A=0.01076m²，Iy=0.00007384m⁴，Iz=0.0000267m⁴，J=0.0000004208m⁴。这四项均为教学演示假设，原HEA200参数的两倍。保留其他杆件和共享原截面，先预览由我确认，确认后重算当前用户组合并解释前后差异，包括自重变化。历史版本",
+      "status": "等待确认 · 选柱截面修改预览已准备，正式模型及结果尚未改变",
+      "assistant": "计算事实：N10 · x：0.013487276 → 0.011397788 m · Δ -0.0020894883 mCB1 · 输入 R2 → R4 · 含历史结果 · 查看同一对比表；N1 · z：9.4724696 → 11.014508 kN · Δ 1.5420388 kNCB1 · 输入 R2 → R4 · 含历史结果 · 查看同一对比表；M1 · N：9.4724696 → 11.014508 kN · Δ 1.5420388 kNCB1 · 输入 R2 → R4 · 含历史结果 · 查看同一对比表。原因推断：刚度与面积引起的自重共同影响响应，需结合冻结输入。不提供规范验算结论。",
+      "renderedReferences": [
+        "N10 · x：0.013487276 → 0.011397788 m · Δ -0.0020894883 mCB1 · 输入 R2 → R4 · 含历史结果 · 查看同一对比表",
+        "N1 · z：9.4724696 → 11.014508 kN · Δ 1.5420388 kNCB1 · 输入 R2 → R4 · 含历史结果 · 查看同一对比表",
+        "M1 · N：9.4724696 → 11.014508 kN · Δ 1.5420388 kNCB1 · 输入 R2 → R4 · 含历史结果 · 查看同一对比表"
+      ],
+      "tools": [
+        {
+          "name": "整理柱截面参数",
+          "input": {
+            "section": {
+              "name": "演示加大柱截面",
+              "areaM2": 0.01076,
+              "secondMomentYM4": 0.00007384,
+              "secondMomentZM4": 0.0000267,
+              "torsionalConstantM4": 4.208e-7
+            },
+            "source": "user"
+          },
+          "output": {
+            "status": "awaiting-confirmation",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 3,
+              "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+              "analysis": {
+                "id": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "goal": "只把当前选中的这些柱改为自定义演示加大柱截面：A=0.01076m²，Iy=0.00007384m⁴，Iz=0.0000267m⁴，J=0.0000004208m⁴。这四项均为教学演示假设，原HEA200参数的两倍。保留其他杆件和共享原截面，先预览由我确认，确认后重算当前用户组合并解释前后差异，包括自重变化。"
+            },
+            "sectionChange": {
+              "id": "section_change_6ea4ff22-e03c-452f-a2d8-c58646375647",
+              "version": 1,
+              "memberIds": [
+                "member_0001",
+                "member_0002"
+              ],
+              "section": {
+                "name": "演示加大柱截面",
+                "areaM2": 0.01076,
+                "secondMomentYM4": 0.00007384,
+                "secondMomentZM4": 0.0000267,
+                "torsionalConstantM4": 4.208e-7,
+                "id": "preview_section:custom",
+                "label": "待确认自定义截面",
+                "provenance": {
+                  "kind": "custom"
+                }
+              },
+              "source": "user"
+            },
+            "data": {
+              "memberIds": [
+                "member_0001",
+                "member_0002"
+              ],
+              "before": [
+                {
+                  "member": {
+                    "id": "member_0001",
+                    "label": "M1",
+                    "startNodeId": "node_0001",
+                    "endNodeId": "node_0005",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  "section": {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "HEA 200",
+                    "areaM2": 0.00538,
+                    "secondMomentYM4": 0.00003692,
+                    "secondMomentZM4": 0.00001335,
+                    "torsionalConstantM4": 2.104e-7,
+                    "geometry": {
+                      "shape": "i-section",
+                      "height": 0.19,
+                      "width": 0.2,
+                      "webThickness": 0.0065,
+                      "flangeThickness": 0.01
+                    },
+                    "catalogBasis": {
+                      "method": "catalog-section-v1",
+                      "catalogId": "arcelor-hea200",
+                      "designation": "HE 200 A",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-06",
+                        "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+                      },
+                      "location": "EN sections!C174:AN174; h/G, b/H, tw/I, tf/J, r/K, A/N, Iy/AD, Iz/AI, It/AN",
+                      "rootRadiusM": 0.018,
+                      "referenceGeometry": {
+                        "shape": "i-section",
+                        "height": 0.19,
+                        "width": 0.2,
+                        "webThickness": 0.0065,
+                        "flangeThickness": 0.01
+                      },
+                      "referenceProperties": {
+                        "areaM2": 0.00538,
+                        "secondMomentYM4": 0.00003692,
+                        "secondMomentZM4": 0.00001335,
+                        "torsionalConstantM4": 2.104e-7
+                      },
+                      "idealizedComparison": {
+                        "properties": {
+                          "areaM2": 0.005105,
+                          "secondMomentYM4": 0.000035094541666666666,
+                          "secondMomentZM4": 0.00001333722385416667,
+                          "torsionalConstantM4": 1.488954166666667e-7
+                        },
+                        "basis": {
+                          "method": "idealized-section-v1",
+                          "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                          "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf",
+                          "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。"
+                        },
+                        "withinApproximationLimits": true,
+                        "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。"
+                      }
+                    },
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-hea200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-06",
+                        "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+                      }
+                    }
+                  }
+                },
+                {
+                  "member": {
+                    "id": "member_0002",
+                    "label": "M2",
+                    "startNodeId": "node_0002",
+                    "endNodeId": "node_0006",
+                    "materialId": "material_0001",
+                    "sectionId": "section_0001",
+                    "rotationDegrees": 0
+                  },
+                  "section": {
+                    "id": "section_0001",
+                    "label": "S1",
+                    "name": "HEA 200",
+                    "areaM2": 0.00538,
+                    "secondMomentYM4": 0.00003692,
+                    "secondMomentZM4": 0.00001335,
+                    "torsionalConstantM4": 2.104e-7,
+                    "geometry": {
+                      "shape": "i-section",
+                      "height": 0.19,
+                      "width": 0.2,
+                      "webThickness": 0.0065,
+                      "flangeThickness": 0.01
+                    },
+                    "catalogBasis": {
+                      "method": "catalog-section-v1",
+                      "catalogId": "arcelor-hea200",
+                      "designation": "HE 200 A",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-06",
+                        "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+                      },
+                      "location": "EN sections!C174:AN174; h/G, b/H, tw/I, tf/J, r/K, A/N, Iy/AD, Iz/AI, It/AN",
+                      "rootRadiusM": 0.018,
+                      "referenceGeometry": {
+                        "shape": "i-section",
+                        "height": 0.19,
+                        "width": 0.2,
+                        "webThickness": 0.0065,
+                        "flangeThickness": 0.01
+                      },
+                      "referenceProperties": {
+                        "areaM2": 0.00538,
+                        "secondMomentYM4": 0.00003692,
+                        "secondMomentZM4": 0.00001335,
+                        "torsionalConstantM4": 2.104e-7
+                      },
+                      "idealizedComparison": {
+                        "properties": {
+                          "areaM2": 0.005105,
+                          "secondMomentYM4": 0.000035094541666666666,
+                          "secondMomentZM4": 0.00001333722385416667,
+                          "torsionalConstantM4": 1.488954166666667e-7
+                        },
+                        "basis": {
+                          "method": "idealized-section-v1",
+                          "source": "SCI P385 (2011), Appendix B.2; A/I by area integration",
+                          "url": "https://www.steelconstruction.info/images/6/6f/Sci_p385.pdf",
+                          "notes": "J：SCI B.2.2 薄壁开口近似；tf/b、tw/(h−2tf) ≤ 0.1。忽略圆角及翘曲刚度。"
+                        },
+                        "withinApproximationLimits": true,
+                        "notes": "几何示意忽略轧制圆角；理想化 A/I/J 仅供对照，正式分析采用目录 A/I/J。圆角、交汇及目录舍入使两者不同。"
+                      }
+                    },
+                    "provenance": {
+                      "kind": "catalog",
+                      "catalogId": "arcelor-hea200",
+                      "source": {
+                        "publisher": "ArcelorMittal Europe - Long Products",
+                        "title": "Sections and Merchant Bars - ArcelorMittal",
+                        "edition": "V2026-1, EN sections sheet",
+                        "url": "https://sections.arcelormittal.com/repo/Sections/Sections%20and%20Merchant%20Bars-ArcelorMittal_V2026-1.xlsx",
+                        "accessedOn": "2026-10-06",
+                        "units": "Dimensions and root radius converted mm → m; A cm² → m²; Iy, Iz and It (Saint-Venant torsion constant) cm⁴ → m⁴"
+                      }
+                    }
+                  }
+                }
+              ],
+              "after": {
+                "name": "演示加大柱截面",
+                "areaM2": 0.01076,
+                "secondMomentYM4": 0.00007384,
+                "secondMomentZM4": 0.0000267,
+                "torsionalConstantM4": 4.208e-7,
+                "id": "preview_section:custom",
+                "label": "待确认自定义截面",
+                "provenance": {
+                  "kind": "custom"
+                }
+              },
+              "source": "user",
+              "scope": "仅重新指定选中柱的截面；共享截面及其他杆件不变。启用自重时，重算会使用新面积重新生成自重。"
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-change",
+                "name": "propose_section_change",
+                "initiated": true,
+                "completed": true,
+                "status": "awaiting-confirmation"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 3,
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "analysisInputRevision": 2
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "读取前后分析对比",
+          "input": {
+            "collection": "summary"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+              "analysis": {
+                "id": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "comparison": {
+                "beforeId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "afterId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7"
+              },
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "goal": "截面修改已确认且本地重算已完成。请读取当前绑定的两次分析对比，用 read_comparison 和 read_comparison_result 引用关键节点位移和柱杆端内力前值、后值及差值，解释输入变化和自重影响，区分计算事实与原因推断。不要修改模型或重新计算，300字以内。"
+            },
+            "data": {
+              "before": {
+                "method": "static",
+                "methodName": "线性静力",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "completion": "converged",
+                "current": false,
+                "inputRevision": 2,
+                "canonicalUnits": "m-kN-kN·m",
+                "solver": {
+                  "algorithm": "sparse-ldlt",
+                  "constraints": "free-dof-elimination",
+                  "implementation": "framemind-native/4",
+                  "relativePivotTolerance": 1e-12
+                },
+                "support": {
+                  "name": "线性静力",
+                  "available": true,
+                  "loadCombination": true,
+                  "responseSuperposition": true,
+                  "resultComparison": true
+                },
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "createdAt": "2026-10-08T11:47:01Z",
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "assumptions": {
+                  "localAxis": "member-geometry",
+                  "rigidJoints": true,
+                  "shearDeformation": "neglected",
+                  "theory": "3d-euler-bernoulli-frame",
+                  "units": "m-kN-kN·m"
+                },
+                "service": {
+                  "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                  "dependencies": [
+                    {
+                      "factor": 1,
+                      "loadCaseId": "LC1"
+                    },
+                    {
+                      "factor": 1.5,
+                      "loadCaseId": "LC2"
+                    }
+                  ],
+                  "origin": {
+                    "kind": "formal-model"
+                  },
+                  "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                  "projectRevision": 2,
+                  "requestId": "request_f28ecb5b-9cb3-4c9a-a7fc-117d39bd2ec7",
+                  "solver": {
+                    "algorithm": "sparse-ldlt",
+                    "constraints": "free-dof-elimination",
+                    "implementation": "framemind-native/4",
+                    "relativePivotTolerance": 1e-12
+                  },
+                  "sourceId": "CB1",
+                  "stages": [
+                    {
+                      "stage": "model-check",
+                      "startedAt": "2026-10-08T11:47:01Z"
+                    },
+                    {
+                      "stage": "assembly",
+                      "startedAt": "2026-10-08T11:47:01Z"
+                    },
+                    {
+                      "stage": "solve",
+                      "startedAt": "2026-10-08T11:47:01Z"
+                    },
+                    {
+                      "stage": "recovery",
+                      "startedAt": "2026-10-08T11:47:01Z"
+                    }
+                  ],
+                  "status": "complete",
+                  "version": "framemind-analysis/1"
+                },
+                "meshPolicy": {
+                  "displacementTolerance": 1e-12,
+                  "forceTolerance": 1e-8,
+                  "maxDivisions": 8,
+                  "maxEquations": 12000,
+                  "relativeTolerance": 0.000001
+                },
+                "discretization": {
+                  "status": "converged",
+                  "reason": "tolerance",
+                  "selectedDivisions": 2,
+                  "counts": {
+                    "engineeringNodes": 12,
+                    "engineeringMembers": 16,
+                    "calculationNodes": 28,
+                    "calculationElements": 32,
+                    "totalDofs": 168,
+                    "constrainedDofs": 24,
+                    "releaseGaugeDofs": 0,
+                    "equations": 144
+                  },
+                  "runs": [
+                    {
+                      "divisions": 1
+                    },
+                    {
+                      "divisions": 2,
+                      "error": {
+                        "displacement": 0.000006480454061525347,
+                        "reaction": 0.000060262905774691836,
+                        "sectionForce": 0.000003237544909683681
+                      }
+                    }
+                  ]
+                },
+                "status": "前份历史输入，保留冻结来源"
+              },
+              "after": {
+                "method": "static",
+                "methodName": "线性静力",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "completion": "converged",
+                "current": true,
+                "inputRevision": 4,
+                "canonicalUnits": "m-kN-kN·m",
+                "solver": {
+                  "algorithm": "sparse-ldlt",
+                  "constraints": "free-dof-elimination",
+                  "implementation": "framemind-native/4",
+                  "relativePivotTolerance": 1e-12
+                },
+                "support": {
+                  "name": "线性静力",
+                  "available": true,
+                  "loadCombination": true,
+                  "responseSuperposition": true,
+                  "resultComparison": true
+                },
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "createdAt": "2026-10-08T11:47:14Z",
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "assumptions": {
+                  "localAxis": "member-geometry",
+                  "rigidJoints": true,
+                  "shearDeformation": "neglected",
+                  "theory": "3d-euler-bernoulli-frame",
+                  "units": "m-kN-kN·m"
+                },
+                "service": {
+                  "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                  "dependencies": [
+                    {
+                      "factor": 1,
+                      "loadCaseId": "LC1"
+                    },
+                    {
+                      "factor": 1.5,
+                      "loadCaseId": "LC2"
+                    }
+                  ],
+                  "origin": {
+                    "kind": "formal-model"
+                  },
+                  "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                  "projectRevision": 4,
+                  "requestId": "request_e796ff2a-343e-4fe5-8819-7c65514901ae",
+                  "solver": {
+                    "algorithm": "sparse-ldlt",
+                    "constraints": "free-dof-elimination",
+                    "implementation": "framemind-native/4",
+                    "relativePivotTolerance": 1e-12
+                  },
+                  "sourceId": "CB1",
+                  "stages": [
+                    {
+                      "stage": "model-check",
+                      "startedAt": "2026-10-08T11:47:14Z"
+                    },
+                    {
+                      "stage": "assembly",
+                      "startedAt": "2026-10-08T11:47:14Z"
+                    },
+                    {
+                      "stage": "solve",
+                      "startedAt": "2026-10-08T11:47:14Z"
+                    },
+                    {
+                      "stage": "recovery",
+                      "startedAt": "2026-10-08T11:47:14Z"
+                    }
+                  ],
+                  "status": "complete",
+                  "version": "framemind-analysis/1"
+                },
+                "meshPolicy": {
+                  "displacementTolerance": 1e-12,
+                  "forceTolerance": 1e-8,
+                  "maxDivisions": 8,
+                  "maxEquations": 12000,
+                  "relativeTolerance": 0.000001
+                },
+                "discretization": {
+                  "status": "converged",
+                  "reason": "tolerance",
+                  "selectedDivisions": 2,
+                  "counts": {
+                    "engineeringNodes": 12,
+                    "engineeringMembers": 16,
+                    "calculationNodes": 28,
+                    "calculationElements": 32,
+                    "totalDofs": 168,
+                    "constrainedDofs": 24,
+                    "releaseGaugeDofs": 0,
+                    "equations": 144
+                  },
+                  "runs": [
+                    {
+                      "divisions": 1
+                    },
+                    {
+                      "divisions": 2,
+                      "error": {
+                        "displacement": 8.669014102750413e-7,
+                        "reaction": 0.000062549965202973,
+                        "sectionForce": 0.000002511301068664149
+                      }
+                    }
+                  ]
+                },
+                "status": "当前模型结果"
+              },
+              "pairMatchesCurrentInput": true,
+              "compatible": true,
+              "issues": [],
+              "sectionAndSelfWeightOnly": true,
+              "attribution": "仅截面相关输入变化；启用自重时同时包含面积变化引起的自重影响，不能归因于刚度单独作用。",
+              "convention": "差值 = 后一份 - 前一份；共用前后结果对比表的计算入口。",
+              "changes": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "changes": [
+                    "截面引用"
+                  ]
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "changes": [
+                    "截面引用"
+                  ]
+                },
+                {
+                  "kind": "section",
+                  "id": "section_0003",
+                  "label": "S3",
+                  "changes": [
+                    "新增对象"
+                  ]
+                }
+              ],
+              "total": 3,
+              "offset": 0,
+              "limit": 50,
+              "objects": {
+                "nodes": [
+                  {
+                    "id": "node_0001",
+                    "label": "N1",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0002",
+                    "label": "N2",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0003",
+                    "label": "N3",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0004",
+                    "label": "N4",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "id": "node_0005",
+                    "label": "N5",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0006",
+                    "label": "N6",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0007",
+                    "label": "N7",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0008",
+                    "label": "N8",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 3
+                    }
+                  },
+                  {
+                    "id": "node_0009",
+                    "label": "N9",
+                    "position": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0010",
+                    "label": "N10",
+                    "position": {
+                      "x": 6,
+                      "y": 0,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0011",
+                    "label": "N11",
+                    "position": {
+                      "x": 0,
+                      "y": 4,
+                      "z": 6
+                    }
+                  },
+                  {
+                    "id": "node_0012",
+                    "label": "N12",
+                    "position": {
+                      "x": 6,
+                      "y": 4,
+                      "z": 6
+                    }
+                  }
+                ],
+                "members": [
+                  {
+                    "id": "member_0001",
+                    "label": "M1",
+                    "startNodeId": "node_0001",
+                    "endNodeId": "node_0005"
+                  },
+                  {
+                    "id": "member_0002",
+                    "label": "M2",
+                    "startNodeId": "node_0002",
+                    "endNodeId": "node_0006"
+                  },
+                  {
+                    "id": "member_0003",
+                    "label": "M3",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0006"
+                  },
+                  {
+                    "id": "member_0004",
+                    "label": "M4",
+                    "startNodeId": "node_0003",
+                    "endNodeId": "node_0007"
+                  },
+                  {
+                    "id": "member_0005",
+                    "label": "M5",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0007"
+                  },
+                  {
+                    "id": "member_0006",
+                    "label": "M6",
+                    "startNodeId": "node_0004",
+                    "endNodeId": "node_0008"
+                  },
+                  {
+                    "id": "member_0007",
+                    "label": "M7",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0008"
+                  },
+                  {
+                    "id": "member_0008",
+                    "label": "M8",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0008"
+                  },
+                  {
+                    "id": "member_0009",
+                    "label": "M9",
+                    "startNodeId": "node_0005",
+                    "endNodeId": "node_0009"
+                  },
+                  {
+                    "id": "member_0010",
+                    "label": "M10",
+                    "startNodeId": "node_0006",
+                    "endNodeId": "node_0010"
+                  },
+                  {
+                    "id": "member_0011",
+                    "label": "M11",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0010"
+                  },
+                  {
+                    "id": "member_0012",
+                    "label": "M12",
+                    "startNodeId": "node_0007",
+                    "endNodeId": "node_0011"
+                  },
+                  {
+                    "id": "member_0013",
+                    "label": "M13",
+                    "startNodeId": "node_0009",
+                    "endNodeId": "node_0011"
+                  },
+                  {
+                    "id": "member_0014",
+                    "label": "M14",
+                    "startNodeId": "node_0008",
+                    "endNodeId": "node_0012"
+                  },
+                  {
+                    "id": "member_0015",
+                    "label": "M15",
+                    "startNodeId": "node_0011",
+                    "endNodeId": "node_0012"
+                  },
+                  {
+                    "id": "member_0016",
+                    "label": "M16",
+                    "startNodeId": "node_0010",
+                    "endNodeId": "node_0012"
+                  }
+                ],
+                "totalNodes": 12,
+                "totalMembers": 16
+              },
+              "selfWeight": {
+                "before": {
+                  "enabled": true,
+                  "loadCaseId": "LC1",
+                  "totalMassKg": 1908.4920000000004,
+                  "totalWeightKN": 18.722306520000004,
+                  "totalForce": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -18.722306520000004
+                  },
+                  "members": [
+                    {
+                      "memberId": "member_0001",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0002",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0003",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0004",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0005",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0006",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0007",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0008",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0009",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0010",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0011",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0012",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0013",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0014",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0015",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0016",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    }
+                  ],
+                  "totalMembers": 16
+                },
+                "after": {
+                  "enabled": true,
+                  "loadCaseId": "LC1",
+                  "totalMassKg": 2161.8900000000003,
+                  "totalWeightKN": 21.208140900000004,
+                  "totalForce": {
+                    "x": 0,
+                    "y": 0,
+                    "z": -21.208140900000004
+                  },
+                  "members": [
+                    {
+                      "memberId": "member_0001",
+                      "length": 3,
+                      "massKg": 253.39800000000002,
+                      "weightKN": 2.4858343800000005,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -2.4858343800000005
+                      }
+                    },
+                    {
+                      "memberId": "member_0002",
+                      "length": 3,
+                      "massKg": 253.39800000000002,
+                      "weightKN": 2.4858343800000005,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -2.4858343800000005
+                      }
+                    },
+                    {
+                      "memberId": "member_0003",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0004",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0005",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0006",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0007",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0008",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0009",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0010",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0011",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0012",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0013",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0014",
+                      "length": 3,
+                      "massKg": 126.69900000000001,
+                      "weightKN": 1.2429171900000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.2429171900000002
+                      }
+                    },
+                    {
+                      "memberId": "member_0015",
+                      "length": 6,
+                      "massKg": 134.235,
+                      "weightKN": 1.3168453500000004,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1.3168453500000004
+                      }
+                    },
+                    {
+                      "memberId": "member_0016",
+                      "length": 4,
+                      "massKg": 89.49000000000001,
+                      "weightKN": 0.8778969000000002,
+                      "globalForce": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.8778969000000002
+                      }
+                    }
+                  ],
+                  "totalMembers": 16
+                }
+              }
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-summary",
+                "name": "read_comparison",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 5,
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "analysisInputRevision": 4
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "核对前后差值引用",
+          "input": {
+            "kind": "node",
+            "id": "node_0010",
+            "quantity": "displacement",
+            "component": "x"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+              "analysis": {
+                "id": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "comparison": {
+                "beforeId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "afterId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7"
+              },
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "goal": "截面修改已确认且本地重算已完成。请读取当前绑定的两次分析对比，用 read_comparison 和 read_comparison_result 引用关键节点位移和柱杆端内力前值、后值及差值，解释输入变化和自重影响，区分计算事实与原因推断。不要修改模型或重新计算，300字以内。"
+            },
+            "comparisonReference": {
+              "token": "[[comparison:t33-node]]",
+              "before": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "current": false,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                "quantity": "displacement",
+                "component": "x",
+                "coordinateSystem": "global XYZ",
+                "value": 0.013487276381459835,
+                "unit": "m"
+              },
+              "after": {
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                "quantity": "displacement",
+                "component": "x",
+                "coordinateSystem": "global XYZ",
+                "value": 0.011397788072625342,
+                "unit": "m"
+              },
+              "delta": -0.002089488308834493,
+              "unit": "m"
+            },
+            "data": {
+              "token": "[[comparison:t33-node]]",
+              "before": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "current": false,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                "quantity": "displacement",
+                "component": "x",
+                "coordinateSystem": "global XYZ",
+                "value": 0.013487276381459835,
+                "unit": "m"
+              },
+              "after": {
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0010",
+                  "label": "N10",
+                  "position": {
+                    "x": 6,
+                    "y": 0,
+                    "z": 6
+                  }
+                },
+                "quantity": "displacement",
+                "component": "x",
+                "coordinateSystem": "global XYZ",
+                "value": 0.011397788072625342,
+                "unit": "m"
+              },
+              "delta": -0.002089488308834493,
+              "unit": "m"
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-node",
+                "name": "read_comparison_result",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "node",
+                  "id": "node_0010"
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 5,
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "analysisInputRevision": 4
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "核对前后差值引用",
+          "input": {
+            "kind": "node",
+            "id": "node_0001",
+            "quantity": "reaction",
+            "component": "z"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+              "analysis": {
+                "id": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "comparison": {
+                "beforeId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "afterId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7"
+              },
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "goal": "截面修改已确认且本地重算已完成。请读取当前绑定的两次分析对比，用 read_comparison 和 read_comparison_result 引用关键节点位移和柱杆端内力前值、后值及差值，解释输入变化和自重影响，区分计算事实与原因推断。不要修改模型或重新计算，300字以内。"
+            },
+            "comparisonReference": {
+              "token": "[[comparison:t33-reaction]]",
+              "before": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "current": false,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "quantity": "reaction",
+                "component": "z",
+                "coordinateSystem": "global XYZ",
+                "value": 9.472469574430185,
+                "unit": "kN"
+              },
+              "after": {
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "quantity": "reaction",
+                "component": "z",
+                "coordinateSystem": "global XYZ",
+                "value": 11.014508419056968,
+                "unit": "kN"
+              },
+              "delta": 1.5420388446267825,
+              "unit": "kN"
+            },
+            "data": {
+              "token": "[[comparison:t33-reaction]]",
+              "before": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "current": false,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "quantity": "reaction",
+                "component": "z",
+                "coordinateSystem": "global XYZ",
+                "value": 9.472469574430185,
+                "unit": "kN"
+              },
+              "after": {
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "node",
+                  "id": "node_0001",
+                  "label": "N1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                },
+                "quantity": "reaction",
+                "component": "z",
+                "coordinateSystem": "global XYZ",
+                "value": 11.014508419056968,
+                "unit": "kN"
+              },
+              "delta": 1.5420388446267825,
+              "unit": "kN"
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-reaction",
+                "name": "read_comparison_result",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "node",
+                  "id": "node_0001"
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 5,
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "analysisInputRevision": 4
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        },
+        {
+          "name": "核对前后差值引用",
+          "input": {
+            "kind": "member",
+            "id": "member_0001",
+            "quantity": "startEndForces",
+            "component": "N"
+          },
+          "output": {
+            "status": "completed",
+            "context": {
+              "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+              "projectName": "未命名项目",
+              "modelRevision": 5,
+              "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+              "analysis": {
+                "id": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "status": "complete",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination"
+                }
+              },
+              "comparison": {
+                "beforeId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "afterId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7"
+              },
+              "selection": [
+                {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "exists": true
+                },
+                {
+                  "kind": "member",
+                  "id": "member_0002",
+                  "label": "M2",
+                  "exists": true
+                }
+              ],
+              "goal": "截面修改已确认且本地重算已完成。请读取当前绑定的两次分析对比，用 read_comparison 和 read_comparison_result 引用关键节点位移和柱杆端内力前值、后值及差值，解释输入变化和自重影响，区分计算事实与原因推断。不要修改模型或重新计算，300字以内。"
+            },
+            "comparisonReference": {
+              "token": "[[comparison:t33-member]]",
+              "before": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "current": false,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "endPosition": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                "quantity": "startEndForces",
+                "component": "N",
+                "coordinateSystem": "local xyz",
+                "value": 9.472469574430185,
+                "unit": "kN"
+              },
+              "after": {
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "endPosition": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                "quantity": "startEndForces",
+                "component": "N",
+                "coordinateSystem": "local xyz",
+                "value": 11.014508419056968,
+                "unit": "kN"
+              },
+              "delta": 1.5420388446267825,
+              "unit": "kN"
+            },
+            "data": {
+              "token": "[[comparison:t33-member]]",
+              "before": {
+                "analysisId": "analysis_e9c76936-bebd-47a7-9c83-68acff097c7d",
+                "inputRevision": 2,
+                "createdAt": "2026-10-08T11:47:01Z",
+                "current": false,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "endPosition": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                "quantity": "startEndForces",
+                "component": "N",
+                "coordinateSystem": "local xyz",
+                "value": 9.472469574430185,
+                "unit": "kN"
+              },
+              "after": {
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "inputRevision": 4,
+                "createdAt": "2026-10-08T11:47:14Z",
+                "current": true,
+                "source": {
+                  "id": "CB1",
+                  "name": "演示用户组合",
+                  "kind": "combination",
+                  "terms": [
+                    {
+                      "loadCaseId": "LC1",
+                      "factor": 1
+                    },
+                    {
+                      "loadCaseId": "LC2",
+                      "factor": 1.5
+                    }
+                  ]
+                },
+                "method": "static",
+                "meaning": "线弹性静力位移、转角与内力；图形按显示比例放大。",
+                "object": {
+                  "kind": "member",
+                  "id": "member_0001",
+                  "label": "M1",
+                  "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "endPosition": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 3
+                  }
+                },
+                "quantity": "startEndForces",
+                "component": "N",
+                "coordinateSystem": "local xyz",
+                "value": 11.014508419056968,
+                "unit": "kN"
+              },
+              "delta": 1.5420388446267825,
+              "unit": "kN"
+            },
+            "receipt": {
+              "call": {
+                "id": "t33-member",
+                "name": "read_comparison_result",
+                "initiated": true,
+                "completed": true,
+                "status": "completed"
+              },
+              "object": {
+                "kind": "project",
+                "id": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "name": "未命名项目"
+              },
+              "objects": [
+                {
+                  "kind": "member",
+                  "id": "member_0001"
+                }
+              ],
+              "input": {
+                "projectId": "project_4ef8cfdb-ad07-48f3-86d9-97e9282db7f8",
+                "modelRevision": 5,
+                "analysisId": "analysis_ef5de96c-0083-4ad9-97ab-00fcc42312f7",
+                "analysisInputRevision": 4
+              },
+              "state": {
+                "project": "current",
+                "model": "applied",
+                "analysis": "current"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
   "errorType": "Error"
 }

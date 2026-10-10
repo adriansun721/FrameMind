@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <Eigen/SparseCholesky>
+#include <Eigen/IterativeLinearSolvers>
 #include <json.hpp>
 #include <chrono>
 #include <cmath>
@@ -14,6 +15,9 @@
 #include <set>
 #include <cstdlib>
 #include <functional>
+#include <array>
+#include <cstdint>
+#include <cstring>
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -145,6 +149,64 @@ static Json jsonMatrix(const Matrix& m) {
     for (Eigen::Index i = 0; i < m.rows(); ++i) result.push_back(jsonVector(m.row(i).transpose()));
     return result;
 }
+static std::string base64Encode(const std::string& bytes) {
+    static constexpr char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out; out.reserve((bytes.size()+2)/3*4);
+    for (size_t i=0;i<bytes.size();i+=3) {
+        const std::uint32_t a=static_cast<unsigned char>(bytes[i]);
+        const std::uint32_t b=i+1<bytes.size() ? static_cast<unsigned char>(bytes[i+1]) : 0;
+        const std::uint32_t c=i+2<bytes.size() ? static_cast<unsigned char>(bytes[i+2]) : 0;
+        const std::uint32_t value=(a<<16)|(b<<8)|c;
+        out.push_back(alphabet[(value>>18)&63]); out.push_back(alphabet[(value>>12)&63]);
+        out.push_back(i+1<bytes.size() ? alphabet[(value>>6)&63] : '='); out.push_back(i+2<bytes.size() ? alphabet[value&63] : '=');
+    }
+    return out;
+}
+static std::string encodeResponseTuples(const Json& samples) {
+    require(samples.is_array(),"Native response samples are not an array");
+    std::string bytes(samples.size()*13*sizeof(double),'\0');
+    size_t offset=0;
+    for (const auto& sample:samples) {
+        require(sample.is_array() && sample.size()==13,"Native response tuple has an invalid shape");
+        for (const auto& item:sample) {
+            require(item.is_number() && std::isfinite(number(item)),"Native response tuple is nonfinite");
+            const double value=number(item); std::memcpy(bytes.data()+offset,&value,sizeof(value)); offset+=sizeof(value);
+        }
+    }
+    return base64Encode(bytes);
+}
+static Json jsonVectorF64(const Vector& values) {
+    std::string bytes(static_cast<size_t>(values.size())*sizeof(double),'\0');
+    for (Eigen::Index i=0;i<values.size();++i) { const double value=values[i]; require(std::isfinite(value),"Native vector is nonfinite"); std::memcpy(bytes.data()+static_cast<size_t>(i)*sizeof(double),&value,sizeof(value)); }
+    return {{"encoding","vector-f64-v1"},{"count",values.size()},{"data",base64Encode(bytes)}};
+}
+static void compactNativeResponseTransport(Json& value) {
+    if (value.is_array()) { for (auto& item:value) compactNativeResponseTransport(item); return; }
+    if (!value.is_object()) return;
+    if (value.contains("nativeResponses") && value.at("nativeResponses").is_array() && !value.at("nativeResponses").empty()
+        && value.at("nativeResponses").front().is_array()) {
+        value["responseEncoding"]="tuples-f64-v1";
+        value["nativeResponsesBase64"]=encodeResponseTuples(value.at("nativeResponses"));
+        value.erase("nativeResponses");
+    }
+    for (auto it=value.begin();it!=value.end();++it) compactNativeResponseTransport(it.value());
+}
+// Lossless station transport: position, six forces, local XYZ, global XYZ.
+// Flat numeric arrays avoid thousands of small object/map allocations.
+static Json responseSample(double position, const Vector& forces, const Vec3& local, const Vec3& global, bool compact) {
+    if (!compact) return {{"position",position},{"forces",jsonVector(forces)},{"localDisplacement",json3(local)},{"globalDisplacement",json3(global)}};
+    Json sample=Json::array({position});
+    for (int i=0;i<6;++i) sample.push_back(forces[i]);
+    for (int i=0;i<3;++i) sample.push_back(local[i]);
+    for (int i=0;i<3;++i) sample.push_back(global[i]);
+    return sample;
+}
+static Json unpackResponseSample(const Json& sample) {
+    if (!sample.is_array()) return sample;
+    return {{"position",sample.at(0)},{"forces",Json::array({sample.at(1),sample.at(2),sample.at(3),sample.at(4),sample.at(5),sample.at(6)})},
+        {"localDisplacement",{{"x",sample.at(7)},{"y",sample.at(8)},{"z",sample.at(9)}}},
+        {"globalDisplacement",{{"x",sample.at(10)},{"y",sample.at(11)},{"z",sample.at(12)}}}};
+}
 static std::string now() {
     auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::tm utc{};
@@ -219,7 +281,7 @@ static bool validMeshPolicy(const Json& policy) {
     for (const auto& key:{"maxDivisions","maxEquations","relativeTolerance","displacementTolerance","forceTolerance"})
         if (!policy.contains(key) || !policy.at(key).is_number() || !std::isfinite(policy.at(key).get<double>())) return false;
     const double divisions=policy["maxDivisions"].get<double>(), equations=policy["maxEquations"].get<double>();
-    if (!(divisions==1 || divisions==2 || divisions==4 || divisions==8 || divisions==16) || equations<1 || equations>12000 || std::floor(equations)!=equations) return false;
+    if (!(divisions==1 || divisions==2 || divisions==4 || divisions==8 || divisions==16) || equations<1 || equations>2147483647 || std::floor(equations)!=equations) return false;
     for (const auto& entry:std::vector<std::pair<std::string,double>>{{"relativeTolerance",1e-2},{"displacementTolerance",1e-6},{"forceTolerance",1e-3}}) {
         const double value=policy.at(entry.first).get<double>(); if (value<=0 || value>entry.second) return false;
     }
@@ -392,6 +454,7 @@ static Json calculate(const Json& request, Json& stages, std::string& stage) {
 }
 
 #include "static-analysis.hpp"
+#include "sparse-analysis.hpp"
 #include "mesh-analysis.hpp"
 #include "modal-analysis.hpp"
 #include "buckling-analysis.hpp"
@@ -409,6 +472,7 @@ int main() {
         Json result=request.at("input").at("solver").at("implementation")=="framemind-native/8" ? calculateRandom(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/7" ? calculateSecondOrder(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/6" ? calculateBuckling(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/5" ? calculateModal(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/4" ? calculateMeshStatic(request,stages,stage) : request.at("input").at("solver").at("implementation")=="framemind-native/2" || request.at("input").at("solver").at("implementation")=="framemind-native/3"
             ? calculateStatic(request,stages,stage) : calculate(request,stages,stage);
         Json terminal={{"kind","result"},{"requestId",request.at("requestId")}};
+        compactNativeResponseTransport(result);
         terminal["result"]=std::move(result); emit(terminal);
         return 0;
     } catch (const Failure& error) {

@@ -1,0 +1,4746 @@
+{
+  "cases": [
+    {
+      "name": "cantilever-0",
+      "displacement": {
+        "x": 0,
+        "y": 0.000270000000000002,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          0,
+          -0.10000000000000064,
+          0,
+          0,
+          0,
+          -0.3000000000000023
+        ],
+        "end": [
+          0,
+          0.10000000000000098,
+          0,
+          0,
+          0,
+          -2.220446049250313e-16
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.2526065174565133e-19,
+              "residualBefore": 0.000649519052838329,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 6.676953772165149e-16,
+              "iteration": 2,
+              "residual": 1.0842021724855044e-19,
+              "residualBefore": 4.336808689942018e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.49999999999999983,
+              "iteration": 1,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0.0006495190528383289,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33333333333333315,
+              "iteration": 1,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 0.0006495190528383286,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 4.451302514776768e-16,
+              "iteration": 2,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.24999999999999956,
+              "iteration": 1,
+              "residual": 1.788112030672749e-18,
+              "residualBefore": 0.0006495190528383286,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 9.992576787682227e-16,
+              "iteration": 2,
+              "residual": 1.788112030672749e-18,
+              "residualBefore": 1.939479807224432e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.5555874272687108e-12,
+            "reaction": 9.992007221577874e-10,
+            "sectionForce": 5.551115123124242e-11
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.4905315572151176e-18,
+              "residualBefore": 0.00022963966338592292,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 6.929132731019626e-15,
+              "iteration": 2,
+              "residual": 1.0896096981628377e-18,
+              "residualBefore": 1.5786221915782286e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5000000000000022,
+              "iteration": 1,
+              "residual": 2.5380522142986216e-18,
+              "residualBefore": 0.00022963966338592368,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 4.781698255337989e-15,
+              "iteration": 2,
+              "residual": 2.6468748234287228e-18,
+              "residualBefore": 2.742838647325548e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3333333333333352,
+              "iteration": 1,
+              "residual": 2.2351400383409364e-18,
+              "residualBefore": 0.00022963966338592455,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 6.952135074418487e-16,
+              "iteration": 2,
+              "residual": 4.87890977618477e-18,
+              "residualBefore": 2.3354429532350846e-18,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25000000000000033,
+              "iteration": 1,
+              "residual": 2.3354429532350846e-18,
+              "residualBefore": 0.00022963966338592542,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.4807567746451339e-15,
+              "iteration": 2,
+              "residual": 6.5052130349130266e-18,
+              "residualBefore": 1.939479807224432e-18,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cantilever-200",
+      "displacement": {
+        "x": -0.00015000000000000012,
+        "y": 0.00034463788815724313,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          200.00000000000034,
+          -0.10000000000003961,
+          0,
+          0,
+          0,
+          -0.3689275776315557
+        ],
+        "end": [
+          -200,
+          0.10000000000001563,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.421010862427522e-19,
+              "residualBefore": 0.04330614130813319,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 7.613889305593712e-18,
+              "iteration": 2,
+              "residual": 6.942281208919283e-19,
+              "residualBefore": 6.133173666733497e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5002355347586046,
+              "iteration": 1,
+              "residual": 8.940560153363745e-19,
+              "residualBefore": 0.04330664020319118,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.868729488322992e-17,
+              "iteration": 2,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3337228446032953,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.04330722886727227,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2505515090132785,
+              "iteration": 1,
+              "residual": 2.7769124835677133e-18,
+              "residualBefore": 0.043307930805840486,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 7.857391436294964e-18,
+              "iteration": 2,
+              "residual": 4.336808689942018e-19,
+              "residualBefore": 2.4532694666933987e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 3.0876986498031735,
+            "reaction": 0.014181002554998379,
+            "sectionForce": 0.18281651566825965
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 7.090549643118748e-18,
+              "residualBefore": 0.03061948292141785,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.190688330022185e-16,
+              "iteration": 2,
+              "residual": 7.770787968964479e-18,
+              "residualBefore": 7.07644403651238e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5005526797570896,
+              "iteration": 1,
+              "residual": 7.194579753950981e-18,
+              "residualBefore": 0.030619601089252244,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.8452404975599073e-16,
+              "iteration": 2,
+              "residual": 2.0456723331237457e-18,
+              "residualBefore": 7.217417561302076e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3342448745965587,
+              "iteration": 1,
+              "residual": 3.1325940166389025e-17,
+              "residualBefore": 0.03061974432011785,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 2.1708765898274226e-16,
+              "iteration": 2,
+              "residual": 2.6931187205180855e-18,
+              "residualBefore": 3.12972206585733e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2512868921450647,
+              "iteration": 1,
+              "residual": 2.88466021112011e-17,
+              "residualBefore": 0.03061991979218374,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 3.27038809545586e-16,
+              "iteration": 2,
+              "residual": 3.128820886564665e-17,
+              "residualBefore": 2.892148461910242e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 1.016449026990681,
+            "reaction": 0.0010718321289853673,
+            "sectionForce": 0.011752967905992458
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.0604772410612519e-17,
+              "residualBefore": 0.021650787325103792,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.238880669311772e-15,
+              "iteration": 2,
+              "residual": 2.224081485203607e-17,
+              "residualBefore": 1.600217765436681e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5015930173795874,
+              "iteration": 1,
+              "residual": 1.9566716708199844e-17,
+              "residualBefore": 0.02165080952147826,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 7.1001855543910356e-15,
+              "iteration": 2,
+              "residual": 2.6833245835232187e-17,
+              "residualBefore": 1.3470861086075726e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3359424834723479,
+              "iteration": 1,
+              "residual": 2.910371102507629e-17,
+              "residualBefore": 0.021650836507788315,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.261159997539508e-14,
+              "iteration": 2,
+              "residual": 3.0975753338987956e-17,
+              "residualBefore": 3.055527228247566e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25365215409890185,
+              "iteration": 1,
+              "residual": 4.2940046453608524e-17,
+              "residualBefore": 0.02165086966381889,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.5934216649040118e-14,
+              "iteration": 2,
+              "residual": 3.347258186737434e-17,
+              "residualBefore": 6.460889428694317e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.23233933579450422,
+            "reaction": 0.0000698099450559454,
+            "sectionForce": 0.0006872957633901404
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 4.549452562541272e-17,
+              "residualBefore": 0.015309337803269261,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.368374905711909e-13,
+              "iteration": 2,
+              "residual": 3.2840234251903817e-17,
+              "residualBefore": 4.4043703267334046e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5050293181317264,
+              "iteration": 1,
+              "residual": 8.059845938816796e-17,
+              "residualBefore": 0.015309341779954617,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.6760823231283863e-14,
+              "iteration": 2,
+              "residual": 5.50386198659905e-17,
+              "residualBefore": 7.920584783060223e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.34140362089688303,
+              "iteration": 1,
+              "residual": 1.1251559193249727e-16,
+              "residualBefore": 0.015309346606914687,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 2.3856186905938217e-14,
+              "iteration": 2,
+              "residual": 5.692104160384711e-17,
+              "residualBefore": 1.1163134269724237e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.26101860179078634,
+              "iteration": 1,
+              "residual": 1.0406806201366412e-16,
+              "residualBefore": 0.01530935252786807,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.553229999508676e-13,
+              "iteration": 2,
+              "residual": 1.2927401527571647e-16,
+              "residualBefore": 9.903508825193677e-17,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cantilever-500",
+      "displacement": {
+        "x": -0.00037500000000000006,
+        "y": 0.0005917076328835903,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500.00000000000006,
+          -0.09999999999994102,
+          0,
+          0,
+          0,
+          -0.5958538164416012
+        ],
+        "end": [
+          -500.00000000000045,
+          0.09999999999987352,
+          0,
+          0,
+          0,
+          -7.105427357601002e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.421010862427522e-19,
+              "residualBefore": 0.10825512401267665,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.4553092041291618e-17,
+              "iteration": 2,
+              "residual": 3.2526065174565133e-19,
+              "residualBefore": 4.336808689942018e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.50016326289486,
+              "iteration": 1,
+              "residual": 8.940560153363745e-19,
+              "residualBefore": 0.10825569311903582,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.841860182785532e-17,
+              "iteration": 2,
+              "residual": 6.505213034913027e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33376289834321277,
+              "iteration": 1,
+              "residual": 5.554502221569642e-17,
+              "residualBefore": 0.10825659324583296,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.7074522148854507e-16,
+              "iteration": 2,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 5.556533489592038e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25113031323796725,
+              "iteration": 1,
+              "residual": 4.091337135425211e-18,
+              "residualBefore": 0.1082581526573581,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 8.034771372550722e-18,
+              "iteration": 2,
+              "residual": 2.168404344971009e-18,
+              "residualBefore": 4.9065389333867974e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 7.879620792128454,
+            "reaction": 0.4225684726758016,
+            "sectionForce": 1.5147128232853402
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.9054705224032593e-18,
+              "residualBefore": 0.07654689892069434,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.5197742438208947e-16,
+              "iteration": 2,
+              "residual": 2.0826850452078063e-18,
+              "residualBefore": 1.852291519202083e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5003857896316314,
+              "iteration": 1,
+              "residual": 3.3900144837410844e-18,
+              "residualBefore": 0.07654703674987512,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.703623417566513e-16,
+              "iteration": 2,
+              "residual": 4.553656128821349e-18,
+              "residualBefore": 3.2699941959298913e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33434740218106523,
+              "iteration": 1,
+              "residual": 5.57082701872991e-17,
+              "residualBefore": 0.07654727012648199,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.083225345251785e-16,
+              "iteration": 2,
+              "residual": 2.826505291908283e-17,
+              "residualBefore": 5.561947015003561e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25266953776258655,
+              "iteration": 1,
+              "residual": 4.366532978881468e-19,
+              "residualBefore": 0.07654770361676486,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 2.5746485820692606e-18,
+              "iteration": 2,
+              "residual": 4.366532978881468e-19,
+              "residualBefore": 5.086262306476807e-20,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.7092461236721697,
+            "reaction": 0.030968271549706793,
+            "sectionForce": 0.10177985428624763
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.0989570311787092e-17,
+              "residualBefore": 0.05412664862890436,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 7.843572527889788e-15,
+              "iteration": 2,
+              "residual": 1.4129255424159495e-17,
+              "residualBefore": 3.1941069770054947e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5011420536476153,
+              "iteration": 1,
+              "residual": 2.959992875098237e-17,
+              "residualBefore": 0.054126674583235154,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 8.968979161683222e-16,
+              "iteration": 2,
+              "residual": 2.8293431563715257e-17,
+              "residualBefore": 1.0517615170655504e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3363103564071038,
+              "iteration": 1,
+              "residual": 5.982350624952735e-17,
+              "residualBefore": 0.054126718837760275,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.8261396370223123e-14,
+              "iteration": 2,
+              "residual": 1.4017610060989457e-16,
+              "residualBefore": 6.087136713753198e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2577022792455111,
+              "iteration": 1,
+              "residual": 2.3530180415245042e-16,
+              "residualBefore": 0.05412680154150453,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 7.685793480464366e-15,
+              "iteration": 2,
+              "residual": 2.1325507348614862e-16,
+              "residualBefore": 2.7721402243944574e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.6152017368911922,
+            "reaction": 0.002002592666418271,
+            "sectionForce": 0.00614450183142095
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.640975194950012e-17,
+              "residualBefore": 0.03827328799534486,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.110672563166495e-14,
+              "iteration": 2,
+              "residual": 6.952329012524279e-17,
+              "residualBefore": 6.294874452223378e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5039835336767969,
+              "iteration": 1,
+              "residual": 1.191290213944372e-16,
+              "residualBefore": 0.03827329263894886,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.1336415464010522e-13,
+              "iteration": 2,
+              "residual": 5.622294354521038e-17,
+              "residualBefore": 1.1165525797231293e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3434554376205894,
+              "iteration": 1,
+              "residual": 2.8292666598196617e-16,
+              "residualBefore": 0.0382733005248996,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.914808891667664e-13,
+              "iteration": 2,
+              "residual": 1.690933552169988e-16,
+              "residualBefore": 2.5612524695267415e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.27476038962188154,
+              "iteration": 1,
+              "residual": 3.027399622833691e-16,
+              "residualBefore": 0.03827331520509981,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.548850287593442e-14,
+              "iteration": 2,
+              "residual": 1.6165705413413896e-16,
+              "residualBefore": 3.09910989529473e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cantilever--500",
+      "displacement": {
+        "x": 0.00037500000000000006,
+        "y": 0.00017569834216646718,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          -500.00000000000006,
+          -0.09999999999994369,
+          0,
+          0,
+          0,
+          -0.21215082891660741
+        ],
+        "end": [
+          500.00000000000045,
+          0.10000000000000142,
+          0,
+          0,
+          0,
+          -2.6645352591003757e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 4.4702800766818725e-19,
+              "residualBefore": 0.10825512401267665,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 9.78395551727682e-18,
+              "iteration": 2,
+              "residual": 3.2526065174565133e-19,
+              "residualBefore": 4.84869951806108e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.49996472703749617,
+              "iteration": 1,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0.10825473977600784,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33330084477998095,
+              "iteration": 1,
+              "residual": 5.551792708129603e-17,
+              "residualBefore": 0.10825446715244799,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.711788206390132e-16,
+              "iteration": 2,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 5.551792708129603e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2499737737692479,
+              "iteration": 1,
+              "residual": 1.3010426069826053e-18,
+              "residualBefore": 0.10825426605317572,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 6.8245845076630924e-18,
+              "iteration": 2,
+              "residual": 9.69739903612216e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 6.81102049538519,
+            "reaction": 0.09006601601423628,
+            "sectionForce": 0.8910482534775931
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.012983914638108e-18,
+              "residualBefore": 0.07654689892069434,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.4754864642469765e-17,
+              "iteration": 2,
+              "residual": 3.9091677628504237e-19,
+              "residualBefore": 1.678640870534362e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.49991564955234613,
+              "iteration": 1,
+              "residual": 9.243278015539921e-19,
+              "residualBefore": 0.07654681191164264,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.2315254279822374e-17,
+              "iteration": 2,
+              "residual": 1.2424448381367235e-18,
+              "residualBefore": 9.977179996493553e-19,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3332552640681494,
+              "iteration": 1,
+              "residual": 5.554118975021646e-17,
+              "residualBefore": 0.07654675414391479,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 2.4168259052806033e-16,
+              "iteration": 2,
+              "residual": 2.796923154501079e-17,
+              "residualBefore": 5.554531664925828e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.249936650821647,
+              "iteration": 1,
+              "residual": 2.5183156143945796e-18,
+              "residualBefore": 0.0765467142399631,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 8.160810315711016e-17,
+              "iteration": 2,
+              "residual": 3.075255668751917e-18,
+              "residualBefore": 2.627955635488972e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.1731091359211065,
+            "reaction": 0.007374090189976013,
+            "sectionForce": 0.0513936067997724
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.0046995297550512e-17,
+              "residualBefore": 0.05412664862890436,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.995860129770909e-15,
+              "iteration": 2,
+              "residual": 1.4897403396005215e-17,
+              "residualBefore": 3.1302514752546384e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.4997468989722027,
+              "iteration": 1,
+              "residual": 2.9310634749528723e-17,
+              "residualBefore": 0.05412663237656621,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 3.2602849125730185e-17,
+              "iteration": 2,
+              "residual": 2.8217715483286954e-17,
+              "residualBefore": 9.016961528833647e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33309843682489476,
+              "iteration": 1,
+              "residual": 5.704603686315484e-17,
+              "residualBefore": 0.05412662168754039,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 7.076758624500976e-16,
+              "iteration": 2,
+              "residual": 1.3623348680735903e-16,
+              "residualBefore": 5.699728268534415e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.24980890465854205,
+              "iteration": 1,
+              "residual": 2.2893714478538827e-16,
+              "residualBefore": 0.054126614384713057,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 8.689758263216816e-16,
+              "iteration": 2,
+              "residual": 2.078866065274948e-16,
+              "residualBefore": 2.719829146637017e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.5161759561637306,
+            "reaction": 0.0004905218437323925,
+            "sectionForce": 0.003133729448814756
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.685264935150647e-17,
+              "residualBefore": 0.03827328799534486,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 7.435526391408817e-14,
+              "iteration": 2,
+              "residual": 6.661897586492313e-17,
+              "residualBefore": 6.381863021048519e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.49909083589192293,
+              "iteration": 1,
+              "residual": 1.115340980106417e-16,
+              "residualBefore": 0.03827328507552621,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 8.820154118624253e-15,
+              "iteration": 2,
+              "residual": 5.061613809575121e-17,
+              "residualBefore": 1.0410993227505979e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33248682375103716,
+              "iteration": 1,
+              "residual": 2.7502316566735316e-16,
+              "residualBefore": 0.038273283147103584,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 9.505396134859352e-14,
+              "iteration": 2,
+              "residual": 1.5402399228159265e-16,
+              "residualBefore": 2.4544609054894216e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.24930960255495602,
+              "iteration": 1,
+              "residual": 2.2142510756826664e-16,
+              "residualBefore": 0.03827328182401471,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.4118307428070553e-14,
+              "iteration": 2,
+              "residual": 1.0068659336956239e-16,
+              "residualBefore": 2.0483894654142527e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "baseline",
+      "displacement": {
+        "x": -0.00037500000000000006,
+        "y": 0.0005917076328835903,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500.00000000000006,
+          -0.09999999999994102,
+          0,
+          0,
+          0,
+          -0.5958538164416012
+        ],
+        "end": [
+          -500.00000000000045,
+          0.09999999999987352,
+          0,
+          0,
+          0,
+          -7.105427357601002e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.421010862427522e-19,
+              "residualBefore": 0.10825512401267665,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.4553092041291618e-17,
+              "iteration": 2,
+              "residual": 3.2526065174565133e-19,
+              "residualBefore": 4.336808689942018e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.50016326289486,
+              "iteration": 1,
+              "residual": 8.940560153363745e-19,
+              "residualBefore": 0.10825569311903582,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.841860182785532e-17,
+              "iteration": 2,
+              "residual": 6.505213034913027e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33376289834321277,
+              "iteration": 1,
+              "residual": 5.554502221569642e-17,
+              "residualBefore": 0.10825659324583296,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.7074522148854507e-16,
+              "iteration": 2,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 5.556533489592038e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25113031323796725,
+              "iteration": 1,
+              "residual": 4.091337135425211e-18,
+              "residualBefore": 0.1082581526573581,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 8.034771372550722e-18,
+              "iteration": 2,
+              "residual": 2.168404344971009e-18,
+              "residualBefore": 4.9065389333867974e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 7.879620792128454,
+            "reaction": 0.4225684726758016,
+            "sectionForce": 1.5147128232853402
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.9054705224032593e-18,
+              "residualBefore": 0.07654689892069434,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.5197742438208947e-16,
+              "iteration": 2,
+              "residual": 2.0826850452078063e-18,
+              "residualBefore": 1.852291519202083e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5003857896316314,
+              "iteration": 1,
+              "residual": 3.3900144837410844e-18,
+              "residualBefore": 0.07654703674987512,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.703623417566513e-16,
+              "iteration": 2,
+              "residual": 4.553656128821349e-18,
+              "residualBefore": 3.2699941959298913e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33434740218106523,
+              "iteration": 1,
+              "residual": 5.57082701872991e-17,
+              "residualBefore": 0.07654727012648199,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.083225345251785e-16,
+              "iteration": 2,
+              "residual": 2.826505291908283e-17,
+              "residualBefore": 5.561947015003561e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25266953776258655,
+              "iteration": 1,
+              "residual": 4.366532978881468e-19,
+              "residualBefore": 0.07654770361676486,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 2.5746485820692606e-18,
+              "iteration": 2,
+              "residual": 4.366532978881468e-19,
+              "residualBefore": 5.086262306476807e-20,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.7092461236721697,
+            "reaction": 0.030968271549706793,
+            "sectionForce": 0.10177985428624763
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.0989570311787092e-17,
+              "residualBefore": 0.05412664862890436,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 7.843572527889788e-15,
+              "iteration": 2,
+              "residual": 1.4129255424159495e-17,
+              "residualBefore": 3.1941069770054947e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5011420536476153,
+              "iteration": 1,
+              "residual": 2.959992875098237e-17,
+              "residualBefore": 0.054126674583235154,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 8.968979161683222e-16,
+              "iteration": 2,
+              "residual": 2.8293431563715257e-17,
+              "residualBefore": 1.0517615170655504e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3363103564071038,
+              "iteration": 1,
+              "residual": 5.982350624952735e-17,
+              "residualBefore": 0.054126718837760275,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.8261396370223123e-14,
+              "iteration": 2,
+              "residual": 1.4017610060989457e-16,
+              "residualBefore": 6.087136713753198e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2577022792455111,
+              "iteration": 1,
+              "residual": 2.3530180415245042e-16,
+              "residualBefore": 0.05412680154150453,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 7.685793480464366e-15,
+              "iteration": 2,
+              "residual": 2.1325507348614862e-16,
+              "residualBefore": 2.7721402243944574e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.6152017368911922,
+            "reaction": 0.002002592666418271,
+            "sectionForce": 0.00614450183142095
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.640975194950012e-17,
+              "residualBefore": 0.03827328799534486,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.110672563166495e-14,
+              "iteration": 2,
+              "residual": 6.952329012524279e-17,
+              "residualBefore": 6.294874452223378e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5039835336767969,
+              "iteration": 1,
+              "residual": 1.191290213944372e-16,
+              "residualBefore": 0.03827329263894886,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.1336415464010522e-13,
+              "iteration": 2,
+              "residual": 5.622294354521038e-17,
+              "residualBefore": 1.1165525797231293e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3434554376205894,
+              "iteration": 1,
+              "residual": 2.8292666598196617e-16,
+              "residualBefore": 0.0382733005248996,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.914808891667664e-13,
+              "iteration": 2,
+              "residual": 1.690933552169988e-16,
+              "residualBefore": 2.5612524695267415e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.27476038962188154,
+              "iteration": 1,
+              "residual": 3.027399622833691e-16,
+              "residualBefore": 0.03827331520509981,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.548850287593442e-14,
+              "iteration": 2,
+              "residual": 1.6165705413413896e-16,
+              "residualBefore": 3.09910989529473e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "one-load-step",
+      "displacement": {
+        "x": -0.00037500000000000055,
+        "y": 0.0005917076328840179,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500.0000000000011,
+          -0.10000000000004228,
+          0,
+          0,
+          0,
+          -0.595853816442061
+        ],
+        "end": [
+          -500,
+          0.10000000000000142,
+          0,
+          0,
+          0,
+          -1.2434497875801753e-14
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 1,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 4.091337135425211e-18,
+              "residualBefore": 0.4330204960507066,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 8.034771372550722e-18,
+              "iteration": 2,
+              "residual": 1.3010426069826053e-18,
+              "residualBefore": 4.9065389333867974e-18,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 7.879620792128213,
+            "reaction": 0.42256847267609915,
+            "sectionForce": 1.5147128232851397
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 1,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 8.684601577227536e-18,
+              "residualBefore": 0.30618759568277737,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 1.4506138713890861e-16,
+              "iteration": 2,
+              "residual": 7.190348433522773e-18,
+              "residualBefore": 8.498526926529466e-18,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.7092461236704546,
+            "reaction": 0.030968271551382872,
+            "sectionForce": 0.10177985428202377
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 1,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 9.12844849795566e-17,
+              "residualBefore": 0.21650659451561743,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 1.2117649543099739e-14,
+              "iteration": 2,
+              "residual": 6.548601461371295e-17,
+              "residualBefore": 1.3240549499120683e-16,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.6152017367491043,
+            "reaction": 0.002002592818779216,
+            "sectionForce": 0.006144501968007783
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 1,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.237499223583031e-16,
+              "residualBefore": 0.15309315198137943,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 1.9484434384853934e-13,
+              "iteration": 2,
+              "residual": 3.2237428006904704e-16,
+              "residualBefore": 3.2738679446132817e-16,
+              "step": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "double-full-load",
+      "displacement": {
+        "x": -0.00037500000000000006,
+        "y": 0.0011834152657671806,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500.00000000000006,
+          -0.19999999999988205,
+          0,
+          0,
+          0,
+          -1.1917076328832024
+        ],
+        "end": [
+          -500.00000000000045,
+          0.19999999999974705,
+          0,
+          0,
+          0,
+          -1.4210854715202004e-14
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.0842021724855044e-18,
+              "residualBefore": 0.10826096942111685,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 4.900688066894605e-17,
+              "iteration": 2,
+              "residual": 6.505213034913027e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5006490182411438,
+              "iteration": 1,
+              "residual": 1.788112030672749e-18,
+              "residualBefore": 0.1082632457056939,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.667517240939443e-17,
+              "iteration": 2,
+              "residual": 1.3010426069826053e-18,
+              "residualBefore": 1.734723475976807e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3350335830390284,
+              "iteration": 1,
+              "residual": 5.56465114693644e-17,
+              "residualBefore": 0.10826684591681282,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.7019601106241813e-16,
+              "iteration": 2,
+              "residual": 1.734723475976807e-18,
+              "residualBefore": 5.572756979560851e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25442701245434535,
+              "iteration": 1,
+              "residual": 8.182674270850422e-18,
+              "residualBefore": 0.10827308283749669,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.5953402377799742e-17,
+              "iteration": 2,
+              "residual": 4.336808689942018e-18,
+              "residualBefore": 9.813077866773595e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 8.11116979215834,
+            "reaction": 0.4226393906136985,
+            "sectionForce": 1.5152654559996634
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.8109410448065185e-18,
+              "residualBefore": 0.07654793228755429,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.0247946592782663e-16,
+              "iteration": 2,
+              "residual": 4.1653700904156126e-18,
+              "residualBefore": 3.704583038404166e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5015205404858999,
+              "iteration": 1,
+              "residual": 6.780028967482169e-18,
+              "residualBefore": 0.07654848359534587,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.1329760650597107e-15,
+              "iteration": 2,
+              "residual": 9.107312257642698e-18,
+              "residualBefore": 6.5399883918597825e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3372899862068903,
+              "iteration": 1,
+              "residual": 5.629548592903112e-17,
+              "residualBefore": 0.07654941707986034,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 4.494220307605772e-16,
+              "iteration": 2,
+              "residual": 2.974116562627509e-17,
+              "residualBefore": 5.594316853757998e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2601682535556889,
+              "iteration": 1,
+              "residual": 8.733065957762936e-19,
+              "residualBefore": 0.0765511509776326,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.062191153424162e-18,
+              "iteration": 2,
+              "residual": 8.733065957762936e-19,
+              "residualBefore": 1.0172524612953614e-19,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.7922247714514272,
+            "reaction": 0.030973468023130512,
+            "sectionForce": 0.10185231919390675
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.4631083631490417e-17,
+              "residualBefore": 0.0541268313056242,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.540758059919675e-14,
+              "iteration": 2,
+              "residual": 1.485814430029508e-17,
+              "residualBefore": 3.452582852939547e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5043743447776019,
+              "iteration": 1,
+              "residual": 3.454717347321265e-17,
+              "residualBefore": 0.05412693512252234,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.7581511967851425e-15,
+              "iteration": 2,
+              "residual": 2.984890526196684e-17,
+              "residualBefore": 2.1035230341311007e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.34441958696372593,
+              "iteration": 1,
+              "residual": 7.121056007988013e-17,
+              "residualBefore": 0.054127112139553506,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.5448117785137205e-14,
+              "iteration": 2,
+              "residual": 1.5208739043861835e-16,
+              "residualBefore": 7.4678173623289e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.27694455030863663,
+              "iteration": 1,
+              "residual": 2.5359785623619544e-16,
+              "residualBefore": 0.05412744295136886,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.4577618753366695e-14,
+              "iteration": 2,
+              "residual": 2.291034988984419e-16,
+              "residualBefore": 2.9244371655896536e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.6343108885646233,
+            "reaction": 0.002002928697938025,
+            "sectionForce": 0.006151032682665896
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.917686200740634e-17,
+              "residualBefore": 0.03827332028839981,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.989120648620008e-14,
+              "iteration": 2,
+              "residual": 8.04883165469991e-17,
+              "residualBefore": 6.553318305544463e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5137973562753119,
+              "iteration": 1,
+              "residual": 1.4670506798096206e-16,
+              "residualBefore": 0.03827333886279687,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.1199698973127538e-13,
+              "iteration": 2,
+              "residual": 8.627900482565916e-17,
+              "residualBefore": 1.4079445798402055e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3656997034919267,
+              "iteration": 1,
+              "residual": 3.2443213697331005e-16,
+              "residualBefore": 0.038273370406552,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 7.114477015173427e-13,
+              "iteration": 2,
+              "residual": 2.3789147269826943e-16,
+              "residualBefore": 3.060867611935404e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.31831845614765697,
+              "iteration": 1,
+              "residual": 4.750030180158831e-16,
+              "residualBefore": 0.03827342912721167,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 9.591619312570299e-14,
+              "iteration": 2,
+              "residual": 2.8936476842547644e-16,
+              "residualBefore": 5.138105265511645e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "half-full-load",
+      "displacement": {
+        "x": -0.00018750000000000003,
+        "y": 0.00018515841775237476,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          250.00000000000003,
+          -0.049999999999998934,
+          0,
+          0,
+          0,
+          -0.1962896044380813
+        ],
+        "end": [
+          -250.00000000000023,
+          0.050000000000007816,
+          0,
+          0,
+          0,
+          -3.1086244689504383e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.421010862427522e-20,
+              "residualBefore": 0.05412756200633832,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 5.421010862427522e-20,
+              "residualBefore": 0,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5000515942248425,
+              "iteration": 1,
+              "residual": 1.0842021724855044e-19,
+              "residualBefore": 0.05412768938761057,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 1.0842021724855044e-19,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3334243617372252,
+              "iteration": 1,
+              "residual": 2.7758963540648015e-17,
+              "residualBefore": 0.05412784655951793,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.7171630922159042e-16,
+              "iteration": 2,
+              "residual": 1.2266347333466993e-18,
+              "residualBefore": 2.7758963540648015e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25013900511666975,
+              "iteration": 1,
+              "residual": 8.940560153363745e-19,
+              "residualBefore": 0.05412804386709411,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 2.841860182785532e-17,
+              "iteration": 2,
+              "residual": 8.940560153363745e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 3.7503027143144334,
+            "reaction": 0.030265613970860573,
+            "sectionForce": 0.29496330821428957
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.55182926294886e-19,
+              "residualBefore": 0.03827344946034717,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.938518476537136e-17,
+              "iteration": 2,
+              "residual": 6.159841066980055e-19,
+              "residualBefore": 5.734101784837298e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.500122169404817,
+              "iteration": 1,
+              "residual": 2.6231721676591764e-18,
+              "residualBefore": 0.03827347973761627,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.965839023330606e-17,
+              "iteration": 2,
+              "residual": 1.7653683320962178e-18,
+              "residualBefore": 2.566546051306341e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3335486130963167,
+              "iteration": 1,
+              "residual": 2.7872567818585936e-17,
+              "residualBefore": 0.03827351837493757,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.0242126685520226e-16,
+              "iteration": 2,
+              "residual": 1.4080801403879315e-17,
+              "residualBefore": 2.7867031946990363e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2503284469873642,
+              "iteration": 1,
+              "residual": 3.786963806412598e-18,
+              "residualBefore": 0.03827356855112367,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.664383428436277e-16,
+              "iteration": 2,
+              "residual": 4.077469099059974e-18,
+              "residualBefore": 3.576232980105403e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 1.1799914338651993,
+            "reaction": 0.0022750045009519333,
+            "sectionForce": 0.01908036979619723
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.0092277247154206e-17,
+              "residualBefore": 0.02706332431445218,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.9932833531716715e-15,
+              "iteration": 2,
+              "residual": 7.126339029400172e-18,
+              "residualBefore": 1.5719809872917704e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5003633389663887,
+              "iteration": 1,
+              "residual": 1.4395469855043024e-17,
+              "residualBefore": 0.02706333000391346,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.491867837859452e-15,
+              "iteration": 2,
+              "residual": 1.4519058343224336e-17,
+              "residualBefore": 4.1484018004647076e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33397201809568267,
+              "iteration": 1,
+              "residual": 2.983236016396586e-17,
+              "residualBefore": 0.027063337291617605,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.144455393800362e-15,
+              "iteration": 2,
+              "residual": 6.927757072201152e-17,
+              "residualBefore": 3.019303529224656e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25097151390085304,
+              "iteration": 1,
+              "residual": 1.154712488992397e-16,
+              "residualBefore": 0.027063346788792058,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 4.164284785134069e-15,
+              "iteration": 2,
+              "residual": 1.0460174634393463e-16,
+              "residualBefore": 1.3677172686326265e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.2691147228390988,
+            "reaction": 0.0001479815747687513,
+            "sectionForce": 0.0011200142854956496
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.4671126570904215e-17,
+              "residualBefore": 0.01913664399767243,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 5.211987423527691e-14,
+              "iteration": 2,
+              "residual": 3.3998051025818054e-17,
+              "residualBefore": 3.241855146826153e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5012832153590617,
+              "iteration": 1,
+              "residual": 5.843574863092993e-17,
+              "residualBefore": 0.019136645016763543,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.693946841606232e-14,
+              "iteration": 2,
+              "residual": 3.458775129325267e-17,
+              "residualBefore": 5.559501377039258e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3355750366092626,
+              "iteration": 1,
+              "residual": 1.3822087391856707e-16,
+              "residualBefore": 0.01913664631947443,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.2261627727455e-13,
+              "iteration": 2,
+              "residual": 8.624159170551956e-17,
+              "residualBefore": 1.235034877289375e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2533815861174596,
+              "iteration": 1,
+              "residual": 1.172994548701043e-16,
+              "residualBefore": 0.01913664801373388,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.420496575206704e-14,
+              "iteration": 2,
+              "residual": 6.28393879269601e-17,
+              "residualBefore": 1.074207465377371e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rotated-column",
+      "displacement": {
+        "x": -0.0006463380554556685,
+        "y": 0.00027016669088726544,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500.00000000000176,
+          -0.0999999999956298,
+          0,
+          0,
+          0,
+          -0.5958538164252376
+        ],
+        "end": [
+          -500,
+          0.09999999999912745,
+          0,
+          0,
+          0,
+          1.7763568394002505e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.9645312551903404e-17,
+              "residualBefore": 0.1529742855814573,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.397190980309844e-14,
+              "iteration": 2,
+              "residual": 1.3884562417838567e-17,
+              "residualBefore": 2.0293565431623264e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5359814834082466,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.1529727632344833,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 8.09932719532669e-14,
+              "iteration": 2,
+              "residual": 3.926189338142412e-17,
+              "residualBefore": 1.1545862326175621e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.4011673098551523,
+              "iteration": 1,
+              "residual": 7.852378676284824e-17,
+              "residualBefore": 0.15297068194186123,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 9.598944704908066e-14,
+              "iteration": 2,
+              "residual": 1.734723475976807e-18,
+              "residualBefore": 4.7137123391916363e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.36157995870522697,
+              "iteration": 1,
+              "residual": 5.551115123125783e-17,
+              "residualBefore": 0.15296766027690875,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.6817826735826613e-13,
+              "iteration": 2,
+              "residual": 7.850462293418876e-17,
+              "residualBefore": 3.4287197322869213e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 55.7617237791587,
+            "reaction": 0.42256847295288774,
+            "sectionForce": 1.5147128235460496
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.198186678014485e-17,
+              "residualBefore": 0.10794229182081941,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 7.411063788842359e-13,
+              "iteration": 2,
+              "residual": 1.5326834220638444e-17,
+              "residualBefore": 5.3849377457169984e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.532472058725685,
+              "iteration": 1,
+              "residual": 1.149974703815028e-16,
+              "residualBefore": 0.10794087591171715,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.7175575214317046e-13,
+              "iteration": 2,
+              "residual": 3.334790716836264e-17,
+              "residualBefore": 7.406992244089716e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.39584042932435953,
+              "iteration": 1,
+              "residual": 2.253634827280397e-16,
+              "residualBefore": 0.1079389208970166,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 7.303375153470159e-13,
+              "iteration": 2,
+              "residual": 1.6084633675552242e-16,
+              "residualBefore": 2.207025270080702e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.3555254659886764,
+              "iteration": 1,
+              "residual": 1.3064715149401742e-16,
+              "residualBefore": 0.10793605190230911,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.3680307157138934e-14,
+              "iteration": 2,
+              "residual": 1.1978149422937016e-16,
+              "residualBefore": 1.4087502206698985e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 5.238030118762969,
+            "reaction": 0.030968271902226844,
+            "sectionForce": 0.1017798547149067
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 8.629558511725781e-17,
+              "residualBefore": 0.07569986067578004,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.069323642813694e-12,
+              "iteration": 2,
+              "residual": 7.220293638774647e-17,
+              "residualBefore": 8.730856146076844e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5311289352726206,
+              "iteration": 1,
+              "residual": 9.553469990115418e-17,
+              "residualBefore": 0.07569883705054248,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 8.131700767104032e-13,
+              "iteration": 2,
+              "residual": 1.2585697552838709e-16,
+              "residualBefore": 1.4241650653568636e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.39369666547009574,
+              "iteration": 1,
+              "residual": 3.335446650790873e-16,
+              "residualBefore": 0.0756974197202826,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 2.6010871371773213e-12,
+              "iteration": 2,
+              "residual": 2.5066149598748557e-16,
+              "residualBefore": 4.583761779351095e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.3528424571139156,
+              "iteration": 1,
+              "residual": 4.640308768628912e-16,
+              "residualBefore": 0.07569533438220037,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 2.5037661175927957e-12,
+              "iteration": 2,
+              "residual": 3.602308761106514e-16,
+              "residualBefore": 4.599541352622244e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.44457769029798105,
+            "reaction": 0.00200258643250052,
+            "sectionForce": 0.006144497434630922
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.029838057373851e-16,
+              "residualBefore": 0.051904049800095865,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.2821159070542207e-11,
+              "iteration": 2,
+              "residual": 1.0916488955751976e-16,
+              "residualBefore": 1.959680568428859e-16,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5309037211032493,
+              "iteration": 1,
+              "residual": 3.496372573364882e-16,
+              "residualBefore": 0.05190341810987289,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.315761256962748e-11,
+              "iteration": 2,
+              "residual": 3.384333612001657e-16,
+              "residualBefore": 3.8828108379878786e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.39364264462225773,
+              "iteration": 1,
+              "residual": 5.335373483918699e-16,
+              "residualBefore": 0.05190254284943538,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 8.048992551379302e-12,
+              "iteration": 2,
+              "residual": 5.167065861785469e-16,
+              "residualBefore": 5.913224482057964e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.3532902863012628,
+              "iteration": 1,
+              "residual": 5.745123045058637e-16,
+              "residualBefore": 0.051901254272084876,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.7342539338156215e-12,
+              "iteration": 2,
+              "residual": 4.863436404932267e-16,
+              "residualBefore": 6.511563793219442e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "distributed-axial-and-transverse",
+      "displacement": {
+        "x": -0.00017249999999999994,
+        "y": 0.00043289150901841284,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          260,
+          -0.15999999999998077,
+          0,
+          0,
+          0,
+          -0.48635781432740227
+        ],
+        "end": [
+          -199.9999999999999,
+          0.09999999999998926,
+          0,
+          0,
+          0,
+          -4.796510411075872e-16
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.5332934166833742e-19,
+              "residualBefore": 0.04980365079803387,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 1.5332934166833742e-19,
+              "residualBefore": 0,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5002965895407715,
+              "iteration": 1,
+              "residual": 6.85709661831387e-19,
+              "residualBefore": 0.0498044321520609,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.2110187797599503e-17,
+              "iteration": 2,
+              "residual": 3.0665868333667484e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33383510278759754,
+              "iteration": 1,
+              "residual": 2.77744157045135e-17,
+              "residualBefore": 0.049805367369466974,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.8483000084960673e-16,
+              "iteration": 2,
+              "residual": 1.0228342838563028e-18,
+              "residualBefore": 2.7755575615628914e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25072917331976763,
+              "iteration": 1,
+              "residual": 2.776235105222822e-17,
+              "residualBefore": 0.04980650111135512,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.385052516458141e-16,
+              "iteration": 2,
+              "residual": 6.133173666733497e-19,
+              "residualBefore": 2.7755575615628914e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.0015615196197716,
+            "reaction": 0.0008375929263802237,
+            "sectionForce": 0.10387501810574017
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.079088968862028e-18,
+              "residualBefore": 0.033075935748437486,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 5.049334504206813e-16,
+              "iteration": 2,
+              "residual": 8.55472363658989e-18,
+              "residualBefore": 7.064598593422347e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5006733294482214,
+              "iteration": 1,
+              "residual": 1.470672803936581e-17,
+              "residualBefore": 0.03307609108833598,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.467577628912633e-16,
+              "iteration": 2,
+              "residual": 1.6901729643597932e-17,
+              "residualBefore": 1.4111274425858126e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33446786193014816,
+              "iteration": 1,
+              "residual": 1.5950963192213185e-17,
+              "residualBefore": 0.03307628379340497,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 8.56509751353138e-16,
+              "iteration": 2,
+              "residual": 1.639404486232032e-17,
+              "residualBefore": 1.448664700525645e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25164135138807686,
+              "iteration": 1,
+              "residual": 4.628714072051368e-17,
+              "residualBefore": 0.03307652597090127,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.690941665161241e-16,
+              "iteration": 2,
+              "residual": 4.627457607971456e-17,
+              "residualBefore": 3.95953954570451e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 0.2527842883854049,
+            "reaction": 0.00042103043258885517,
+            "sectionForce": 0.02785423606733803
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.959356011248335e-17,
+              "residualBefore": 0.022550573186081387,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.482416471114491e-14,
+              "iteration": 2,
+              "residual": 1.837677019473763e-17,
+              "residualBefore": 2.574924334223225e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5019153554008663,
+              "iteration": 1,
+              "residual": 3.0970176559382594e-17,
+              "residualBefore": 0.02255060078023926,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 4.226120929627941e-15,
+              "iteration": 2,
+              "residual": 2.4091576433602242e-17,
+              "residualBefore": 2.883124344910996e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33653310454558255,
+              "iteration": 1,
+              "residual": 6.88351940167686e-17,
+              "residualBefore": 0.02255063530381794,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 6.6722850518175406e-15,
+              "iteration": 2,
+              "residual": 3.871605282613231e-17,
+              "residualBefore": 5.058228427856217e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25457987003594623,
+              "iteration": 1,
+              "residual": 1.1850747674647584e-16,
+              "residualBefore": 0.022550679034212453,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 4.376044662750276e-15,
+              "iteration": 2,
+              "residual": 2.803707368176718e-17,
+              "residualBefore": 1.034096562779604e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pinned-tie-portal",
+      "displacement": {
+        "x": 0.0003446378881539073,
+        "y": 0,
+        "z": -0.0001500000000000001
+      },
+      "endForces": {
+        "start": [
+          200.00000000000023,
+          -0.09999999999905906,
+          0,
+          0,
+          0,
+          -0.368927577627974
+        ],
+        "end": [
+          -200.00000000000023,
+          0.09999999999912035,
+          0,
+          0,
+          0,
+          -2.6645352591003757e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 10,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 5.257614221529514e-18,
+              "residualBefore": 0.0607830725229118,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.4080699905676426e-13,
+              "iteration": 2,
+              "residual": 2.241354456459509e-19,
+              "residualBefore": 5.508131188953586e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5245960161316953,
+              "iteration": 1,
+              "residual": 3.430561157295187e-17,
+              "residualBefore": 0.060783073524203715,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 6.163252638939743e-13,
+              "iteration": 2,
+              "residual": 1.2327482239887324e-17,
+              "residualBefore": 3.3900664731237916e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3688377236059467,
+              "iteration": 1,
+              "residual": 1.0124991349558751e-16,
+              "residualBefore": 0.06078307582709907,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.0235573204337776e-12,
+              "iteration": 2,
+              "residual": 1.4435465927528786e-17,
+              "residualBefore": 8.302123965212882e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.29333772431903576,
+              "iteration": 1,
+              "residual": 9.980867492881233e-17,
+              "residualBefore": 0.06078307996085813,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.491070972137464e-13,
+              "iteration": 2,
+              "residual": 1.058809235472308e-17,
+              "residualBefore": 9.969846084096613e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 3.087698650076025,
+            "reaction": 0.01418100224894692,
+            "sectionForce": 0.1828165153621496
+          },
+          "equations": 28,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.1575111874763347e-17,
+              "residualBefore": 0.04205791526104344,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.4672928985291008e-12,
+              "iteration": 2,
+              "residual": 2.2388704052471782e-17,
+              "residualBefore": 2.879875028920621e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5253355554549052,
+              "iteration": 1,
+              "residual": 6.593814137873008e-17,
+              "residualBefore": 0.042057916589950825,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.4732433396956009e-12,
+              "iteration": 2,
+              "residual": 4.8894184525522866e-17,
+              "residualBefore": 5.959100449229667e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3698016187889458,
+              "iteration": 1,
+              "residual": 1.3845115352094258e-16,
+              "residualBefore": 0.04205792011958795,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.2799356649331643e-12,
+              "iteration": 2,
+              "residual": 1.3800491642142865e-16,
+              "residualBefore": 1.3618689384643565e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.29440140037959056,
+              "iteration": 1,
+              "residual": 1.3788137273732652e-16,
+              "residualBefore": 0.04205792677135378,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.4963158574868251e-12,
+              "iteration": 2,
+              "residual": 1.0291102156171154e-16,
+              "residualBefore": 1.1503732823747431e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 1.0164490257708858,
+            "reaction": 0.0010718334826248983,
+            "sectionForce": 0.011752969255933709
+          },
+          "equations": 64,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 4.2046700499605447e-17,
+              "residualBefore": 0.02749633687451136,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 4.10641628929918e-12,
+              "iteration": 2,
+              "residual": 7.41728283411982e-17,
+              "residualBefore": 4.2843030475798047e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5249370728476421,
+              "iteration": 1,
+              "residual": 1.5647343855628964e-16,
+              "residualBefore": 0.027496337417145748,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 7.09671373193186e-12,
+              "iteration": 2,
+              "residual": 1.78786614484997e-16,
+              "residualBefore": 1.6442173353790427e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.36930306339839425,
+              "iteration": 1,
+              "residual": 1.3381479646523845e-16,
+              "residualBefore": 0.027496338384913353,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.3984901692090759e-12,
+              "iteration": 2,
+              "residual": 2.1736650497452488e-16,
+              "residualBefore": 1.3574218416590301e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.29388058809361733,
+              "iteration": 1,
+              "residual": 1.9118141088324742e-16,
+              "residualBefore": 0.02749633994149498,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.330225999186333e-15,
+              "iteration": 2,
+              "residual": 1.534319176401026e-16,
+              "residualBefore": 1.9510480065876941e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.23233933822076377,
+            "reaction": 0.00006980727512611547,
+            "sectionForce": 0.0006872931775264803
+          },
+          "equations": 136,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.115427043212354e-16,
+              "residualBefore": 0.015464741764874,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 4.116447892657571e-12,
+              "iteration": 2,
+              "residual": 1.2155634051443408e-16,
+              "residualBefore": 1.1872077056135704e-16,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5227994868830043,
+              "iteration": 1,
+              "residual": 1.8850676865231197e-16,
+              "residualBefore": 0.015464742139015546,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 3.8297377665093256e-12,
+              "iteration": 2,
+              "residual": 2.5134930758118785e-16,
+              "residualBefore": 1.8465345468560404e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3665810437332243,
+              "iteration": 1,
+              "residual": 3.604065433353332e-16,
+              "residualBefore": 0.01546474263406212,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 7.141324012049645e-12,
+              "iteration": 2,
+              "residual": 4.152931974735094e-16,
+              "residualBefore": 3.542815301411395e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2909830465101405,
+              "iteration": 1,
+              "residual": 5.11634005823966e-16,
+              "residualBefore": 0.015464743289802432,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.637756794521225e-12,
+              "iteration": 2,
+              "residual": 4.550872737068242e-16,
+              "residualBefore": 5.16143729850142e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input-combination",
+      "displacement": {
+        "x": -0.00037500000000000006,
+        "y": 0.0011834152657671806,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500.00000000000006,
+          -0.19999999999988205,
+          0,
+          0,
+          0,
+          -1.1917076328832024
+        ],
+        "end": [
+          -500.00000000000045,
+          0.19999999999974705,
+          0,
+          0,
+          0,
+          -1.4210854715202004e-14
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.0842021724855044e-18,
+              "residualBefore": 0.10826096942111685,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 4.900688066894605e-17,
+              "iteration": 2,
+              "residual": 6.505213034913027e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5006490182411438,
+              "iteration": 1,
+              "residual": 1.788112030672749e-18,
+              "residualBefore": 0.1082632457056939,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.667517240939443e-17,
+              "iteration": 2,
+              "residual": 1.3010426069826053e-18,
+              "residualBefore": 1.734723475976807e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3350335830390284,
+              "iteration": 1,
+              "residual": 5.56465114693644e-17,
+              "residualBefore": 0.10826684591681282,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.7019601106241813e-16,
+              "iteration": 2,
+              "residual": 1.734723475976807e-18,
+              "residualBefore": 5.572756979560851e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25442701245434535,
+              "iteration": 1,
+              "residual": 8.182674270850422e-18,
+              "residualBefore": 0.10827308283749669,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.5953402377799742e-17,
+              "iteration": 2,
+              "residual": 4.336808689942018e-18,
+              "residualBefore": 9.813077866773595e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 8.11116979215834,
+            "reaction": 0.4226393906136985,
+            "sectionForce": 1.5152654559996634
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.8109410448065185e-18,
+              "residualBefore": 0.07654793228755429,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.0247946592782663e-16,
+              "iteration": 2,
+              "residual": 4.1653700904156126e-18,
+              "residualBefore": 3.704583038404166e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5015205404858999,
+              "iteration": 1,
+              "residual": 6.780028967482169e-18,
+              "residualBefore": 0.07654848359534587,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.1329760650597107e-15,
+              "iteration": 2,
+              "residual": 9.107312257642698e-18,
+              "residualBefore": 6.5399883918597825e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3372899862068903,
+              "iteration": 1,
+              "residual": 5.629548592903112e-17,
+              "residualBefore": 0.07654941707986034,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 4.494220307605772e-16,
+              "iteration": 2,
+              "residual": 2.974116562627509e-17,
+              "residualBefore": 5.594316853757998e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2601682535556889,
+              "iteration": 1,
+              "residual": 8.733065957762936e-19,
+              "residualBefore": 0.0765511509776326,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 5.062191153424162e-18,
+              "iteration": 2,
+              "residual": 8.733065957762936e-19,
+              "residualBefore": 1.0172524612953614e-19,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.7922247714514272,
+            "reaction": 0.030973468023130512,
+            "sectionForce": 0.10185231919390675
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 2.4631083631490417e-17,
+              "residualBefore": 0.0541268313056242,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.540758059919675e-14,
+              "iteration": 2,
+              "residual": 1.485814430029508e-17,
+              "residualBefore": 3.452582852939547e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5043743447776019,
+              "iteration": 1,
+              "residual": 3.454717347321265e-17,
+              "residualBefore": 0.05412693512252234,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.7581511967851425e-15,
+              "iteration": 2,
+              "residual": 2.984890526196684e-17,
+              "residualBefore": 2.1035230341311007e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.34441958696372593,
+              "iteration": 1,
+              "residual": 7.121056007988013e-17,
+              "residualBefore": 0.054127112139553506,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 3.5448117785137205e-14,
+              "iteration": 2,
+              "residual": 1.5208739043861835e-16,
+              "residualBefore": 7.4678173623289e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.27694455030863663,
+              "iteration": 1,
+              "residual": 2.5359785623619544e-16,
+              "residualBefore": 0.05412744295136886,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.4577618753366695e-14,
+              "iteration": 2,
+              "residual": 2.291034988984419e-16,
+              "residualBefore": 2.9244371655896536e-16,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.6343108885646233,
+            "reaction": 0.002002928697938025,
+            "sectionForce": 0.006151032682665896
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.917686200740634e-17,
+              "residualBefore": 0.03827332028839981,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.989120648620008e-14,
+              "iteration": 2,
+              "residual": 8.04883165469991e-17,
+              "residualBefore": 6.553318305544463e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5137973562753119,
+              "iteration": 1,
+              "residual": 1.4670506798096206e-16,
+              "residualBefore": 0.03827333886279687,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.1199698973127538e-13,
+              "iteration": 2,
+              "residual": 8.627900482565916e-17,
+              "residualBefore": 1.4079445798402055e-16,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3656997034919267,
+              "iteration": 1,
+              "residual": 3.2443213697331005e-16,
+              "residualBefore": 0.038273370406552,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 7.114477015173427e-13,
+              "iteration": 2,
+              "residual": 2.3789147269826943e-16,
+              "residualBefore": 3.060867611935404e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.31831845614765697,
+              "iteration": 1,
+              "residual": 4.750030180158831e-16,
+              "residualBefore": 0.03827342912721167,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 9.591619312570299e-14,
+              "iteration": 2,
+              "residual": 2.8936476842547644e-16,
+              "residualBefore": 5.138105265511645e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "same-input-comparison-zero-prestress",
+      "displacement": {
+        "x": 0,
+        "y": 0.000270000000000002,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          0,
+          -0.10000000000000064,
+          0,
+          0,
+          0,
+          -0.3000000000000023
+        ],
+        "end": [
+          0,
+          0.10000000000000098,
+          0,
+          0,
+          0,
+          -2.220446049250313e-16
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.2526065174565133e-19,
+              "residualBefore": 0.000649519052838329,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 6.676953772165149e-16,
+              "iteration": 2,
+              "residual": 1.0842021724855044e-19,
+              "residualBefore": 4.336808689942018e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.49999999999999983,
+              "iteration": 1,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0.0006495190528383289,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33333333333333315,
+              "iteration": 1,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 0.0006495190528383286,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 4.451302514776768e-16,
+              "iteration": 2,
+              "residual": 8.673617379884035e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.24999999999999956,
+              "iteration": 1,
+              "residual": 1.788112030672749e-18,
+              "residualBefore": 0.0006495190528383286,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 9.992576787682227e-16,
+              "iteration": 2,
+              "residual": 1.788112030672749e-18,
+              "residualBefore": 1.939479807224432e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 1.5555874272687108e-12,
+            "reaction": 9.992007221577874e-10,
+            "sectionForce": 5.551115123124242e-11
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.4905315572151176e-18,
+              "residualBefore": 0.00022963966338592292,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 6.929132731019626e-15,
+              "iteration": 2,
+              "residual": 1.0896096981628377e-18,
+              "residualBefore": 1.5786221915782286e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5000000000000022,
+              "iteration": 1,
+              "residual": 2.5380522142986216e-18,
+              "residualBefore": 0.00022963966338592368,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 4.781698255337989e-15,
+              "iteration": 2,
+              "residual": 2.6468748234287228e-18,
+              "residualBefore": 2.742838647325548e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3333333333333352,
+              "iteration": 1,
+              "residual": 2.2351400383409364e-18,
+              "residualBefore": 0.00022963966338592455,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 6.952135074418487e-16,
+              "iteration": 2,
+              "residual": 4.87890977618477e-18,
+              "residualBefore": 2.3354429532350846e-18,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25000000000000033,
+              "iteration": 1,
+              "residual": 2.3354429532350846e-18,
+              "residualBefore": 0.00022963966338592542,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 1.4807567746451339e-15,
+              "iteration": 2,
+              "residual": 6.5052130349130266e-18,
+              "residualBefore": 1.939479807224432e-18,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "actual-self-weight",
+      "displacement": {
+        "x": 0.0003453221397332492,
+        "y": 0,
+        "z": -0.00015173269125000043
+      },
+      "endForces": {
+        "start": [
+          204.62051000000082,
+          -0.10000000000013021,
+          0,
+          0,
+          0,
+          -0.3696591091744331
+        ],
+        "end": [
+          -200.00000000000048,
+          0.1000000000001009,
+          0,
+          0,
+          0,
+          -3.552713678800501e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 7.589415207398531e-19,
+              "residualBefore": 0.043806270568994866,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.105371853172725e-16,
+              "iteration": 2,
+              "residual": 1.0842021724855044e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5002323479558838,
+              "iteration": 1,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0.04380676897087174,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 2.168404344971009e-19,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3337182403091793,
+              "iteration": 1,
+              "residual": 2.4532694666933987e-18,
+              "residualBefore": 0.04380735784464654,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.0225703765127761e-17,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 2.4532694666933987e-18,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2505460699992674,
+              "iteration": 1,
+              "residual": 2.168404344971009e-18,
+              "residualBefore": 0.04380806109239224,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 7.774716649480661e-18,
+              "iteration": 2,
+              "residual": 4.336808689942018e-19,
+              "residualBefore": 2.4532694666933987e-18,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 3.0851057574652674,
+            "reaction": 0.013311369460963984,
+            "sectionForce": 0.18300445398602208
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 8.01372958966284e-18,
+              "residualBefore": 0.03079733550212167,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 4.879054310596786e-16,
+              "iteration": 2,
+              "residual": 3.270995010816361e-18,
+              "residualBefore": 9.91317277886764e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5005435123242264,
+              "iteration": 1,
+              "residual": 1.0630536467197215e-17,
+              "residualBefore": 0.03079745371119864,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 7.729100037366203e-16,
+              "iteration": 2,
+              "residual": 7.176081204115351e-18,
+              "residualBefore": 1.581028628440088e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3342313465241265,
+              "iteration": 1,
+              "residual": 1.541590271563066e-17,
+              "residualBefore": 0.030797597155591584,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 8.199414881646131e-16,
+              "iteration": 2,
+              "residual": 4.200817892781099e-18,
+              "residualBefore": 1.519122821188196e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.2512703649940801,
+              "iteration": 1,
+              "residual": 1.695790515171512e-17,
+              "residualBefore": 0.030797773119116967,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 3.03302746774275e-16,
+              "iteration": 2,
+              "residual": 1.3416046147816634e-17,
+              "residualBefore": 2.879894795501348e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 1.028653447180592,
+            "reaction": 0.0010390930756081248,
+            "sectionForce": 0.01142569831859211
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 8.547343055193108e-18,
+              "residualBefore": 0.02171385009273959,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 1.953054924139999e-14,
+              "iteration": 2,
+              "residual": 7.988183984552865e-18,
+              "residualBefore": 6.277315542493562e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5015662211986642,
+              "iteration": 1,
+              "residual": 2.931549218925639e-17,
+              "residualBefore": 0.02171387229959544,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 5.566717639454001e-15,
+              "iteration": 2,
+              "residual": 2.6727174167013518e-17,
+              "residualBefore": 3.2811438555478484e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33590341649327443,
+              "iteration": 1,
+              "residual": 2.2380158379140208e-17,
+              "residualBefore": 0.021713899328338566,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.80224218942398e-15,
+              "iteration": 2,
+              "residual": 3.480024157309028e-17,
+              "residualBefore": 6.247530362773668e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25360516565153207,
+              "iteration": 1,
+              "residual": 7.826065724210633e-17,
+              "residualBefore": 0.021713932578586025,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 9.689291095266368e-15,
+              "iteration": 2,
+              "residual": 4.920976590635443e-17,
+              "residualBefore": 8.900482324907011e-17,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.23646891463155412,
+            "reaction": 0.00006807835658427332,
+            "sectionForce": 0.0006902817420587718
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.835634438953661e-17,
+              "residualBefore": 0.015331666123754863,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 3.9898210895339393e-14,
+              "iteration": 2,
+              "residual": 3.77955308040492e-17,
+              "residualBefore": 2.0947182415154795e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5049591220685749,
+              "iteration": 1,
+              "residual": 5.3670670315574445e-17,
+              "residualBefore": 0.015331670102265924,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 3.5439857528055816e-15,
+              "iteration": 2,
+              "residual": 6.274619827007473e-17,
+              "residualBefore": 7.515870519550301e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.34130770792456083,
+              "iteration": 1,
+              "residual": 1.0815943722325786e-16,
+              "residualBefore": 0.015331674936385096,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 2.691237296574353e-13,
+              "iteration": 2,
+              "residual": 8.146292311240601e-17,
+              "residualBefore": 1.212493719491622e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.26091317392616664,
+              "iteration": 1,
+              "residual": 1.701619404142513e-16,
+              "residualBefore": 0.015331680873186381,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 3.644957618603636e-13,
+              "iteration": 2,
+              "residual": 1.3754601265319434e-16,
+              "residualBefore": 2.15716309538031e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confirmed-tool-controls",
+      "displacement": {
+        "x": -0.00037499999999999985,
+        "y": 0.0005917076328832385,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          500,
+          -0.0999999999998682,
+          0,
+          0,
+          0,
+          -0.5958538164412386
+        ],
+        "end": [
+          -500.00000000000045,
+          0.09999999999990195,
+          0,
+          0,
+          0,
+          1.7763568394002505e-15
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.5,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.0842021724855044e-18,
+              "residualBefore": 0.2165102480253533,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 2.917063516600016e-17,
+              "iteration": 2,
+              "residual": 8.940560153363745e-19,
+              "residualBefore": 8.673617379884035e-19,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 0.50108327101963,
+              "iteration": 1,
+              "residual": 2.168404344971009e-18,
+              "residualBefore": 0.21651318649166584,
+              "step": 2
+            },
+            {
+              "factor": 1,
+              "increment": 9.320015866978566e-17,
+              "iteration": 2,
+              "residual": 5.898697549827395e-18,
+              "residualBefore": 3.469446951953614e-18,
+              "step": 2
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 7.879620792127808,
+            "reaction": 0.422568472676583,
+            "sectionForce": 1.5147128232857843
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.5,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.8954883704334773e-18,
+              "residualBefore": 0.15309379784138868,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.4598221595884494e-17,
+              "iteration": 2,
+              "residual": 2.1728669400674203e-18,
+              "residualBefore": 1.980407680423099e-18,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 0.5025570290558116,
+              "iteration": 1,
+              "residual": 1.4647674900756683e-17,
+              "residualBefore": 0.15309454025296396,
+              "step": 2
+            },
+            {
+              "factor": 1,
+              "increment": 5.052216771776844e-16,
+              "iteration": 2,
+              "residual": 8.836211843780523e-18,
+              "residualBefore": 1.4329637269931522e-17,
+              "step": 2
+            }
+          ]
+        },
+        {
+          "divisions": 4,
+          "error": {
+            "displacement": 2.7092461236783554,
+            "reaction": 0.03096827154292775,
+            "sectionForce": 0.10177985427665516
+          },
+          "equations": 24,
+          "iterations": [
+            {
+              "factor": 0.5,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 4.0125740157425885e-17,
+              "residualBefore": 0.10825329725780872,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 6.0554560703329994e-15,
+              "iteration": 2,
+              "residual": 3.314780698783323e-17,
+              "residualBefore": 6.263625335316361e-17,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 0.5074178930455121,
+              "iteration": 1,
+              "residual": 6.720954017759243e-17,
+              "residualBefore": 0.10825343767552044,
+              "step": 2
+            },
+            {
+              "factor": 1,
+              "increment": 1.829436092502907e-15,
+              "iteration": 2,
+              "residual": 6.047499204935782e-17,
+              "residualBefore": 3.756788159904639e-17,
+              "step": 2
+            }
+          ]
+        },
+        {
+          "divisions": 8,
+          "error": {
+            "displacement": 0.6152017369992004,
+            "reaction": 0.0020025925510114228,
+            "sectionForce": 0.0061445017335857435
+          },
+          "equations": 48,
+          "iterations": [
+            {
+              "factor": 0.5,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 1.4040002820356502e-16,
+              "residualBefore": 0.07654657599068972,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.7158200320830515e-14,
+              "iteration": 2,
+              "residual": 1.4726804791886829e-16,
+              "residualBefore": 1.3225816645282429e-16,
+              "step": 1
+            },
+            {
+              "factor": 1,
+              "increment": 0.5242473056952911,
+              "iteration": 1,
+              "residual": 2.7766991814629096e-16,
+              "residualBefore": 0.0765466010497992,
+              "step": 2
+            },
+            {
+              "factor": 1,
+              "increment": 2.641671726718289e-13,
+              "iteration": 2,
+              "residual": 2.364467774677391e-16,
+              "residualBefore": 2.7828663046736523e-16,
+              "step": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pure-axial-stable",
+      "displacement": {
+        "x": -0.00015,
+        "y": 0,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          200.00000000000003,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "end": [
+          -200.00000000000003,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 6,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.04330127018922193,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.04330127018922193,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3333333333333334,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.043301270189221946,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.24999999999999992,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.04330127018922192,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 5.770102035580119e-14,
+            "reaction": 2.842170942636504e-8,
+            "sectionForce": 2.8421681008722994e-14
+          },
+          "equations": 12,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 6.938893903907228e-18,
+              "residualBefore": 0.030618621784789718,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.266233259184197e-16,
+              "iteration": 2,
+              "residual": 7.757919228897728e-18,
+              "residualBefore": 6.938893903907228e-18,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.4999999999999999,
+              "iteration": 1,
+              "residual": 6.938893903907228e-18,
+              "residualBefore": 0.030618621784789714,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.1331166295920984e-16,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 6.938893903907228e-18,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.3333333333333333,
+              "iteration": 1,
+              "residual": 3.1031676915590914e-17,
+              "residualBefore": 0.030618621784789718,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.6747406430400022e-16,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 3.1031676915590914e-17,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25,
+              "iteration": 1,
+              "residual": 2.7755575615628914e-17,
+              "residualBefore": 0.030618621784789718,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 2.266233259184197e-16,
+              "iteration": 2,
+              "residual": 3.1031676915590914e-17,
+              "residualBefore": 2.7755575615628914e-17,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "over-matrix-limit-stable",
+      "displacement": {
+        "x": -0.00015,
+        "y": 0,
+        "z": 0
+      },
+      "endForces": {
+        "start": [
+          200.00000000000003,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "end": [
+          -200.00000000000003,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "runs": [
+        {
+          "divisions": 1,
+          "equations": 150,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.2165063509461097,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.2165063509461097,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33333333333333337,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.21650635094610973,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.24999999999999994,
+              "iteration": 1,
+              "residual": 0,
+              "residualBefore": 0.21650635094610957,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 0,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 0,
+              "step": 4
+            }
+          ]
+        },
+        {
+          "divisions": 2,
+          "error": {
+            "displacement": 5.770102035580119e-14,
+            "reaction": 2.842170942636504e-8,
+            "sectionForce": 2.8421681008722994e-14
+          },
+          "equations": 300,
+          "iterations": [
+            {
+              "factor": 0.25,
+              "increment": 1,
+              "iteration": 1,
+              "residual": 3.469446951953614e-17,
+              "residualBefore": 0.15309310892394856,
+              "step": 1
+            },
+            {
+              "factor": 0.25,
+              "increment": 2.2662332591841974e-16,
+              "iteration": 2,
+              "residual": 3.878959614448864e-17,
+              "residualBefore": 3.469446951953614e-17,
+              "step": 1
+            },
+            {
+              "factor": 0.5,
+              "increment": 0.5,
+              "iteration": 1,
+              "residual": 3.469446951953614e-17,
+              "residualBefore": 0.15309310892394856,
+              "step": 2
+            },
+            {
+              "factor": 0.5,
+              "increment": 1.1331166295920987e-16,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 3.469446951953614e-17,
+              "step": 2
+            },
+            {
+              "factor": 0.75,
+              "increment": 0.33333333333333337,
+              "iteration": 1,
+              "residual": 1.5515838457795457e-16,
+              "residualBefore": 0.15309310892394856,
+              "step": 3
+            },
+            {
+              "factor": 0.75,
+              "increment": 1.6747406430400027e-16,
+              "iteration": 2,
+              "residual": 0,
+              "residualBefore": 1.5515838457795457e-16,
+              "step": 3
+            },
+            {
+              "factor": 1,
+              "increment": 0.25,
+              "iteration": 1,
+              "residual": 1.3877787807814457e-16,
+              "residualBefore": 0.15309310892394856,
+              "step": 4
+            },
+            {
+              "factor": 1,
+              "increment": 2.2662332591841974e-16,
+              "iteration": 2,
+              "residual": 1.5515838457795457e-16,
+              "residualBefore": 1.3877787807814457e-16,
+              "step": 4
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tip-0",
+      "actual": 0.000270000000000002,
+      "expected": 0.0002699999999999999,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "moment-0",
+      "actual": 0.3000000000000023,
+      "expected": 0.30000000000000004,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "horizontal-equilibrium-0",
+      "actual": -0.10000000000000064,
+      "expected": -0.1,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "mesh-continuum-0",
+      "initialError": 2.220446049250313e-16,
+      "finalError": 7.771561172376096e-15,
+      "divisions": 2
+    },
+    {
+      "name": "tip-200",
+      "actual": 0.00034463788815724313,
+      "expected": 0.0003446379315427589,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "moment-200",
+      "actual": 0.3689275776315557,
+      "expected": 0.3689275863085518,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "horizontal-equilibrium-200",
+      "actual": -0.10000000000003961,
+      "expected": -0.1,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "mesh-continuum-200",
+      "initialError": 0.0004104101404606153,
+      "finalError": 1.258872335263561e-7,
+      "divisions": 8
+    },
+    {
+      "name": "tip-500",
+      "actual": 0.0005917076328835903,
+      "expected": 0.0005917084353191231,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "moment-500",
+      "actual": 0.5958538164416012,
+      "expected": 0.5958542176595616,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "horizontal-equilibrium-500",
+      "actual": -0.09999999999994102,
+      "expected": -0.1,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "mesh-continuum-500",
+      "initialError": 0.004589498489399713,
+      "finalError": 0.0000013561333335188053,
+      "divisions": 8
+    },
+    {
+      "name": "tip--500",
+      "actual": 0.00017569834216646718,
+      "expected": 0.00017569841269812167,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "moment--500",
+      "actual": 0.21215082891660741,
+      "expected": 0.2121507936509392,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "horizontal-equilibrium--500",
+      "actual": -0.09999999999994369,
+      "expected": -0.1,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "mesh-continuum--500",
+      "initialError": 0.0011845374038206291,
+      "finalError": 4.0143592316965737e-7,
+      "divisions": 8
+    },
+    {
+      "name": "load-step-independence",
+      "actual": 0.0005917076328840179,
+      "expected": 0.0005917076328835903,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "lateral-linearity-at-fixed-prestress",
+      "actual": 0.0011834152657671806,
+      "expected": 0.0011834152657671806,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "full-load-response-not-superposable",
+      "ratio": 0.6258442766743958
+    },
+    {
+      "name": "rotated-tip",
+      "actual": 0.0005917076328687923,
+      "expected": 0.0005917076328835903,
+      "relative": 1e-7,
+      "absolute": 1e-9
+    },
+    {
+      "name": "variable-axial-tip",
+      "actual": 0.00043289150901841284,
+      "expected": 0.00043289168756759967,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "variable-axial-moment",
+      "actual": 0.48635781432740227,
+      "expected": 0.48635790204737944,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "portal-tip-1",
+      "actual": 0.0003446378881539073,
+      "expected": 0.0003446379315427589,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "portal-tip-3",
+      "actual": 0.00034463788815390715,
+      "expected": 0.0003446379315427589,
+      "relative": 0.005,
+      "absolute": 1e-9
+    },
+    {
+      "name": "portal-horizontal-equilibrium",
+      "actual": -0.19999999999814477,
+      "expected": -0.2,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "combination-solved-effective-input",
+      "actual": 0.0011834152657671806,
+      "expected": 0.0011834152657671806,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "same-input-zero-prestress-comparison",
+      "actual": 0.0002700000000000003,
+      "expected": 0.000270000000000002,
+      "relative": 1e-8,
+      "absolute": 1e-9
+    },
+    {
+      "name": "self-weight-tip",
+      "actual": 0.0003453221397332492,
+      "expected": 0.0003453221840164684,
+      "relative": 0.005,
+      "absolute": 1e-9
+    }
+  ],
+  "failures": [
+    {
+      "name": "unexcited-overcritical-saved-column",
+      "rejected": true
+    },
+    {
+      "name": "over-matrix-limit-overcritical-saved-columns",
+      "rejected": true
+    },
+    {
+      "name": "iteration-limit",
+      "code": "second-order-not-converged"
+    },
+    {
+      "name": "over-critical",
+      "code": "second-order-unstable-tangent"
+    },
+    {
+      "name": "scope-limit",
+      "code": "second-order-scope-exceeded"
+    },
+    {
+      "name": "mesh-limit",
+      "code": "second-order-mesh-not-converged"
+    },
+    {
+      "name": "equation-limit",
+      "code": "second-order-budget-exhausted"
+    },
+    {
+      "name": "fabricated-zero-correction",
+      "rejected": true
+    },
+    {
+      "name": "forged-iteration",
+      "rejected": true
+    },
+    {
+      "name": "forged-linear-load",
+      "rejected": true
+    },
+    {
+      "name": "forged-geometric",
+      "rejected": true
+    },
+    {
+      "name": "forged-response",
+      "rejected": true
+    },
+    {
+      "name": "forged-mesh-error",
+      "rejected": true
+    }
+  ],
+  "passed": true
+}

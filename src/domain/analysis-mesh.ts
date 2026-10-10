@@ -32,7 +32,7 @@ export interface DiscretizationRecord {
 export function validateMeshPolicy(value: unknown): MeshPolicy {
   const p = value as MeshPolicy;
   if (!p || Object.keys(p).sort().join() !== Object.keys(DEFAULT_MESH_POLICY).sort().join()
-    || ![1, 2, 4, 8, 16].includes(p.maxDivisions) || !Number.isSafeInteger(p.maxEquations) || p.maxEquations < 1 || p.maxEquations > 12000
+    || ![1, 2, 4, 8, 16].includes(p.maxDivisions) || !Number.isSafeInteger(p.maxEquations) || p.maxEquations < 1 || p.maxEquations > 2147483647
     || ![p.relativeTolerance, p.displacementTolerance, p.forceTolerance].every((v) => Number.isFinite(v) && v > 0)
     || p.relativeTolerance > 1e-2 || p.displacementTolerance > 1e-6 || p.forceTolerance > 1e-3) throw new Error("内部细分精度或计算预算无效");
   return { ...p };

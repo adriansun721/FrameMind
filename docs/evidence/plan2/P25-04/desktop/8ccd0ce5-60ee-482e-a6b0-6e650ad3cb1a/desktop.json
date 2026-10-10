@@ -1,0 +1,13 @@
+{
+  "runId": "8ccd0ce5-60ee-482e-a6b0-6e650ad3cb1a",
+  "source": "analytic-prism",
+  "recordedAt": "2026-10-09T11:19:21.763Z",
+  "inputSha256": "2d7eff96a32a3d04b0a5bb2ba9aa3909685c5143e298fb03b4a27c33114b740d",
+  "previewSha256": "82d2ccfb62e32a8f476b76338b97e49306ea04eba817359e52fbb34dc77088f5",
+  "parser": "framemind-step-reader/2.1.0",
+  "geometryHash": "d81aac8eea62d3fc35339de2932ba4be9906c753cfd2cd01c5920ebc4ca29307",
+  "formalModelUnchanged": true,
+  "reopenedPosePreserved": true,
+  "editingInvalidatesDraft": true,
+  "geometryAcceptance": "analytic-fixture-passed"
+}

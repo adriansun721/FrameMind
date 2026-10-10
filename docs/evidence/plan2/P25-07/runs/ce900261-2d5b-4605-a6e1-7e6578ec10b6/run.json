@@ -1,0 +1,21 @@
+{
+  "task": "P25-07",
+  "runId": "ce900261-2d5b-4605-a6e1-7e6578ec10b6",
+  "recordedAt": "2026-10-10T04:53:43.435Z",
+  "mode": "local-real-git",
+  "status": "passed",
+  "inputSha256": "8d35e99f555cce57f793d82cf35cac6209979a7da0ee1051e6e34af812535b18",
+  "sourceHashes": {
+    "electron/project-history-store.ts": "d376aac463ce6f81e96038bbdffc7f496e5a0be3e8ecd09365081d0656450d26",
+    "electron/project-checkpoints.ts": "a9b3f2048e90c541227ec5b49c9a97f2289729366e248c0fedf83fd5eb13b29d",
+    "electron/contracts.ts": "8e7161cb190e74bf88757f0c1411b24c08d340cc0ceb01edf4dd7a95fac62cd1",
+    "scripts/run-p25-07-history.mjs": "33345d3c6af32d66743ccef022652ab713bbaecd27f52c7bb8de563c9cedc24a",
+    "dist-electron/project-history-store.js": "6a21c69b1c1253c3167230dd07ce4c5b45bf5a816ee7731df289a3fa60ee669e"
+  },
+  "artifacts": {
+    "validation.json": "6cf7319a63960016a11f60fc13e0fce7b335ce1f430d7fe80121530951f4b113",
+    "history.json": "89e5bb231c331e075c5d02433574d1da70c7a3a19cd99947ad4e3ea363e30a77",
+    "snapshot.json": "8a5d029f84b225bd91ee3d2cc6150fff3eefffaa4db831ec28b0077751b461c5"
+  },
+  "reverify": "npm run evidence:plan2:p2507"
+}

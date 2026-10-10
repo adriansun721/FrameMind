@@ -1,0 +1,112 @@
+{
+  "mode": "local-real-git-with-explicit-protocol-checker-fixture",
+  "numericalInspection": "not-run; P25-11 pending",
+  "sourceRepository": {
+    "before": {
+      "HEAD": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80",
+      "refs/heads/main": "979084a0b6ab3d8bf3a99fb1c7f8c02bb341c1ca327480a015dae828aceb5c63",
+      "index": "c6e762301609de17a54cd5063d9db53ffeba72d9b5675d5d89e17ea426159bc4"
+    },
+    "after": {
+      "HEAD": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80",
+      "refs/heads/main": "979084a0b6ab3d8bf3a99fb1c7f8c02bb341c1ca327480a015dae828aceb5c63",
+      "index": "c6e762301609de17a54cd5063d9db53ffeba72d9b5675d5d89e17ea426159bc4"
+    },
+    "unchanged": true
+  },
+  "isolatedMainBefore": "30c3967cc43b97b44bd020e9af289b3d16e82c45",
+  "submitted": {
+    "schemaVersion": 1,
+    "projectId": "project_6dcb619e-0ae5-4caf-b3ce-880099c7a6f3",
+    "historyId": "history_f8ec9a18-2359-4df1-b6c2-58b4b448785f",
+    "taskId": "task_8ccce8a1-508d-44a2-aeed-f598d00dde6c",
+    "candidateId": "candidate_85123b20-ce40-486f-ad57-25ce117b7933",
+    "sessionId": "local-evidence",
+    "parentCommit": "30c3967cc43b97b44bd020e9af289b3d16e82c45",
+    "parentRevision": 1,
+    "parentInputSha256": "8f11aac5627352b5bc012553565dfe654951ae620bc7955cd7ad0cf815d19832",
+    "parentContentSha256": "56aae1dd778c1e1420a09bfcbe41a2b64e6a637697101062024d7d411a4a87d8",
+    "branch": "candidate/task_8ccce8a1-508d-44a2-aeed-f598d00dde6c",
+    "commit": "7183d6584e5af569f0a5dde74160e627a7a287a0",
+    "createdAt": "2026-10-10T06:18:45.228Z",
+    "state": "submitted",
+    "inputSha256": "f144c64a2da6039a72a3d98d402d25e58ec6cab650bae860f879c9b51ef351cd",
+    "resultSha256": "fcba5ed037dcbf2693706f104620979a50048d0e80331a26e37df4be114602d3",
+    "evidenceIndex": [
+      "result.json"
+    ]
+  },
+  "fault": "项目 Git checkpoint 失败：fatal: update_ref failed for ref 'refs/heads/main': cannot lock ref 'refs/heads/main': Unable to create 'C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-p2508-evidence-5JIfZz\\project.framemind.git/refs/heads/main.lock': File exists.\n\nAnother git process seems to be running in this repository, e.g.\nan editor opened by 'git commit'. Please make sure all processes\nare terminated then try again. If it still fails, a git process\nmay have crashed in this repository earlier:\nremove the file manually to continue.\n",
+  "faultKeptMainAndFile": true,
+  "tasks": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_6dcb619e-0ae5-4caf-b3ce-880099c7a6f3",
+      "historyId": "history_f8ec9a18-2359-4df1-b6c2-58b4b448785f",
+      "taskId": "task_8ccce8a1-508d-44a2-aeed-f598d00dde6c",
+      "candidateId": "candidate_85123b20-ce40-486f-ad57-25ce117b7933",
+      "sessionId": "local-evidence",
+      "parentCommit": "30c3967cc43b97b44bd020e9af289b3d16e82c45",
+      "parentRevision": 1,
+      "parentInputSha256": "8f11aac5627352b5bc012553565dfe654951ae620bc7955cd7ad0cf815d19832",
+      "parentContentSha256": "56aae1dd778c1e1420a09bfcbe41a2b64e6a637697101062024d7d411a4a87d8",
+      "branch": "candidate/task_8ccce8a1-508d-44a2-aeed-f598d00dde6c",
+      "commit": "7183d6584e5af569f0a5dde74160e627a7a287a0",
+      "createdAt": "2026-10-10T06:18:45.228Z",
+      "state": "merged",
+      "inputSha256": "f144c64a2da6039a72a3d98d402d25e58ec6cab650bae860f879c9b51ef351cd",
+      "resultSha256": "fcba5ed037dcbf2693706f104620979a50048d0e80331a26e37df4be114602d3",
+      "evidenceIndex": [
+        "result.json"
+      ],
+      "inspectionSha256": "d16e4b6c085bc557872bbbefa38242e4a375a486e245e922275fdf81b2accc37",
+      "mergedCommit": "ad070d8ba4aeb1fd9b65dc6aa755734e499ed71d"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_6dcb619e-0ae5-4caf-b3ce-880099c7a6f3",
+      "historyId": "history_f8ec9a18-2359-4df1-b6c2-58b4b448785f",
+      "taskId": "task_1e201422-e31d-4058-97a0-2f69af15349d",
+      "candidateId": "candidate_d6ae6fe0-1792-4459-848b-ba29538f28f9",
+      "sessionId": "restored-session",
+      "parentCommit": "81d7717764878dc48656cf77a53db0baa6b14c08",
+      "parentRevision": 3,
+      "parentInputSha256": "8f11aac5627352b5bc012553565dfe654951ae620bc7955cd7ad0cf815d19832",
+      "parentContentSha256": "39e48ac68d3f372f510438566970bfc2f1a3be86634d94c5f1ef10574c36b37e",
+      "branch": "candidate/task_1e201422-e31d-4058-97a0-2f69af15349d",
+      "commit": "6f8ac2821066739ac65196d14ea36727087f0b42",
+      "createdAt": "2026-10-10T06:18:55.219Z",
+      "state": "cancelled",
+      "diagnostic": "用户已取消；迟到输出只能保留为证据"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_6dcb619e-0ae5-4caf-b3ce-880099c7a6f3",
+      "historyId": "history_f8ec9a18-2359-4df1-b6c2-58b4b448785f",
+      "taskId": "task_b71010ca-767b-4c10-9a91-fc9a96298f45",
+      "candidateId": "candidate_e4125436-22ca-401a-904e-e836b766705f",
+      "retryOf": "task_1e201422-e31d-4058-97a0-2f69af15349d",
+      "sessionId": "restored-session",
+      "parentCommit": "8953078cab2767fec73a39a05aacd7f3fb8217f9",
+      "parentRevision": 3,
+      "parentInputSha256": "8f11aac5627352b5bc012553565dfe654951ae620bc7955cd7ad0cf815d19832",
+      "parentContentSha256": "39e48ac68d3f372f510438566970bfc2f1a3be86634d94c5f1ef10574c36b37e",
+      "branch": "candidate/task_b71010ca-767b-4c10-9a91-fc9a96298f45",
+      "commit": "330bb307c4b9f45e638fe3040d4382a265652278",
+      "createdAt": "2026-10-10T06:18:57.472Z",
+      "state": "working"
+    }
+  ],
+  "commandRejection": "未知候选工具或任意命令被拒绝；只允许 fork/submit/list/read/cancel",
+  "differences": [
+    {
+      "collection": "nodes",
+      "id": "node_1",
+      "field": "position.x",
+      "parent": 0,
+      "candidate": 2,
+      "current": 0,
+      "conflict": false
+    }
+  ]
+}

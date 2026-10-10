@@ -21,9 +21,11 @@ static Json secondOrderLevel(const Json& request, const Json& level, std::string
     for (const auto& e:assembly.elements) count+=static_cast<int>(e.released.size());
     if (!count || count>number(settings["maxEquations"])) throw Failure("second-order-budget-exhausted","No second-order coordinates within equation budget",nullptr,"secondOrder");
     std::vector<int> reduced(assembly.size,-1); for (int i=0;i<nodal;++i) reduced[assembly.free[i]]=i;
-    Matrix k=Matrix::Zero(count,count), g=k; Vector f=Vector::Zero(count);
+    std::vector<Triplet> stiffnessEntries, geometricEntries; stiffnessEntries.reserve(assembly.elements.size()*144); geometricEntries.reserve(assembly.elements.size()*144);
+    Vector f=Vector::Zero(count);
     Vector linearU(assembly.size); for (int i=0;i<assembly.size;++i) linearU[i]=number(linear["nodes"][i/6][i%6<3 ? "displacement" : "rotation"][std::string(1,"xyz"[i%3])]);
-    std::vector<Matrix> maps; std::vector<Vector> equivalents; std::vector<std::pair<double,double>> axial;
+    compactNativeResponseTransport(linear);
+    std::vector<FreeElementRows> maps; maps.reserve(assembly.elements.size()); std::vector<Vector> equivalents; std::vector<std::pair<double,double>> axial;
     int extra=nodal; Json coordinates=Json::array();
     for (int index:assembly.free) coordinates.push_back({{"kind","node"},{"id",packet["input"]["nodes"][index/6]["id"]},{"dof",dofOrder[index%6]}});
     // Start with actual nodal loads, then add original element equivalents through
@@ -34,35 +36,40 @@ static Json secondOrderLevel(const Json& request, const Json& level, std::string
     }
     for (int i=0;i<nodal;++i) f[i]=nodalLoads[assembly.free[i]];
     for (size_t i=0;i<assembly.elements.size();++i) {
-        const auto& e=assembly.elements[i]; Matrix b=Matrix::Zero(12,count);
-        for (int r=0;r<12;++r) for (int c=0;c<12;++c) if (reduced[e.indices[c]]>=0) b(r,reduced[e.indices[c]])=e.transform(r,c);
-        for (int r:e.released) { b.row(r).setZero(); b(r,extra++)=1; coordinates.push_back({{"kind","release"},{"id",e.member["id"]},{"dof",std::string(r<6 ? "start." : "end.")+(r%6==4 ? "my" : "mz")}}); }
+        const auto& e=assembly.elements[i]; const FreeElementRows b=freeElementRows(e,reduced,extra);
+        for (int r:e.released) coordinates.push_back({{"kind","release"},{"id",e.member["id"]},{"dof",std::string(r<6 ? "start." : "end.")+(r%6==4 ? "my" : "mz")}});
         Vector v(12); for (int r=0;r<12;++r) v[r]=linearU[e.indices[r]]; v=e.transform*v;
         if (!e.released.empty()) for (int r=0;r<12;++r) v[r]=number(linear["members"][i]["nativeReleaseRecovery"]["localDisplacement"][r]);
         const Vector eq=secondOrderEquivalent(e,linear["members"][i],v);
         const auto& ends=linear["members"][i]["localEndForces"];
         const double ns=-number(ends["start"][0]), ne=number(ends["end"][0]);
-        k.noalias()+=b.transpose()*e.original*b; g.noalias()+=b.transpose()*initialStressGeometric(e,ns,ne)*b; f.noalias()+=b.transpose()*eq;
-        maps.push_back(std::move(b)); equivalents.push_back(eq); axial.push_back({ns,ne});
+        const Matrix geometric=initialStressGeometric(e,ns,ne); addMappedMatrix(e.original,b,stiffnessEntries); addMappedMatrix(geometric,b,geometricEntries);
+        for (int r=0;r<12;++r) for (const auto& [coordinate,coefficient]:b.rows[r]) f[coordinate]+=coefficient*eq[r];
+        maps.push_back(b); equivalents.push_back(eq); axial.push_back({ns,ne});
     }
-    if (!k.allFinite() || !g.allFinite() || !f.allFinite()) throw Failure("second-order-nonfinite","Nonfinite second-order assembly",nullptr,"secondOrder");
-    Vector scale(count); for (int i=0;i<count;++i) { if (!(k(i,i)>0)) throw Failure("singular-system","Missing elastic stiffness",nullptr,"restraints"); scale[i]=1/std::sqrt(k(i,i)); }
-    const Matrix sk=scale.asDiagonal()*k*scale.asDiagonal(), sg=scale.asDiagonal()*g*scale.asDiagonal();
-    const Vector sf=scale.asDiagonal()*f; Vector z=Vector::Zero(count); Json iterations=Json::array();
+    require(extra==count,"Second-order release-coordinate mapping is inconsistent");
+    Sparse k=sparseFromTriplets(count,stiffnessEntries), g=sparseFromTriplets(count,geometricEntries);
+    for (int i=0;i<k.outerSize();++i) for (Sparse::InnerIterator it(k,i);it;++it) if (!std::isfinite(it.value())) throw Failure("second-order-nonfinite","Nonfinite second-order assembly",nullptr,"secondOrder");
+    for (int i=0;i<g.outerSize();++i) for (Sparse::InnerIterator it(g,i);it;++it) if (!std::isfinite(it.value())) throw Failure("second-order-nonfinite","Nonfinite second-order assembly",nullptr,"secondOrder");
+    if (!f.allFinite()) throw Failure("second-order-nonfinite","Nonfinite second-order assembly",nullptr,"secondOrder");
+    Vector scale(count); for (int i=0;i<count;++i) { if (!(k.coeff(i,i)>0)) throw Failure("singular-system","Missing elastic stiffness",nullptr,"restraints"); scale[i]=1/std::sqrt(k.coeff(i,i)); }
+    const Sparse sk=scale.asDiagonal()*k*scale.asDiagonal(), sg=scale.asDiagonal()*g*scale.asDiagonal();
+    const Vector sf=scale.asDiagonal()*f;
+    Vector z=Vector::Zero(count); Json iterations=Json::array();
     stage="solve"; if (phase) phase(stage);
     const int steps=static_cast<int>(number(settings["loadSteps"])), maximum=static_cast<int>(number(settings["maxIterations"]));
     for (int step=1;step<=steps;++step) {
-        const double alpha=double(step)/steps; const Matrix tangent=sk+alpha*sg; const Vector rhs=alpha*sf;
-        Eigen::LLT<Matrix> factor(tangent);
-        if (!tangent.allFinite() || factor.info()!=Eigen::Success || factor.matrixL().toDenseMatrix().diagonal().array().square().minCoeff()<=1e-12)
+        const double alpha=double(step)/steps; const Sparse tangent=sk+alpha*sg; const Vector rhs=alpha*sf;
+        Eigen::SimplicialLDLT<Sparse> factor; factor.compute(tangent);
+        if (factor.info()!=Eigen::Success || !factor.vectorD().allFinite() || factor.vectorD().minCoeff()<=1e-12)
             throw Failure("second-order-unstable-tangent","Second-order tangent is not positive definite; reduce loads and check restraints/releases",nullptr,"secondOrder");
         bool converged=false;
         for (int iteration=1;iteration<=maximum;++iteration) {
             const double denominator=std::max(1.0,rhs.norm()); const Vector before=rhs-tangent*z;
-            const Vector correction=factor.solve(before); z+=correction;
+            const Vector correction=factor.solve(before); if (factor.info()!=Eigen::Success) throw Failure("second-order-unstable-tangent","Second-order sparse tangent solve failed",nullptr,"secondOrder"); z+=correction;
             const double residual=(rhs-tangent*z).norm()/denominator, increment=correction.norm()/std::max(1e-12,z.norm());
             if (!z.allFinite() || !correction.allFinite() || !std::isfinite(residual) || !std::isfinite(increment)) throw Failure("second-order-nonfinite","Nonfinite second-order correction",nullptr,"secondOrder");
-            iterations.push_back({{"step",step},{"factor",alpha},{"iteration",iteration},{"residualBefore",before.norm()/denominator},{"residual",residual},{"increment",increment},{"displacement",jsonVector(scale.asDiagonal()*z)},{"correction",jsonVector(scale.asDiagonal()*correction)}});
+            iterations.push_back({{"step",step},{"factor",alpha},{"iteration",iteration},{"residualBefore",before.norm()/denominator},{"residual",residual},{"increment",increment},{"displacement",jsonVectorF64(scale.asDiagonal()*z)},{"correction",jsonVectorF64(scale.asDiagonal()*correction)}});
             if (residual<=number(settings["residualTolerance"]) && increment<=number(settings["incrementTolerance"])) { converged=true; break; }
         }
         if (!converged) { Failure failure("second-order-not-converged","Second-order iteration limit reached; no converged result was published",nullptr,"maxIterations"); failure.diagnostic["iterations"]=iterations; throw failure; }
@@ -71,7 +78,7 @@ static Json secondOrderLevel(const Json& request, const Json& level, std::string
     for (int i=0;i<nodal;++i) globalU[assembly.free[i]]=q[i];
     Json members=Json::array(), localDisplacements=Json::array();
     for (size_t i=0;i<assembly.elements.size();++i) {
-        const auto& e=assembly.elements[i]; const Vector v=maps[i]*q;
+        const auto& e=assembly.elements[i]; const Vector v=mappedLocalVector(maps[i],q);
         const auto [ns,ne]=axial[i]; const Matrix geo=initialStressGeometric(e,ns,ne);
         const Vector ends=(e.original+geo)*v-equivalents[i]; const Vector globalEnds=e.transform.transpose()*ends;
         for (int r=0;r<12;++r) reaction[e.indices[r]]+=globalEnds[r];
@@ -95,14 +102,18 @@ static Json secondOrderLevel(const Json& request, const Json& level, std::string
                 iy+=x*.5*n*slope.y(); iz+=x*.5*n*slope.z(); }
             Vector forces=-ends.head(6); forces[0]-=intensity.x()*x; forces[1]-=intensity.y()*x; forces[2]-=intensity.z()*x;
             forces[4]+=-ends[2]*x-intensity.z()*x*x/2-iz; forces[5]+=ends[1]*x+intensity.y()*x*x/2+iy;
-            samples.push_back({{"position",x},{"forces",jsonVector(forces)},{"localDisplacement",json3(local)},{"globalDisplacement",json3(e.x*local.x()+e.y*local.y()+e.z*local.z())}});
+            samples.push_back(responseSample(x,forces,local,e.x*local.x()+e.y*local.y()+e.z*local.z(),count>144));
         }
         members.push_back({{"memberId",e.member["id"]},{"length",e.length},{"localAxes",{{"x",json3(e.x)},{"y",json3(e.y)},{"z",json3(e.z)}}},{"localEndForces",{{"start",jsonVector(ends.head(6))},{"end",jsonVector(ends.tail(6))}}},{"nativeResponses",samples}});
+        if (count>144) members.back()["responseEncoding"]="tuples-v1";
     }
     if (!reaction.allFinite()) throw Failure("second-order-nonfinite","Nonfinite second-order reactions",nullptr,"secondOrder");
+    compactNativeResponseTransport(members);
     Json nodes=Json::array(); for (size_t i=0;i<packet["input"]["nodes"].size();++i) nodes.push_back({{"nodeId",packet["input"]["nodes"][i]["id"]},{"displacement",json3(globalU.segment<3>(i*6))},{"rotation",json3(globalU.segment<3>(i*6+3))},{"reaction",json3(reaction.segment<3>(i*6))},{"reactionMoment",json3(reaction.segment<3>(i*6+3))}});
-    return {{"coordinates",coordinates},{"releaseNullRotations",assembly.releaseNullRotations},{"vector",jsonVector(q)},{"force",jsonVector(f)},{"matrixLimit",144},{"stiffness",count<=144 ? jsonMatrix(k) : Json(nullptr)},{"geometric",count<=144 ? jsonMatrix(g) : Json(nullptr)},
-        {"localDisplacements",localDisplacements},{"iterations",iterations},{"linearRun",linear},{"nodes",nodes},{"members",members}};
+    Json result={{"coordinates",coordinates},{"releaseNullRotations",assembly.releaseNullRotations},{"vector",jsonVector(q)},{"force",jsonVector(f)},{"matrixLimit",144},{"stiffness",count<=144 ? jsonMatrix(Matrix(k)) : Json(nullptr)},{"geometric",count<=144 ? jsonMatrix(Matrix(g)) : Json(nullptr)}};
+    result["localDisplacements"]=std::move(localDisplacements); result["iterations"]=std::move(iterations);
+    result["linearRun"]=std::move(linear); result["nodes"]=std::move(nodes); result["members"]=std::move(members);
+    return result;
 }
 
 static Json calculateSecondOrder(const Json& request, Json& stages, std::string& stage) {
@@ -114,7 +125,7 @@ static Json calculateSecondOrder(const Json& request, Json& stages, std::string&
     analysisCaseSource(identity,input.contains("combination") ? input["combination"]["definition"]["id"] : input["loadCase"]["id"]);
     require(s.is_object() && s.size()==7,"Invalid second-order settings");
     const double steps=number(s.at("loadSteps")),iterations=number(s.at("maxIterations")),budget=number(s.at("maxEquations")),div=number(s.at("maxDivisions")),tol=number(s.at("meshTolerance"));
-    require(steps>=1 && steps<=100 && std::floor(steps)==steps && iterations>=1 && iterations<=100 && std::floor(iterations)==iterations && budget>=1 && budget<=1200 && std::floor(budget)==budget && (div==1 || div==2 || div==4 || div==8 || div==16) && tol>0 && tol<=.01,"Invalid second-order controls");
+    require(steps>=1 && steps<=100 && std::floor(steps)==steps && iterations>=1 && iterations<=100 && std::floor(iterations)==iterations && budget>=1 && budget<=2147483647 && std::floor(budget)==budget && (div==1 || div==2 || div==4 || div==8 || div==16) && tol>0 && tol<=.01,"Invalid second-order controls");
     for (const auto& key:{"residualTolerance","incrementTolerance"}) require(number(s.at(key))>0 && number(s.at(key))<=1e-6,"Invalid second-order tolerance");
     const auto& plan=input.at("meshPlan"); const Json policy={{"maxDivisions",div},{"maxEquations",budget},{"relativeTolerance",tol},{"displacementTolerance",1e-9},{"forceTolerance",1e-6}};
     require(meshNumbersMatch(plan.at("policy"),policy) && meshNumbersMatch(plan.at("frames"),meshFrames(input)),"Second-order mesh policy mismatch");
@@ -134,17 +145,20 @@ static Json calculateSecondOrder(const Json& request, Json& stages, std::string&
         Json calculation; try { calculation=secondOrderLevel(request,level,stage,runs.empty() ? std::function<void(const std::string&)>(phase) : std::function<void(const std::string&)>()); }
         catch (Failure& failure) { remapMeshFailure(failure,level); throw; }
         mapped=meshMappedResult(calculation,input,level); selected=level;
-        Json run={{"divisions",level["divisions"]},{"calculation",calculation}};
+        Json run={{"divisions",level["divisions"]}}; run["calculation"]=std::move(calculation);
         if (!previous.is_null()) { run["error"]=meshErrors(previous,mapped,policy); converged=true; for (auto e=run["error"].begin();e!=run["error"].end();++e) converged=converged && number(e.value())<=1; }
-        runs.push_back(run); previous=mapped; if (converged) break;
+        runs.push_back(std::move(run)); previous=std::move(mapped); if (converged) break;
     }
     if (runs.empty()) throw Failure("second-order-budget-exhausted","Equation budget prevents the initial second-order mesh",nullptr,"maxEquations");
     if (!converged) { Failure failure("second-order-mesh-not-converged","Second-order response did not converge within mesh/equation budget; increase budget",nullptr,"maxDivisions");
         Json history=Json::array(); for (const auto& run:runs) { Json summary={{"divisions",run["divisions"]},{"iterations",run["calculation"]["iterations"]}}; if (run.contains("error")) summary["error"]=run["error"]; history.push_back(summary); }
         failure.diagnostic["convergence"]=history; throw failure; }
     phase("recovery");
+    mapped=std::move(previous);
     Json service={{"version",request["version"]},{"requestId",request["requestId"]},{"analysisId",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},
         {"origin",request["origin"]},{"sourceId",request["sourceId"]},{"dependencies",request["dependencies"]},{"solver",secondOrderSolver},{"status","complete"},{"stages",stages}};
-    return {{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input},{"nodes",mapped["nodes"]},{"members",mapped["members"]},{"service",service},
-        {"secondOrder",{{"method","initial-stress-small-displacement"},{"equation","(K+alpha*G[Nlinear])u=alpha*F"},{"status","converged"},{"selectedDivisions",selected["divisions"]},{"runs",runs}}}};
+    Json result={{"id",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},{"createdAt",now()},{"status","complete"},{"input",input},{"service",service},
+        {"secondOrder",{{"method","initial-stress-small-displacement"},{"equation","(K+alpha*G[Nlinear])u=alpha*F"},{"status","converged"},{"selectedDivisions",selected["divisions"]}}}};
+    result["nodes"]=std::move(mapped["nodes"]); result["members"]=std::move(mapped["members"]); result["secondOrder"]["runs"]=std::move(runs);
+    return result;
 }

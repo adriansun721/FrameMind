@@ -291,16 +291,18 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     Vector rhs(count); for (int i=0;i<count;++i) rhs[i]=force[free[i]];
     phase("solve"); Vector displacement=Vector::Zero(size);
     if (count) {
-        // Natural order keeps failed pivots directly mapped to engineering DOFs.
-        Eigen::SimplicialLDLT<Sparse,Eigen::Lower,Eigen::NaturalOrdering<int>> factorization;
+        // Fill-reducing order is essential when internal mesh nodes follow the
+        // engineering nodes. Map failed pivots back through the permutation.
+        Eigen::SimplicialLDLT<Sparse> factorization;
         factorization.compute(reduced);
+        if (factorization.info()!=Eigen::Success) throw Failure("singular-system","Sparse stiffness factorization failed",nullptr,"restraints");
         const Vector pivots=factorization.vectorD(); double matrixScale=0;
         for (int i=0;i<reduced.nonZeros();++i) matrixScale=std::max(matrixScale,std::abs(reduced.valuePtr()[i]));
         const double threshold=matrixScale*1e-12;
         for (int i=0;i<count;++i) {
             const double magnitude=pivots[i];
             if (!std::isfinite(magnitude) || magnitude<=threshold) {
-                const int index=free[i]; Failure failure("singular-system","Reduced stiffness is not positive definite above the registered pivot threshold",{{"kind","node"},{"id",nodes[index/6]["id"]}},"restraints");
+                const int index=free[factorization.permutationPinv().indices()[i]]; Failure failure("singular-system","Reduced stiffness is not positive definite above the registered pivot threshold",{{"kind","node"},{"id",nodes[index/6]["id"]}},"restraints");
                 failure.diagnostic["dof"]=dofOrder[index%6]; failure.diagnostic["evidence"]={{"pivotMagnitude",std::isfinite(magnitude) ? std::abs(magnitude) : 0},{"threshold",threshold},{"matrixScale",matrixScale},{"globalDofIndex",index}}; throw failure;
             }
         }
@@ -314,6 +316,8 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
     }
     phase("recovery"); const Vector reaction=global*displacement-force;
     if (!reaction.allFinite()) throw Failure("native-computation-error","Nonfinite reactions");
+    const bool compactRecovery=size>72;
+    Json stiffnessTable=Json::array(); std::map<std::string,int> stiffnessIndices;
     Json nodeResults=Json::array(), dofs=Json::array(), memberResults=Json::array(), contributions=Json::array();
     for (size_t i=0;i<nodes.size();++i) {
         for (int d=0;d<6;++d) dofs.push_back({{"nodeId",nodes[i]["id"]},{"dof",dofOrder[d]},{"globalIndex",i*6+d},{"restrained",static_cast<bool>(restrained[i*6+d])}});
@@ -343,10 +347,11 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
             Vector actions=-ends.head(6); actions[0]-=q.x()*x; actions[1]-=q.y()*x; actions[2]-=q.z()*x; actions[4]-=ends[2]*x+q.z()*x*x/2; actions[5]+=ends[1]*x+q.y()*x*x/2;
             const Vec3 globalSample=e.x*sample.x()+e.y*sample.y()+e.z*sample.z();
             if (!actions.allFinite() || !sample.allFinite() || !globalSample.allFinite()) throw Failure("native-computation-error","Nonfinite station recovery");
-            responses.push_back({{"position",x},{"forces",jsonVector(actions)},{"localDisplacement",json3(sample)},{"globalDisplacement",json3(globalSample)}});
+            responses.push_back(responseSample(x,actions,sample,globalSample,compactRecovery));
         }
         Json memberResult={{"memberId",e.member["id"]},{"length",e.length},{"localAxes",{{"x",json3(e.x)},{"y",json3(e.y)},{"z",json3(e.z)}}},{"localEndForces",{{"start",jsonVector(ends.head(6))},{"end",jsonVector(ends.tail(6))}}}};
         memberResult["nativeResponses"]=std::move(responses);
+        if (compactRecovery) memberResult["responseEncoding"]="tuples-v1";
         memberResults.push_back(std::move(memberResult));
         if (!e.released.empty()) memberResults.back()["nativeReleaseRecovery"]={
             {"originalLocalStiffness",jsonMatrix(e.original)},{"localStiffness",jsonMatrix(e.local)},
@@ -354,12 +359,24 @@ static Json calculateStatic(const Json& request, Json& stages, std::string& stag
             {"localDisplacement",jsonVector(localU)},{"originalEquivalentLocalForces",jsonVector(originalEquivalent[i])},
             {"equivalentLocalForces",jsonVector(equivalentLocal[i])},{"equivalentGlobalForces",jsonVector(equivalentGlobal[i])},
             {"globalStiffness",jsonMatrix(e.global)}};
-        Json elementDofs=Json::array(); for (int index:e.indices) elementDofs.push_back(dofs[index]);
-        contributions.push_back({{"memberId",e.member["id"]},{"dofs",elementDofs},{"globalDofIndices",e.indices},{"globalStiffness",jsonMatrix(e.global)},{"equivalentGlobalForces",jsonVector(equivalentGlobal[i])}});
+        Json contribution={{"memberId",e.member["id"]},{"globalDofIndices",e.indices},{"equivalentGlobalForces",jsonVector(equivalentGlobal[i])}};
+        if (compactRecovery) {
+            Json matrix=jsonMatrix(e.global); const std::string key=matrix.dump();
+            auto found=stiffnessIndices.find(key);
+            if (found==stiffnessIndices.end()) {
+                const int index=static_cast<int>(stiffnessTable.size()); stiffnessIndices.emplace(key,index);
+                stiffnessTable.push_back(std::move(matrix)); contribution["stiffnessIndex"]=index;
+            } else contribution["stiffnessIndex"]=found->second;
+        } else {
+            Json elementDofs=Json::array(); for (int index:e.indices) elementDofs.push_back(dofs[index]);
+            contribution["dofs"]=std::move(elementDofs); contribution["globalStiffness"]=jsonMatrix(e.global);
+        }
+        contributions.push_back(std::move(contribution));
     }
     Json process={{"solver",staticSolver},{"dofOrder",dofOrder},{"loadVector",jsonVector(force)},{"freeDofs",free},{"constrainedDofs",constrained},
         {"matrixLimit",72},{"assembledStiffness",size<=72 ? jsonMatrix(Matrix(global)) : Json(nullptr)},{"reducedStiffness",count<=72 ? jsonMatrix(Matrix(reduced)) : Json(nullptr)}};
     process["dofs"]=std::move(dofs); process["members"]=std::move(contributions);
+    if (compactRecovery) { process["encoding"]="matrix-table-v1"; process["stiffnessTable"]=std::move(stiffnessTable); }
     if (!releaseGaugeDofs.empty()) { process["releaseGaugeDofs"]=releaseGaugeDofs; process["releaseNullRotations"]=releaseNullRotations; }
     Json service={{"version",request["version"]},{"requestId",request["requestId"]},{"analysisId",request["analysisId"]},{"projectId",input["projectId"]},{"projectRevision",input["projectRevision"]},
         {"origin",origin},{"sourceId",source},{"dependencies",dependencies},{"solver",staticSolver},{"status","complete"},{"stages",stages}};

@@ -14,7 +14,7 @@ export function validateSecondOrderSettings(value: unknown): SecondOrderSettings
   if (!s || Object.keys(s).sort().join() !== Object.keys(DEFAULT_SECOND_ORDER_SETTINGS).sort().join()
     || !Number.isSafeInteger(s.loadSteps) || s.loadSteps < 1 || s.loadSteps > 100
     || !Number.isSafeInteger(s.maxIterations) || s.maxIterations < 1 || s.maxIterations > 100
-    || !Number.isSafeInteger(s.maxEquations) || s.maxEquations < 1 || s.maxEquations > 1200
+    || !Number.isSafeInteger(s.maxEquations) || s.maxEquations < 1 || s.maxEquations > 2147483647
     || ![1, 2, 4, 8, 16].includes(s.maxDivisions)
     || [s.residualTolerance, s.incrementTolerance].some((x) => !Number.isFinite(x) || x <= 0 || x > 1e-6)
     || !Number.isFinite(s.meshTolerance) || s.meshTolerance <= 0 || s.meshTolerance > .01) throw new Error("二阶加载、迭代、容差或预算设置无效");

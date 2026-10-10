@@ -1,0 +1,15 @@
+{
+  "fault": "Git ref lock",
+  "formalUnchanged": true,
+  "failedHistory": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_f344624c-4983-449e-aa78-5e4d867d5b2c",
+      "revision": 1,
+      "kind": "step-before",
+      "recordedAt": "2026-10-10T02:14:07.177Z",
+      "contentSha256": "600e96ea68082bfed4fdf3cdde18dbbb8c6a3ccc29fb9ad337f5ee7e9865ae86",
+      "commit": "f29a3b11aba25893f3d601d2469ed5aa92f50c98"
+    }
+  ]
+}

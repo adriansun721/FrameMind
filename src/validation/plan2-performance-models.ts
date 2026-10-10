@@ -38,10 +38,10 @@ export function createPlan2PerformanceModel(spec: typeof PLAN2_PERFORMANCE_MODEL
     }
   }
   p = updateSelfWeight(p, { enabled: true, loadCaseId: "LC2", gravity: { x: 0, y: 0, z: -9.81 } });
-  p = addAnalysisCase(p, { name: "Target static", method: "static", loadSourceId: "LC1", settings: { solver: "native-static", mesh: { ...DEFAULT_MESH_POLICY, maxDivisions: 2 } } });
-  p = addAnalysisCase(p, { name: "Target second-order", method: "second-order", loadSourceId: "LC1", settings: { solver: "native-second-order", secondOrder: { ...DEFAULT_SECOND_ORDER_SETTINGS, maxDivisions: 2, maxEquations: 1200 } } });
-  p = addAnalysisCase(p, { name: "Target buckling", method: "buckling", loadSourceId: "buckling", settings: { solver: "native-buckling", buckling: { ...structuredClone(DEFAULT_BUCKLING_SETTINGS), fixed: [{ loadCaseId: "LC2", factor: 1 }], reference: [{ loadCaseId: "LC1", factor: 1 }], maxDivisions: 2, maxEquations: 1200 } } });
-  p = addAnalysisCase(p, { name: "Target modal", method: "modal", loadSourceId: "structure", settings: { solver: "native-modal", modal: { ...DEFAULT_MODAL_SETTINGS, maxDivisions: 2, maxEquations: 1200 } } });
+  p = addAnalysisCase(p, { name: "Target static", method: "static", loadSourceId: "LC1", settings: { solver: "native-static", mesh: { ...DEFAULT_MESH_POLICY, maxDivisions: 2, maxEquations: 100000 } } });
+  p = addAnalysisCase(p, { name: "Target second-order", method: "second-order", loadSourceId: "LC1", settings: { solver: "native-second-order", secondOrder: { ...DEFAULT_SECOND_ORDER_SETTINGS, maxDivisions: 4, maxEquations: 100000 } } });
+  p = addAnalysisCase(p, { name: "Target buckling", method: "buckling", loadSourceId: "buckling", settings: { solver: "native-buckling", buckling: { ...structuredClone(DEFAULT_BUCKLING_SETTINGS), fixed: [{ loadCaseId: "LC2", factor: 1 }], reference: [{ loadCaseId: "LC1", factor: 1 }], maxDivisions: 4, maxEquations: 100000 } } });
+  p = addAnalysisCase(p, { name: "Target modal", method: "modal", loadSourceId: "structure", settings: { solver: "native-modal", modal: { ...DEFAULT_MODAL_SETTINGS, maxDivisions: 4, maxEquations: 100000 } } });
   if (p.nodes.length !== spec.nodes || p.members.length !== spec.members) throw new Error("Registered performance topology differs from protocol");
   return { ...selectAnalysisCase(p, "AC1"), updatedAt: "2026-10-07T00:00:00.000Z" };
 }

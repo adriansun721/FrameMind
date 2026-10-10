@@ -2,10 +2,10 @@
   "input": {
     "format": "framemind-project",
     "formatVersion": 1,
-    "id": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+    "id": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
     "name": "T25 悬臂引用",
-    "createdAt": "2026-10-03T06:15:05.614Z",
-    "updatedAt": "2026-10-03T06:15:05.622Z",
+    "createdAt": "2026-10-03T19:36:33.475Z",
+    "updatedAt": "2026-10-03T19:36:33.481Z",
     "revision": 10,
     "units": {
       "length": "m",
@@ -129,13 +129,13 @@
     "nextLoadCaseNumber": 3,
     "analysisResults": [
       {
-        "id": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
-        "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+        "id": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+        "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
         "projectRevision": 9,
-        "createdAt": "2026-10-03T06:15:05.622Z",
+        "createdAt": "2026-10-03T19:36:33.481Z",
         "status": "complete",
         "input": {
-          "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+          "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
           "projectRevision": 9,
           "dofOrder": [
             "ux",
@@ -1071,13 +1071,13 @@
     "nextUniformLoadNumber": 1,
     "activeLoadCombinationId": "CB1",
     "latestAnalysis": {
-      "id": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
-      "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+      "id": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+      "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
       "projectRevision": 9,
-      "createdAt": "2026-10-03T06:15:05.622Z",
+      "createdAt": "2026-10-03T19:36:33.481Z",
       "status": "complete",
       "input": {
-        "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+        "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
         "projectRevision": 9,
         "dofOrder": [
           "ux",
@@ -1994,18 +1994,30 @@
       },
       "output": {
         "status": "completed",
-        "message": "已读取所选分析的真实结果",
         "context": {
-          "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+          "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
           "projectName": "T25 悬臂引用",
           "modelRevision": 10,
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
-          "selection": []
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+          "analysis": {
+            "id": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+            "inputRevision": 9,
+            "createdAt": "2026-10-03T19:36:33.481Z",
+            "status": "complete",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination"
+            }
+          },
+          "selection": [],
+          "goal": "解释所选分析的关键位移和弯矩，引用实际结果并区分事实和推断"
         },
         "data": {
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
           "inputRevision": 9,
-          "createdAt": "2026-10-03T06:15:05.622Z",
+          "createdAt": "2026-10-03T19:36:33.481Z",
           "current": true,
           "source": {
             "id": "CB1",
@@ -2157,6 +2169,32 @@
             "limit": 50,
             "scope": "冻结输入的有效条件；组合荷载已按用户系数加权。仅展示各类前limit项，不是完整大模型荷载清单。"
           }
+        },
+        "receipt": {
+          "call": {
+            "id": "t25-summary",
+            "name": "read_results",
+            "initiated": true,
+            "completed": true,
+            "status": "completed"
+          },
+          "object": {
+            "kind": "project",
+            "id": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
+            "name": "T25 悬臂引用"
+          },
+          "objects": [],
+          "input": {
+            "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
+            "modelRevision": 10,
+            "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+            "analysisInputRevision": 9
+          },
+          "state": {
+            "project": "current",
+            "model": "applied",
+            "analysis": "current"
+          }
         }
       }
     },
@@ -2169,19 +2207,31 @@
       },
       "output": {
         "status": "completed",
-        "message": "已核对实际结果项，可用引用标记定位",
         "context": {
-          "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+          "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
           "projectName": "T25 悬臂引用",
           "modelRevision": 10,
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
-          "selection": []
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+          "analysis": {
+            "id": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+            "inputRevision": 9,
+            "createdAt": "2026-10-03T19:36:33.481Z",
+            "status": "complete",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination"
+            }
+          },
+          "selection": [],
+          "goal": "解释所选分析的关键位移和弯矩，引用实际结果并区分事实和推断"
         },
         "reference": {
           "token": "[[result:t25-node]]",
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
           "inputRevision": 9,
-          "createdAt": "2026-10-03T06:15:05.622Z",
+          "createdAt": "2026-10-03T19:36:33.481Z",
           "current": true,
           "source": {
             "id": "CB1",
@@ -2216,9 +2266,9 @@
         },
         "data": {
           "token": "[[result:t25-node]]",
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
           "inputRevision": 9,
-          "createdAt": "2026-10-03T06:15:05.622Z",
+          "createdAt": "2026-10-03T19:36:33.481Z",
           "current": true,
           "source": {
             "id": "CB1",
@@ -2263,6 +2313,37 @@
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           }
+        },
+        "receipt": {
+          "call": {
+            "id": "t25-node",
+            "name": "read_result",
+            "initiated": true,
+            "completed": true,
+            "status": "completed"
+          },
+          "object": {
+            "kind": "project",
+            "id": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
+            "name": "T25 悬臂引用"
+          },
+          "objects": [
+            {
+              "kind": "node",
+              "id": "node_0002"
+            }
+          ],
+          "input": {
+            "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
+            "modelRevision": 10,
+            "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+            "analysisInputRevision": 9
+          },
+          "state": {
+            "project": "current",
+            "model": "applied",
+            "analysis": "current"
+          }
         }
       }
     },
@@ -2276,19 +2357,31 @@
       },
       "output": {
         "status": "completed",
-        "message": "已核对实际结果项，可用引用标记定位",
         "context": {
-          "projectId": "project_7abd79f0-3f91-49e1-8acf-a31083b2e839",
+          "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
           "projectName": "T25 悬臂引用",
           "modelRevision": 10,
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
-          "selection": []
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+          "analysis": {
+            "id": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+            "inputRevision": 9,
+            "createdAt": "2026-10-03T19:36:33.481Z",
+            "status": "complete",
+            "current": true,
+            "source": {
+              "id": "CB1",
+              "name": "用户试算",
+              "kind": "combination"
+            }
+          },
+          "selection": [],
+          "goal": "解释所选分析的关键位移和弯矩，引用实际结果并区分事实和推断"
         },
         "reference": {
           "token": "[[result:t25-member]]",
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
           "inputRevision": 9,
-          "createdAt": "2026-10-03T06:15:05.622Z",
+          "createdAt": "2026-10-03T19:36:33.481Z",
           "current": true,
           "source": {
             "id": "CB1",
@@ -2329,9 +2422,9 @@
         },
         "data": {
           "token": "[[result:t25-member]]",
-          "analysisId": "analysis_6438d00d-7829-4136-a57b-03944187c5aa",
+          "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
           "inputRevision": 9,
-          "createdAt": "2026-10-03T06:15:05.622Z",
+          "createdAt": "2026-10-03T19:36:33.481Z",
           "current": true,
           "source": {
             "id": "CB1",
@@ -2381,6 +2474,37 @@
             "algorithm": "partial-pivot-gaussian",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
+          }
+        },
+        "receipt": {
+          "call": {
+            "id": "t25-member",
+            "name": "read_result",
+            "initiated": true,
+            "completed": true,
+            "status": "completed"
+          },
+          "object": {
+            "kind": "project",
+            "id": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
+            "name": "T25 悬臂引用"
+          },
+          "objects": [
+            {
+              "kind": "member",
+              "id": "member_0001"
+            }
+          ],
+          "input": {
+            "projectId": "project_ab508f34-c46b-4cf2-9195-5bf59f2bf399",
+            "modelRevision": 10,
+            "analysisId": "analysis_8bf08916-3ab8-42bd-b575-5a5e2e9676f9",
+            "analysisInputRevision": 9
+          },
+          "state": {
+            "project": "current",
+            "model": "applied",
+            "analysis": "current"
           }
         }
       }

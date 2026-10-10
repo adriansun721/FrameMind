@@ -1,0 +1,25 @@
+{
+  "runId": "241ad699-08a6-47f0-bc1d-3eb8f9cba720",
+  "source": "specified",
+  "recordedAt": "2026-10-09T11:36:05.084Z",
+  "inputSha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+  "previewSha256": "18d1b10168d306d848b20bd0db8bc5dd8ee5cf917d15029380f7ae89ef1d820b",
+  "parser": "framemind-step-reader/2.1.0",
+  "geometryHash": "e541bdca727cea453e2b8cfd6fb665276e885024ba38b472ec0b5856839b7f3f",
+  "sourceHashes": {
+    "scripts/step-intermediate.mjs": "139cca7f8839ff791784a0d219b6d0b3f218815e810938cc12f7e1e35fbbd499",
+    "scripts/step-centerlines.mjs": "85f8a407b4323cc884ca9a5d5eb48d29de01702902e9a2637abe936095cf4515",
+    "src/workspace/cad-topology.ts": "4a1ff262743d5dab97f98e0c617e80f131f5d362f2ebfd279c8ace3c75443379",
+    "src/components/CadTopologyPreview.tsx": "561c860db74e950cb7374d11634f54ee56360c33be0754dbe350454028699b7a",
+    "e2e/p25-04-step.spec.ts": "ef5de0c7c4769284b1962adea338f826589b5e6f958491fad5fb9c0764c63c2d"
+  },
+  "buildHashes": {
+    "dist/index.html": "c633b536753250d3f23edd618dae91daa7d1344e794eab4228d8612636a44fa6",
+    "dist-electron/main.js": "411df5cfaeaf41203f43d5874f421f17ee1c9962ec783dbd8c438cdba60d72b5"
+  },
+  "formalModelUnchanged": true,
+  "reopenedPosePreserved": true,
+  "editingInvalidatesDraft": true,
+  "geometryAcceptance": "blocked",
+  "taskAcceptance": "pending-independent-cad-and-specified-solid-recognition"
+}

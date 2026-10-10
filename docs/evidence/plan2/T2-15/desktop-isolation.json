@@ -22,8 +22,8 @@
       "retainedResults": true
     },
     {
-      "cancellationMs": 3.5,
-      "processTerminationMs": 562.1601,
+      "cancellationMs": 8.300000011920929,
+      "processTerminationMs": 852.0038999999961,
       "cameraChanged": true
     },
     {
@@ -33,30 +33,30 @@
   ],
   "compilerFreePath": true,
   "editAndProjectSwitchIsolated": true,
-  "maxCallbackGapMs": 28.5,
+  "maxCallbackGapMs": 71.09999999403954,
   "memory": [
     {
       "type": "Browser",
-      "workingSetBytes": 135733248
+      "workingSetBytes": 133922816
     },
     {
       "type": "GPU",
-      "workingSetBytes": 390864896
+      "workingSetBytes": 358883328
     },
     {
       "type": "Utility",
-      "workingSetBytes": 54648832
+      "workingSetBytes": 54501376
     },
     {
       "type": "Tab",
-      "workingSetBytes": 163872768
+      "workingSetBytes": 170647552
     }
   ],
   "result": {
-    "id": "analysis_f97fc6c7-6246-4ad5-98d0-d579963a8547",
+    "id": "analysis_3410c15e-ed8d-4e3e-b556-ecec9f8fce2e",
     "projectId": "project_t215_another",
     "projectRevision": 8,
-    "createdAt": "2026-10-05T09:46:23Z",
+    "createdAt": "2026-10-06T04:32:37Z",
     "status": "complete",
     "input": {
       "assumptions": {
@@ -1256,7 +1256,7 @@
       "matrixLimit": 72
     },
     "service": {
-      "analysisId": "analysis_f97fc6c7-6246-4ad5-98d0-d579963a8547",
+      "analysisId": "analysis_3410c15e-ed8d-4e3e-b556-ecec9f8fce2e",
       "dependencies": [
         {
           "factor": 1,
@@ -1268,7 +1268,7 @@
       },
       "projectId": "project_t215_another",
       "projectRevision": 8,
-      "requestId": "request_651610d0-594d-40cd-9274-e39e726e389a",
+      "requestId": "request_e8bcb13f-8e73-40b8-b336-365ccde74692",
       "solver": {
         "algorithm": "sparse-ldlt",
         "constraints": "free-dof-elimination",
@@ -1279,19 +1279,19 @@
       "stages": [
         {
           "stage": "model-check",
-          "startedAt": "2026-10-05T09:46:23Z"
+          "startedAt": "2026-10-06T04:32:37Z"
         },
         {
           "stage": "assembly",
-          "startedAt": "2026-10-05T09:46:23Z"
+          "startedAt": "2026-10-06T04:32:37Z"
         },
         {
           "stage": "solve",
-          "startedAt": "2026-10-05T09:46:23Z"
+          "startedAt": "2026-10-06T04:32:37Z"
         },
         {
           "stage": "recovery",
-          "startedAt": "2026-10-05T09:46:23Z"
+          "startedAt": "2026-10-06T04:32:37Z"
         }
       ],
       "status": "complete",

@@ -1,0 +1,24 @@
+{
+  "runId": "74a484ce-53e9-445e-af46-d7a74be3411b",
+  "source": "specified",
+  "recordedAt": "2026-10-10T02:03:41.854Z",
+  "status": "passed",
+  "mode": "local-blocked",
+  "onlineAcceptance": false,
+  "inputSha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+  "artifacts": {
+    "pending.framemind": "ce47ab2b042b989f2551b9695db87e40d791fce184a929d6799ebddcd6c4a3e3",
+    "blocked-draft.png": "6915d361e864d6aad49fe0952b8b12ca3fc6bc2fa85e70969f3dd8adf88a468a"
+  },
+  "sourceHashes": {
+    "src/workspace/cad-import.ts": "a66a56b33cea357daf29f12d3fa34a5892ecde68e368e1c7636ee6c470a2c107",
+    "src/App.tsx": "8ab1ad2be06ea9c94405230b8c07f3d5378bda7436505964f1d0d98432d70a32",
+    "src/components/CadTopologyPreview.tsx": "a74b96c2ed7b7be9ae45f41713bb9cb5a238ebb50f891b5404fa6e64d9e804c3",
+    "electron/project-checkpoints.ts": "0fb0d4efc1e87070fd8755f1a6d072bd871717e2741bbb151e3934f15ab3d017",
+    "dist/index.html": "6d37a6bb4889d9078b53781925752cb65a50f6270e290c60803d6bd4a544aeec",
+    "dist-electron/main.js": "95f70ccefc8a147f71e300e8e866516f20b6f232cfc305ebf2086d8c66e75556",
+    "e2e/p25-06-import.spec.ts": "6402c0bbb97a50ad445b5e04ffc61a5d60906d600c5872bd88b387fa7c75f00b"
+  },
+  "specifiedAcceptance": "pending-upstream-geometry-and-independent-reference",
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-06-import.spec.ts"
+}

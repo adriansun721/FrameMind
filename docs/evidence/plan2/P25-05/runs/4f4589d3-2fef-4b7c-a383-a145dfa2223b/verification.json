@@ -1,0 +1,3842 @@
+{
+  "schemaVersion": 1,
+  "task": "P25-04",
+  "previewOnly": true,
+  "recordedAt": "2026-10-09T15:04:15.032Z",
+  "requestId": "cad_d9f88d91-206a-4829-8f24-c3810d720ffc",
+  "inputSha256": "2d7eff96a32a3d04b0a5bb2ba9aa3909685c5143e298fb03b4a27c33114b740d",
+  "geometryHash": "50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037",
+  "intermediateState": {
+    "schemaVersion": 2,
+    "normalization": {
+      "coordinateSystem": "global-right-handed",
+      "lengthUnit": "m",
+      "deterministic": true
+    },
+    "units": {
+      "sourceLength": "millimetre",
+      "length": "m",
+      "lengthToM": 0.001,
+      "areaToM2": 0.000001,
+      "inertiaToM4": 1.0000000000000002e-12,
+      "torsionToM4": 1.0000000000000002e-12,
+      "explicit": true
+    },
+    "unitConversions": {
+      "length": {
+        "sourceToCanonical": 0.001,
+        "canonical": "m"
+      },
+      "area": {
+        "sourceToCanonical": 0.000001,
+        "canonical": "m²"
+      },
+      "secondMoment": {
+        "sourceToCanonical": 1.0000000000000002e-12,
+        "canonical": "m⁴"
+      },
+      "torsionConstant": {
+        "sourceToCanonical": 1.0000000000000002e-12,
+        "canonical": "m⁴"
+      }
+    },
+    "entities": [
+      {
+        "id": 10,
+        "type": "CARTESIAN_POINT",
+        "line": 7
+      },
+      {
+        "id": 11,
+        "type": "VERTEX_POINT",
+        "line": 8
+      },
+      {
+        "id": 12,
+        "type": "CARTESIAN_POINT",
+        "line": 9
+      },
+      {
+        "id": 13,
+        "type": "VERTEX_POINT",
+        "line": 10
+      },
+      {
+        "id": 14,
+        "type": "CARTESIAN_POINT",
+        "line": 11
+      },
+      {
+        "id": 15,
+        "type": "VERTEX_POINT",
+        "line": 12
+      },
+      {
+        "id": 16,
+        "type": "CARTESIAN_POINT",
+        "line": 13
+      },
+      {
+        "id": 17,
+        "type": "VERTEX_POINT",
+        "line": 14
+      },
+      {
+        "id": 18,
+        "type": "CARTESIAN_POINT",
+        "line": 15
+      },
+      {
+        "id": 19,
+        "type": "VERTEX_POINT",
+        "line": 16
+      },
+      {
+        "id": 20,
+        "type": "CARTESIAN_POINT",
+        "line": 17
+      },
+      {
+        "id": 21,
+        "type": "VERTEX_POINT",
+        "line": 18
+      },
+      {
+        "id": 22,
+        "type": "CARTESIAN_POINT",
+        "line": 19
+      },
+      {
+        "id": 23,
+        "type": "VERTEX_POINT",
+        "line": 20
+      },
+      {
+        "id": 24,
+        "type": "CARTESIAN_POINT",
+        "line": 21
+      },
+      {
+        "id": 25,
+        "type": "VERTEX_POINT",
+        "line": 22
+      },
+      {
+        "id": 26,
+        "type": "CARTESIAN_POINT",
+        "line": 23
+      },
+      {
+        "id": 27,
+        "type": "DIRECTION",
+        "line": 24
+      },
+      {
+        "id": 28,
+        "type": "VECTOR",
+        "line": 25
+      },
+      {
+        "id": 29,
+        "type": "LINE",
+        "line": 26
+      },
+      {
+        "id": 30,
+        "type": "EDGE_CURVE",
+        "line": 27
+      },
+      {
+        "id": 31,
+        "type": "ORIENTED_EDGE",
+        "line": 28
+      },
+      {
+        "id": 32,
+        "type": "CARTESIAN_POINT",
+        "line": 29
+      },
+      {
+        "id": 33,
+        "type": "DIRECTION",
+        "line": 30
+      },
+      {
+        "id": 34,
+        "type": "VECTOR",
+        "line": 31
+      },
+      {
+        "id": 35,
+        "type": "LINE",
+        "line": 32
+      },
+      {
+        "id": 36,
+        "type": "EDGE_CURVE",
+        "line": 33
+      },
+      {
+        "id": 37,
+        "type": "ORIENTED_EDGE",
+        "line": 34
+      },
+      {
+        "id": 38,
+        "type": "CARTESIAN_POINT",
+        "line": 35
+      },
+      {
+        "id": 39,
+        "type": "DIRECTION",
+        "line": 36
+      },
+      {
+        "id": 40,
+        "type": "VECTOR",
+        "line": 37
+      },
+      {
+        "id": 41,
+        "type": "LINE",
+        "line": 38
+      },
+      {
+        "id": 42,
+        "type": "EDGE_CURVE",
+        "line": 39
+      },
+      {
+        "id": 43,
+        "type": "ORIENTED_EDGE",
+        "line": 40
+      },
+      {
+        "id": 44,
+        "type": "CARTESIAN_POINT",
+        "line": 41
+      },
+      {
+        "id": 45,
+        "type": "DIRECTION",
+        "line": 42
+      },
+      {
+        "id": 46,
+        "type": "VECTOR",
+        "line": 43
+      },
+      {
+        "id": 47,
+        "type": "LINE",
+        "line": 44
+      },
+      {
+        "id": 48,
+        "type": "EDGE_CURVE",
+        "line": 45
+      },
+      {
+        "id": 49,
+        "type": "ORIENTED_EDGE",
+        "line": 46
+      },
+      {
+        "id": 50,
+        "type": "EDGE_LOOP",
+        "line": 47
+      },
+      {
+        "id": 51,
+        "type": "FACE_OUTER_BOUND",
+        "line": 48
+      },
+      {
+        "id": 52,
+        "type": "CARTESIAN_POINT",
+        "line": 49
+      },
+      {
+        "id": 53,
+        "type": "DIRECTION",
+        "line": 50
+      },
+      {
+        "id": 54,
+        "type": "DIRECTION",
+        "line": 51
+      },
+      {
+        "id": 55,
+        "type": "AXIS2_PLACEMENT_3D",
+        "line": 52
+      },
+      {
+        "id": 56,
+        "type": "PLANE",
+        "line": 53
+      },
+      {
+        "id": 57,
+        "type": "ADVANCED_FACE",
+        "line": 54
+      },
+      {
+        "id": 58,
+        "type": "CARTESIAN_POINT",
+        "line": 55
+      },
+      {
+        "id": 59,
+        "type": "DIRECTION",
+        "line": 56
+      },
+      {
+        "id": 60,
+        "type": "VECTOR",
+        "line": 57
+      },
+      {
+        "id": 61,
+        "type": "LINE",
+        "line": 58
+      },
+      {
+        "id": 62,
+        "type": "EDGE_CURVE",
+        "line": 59
+      },
+      {
+        "id": 63,
+        "type": "ORIENTED_EDGE",
+        "line": 60
+      },
+      {
+        "id": 64,
+        "type": "CARTESIAN_POINT",
+        "line": 61
+      },
+      {
+        "id": 65,
+        "type": "DIRECTION",
+        "line": 62
+      },
+      {
+        "id": 66,
+        "type": "VECTOR",
+        "line": 63
+      },
+      {
+        "id": 67,
+        "type": "LINE",
+        "line": 64
+      },
+      {
+        "id": 68,
+        "type": "EDGE_CURVE",
+        "line": 65
+      },
+      {
+        "id": 69,
+        "type": "ORIENTED_EDGE",
+        "line": 66
+      },
+      {
+        "id": 70,
+        "type": "CARTESIAN_POINT",
+        "line": 67
+      },
+      {
+        "id": 71,
+        "type": "DIRECTION",
+        "line": 68
+      },
+      {
+        "id": 72,
+        "type": "VECTOR",
+        "line": 69
+      },
+      {
+        "id": 73,
+        "type": "LINE",
+        "line": 70
+      },
+      {
+        "id": 74,
+        "type": "EDGE_CURVE",
+        "line": 71
+      },
+      {
+        "id": 75,
+        "type": "ORIENTED_EDGE",
+        "line": 72
+      },
+      {
+        "id": 76,
+        "type": "CARTESIAN_POINT",
+        "line": 73
+      },
+      {
+        "id": 77,
+        "type": "DIRECTION",
+        "line": 74
+      },
+      {
+        "id": 78,
+        "type": "VECTOR",
+        "line": 75
+      },
+      {
+        "id": 79,
+        "type": "LINE",
+        "line": 76
+      },
+      {
+        "id": 80,
+        "type": "EDGE_CURVE",
+        "line": 77
+      },
+      {
+        "id": 81,
+        "type": "ORIENTED_EDGE",
+        "line": 78
+      },
+      {
+        "id": 82,
+        "type": "EDGE_LOOP",
+        "line": 79
+      },
+      {
+        "id": 83,
+        "type": "FACE_OUTER_BOUND",
+        "line": 80
+      },
+      {
+        "id": 84,
+        "type": "CARTESIAN_POINT",
+        "line": 81
+      },
+      {
+        "id": 85,
+        "type": "DIRECTION",
+        "line": 82
+      },
+      {
+        "id": 86,
+        "type": "DIRECTION",
+        "line": 83
+      },
+      {
+        "id": 87,
+        "type": "AXIS2_PLACEMENT_3D",
+        "line": 84
+      },
+      {
+        "id": 88,
+        "type": "PLANE",
+        "line": 85
+      },
+      {
+        "id": 89,
+        "type": "ADVANCED_FACE",
+        "line": 86
+      },
+      {
+        "id": 90,
+        "type": "CARTESIAN_POINT",
+        "line": 87
+      },
+      {
+        "id": 91,
+        "type": "DIRECTION",
+        "line": 88
+      },
+      {
+        "id": 92,
+        "type": "VECTOR",
+        "line": 89
+      },
+      {
+        "id": 93,
+        "type": "LINE",
+        "line": 90
+      },
+      {
+        "id": 94,
+        "type": "EDGE_CURVE",
+        "line": 91
+      },
+      {
+        "id": 95,
+        "type": "ORIENTED_EDGE",
+        "line": 92
+      },
+      {
+        "id": 96,
+        "type": "ORIENTED_EDGE",
+        "line": 93
+      },
+      {
+        "id": 97,
+        "type": "CARTESIAN_POINT",
+        "line": 94
+      },
+      {
+        "id": 98,
+        "type": "DIRECTION",
+        "line": 95
+      },
+      {
+        "id": 99,
+        "type": "VECTOR",
+        "line": 96
+      },
+      {
+        "id": 100,
+        "type": "LINE",
+        "line": 97
+      },
+      {
+        "id": 101,
+        "type": "EDGE_CURVE",
+        "line": 98
+      },
+      {
+        "id": 102,
+        "type": "ORIENTED_EDGE",
+        "line": 99
+      },
+      {
+        "id": 103,
+        "type": "ORIENTED_EDGE",
+        "line": 100
+      },
+      {
+        "id": 104,
+        "type": "EDGE_LOOP",
+        "line": 101
+      },
+      {
+        "id": 105,
+        "type": "FACE_OUTER_BOUND",
+        "line": 102
+      },
+      {
+        "id": 106,
+        "type": "CARTESIAN_POINT",
+        "line": 103
+      },
+      {
+        "id": 107,
+        "type": "DIRECTION",
+        "line": 104
+      },
+      {
+        "id": 108,
+        "type": "DIRECTION",
+        "line": 105
+      },
+      {
+        "id": 109,
+        "type": "AXIS2_PLACEMENT_3D",
+        "line": 106
+      },
+      {
+        "id": 110,
+        "type": "PLANE",
+        "line": 107
+      },
+      {
+        "id": 111,
+        "type": "ADVANCED_FACE",
+        "line": 108
+      },
+      {
+        "id": 112,
+        "type": "ORIENTED_EDGE",
+        "line": 109
+      },
+      {
+        "id": 113,
+        "type": "CARTESIAN_POINT",
+        "line": 110
+      },
+      {
+        "id": 114,
+        "type": "DIRECTION",
+        "line": 111
+      },
+      {
+        "id": 115,
+        "type": "VECTOR",
+        "line": 112
+      },
+      {
+        "id": 116,
+        "type": "LINE",
+        "line": 113
+      },
+      {
+        "id": 117,
+        "type": "EDGE_CURVE",
+        "line": 114
+      },
+      {
+        "id": 118,
+        "type": "ORIENTED_EDGE",
+        "line": 115
+      },
+      {
+        "id": 119,
+        "type": "ORIENTED_EDGE",
+        "line": 116
+      },
+      {
+        "id": 120,
+        "type": "CARTESIAN_POINT",
+        "line": 117
+      },
+      {
+        "id": 121,
+        "type": "DIRECTION",
+        "line": 118
+      },
+      {
+        "id": 122,
+        "type": "VECTOR",
+        "line": 119
+      },
+      {
+        "id": 123,
+        "type": "LINE",
+        "line": 120
+      },
+      {
+        "id": 124,
+        "type": "EDGE_CURVE",
+        "line": 121
+      },
+      {
+        "id": 125,
+        "type": "ORIENTED_EDGE",
+        "line": 122
+      },
+      {
+        "id": 126,
+        "type": "EDGE_LOOP",
+        "line": 123
+      },
+      {
+        "id": 127,
+        "type": "FACE_OUTER_BOUND",
+        "line": 124
+      },
+      {
+        "id": 128,
+        "type": "CARTESIAN_POINT",
+        "line": 125
+      },
+      {
+        "id": 129,
+        "type": "DIRECTION",
+        "line": 126
+      },
+      {
+        "id": 130,
+        "type": "DIRECTION",
+        "line": 127
+      },
+      {
+        "id": 131,
+        "type": "AXIS2_PLACEMENT_3D",
+        "line": 128
+      },
+      {
+        "id": 132,
+        "type": "PLANE",
+        "line": 129
+      },
+      {
+        "id": 133,
+        "type": "ADVANCED_FACE",
+        "line": 130
+      },
+      {
+        "id": 134,
+        "type": "ORIENTED_EDGE",
+        "line": 131
+      },
+      {
+        "id": 135,
+        "type": "ORIENTED_EDGE",
+        "line": 132
+      },
+      {
+        "id": 136,
+        "type": "ORIENTED_EDGE",
+        "line": 133
+      },
+      {
+        "id": 137,
+        "type": "ORIENTED_EDGE",
+        "line": 134
+      },
+      {
+        "id": 138,
+        "type": "EDGE_LOOP",
+        "line": 135
+      },
+      {
+        "id": 139,
+        "type": "FACE_OUTER_BOUND",
+        "line": 136
+      },
+      {
+        "id": 140,
+        "type": "CARTESIAN_POINT",
+        "line": 137
+      },
+      {
+        "id": 141,
+        "type": "DIRECTION",
+        "line": 138
+      },
+      {
+        "id": 142,
+        "type": "DIRECTION",
+        "line": 139
+      },
+      {
+        "id": 143,
+        "type": "AXIS2_PLACEMENT_3D",
+        "line": 140
+      },
+      {
+        "id": 144,
+        "type": "PLANE",
+        "line": 141
+      },
+      {
+        "id": 145,
+        "type": "ADVANCED_FACE",
+        "line": 142
+      },
+      {
+        "id": 146,
+        "type": "ORIENTED_EDGE",
+        "line": 143
+      },
+      {
+        "id": 147,
+        "type": "ORIENTED_EDGE",
+        "line": 144
+      },
+      {
+        "id": 148,
+        "type": "ORIENTED_EDGE",
+        "line": 145
+      },
+      {
+        "id": 149,
+        "type": "ORIENTED_EDGE",
+        "line": 146
+      },
+      {
+        "id": 150,
+        "type": "EDGE_LOOP",
+        "line": 147
+      },
+      {
+        "id": 151,
+        "type": "FACE_OUTER_BOUND",
+        "line": 148
+      },
+      {
+        "id": 152,
+        "type": "CARTESIAN_POINT",
+        "line": 149
+      },
+      {
+        "id": 153,
+        "type": "DIRECTION",
+        "line": 150
+      },
+      {
+        "id": 154,
+        "type": "DIRECTION",
+        "line": 151
+      },
+      {
+        "id": 155,
+        "type": "AXIS2_PLACEMENT_3D",
+        "line": 152
+      },
+      {
+        "id": 156,
+        "type": "PLANE",
+        "line": 153
+      },
+      {
+        "id": 157,
+        "type": "ADVANCED_FACE",
+        "line": 154
+      },
+      {
+        "id": 158,
+        "type": "CLOSED_SHELL",
+        "line": 155
+      },
+      {
+        "id": 159,
+        "type": "MANIFOLD_SOLID_BREP",
+        "line": 156
+      },
+      {
+        "id": 160,
+        "type": "LENGTH_UNIT",
+        "line": 157,
+        "types": [
+          "LENGTH_UNIT",
+          "NAMED_UNIT",
+          "SI_UNIT"
+        ]
+      }
+    ],
+    "products": [],
+    "assemblyTree": [],
+    "instances": [],
+    "brepSummaries": [
+      {
+        "id": 159,
+        "shellId": 158,
+        "faceCount": 6,
+        "surfaceKinds": [
+          "PLANE"
+        ],
+        "sourceEntityIds": [
+          159,
+          158,
+          57,
+          89,
+          111,
+          133,
+          145,
+          157
+        ]
+      }
+    ],
+    "geometryCandidates": [
+      {
+        "id": "line-29",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 29,
+        "origin": [
+          -0.05,
+          -0.05,
+          0
+        ],
+        "direction": [
+          0,
+          1,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          29,
+          26,
+          28
+        ]
+      },
+      {
+        "id": "line-35",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 35,
+        "origin": [
+          -0.05,
+          0.05,
+          0
+        ],
+        "direction": [
+          1,
+          0,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          35,
+          32,
+          34
+        ]
+      },
+      {
+        "id": "line-41",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 41,
+        "origin": [
+          0.05,
+          0.05,
+          0
+        ],
+        "direction": [
+          0,
+          -1,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          41,
+          38,
+          40
+        ]
+      },
+      {
+        "id": "line-47",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 47,
+        "origin": [
+          0.05,
+          -0.05,
+          0
+        ],
+        "direction": [
+          -1,
+          0,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          47,
+          44,
+          46
+        ]
+      },
+      {
+        "id": "line-61",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 61,
+        "origin": [
+          -0.05,
+          -0.05,
+          1
+        ],
+        "direction": [
+          1,
+          0,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          61,
+          58,
+          60
+        ]
+      },
+      {
+        "id": "line-67",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 67,
+        "origin": [
+          0.05,
+          -0.05,
+          1
+        ],
+        "direction": [
+          0,
+          1,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          67,
+          64,
+          66
+        ]
+      },
+      {
+        "id": "line-73",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 73,
+        "origin": [
+          0.05,
+          0.05,
+          1
+        ],
+        "direction": [
+          -1,
+          0,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          73,
+          70,
+          72
+        ]
+      },
+      {
+        "id": "line-79",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 79,
+        "origin": [
+          -0.05,
+          0.05,
+          1
+        ],
+        "direction": [
+          0,
+          -1,
+          0
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          79,
+          76,
+          78
+        ]
+      },
+      {
+        "id": "line-93",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 93,
+        "origin": [
+          -0.05,
+          -0.05,
+          0
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          93,
+          90,
+          92
+        ]
+      },
+      {
+        "id": "line-100",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 100,
+        "origin": [
+          -0.05,
+          0.05,
+          1
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          100,
+          97,
+          99
+        ]
+      },
+      {
+        "id": "line-116",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 116,
+        "origin": [
+          0.05,
+          0.05,
+          0
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          116,
+          113,
+          115
+        ]
+      },
+      {
+        "id": "line-123",
+        "kind": "line",
+        "classification": "unowned-geometric-line",
+        "sourceEntityId": 123,
+        "origin": [
+          0.05,
+          -0.05,
+          1
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "lengthM": 0.001,
+        "solidIds": [
+          159
+        ],
+        "productIds": [],
+        "sourceEntityIds": [
+          123,
+          120,
+          122
+        ]
+      }
+    ],
+    "instanceGeometryCandidates": [],
+    "candidateNodes": [
+      {
+        "id": "cad-node-1",
+        "position": [
+          -0.05,
+          -0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          26,
+          28,
+          29
+        ]
+      },
+      {
+        "id": "cad-node-2",
+        "position": [
+          -0.05,
+          -0.049,
+          0
+        ],
+        "sourceEntityIds": [
+          26,
+          28,
+          29
+        ]
+      },
+      {
+        "id": "cad-node-3",
+        "position": [
+          -0.05,
+          0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          32,
+          34,
+          35
+        ]
+      },
+      {
+        "id": "cad-node-4",
+        "position": [
+          -0.049,
+          0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          32,
+          34,
+          35
+        ]
+      },
+      {
+        "id": "cad-node-5",
+        "position": [
+          0.05,
+          0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          38,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "cad-node-6",
+        "position": [
+          0.05,
+          0.049,
+          0
+        ],
+        "sourceEntityIds": [
+          38,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "cad-node-7",
+        "position": [
+          0.05,
+          -0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          44,
+          46,
+          47
+        ]
+      },
+      {
+        "id": "cad-node-8",
+        "position": [
+          0.049,
+          -0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          44,
+          46,
+          47
+        ]
+      },
+      {
+        "id": "cad-node-9",
+        "position": [
+          -0.05,
+          -0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          58,
+          60,
+          61
+        ]
+      },
+      {
+        "id": "cad-node-10",
+        "position": [
+          -0.049,
+          -0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          58,
+          60,
+          61
+        ]
+      },
+      {
+        "id": "cad-node-11",
+        "position": [
+          0.05,
+          -0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          64,
+          66,
+          67
+        ]
+      },
+      {
+        "id": "cad-node-12",
+        "position": [
+          0.05,
+          -0.049,
+          1
+        ],
+        "sourceEntityIds": [
+          64,
+          66,
+          67
+        ]
+      },
+      {
+        "id": "cad-node-13",
+        "position": [
+          0.05,
+          0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          70,
+          72,
+          73
+        ]
+      },
+      {
+        "id": "cad-node-14",
+        "position": [
+          0.049,
+          0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          70,
+          72,
+          73
+        ]
+      },
+      {
+        "id": "cad-node-15",
+        "position": [
+          -0.05,
+          0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          76,
+          78,
+          79
+        ]
+      },
+      {
+        "id": "cad-node-16",
+        "position": [
+          -0.05,
+          0.049,
+          1
+        ],
+        "sourceEntityIds": [
+          76,
+          78,
+          79
+        ]
+      },
+      {
+        "id": "cad-node-17",
+        "position": [
+          -0.05,
+          -0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          90,
+          92,
+          93
+        ]
+      },
+      {
+        "id": "cad-node-18",
+        "position": [
+          -0.05,
+          -0.05,
+          0.001
+        ],
+        "sourceEntityIds": [
+          90,
+          92,
+          93
+        ]
+      },
+      {
+        "id": "cad-node-19",
+        "position": [
+          -0.05,
+          0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          97,
+          99,
+          100
+        ]
+      },
+      {
+        "id": "cad-node-20",
+        "position": [
+          -0.05,
+          0.05,
+          0.999
+        ],
+        "sourceEntityIds": [
+          97,
+          99,
+          100
+        ]
+      },
+      {
+        "id": "cad-node-21",
+        "position": [
+          0.05,
+          0.05,
+          0
+        ],
+        "sourceEntityIds": [
+          113,
+          115,
+          116
+        ]
+      },
+      {
+        "id": "cad-node-22",
+        "position": [
+          0.05,
+          0.05,
+          0.001
+        ],
+        "sourceEntityIds": [
+          113,
+          115,
+          116
+        ]
+      },
+      {
+        "id": "cad-node-23",
+        "position": [
+          0.05,
+          -0.05,
+          1
+        ],
+        "sourceEntityIds": [
+          120,
+          122,
+          123
+        ]
+      },
+      {
+        "id": "cad-node-24",
+        "position": [
+          0.05,
+          -0.05,
+          0.999
+        ],
+        "sourceEntityIds": [
+          120,
+          122,
+          123
+        ]
+      }
+    ],
+    "candidateMembers": [
+      {
+        "id": "cad-member-definition-29",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-1",
+        "endNodeId": "cad-node-2",
+        "sourceEntityIds": [
+          29,
+          26,
+          28
+        ],
+        "sectionBasisId": "section-basis-definition-29"
+      },
+      {
+        "id": "cad-member-definition-35",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-3",
+        "endNodeId": "cad-node-4",
+        "sourceEntityIds": [
+          35,
+          32,
+          34
+        ],
+        "sectionBasisId": "section-basis-definition-35"
+      },
+      {
+        "id": "cad-member-definition-41",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-5",
+        "endNodeId": "cad-node-6",
+        "sourceEntityIds": [
+          41,
+          38,
+          40
+        ],
+        "sectionBasisId": "section-basis-definition-41"
+      },
+      {
+        "id": "cad-member-definition-47",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-7",
+        "endNodeId": "cad-node-8",
+        "sourceEntityIds": [
+          47,
+          44,
+          46
+        ],
+        "sectionBasisId": "section-basis-definition-47"
+      },
+      {
+        "id": "cad-member-definition-61",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-9",
+        "endNodeId": "cad-node-10",
+        "sourceEntityIds": [
+          61,
+          58,
+          60
+        ],
+        "sectionBasisId": "section-basis-definition-61"
+      },
+      {
+        "id": "cad-member-definition-67",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-11",
+        "endNodeId": "cad-node-12",
+        "sourceEntityIds": [
+          67,
+          64,
+          66
+        ],
+        "sectionBasisId": "section-basis-definition-67"
+      },
+      {
+        "id": "cad-member-definition-73",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-13",
+        "endNodeId": "cad-node-14",
+        "sourceEntityIds": [
+          73,
+          70,
+          72
+        ],
+        "sectionBasisId": "section-basis-definition-73"
+      },
+      {
+        "id": "cad-member-definition-79",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-15",
+        "endNodeId": "cad-node-16",
+        "sourceEntityIds": [
+          79,
+          76,
+          78
+        ],
+        "sectionBasisId": "section-basis-definition-79"
+      },
+      {
+        "id": "cad-member-definition-93",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-17",
+        "endNodeId": "cad-node-18",
+        "sourceEntityIds": [
+          93,
+          90,
+          92
+        ],
+        "sectionBasisId": "section-basis-definition-93"
+      },
+      {
+        "id": "cad-member-definition-100",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-19",
+        "endNodeId": "cad-node-20",
+        "sourceEntityIds": [
+          100,
+          97,
+          99
+        ],
+        "sectionBasisId": "section-basis-definition-100"
+      },
+      {
+        "id": "cad-member-definition-116",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-21",
+        "endNodeId": "cad-node-22",
+        "sourceEntityIds": [
+          116,
+          113,
+          115
+        ],
+        "sectionBasisId": "section-basis-definition-116"
+      },
+      {
+        "id": "cad-member-definition-123",
+        "kind": "line",
+        "classification": "unowned-definition-candidate",
+        "instanceId": null,
+        "startNodeId": "cad-node-23",
+        "endNodeId": "cad-node-24",
+        "sourceEntityIds": [
+          123,
+          120,
+          122
+        ],
+        "sectionBasisId": "section-basis-definition-123"
+      }
+    ],
+    "sectionBasis": [
+      {
+        "id": "section-basis-definition-29",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          29,
+          26,
+          28
+        ]
+      },
+      {
+        "id": "section-basis-definition-35",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          35,
+          32,
+          34
+        ]
+      },
+      {
+        "id": "section-basis-definition-41",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          41,
+          38,
+          40
+        ]
+      },
+      {
+        "id": "section-basis-definition-47",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          47,
+          44,
+          46
+        ]
+      },
+      {
+        "id": "section-basis-definition-61",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          61,
+          58,
+          60
+        ]
+      },
+      {
+        "id": "section-basis-definition-67",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          67,
+          64,
+          66
+        ]
+      },
+      {
+        "id": "section-basis-definition-73",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          73,
+          70,
+          72
+        ]
+      },
+      {
+        "id": "section-basis-definition-79",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          79,
+          76,
+          78
+        ]
+      },
+      {
+        "id": "section-basis-definition-93",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          93,
+          90,
+          92
+        ]
+      },
+      {
+        "id": "section-basis-definition-100",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          100,
+          97,
+          99
+        ]
+      },
+      {
+        "id": "section-basis-definition-116",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          116,
+          113,
+          115
+        ]
+      },
+      {
+        "id": "section-basis-definition-123",
+        "status": "unresolved",
+        "reason": "STEP 几何未声明工程截面属性，等待后续截面核验",
+        "sourceEntityIds": [
+          123,
+          120,
+          122
+        ]
+      }
+    ],
+    "sourceMappings": [
+      {
+        "sourceEntityIds": [
+          26,
+          28,
+          29
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-1"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          26,
+          28,
+          29
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-2"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          29,
+          26,
+          28
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-29"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          29,
+          26,
+          28
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-29",
+          "section-basis-definition-29"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          32,
+          34,
+          35
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-3"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          32,
+          34,
+          35
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-4"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          35,
+          32,
+          34
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-35"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          35,
+          32,
+          34
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-35",
+          "section-basis-definition-35"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          38,
+          40,
+          41
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-5"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          38,
+          40,
+          41
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-6"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          41,
+          38,
+          40
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-41"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          41,
+          38,
+          40
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-41",
+          "section-basis-definition-41"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          44,
+          46,
+          47
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-7"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          44,
+          46,
+          47
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-8"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          47,
+          44,
+          46
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-47"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          47,
+          44,
+          46
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-47",
+          "section-basis-definition-47"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          58,
+          60,
+          61
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-9"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          58,
+          60,
+          61
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-10"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          61,
+          58,
+          60
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-61"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          61,
+          58,
+          60
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-61",
+          "section-basis-definition-61"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          64,
+          66,
+          67
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-11"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          64,
+          66,
+          67
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-12"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          67,
+          64,
+          66
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-67"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          67,
+          64,
+          66
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-67",
+          "section-basis-definition-67"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          70,
+          72,
+          73
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-13"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          70,
+          72,
+          73
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-14"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          73,
+          70,
+          72
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-73"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          73,
+          70,
+          72
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-73",
+          "section-basis-definition-73"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          76,
+          78,
+          79
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-15"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          76,
+          78,
+          79
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-16"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          79,
+          76,
+          78
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-79"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          79,
+          76,
+          78
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-79",
+          "section-basis-definition-79"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          90,
+          92,
+          93
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-17"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          90,
+          92,
+          93
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-18"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          93,
+          90,
+          92
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-93"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          93,
+          90,
+          92
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-93",
+          "section-basis-definition-93"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          97,
+          99,
+          100
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-19"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          97,
+          99,
+          100
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-20"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          100,
+          97,
+          99
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-100"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          100,
+          97,
+          99
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-100",
+          "section-basis-definition-100"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          113,
+          115,
+          116
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-21"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          113,
+          115,
+          116
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-22"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          116,
+          113,
+          115
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-116"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          116,
+          113,
+          115
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-116",
+          "section-basis-definition-116"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          120,
+          122,
+          123
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-23"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          120,
+          122,
+          123
+        ],
+        "derivedKind": "candidate-node",
+        "derivedIds": [
+          "cad-node-24"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          123,
+          120,
+          122
+        ],
+        "derivedKind": "geometry-candidate",
+        "derivedIds": [
+          "line-123"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          123,
+          120,
+          122
+        ],
+        "derivedKind": "candidate-member",
+        "derivedIds": [
+          "cad-member-definition-123",
+          "section-basis-definition-123"
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          159,
+          158,
+          57,
+          89,
+          111,
+          133,
+          145,
+          157
+        ],
+        "derivedKind": "solid-summary",
+        "derivedIds": [
+          159
+        ]
+      },
+      {
+        "sourceEntityIds": [
+          159,
+          17,
+          13,
+          11,
+          15,
+          25,
+          21,
+          19,
+          23
+        ],
+        "derivedKind": "engineering-centerline",
+        "derivedIds": [
+          "axis-definition-159"
+        ]
+      }
+    ],
+    "diagnostics": {
+      "entityCount": 151,
+      "productCount": 0,
+      "assemblyInstanceCount": 0,
+      "solidCount": 1,
+      "lineCandidateCount": 12,
+      "unsupportedEntityCount": 0,
+      "coordinateSystem": "global-right-handed",
+      "sourceLengthUnit": "millimetre",
+      "blockingIssues": [],
+      "anomalies": [
+        {
+          "code": "unreviewed-line-candidates",
+          "severity": "review",
+          "count": 12,
+          "message": "直线仅作为几何候选，未自动确认工程杆件"
+        },
+        {
+          "code": "missing-section-basis",
+          "severity": "review",
+          "count": 12,
+          "entityIds": [
+            26,
+            28,
+            29,
+            32,
+            34,
+            35,
+            38,
+            40,
+            41,
+            44,
+            46,
+            47,
+            58,
+            60,
+            61,
+            64,
+            66,
+            67,
+            70,
+            72,
+            73,
+            76,
+            78,
+            79,
+            90,
+            92,
+            93,
+            97,
+            99,
+            100,
+            113,
+            115,
+            116,
+            120,
+            122,
+            123
+          ],
+          "message": "直线候选尚未关联截面依据"
+        }
+      ]
+    },
+    "anomalies": [
+      {
+        "code": "unreviewed-line-candidates",
+        "severity": "review",
+        "count": 12,
+        "message": "直线仅作为几何候选，未自动确认工程杆件"
+      },
+      {
+        "code": "missing-section-basis",
+        "severity": "review",
+        "count": 12,
+        "entityIds": [
+          26,
+          28,
+          29,
+          32,
+          34,
+          35,
+          38,
+          40,
+          41,
+          44,
+          46,
+          47,
+          58,
+          60,
+          61,
+          64,
+          66,
+          67,
+          70,
+          72,
+          73,
+          76,
+          78,
+          79,
+          90,
+          92,
+          93,
+          97,
+          99,
+          100,
+          113,
+          115,
+          116,
+          120,
+          122,
+          123
+        ],
+        "message": "直线候选尚未关联截面依据"
+      }
+    ],
+    "warnings": [],
+    "ignoredEntities": [],
+    "engineeringGeometry": {
+      "schemaVersion": 1,
+      "recognitionToleranceM": 1e-7,
+      "definitions": [
+        {
+          "solidId": 159,
+          "status": "supported",
+          "method": "planar-linear-closed-symmetric-translated-cap-boundaries",
+          "direction": [
+            0,
+            0,
+            1
+          ],
+          "lengthM": 1,
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0,
+            1
+          ],
+          "endSections": [
+            [
+              [
+                0.05,
+                0.05,
+                0
+              ],
+              [
+                -0.05,
+                0.05,
+                0
+              ],
+              [
+                -0.05,
+                -0.05,
+                0
+              ],
+              [
+                0.05,
+                -0.05,
+                0
+              ]
+            ],
+            [
+              [
+                0.05,
+                0.05,
+                1
+              ],
+              [
+                -0.05,
+                0.05,
+                1
+              ],
+              [
+                -0.05,
+                -0.05,
+                1
+              ],
+              [
+                0.05,
+                -0.05,
+                1
+              ]
+            ]
+          ],
+          "boundingBox": {
+            "min": [
+              -0.05,
+              -0.05,
+              0
+            ],
+            "max": [
+              0.05,
+              0.05,
+              1
+            ]
+          },
+          "sourceEntityIds": [
+            159,
+            17,
+            13,
+            11,
+            15,
+            25,
+            21,
+            19,
+            23
+          ]
+        }
+      ],
+      "solidInstances": [
+        {
+          "instanceId": null,
+          "solidId": 159,
+          "status": "supported",
+          "boundsBasis": "verified-linear-vertices",
+          "bounds": {
+            "min": [
+              -0.05,
+              -0.05,
+              0
+            ],
+            "max": [
+              0.05,
+              0.05,
+              1
+            ]
+          },
+          "transform": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "sourceEntityIds": [
+            159
+          ]
+        }
+      ],
+      "centerlines": [
+        {
+          "id": "axis-definition-159",
+          "instanceId": null,
+          "solidId": 159,
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0,
+            1
+          ],
+          "lengthM": 1,
+          "direction": [
+            0,
+            0,
+            1
+          ],
+          "endSections": [
+            [
+              [
+                0.05,
+                0.05,
+                0
+              ],
+              [
+                -0.05,
+                0.05,
+                0
+              ],
+              [
+                -0.05,
+                -0.05,
+                0
+              ],
+              [
+                0.05,
+                -0.05,
+                0
+              ]
+            ],
+            [
+              [
+                0.05,
+                0.05,
+                1
+              ],
+              [
+                -0.05,
+                0.05,
+                1
+              ],
+              [
+                -0.05,
+                -0.05,
+                1
+              ],
+              [
+                0.05,
+                -0.05,
+                1
+              ]
+            ]
+          ],
+          "boundingBox": {
+            "min": [
+              -0.05,
+              -0.05,
+              0
+            ],
+            "max": [
+              0.05,
+              0.05,
+              1
+            ]
+          },
+          "method": "planar-linear-closed-symmetric-translated-cap-boundaries",
+          "sourceEntityIds": [
+            159,
+            17,
+            13,
+            11,
+            15,
+            25,
+            21,
+            19,
+            23
+          ]
+        }
+      ],
+      "issues": []
+    },
+    "source": {
+      "inputSha256": "2d7eff96a32a3d04b0a5bb2ba9aa3909685c5143e298fb03b4a27c33114b740d",
+      "parserVersion": "framemind-step-reader/2.1.0"
+    },
+    "geometryHash": "50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037",
+    "auditHash": "205172ba030834bfff9df05316a3623c5000624467150095d7baadda51021468"
+  },
+  "pose": {
+    "translationM": [
+      0,
+      0,
+      0
+    ],
+    "rotationDegrees": [
+      0,
+      0,
+      0
+    ]
+  },
+  "poseDecisions": [],
+  "contactDecisions": {
+    "geometryHash": "50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037",
+    "approvedContactIds": []
+  },
+  "topology": {
+    "toleranceM": 0.0005,
+    "nodes": [
+      {
+        "id": "topology-node-1",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "sourceEntityIds": [
+          11,
+          13,
+          15,
+          17,
+          19,
+          21,
+          23,
+          25,
+          159
+        ],
+        "endpointCount": 1,
+        "mergedFrom": [
+          "axis-definition-159"
+        ]
+      },
+      {
+        "id": "topology-node-2",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "sourceEntityIds": [
+          11,
+          13,
+          15,
+          17,
+          19,
+          21,
+          23,
+          25,
+          159
+        ],
+        "endpointCount": 1,
+        "mergedFrom": [
+          "axis-definition-159"
+        ]
+      }
+    ],
+    "members": [
+      {
+        "id": "axis-definition-159:segment-1",
+        "parentId": "axis-definition-159",
+        "sourceEntityIds": [
+          159,
+          17,
+          13,
+          11,
+          15,
+          25,
+          21,
+          19,
+          23
+        ],
+        "instanceId": null,
+        "startNodeId": "topology-node-1",
+        "endNodeId": "topology-node-2",
+        "range": [
+          0,
+          1
+        ],
+        "classification": "candidate"
+      }
+    ],
+    "contacts": [],
+    "issues": [
+      {
+        "code": "unconnected-endpoint",
+        "severity": "warning",
+        "message": "topology-node-1 为未连接端点",
+        "nodeIds": [
+          "topology-node-1"
+        ]
+      },
+      {
+        "code": "unconnected-endpoint",
+        "severity": "warning",
+        "message": "topology-node-2 为未连接端点",
+        "nodeIds": [
+          "topology-node-2"
+        ]
+      },
+      {
+        "code": "isolated-member",
+        "severity": "warning",
+        "message": "axis-definition-159 两端均未连接",
+        "memberIds": [
+          "axis-definition-159"
+        ]
+      }
+    ],
+    "boundingBox": {
+      "min": {
+        "x": -0.05,
+        "y": -0.05,
+        "z": 0
+      },
+      "max": {
+        "x": 0.05,
+        "y": 0.05,
+        "z": 1
+      }
+    },
+    "instanceCount": 0,
+    "ignoredCount": 0,
+    "sourceMemberCount": 1
+  },
+  "posedNodes": [
+    {
+      "id": "topology-node-1",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "sourceEntityIds": [
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23,
+        25,
+        159
+      ],
+      "endpointCount": 1,
+      "mergedFrom": [
+        "axis-definition-159"
+      ]
+    },
+    {
+      "id": "topology-node-2",
+      "position": [
+        0,
+        0,
+        1
+      ],
+      "sourceEntityIds": [
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23,
+        25,
+        159
+      ],
+      "endpointCount": 1,
+      "mergedFrom": [
+        "axis-definition-159"
+      ]
+    }
+  ],
+  "posedBoundingBox": {
+    "min": [
+      -0.05,
+      -0.05,
+      0
+    ],
+    "max": [
+      0.05,
+      0.05,
+      1
+    ]
+  },
+  "resourceReview": {
+    "schemaVersion": 1,
+    "status": "verified",
+    "sections": [
+      {
+        "id": "cad-section:axis-definition-159",
+        "centerlineIds": [
+          "axis-definition-159"
+        ],
+        "sourceEntityIds": [
+          159,
+          17,
+          13,
+          11,
+          15,
+          25,
+          21,
+          19,
+          23
+        ],
+        "memberIds": [
+          "axis-definition-159:segment-1"
+        ],
+        "basis": {
+          "method": "user-supplied-section-v1",
+          "units": {
+            "area": "m²",
+            "secondMoment": "m⁴",
+            "torsion": "m⁴"
+          },
+          "applicability": "用户明确确认 A/Iy/Iz/J 和正式求解局部轴转角",
+          "uncertainty": "人工参考的物理正确性仍须独立复核；正有限值不代表物理证明",
+          "references": [
+            "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）"
+          ]
+        },
+        "issues": [],
+        "status": "verified",
+        "properties": {
+          "areaM2": 0.01,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "memberProfiles": [
+          {
+            "memberId": "axis-definition-159:segment-1",
+            "verticesM": [],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "localY": [
+              1,
+              0,
+              0
+            ],
+            "localZ": [
+              0,
+              1,
+              0
+            ],
+            "rotationDegrees": 0
+          }
+        ]
+      }
+    ],
+    "material": {
+      "status": "verified",
+      "name": "S355JR",
+      "elasticModulusGPa": 210,
+      "poissonRatio": 0.3,
+      "densityKgM3": 7850,
+      "source": "user",
+      "confirmed": true,
+      "issues": []
+    },
+    "joint": {
+      "kind": "rigid",
+      "status": "confirmed",
+      "source": "user",
+      "evidence": "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实"
+    },
+    "checks": [
+      {
+        "code": "units",
+        "status": "passed",
+        "severity": "error",
+        "message": "明确长度单位及二次/四次量纲转换一致",
+        "evidence": [
+          "check:units"
+        ]
+      },
+      {
+        "code": "section:cad-section:axis-definition-159",
+        "status": "passed",
+        "severity": "error",
+        "message": "A/Iy/Iz/J 已由确定性几何计算或用户引用确认",
+        "evidence": [
+          "check:section:cad-section:axis-definition-159",
+          "STEP 实体 #159",
+          "STEP 实体 #17",
+          "STEP 实体 #13",
+          "STEP 实体 #11",
+          "STEP 实体 #15",
+          "STEP 实体 #25",
+          "STEP 实体 #21",
+          "STEP 实体 #19",
+          "STEP 实体 #23"
+        ]
+      },
+      {
+        "code": "material",
+        "status": "passed",
+        "severity": "error",
+        "message": "材料参数已由用户/目录确认",
+        "evidence": [
+          "check:material",
+          "S355JR"
+        ]
+      },
+      {
+        "code": "rigid-joints",
+        "status": "passed",
+        "severity": "error",
+        "message": "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实",
+        "evidence": [
+          "check:rigid-joints",
+          "用户刚接确认记录"
+        ]
+      },
+      {
+        "code": "topology:unconnected-endpoint:0",
+        "status": "passed",
+        "severity": "warning",
+        "message": "topology-node-1 为未连接端点",
+        "evidence": [
+          "check:topology:unconnected-endpoint:0"
+        ]
+      },
+      {
+        "code": "topology:unconnected-endpoint:1",
+        "status": "passed",
+        "severity": "warning",
+        "message": "topology-node-2 为未连接端点",
+        "evidence": [
+          "check:topology:unconnected-endpoint:1"
+        ]
+      },
+      {
+        "code": "topology:isolated-member:2",
+        "status": "passed",
+        "severity": "warning",
+        "message": "axis-definition-159 两端均未连接",
+        "evidence": [
+          "check:topology:isolated-member:2"
+        ]
+      }
+    ],
+    "corrections": [
+      {
+        "sectionId": "axis-definition-159",
+        "original": {
+          "areaM2": 0.010000000000000002,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "replacement": {
+          "areaM2": 0.011,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+        "confirmed": true,
+        "recordedAt": "2026-10-09T15:04:14.275Z",
+        "recordedBy": "user"
+      },
+      {
+        "sectionId": "axis-definition-159",
+        "original": {
+          "areaM2": 0.011,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "replacement": {
+          "areaM2": 0.01,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+        "confirmed": true,
+        "recordedAt": "2026-10-09T15:04:14.449Z",
+        "recordedBy": "user"
+      }
+    ],
+    "ai": {
+      "status": "not-requested",
+      "request": {
+        "schemaVersion": 1,
+        "geometryHash": "50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037",
+        "sections": [
+          {
+            "id": "cad-section:axis-definition-159",
+            "memberIds": [
+              "axis-definition-159:segment-1"
+            ],
+            "sourceEntityIds": [
+              159,
+              17,
+              13,
+              11,
+              15,
+              25,
+              21,
+              19,
+              23
+            ],
+            "status": "verified",
+            "properties": {
+              "areaM2": 0.01,
+              "secondMomentYM4": 0.000008333333333333337,
+              "secondMomentZM4": 0.000008333333333333337,
+              "torsionalConstantM4": 0.000014083333333333338
+            },
+            "memberAxes": [
+              {
+                "memberId": "axis-definition-159:segment-1",
+                "localY": [
+                  1,
+                  0,
+                  0
+                ],
+                "localZ": [
+                  0,
+                  1,
+                  0
+                ],
+                "rotationDegrees": 0
+              }
+            ],
+            "basis": {
+              "method": "user-supplied-section-v1",
+              "units": {
+                "area": "m²",
+                "secondMoment": "m⁴",
+                "torsion": "m⁴"
+              },
+              "applicability": "用户明确确认 A/Iy/Iz/J 和正式求解局部轴转角",
+              "uncertainty": "人工参考的物理正确性仍须独立复核；正有限值不代表物理证明",
+              "references": [
+                "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）"
+              ]
+            },
+            "issues": []
+          }
+        ],
+        "material": {
+          "name": "S355JR",
+          "elasticModulusGPa": 210,
+          "poissonRatio": 0.3,
+          "densityKgM3": 7850,
+          "source": "user",
+          "confirmed": true
+        },
+        "joint": {
+          "kind": "rigid",
+          "status": "confirmed",
+          "source": "user"
+        },
+        "topology": {
+          "nodes": [
+            {
+              "id": "topology-node-1",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": "topology-node-2",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            }
+          ],
+          "members": [
+            {
+              "id": "axis-definition-159:segment-1",
+              "parentId": "axis-definition-159",
+              "instanceId": null,
+              "startNodeId": "topology-node-1",
+              "endNodeId": "topology-node-2",
+              "range": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "corrections": [
+          {
+            "sectionId": "axis-definition-159",
+            "original": {
+              "areaM2": 0.010000000000000002,
+              "secondMomentYM4": 0.000008333333333333337,
+              "secondMomentZM4": 0.000008333333333333337,
+              "torsionalConstantM4": 0.000014083333333333338
+            },
+            "replacement": {
+              "areaM2": 0.011,
+              "secondMomentYM4": 0.000008333333333333337,
+              "secondMomentZM4": 0.000008333333333333337,
+              "torsionalConstantM4": 0.000014083333333333338
+            },
+            "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+            "confirmed": true,
+            "recordedAt": "2026-10-09T15:04:14.275Z",
+            "recordedBy": "user"
+          },
+          {
+            "sectionId": "axis-definition-159",
+            "original": {
+              "areaM2": 0.011,
+              "secondMomentYM4": 0.000008333333333333337,
+              "secondMomentZM4": 0.000008333333333333337,
+              "torsionalConstantM4": 0.000014083333333333338
+            },
+            "replacement": {
+              "areaM2": 0.01,
+              "secondMomentYM4": 0.000008333333333333337,
+              "secondMomentZM4": 0.000008333333333333337,
+              "torsionalConstantM4": 0.000014083333333333338
+            },
+            "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+            "confirmed": true,
+            "recordedAt": "2026-10-09T15:04:14.449Z",
+            "recordedBy": "user"
+          }
+        ],
+        "checks": [
+          {
+            "code": "units",
+            "status": "passed",
+            "severity": "error",
+            "message": "明确长度单位及二次/四次量纲转换一致",
+            "evidence": [
+              "check:units"
+            ]
+          },
+          {
+            "code": "section:cad-section:axis-definition-159",
+            "status": "passed",
+            "severity": "error",
+            "message": "A/Iy/Iz/J 已由确定性几何计算或用户引用确认",
+            "evidence": [
+              "check:section:cad-section:axis-definition-159",
+              "STEP 实体 #159",
+              "STEP 实体 #17",
+              "STEP 实体 #13",
+              "STEP 实体 #11",
+              "STEP 实体 #15",
+              "STEP 实体 #25",
+              "STEP 实体 #21",
+              "STEP 实体 #19",
+              "STEP 实体 #23"
+            ]
+          },
+          {
+            "code": "material",
+            "status": "passed",
+            "severity": "error",
+            "message": "材料参数已由用户/目录确认",
+            "evidence": [
+              "check:material",
+              "S355JR"
+            ]
+          },
+          {
+            "code": "rigid-joints",
+            "status": "passed",
+            "severity": "error",
+            "message": "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实",
+            "evidence": [
+              "check:rigid-joints",
+              "用户刚接确认记录"
+            ]
+          },
+          {
+            "code": "topology:unconnected-endpoint:0",
+            "status": "passed",
+            "severity": "warning",
+            "message": "topology-node-1 为未连接端点",
+            "evidence": [
+              "check:topology:unconnected-endpoint:0"
+            ]
+          },
+          {
+            "code": "topology:unconnected-endpoint:1",
+            "status": "passed",
+            "severity": "warning",
+            "message": "topology-node-2 为未连接端点",
+            "evidence": [
+              "check:topology:unconnected-endpoint:1"
+            ]
+          },
+          {
+            "code": "topology:isolated-member:2",
+            "status": "passed",
+            "severity": "warning",
+            "message": "axis-definition-159 两端均未连接",
+            "evidence": [
+              "check:topology:isolated-member:2"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "resourceDraft": {
+    "material": {
+      "source": "user",
+      "name": "S355JR",
+      "confirmed": true,
+      "elasticModulusGPa": 210,
+      "poissonRatio": 0.3,
+      "densityKgM3": 7850
+    },
+    "rigidJointsConfirmed": true,
+    "manualSections": {
+      "axis-definition-159": {
+        "properties": {
+          "areaM2": 0.01,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+        "confirmed": true,
+        "rotationDegrees": 0,
+        "originalProperties": {
+          "areaM2": 0.010000000000000002,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "recordedAt": "2026-10-09T15:04:14.449Z",
+        "recordedBy": "user"
+      }
+    },
+    "correctionHistory": [
+      {
+        "sectionId": "axis-definition-159",
+        "original": {
+          "areaM2": 0.010000000000000002,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "replacement": {
+          "areaM2": 0.011,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+        "confirmed": true,
+        "recordedAt": "2026-10-09T15:04:14.275Z",
+        "recordedBy": "user"
+      },
+      {
+        "sectionId": "axis-definition-159",
+        "original": {
+          "areaM2": 0.011,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "replacement": {
+          "areaM2": 0.01,
+          "secondMomentYM4": 0.000008333333333333337,
+          "secondMomentZM4": 0.000008333333333333337,
+          "torsionalConstantM4": 0.000014083333333333338
+        },
+        "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+        "confirmed": true,
+        "recordedAt": "2026-10-09T15:04:14.449Z",
+        "recordedBy": "user"
+      }
+    ],
+    "acceptedWarningCodes": [
+      "topology:unconnected-endpoint:0",
+      "topology:unconnected-endpoint:1",
+      "topology:isolated-member:2"
+    ],
+    "verification": {
+      "inputKey": "[{\"schemaVersion\":1,\"geometryHash\":\"50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037\",\"sections\":[{\"id\":\"cad-section:axis-definition-159\",\"memberIds\":[\"axis-definition-159:segment-1\"],\"sourceEntityIds\":[159,17,13,11,15,25,21,19,23],\"status\":\"verified\",\"properties\":{\"areaM2\":0.01,\"secondMomentYM4\":0.000008333333333333337,\"secondMomentZM4\":0.000008333333333333337,\"torsionalConstantM4\":0.000014083333333333338},\"memberAxes\":[{\"memberId\":\"axis-definition-159:segment-1\",\"localY\":[1,0,0],\"localZ\":[0,1,0],\"rotationDegrees\":0}],\"basis\":{\"method\":\"user-supplied-section-v1\",\"units\":{\"area\":\"m²\",\"secondMoment\":\"m⁴\",\"torsion\":\"m⁴\"},\"applicability\":\"用户明确确认 A/Iy/Iz/J 和正式求解局部轴转角\",\"uncertainty\":\"人工参考的物理正确性仍须独立复核；正有限值不代表物理证明\",\"references\":[\"人工修改回归证据（仅验证修正，不作为指定 CAD 基准）\"]},\"issues\":[]}],\"material\":{\"name\":\"S355JR\",\"elasticModulusGPa\":210,\"poissonRatio\":0.3,\"densityKgM3\":7850,\"source\":\"user\",\"confirmed\":true},\"joint\":{\"kind\":\"rigid\",\"status\":\"confirmed\",\"source\":\"user\"},\"topology\":{\"nodes\":[{\"id\":\"topology-node-1\",\"position\":{\"x\":0,\"y\":0,\"z\":0}},{\"id\":\"topology-node-2\",\"position\":{\"x\":0,\"y\":0,\"z\":1}}],\"members\":[{\"id\":\"axis-definition-159:segment-1\",\"parentId\":\"axis-definition-159\",\"instanceId\":null,\"startNodeId\":\"topology-node-1\",\"endNodeId\":\"topology-node-2\",\"range\":[0,1]}]},\"corrections\":[{\"sectionId\":\"axis-definition-159\",\"original\":{\"areaM2\":0.010000000000000002,\"secondMomentYM4\":0.000008333333333333337,\"secondMomentZM4\":0.000008333333333333337,\"torsionalConstantM4\":0.000014083333333333338},\"replacement\":{\"areaM2\":0.011,\"secondMomentYM4\":0.000008333333333333337,\"secondMomentZM4\":0.000008333333333333337,\"torsionalConstantM4\":0.000014083333333333338},\"reference\":\"人工修改回归证据（仅验证修正，不作为指定 CAD 基准）\",\"confirmed\":true,\"recordedAt\":\"2026-10-09T15:04:14.275Z\",\"recordedBy\":\"user\"},{\"sectionId\":\"axis-definition-159\",\"original\":{\"areaM2\":0.011,\"secondMomentYM4\":0.000008333333333333337,\"secondMomentZM4\":0.000008333333333333337,\"torsionalConstantM4\":0.000014083333333333338},\"replacement\":{\"areaM2\":0.01,\"secondMomentYM4\":0.000008333333333333337,\"secondMomentZM4\":0.000008333333333333337,\"torsionalConstantM4\":0.000014083333333333338},\"reference\":\"人工修改回归证据（仅验证修正，不作为指定 CAD 基准）\",\"confirmed\":true,\"recordedAt\":\"2026-10-09T15:04:14.449Z\",\"recordedBy\":\"user\"}],\"checks\":[{\"code\":\"units\",\"status\":\"passed\",\"severity\":\"error\",\"message\":\"明确长度单位及二次/四次量纲转换一致\",\"evidence\":[\"check:units\"]},{\"code\":\"section:cad-section:axis-definition-159\",\"status\":\"passed\",\"severity\":\"error\",\"message\":\"A/Iy/Iz/J 已由确定性几何计算或用户引用确认\",\"evidence\":[\"check:section:cad-section:axis-definition-159\",\"STEP 实体 #159\",\"STEP 实体 #17\",\"STEP 实体 #13\",\"STEP 实体 #11\",\"STEP 实体 #15\",\"STEP 实体 #25\",\"STEP 实体 #21\",\"STEP 实体 #19\",\"STEP 实体 #23\"]},{\"code\":\"material\",\"status\":\"passed\",\"severity\":\"error\",\"message\":\"材料参数已由用户/目录确认\",\"evidence\":[\"check:material\",\"S355JR\"]},{\"code\":\"rigid-joints\",\"status\":\"passed\",\"severity\":\"error\",\"message\":\"用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实\",\"evidence\":[\"check:rigid-joints\",\"用户刚接确认记录\"]},{\"code\":\"topology:unconnected-endpoint:0\",\"status\":\"passed\",\"severity\":\"warning\",\"message\":\"topology-node-1 为未连接端点\",\"evidence\":[\"check:topology:unconnected-endpoint:0\"]},{\"code\":\"topology:unconnected-endpoint:1\",\"status\":\"passed\",\"severity\":\"warning\",\"message\":\"topology-node-2 为未连接端点\",\"evidence\":[\"check:topology:unconnected-endpoint:1\"]},{\"code\":\"topology:isolated-member:2\",\"status\":\"passed\",\"severity\":\"warning\",\"message\":\"axis-definition-159 两端均未连接\",\"evidence\":[\"check:topology:isolated-member:2\"]}]},{\"translationM\":[0,0,0],\"rotationDegrees\":[0,0,0]},[]]",
+      "ai": {
+        "status": "failed",
+        "request": {
+          "schemaVersion": 1,
+          "geometryHash": "50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037",
+          "sections": [
+            {
+              "id": "cad-section:axis-definition-159",
+              "memberIds": [
+                "axis-definition-159:segment-1"
+              ],
+              "sourceEntityIds": [
+                159,
+                17,
+                13,
+                11,
+                15,
+                25,
+                21,
+                19,
+                23
+              ],
+              "status": "verified",
+              "properties": {
+                "areaM2": 0.01,
+                "secondMomentYM4": 0.000008333333333333337,
+                "secondMomentZM4": 0.000008333333333333337,
+                "torsionalConstantM4": 0.000014083333333333338
+              },
+              "memberAxes": [
+                {
+                  "memberId": "axis-definition-159:segment-1",
+                  "localY": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "localZ": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "rotationDegrees": 0
+                }
+              ],
+              "basis": {
+                "method": "user-supplied-section-v1",
+                "units": {
+                  "area": "m²",
+                  "secondMoment": "m⁴",
+                  "torsion": "m⁴"
+                },
+                "applicability": "用户明确确认 A/Iy/Iz/J 和正式求解局部轴转角",
+                "uncertainty": "人工参考的物理正确性仍须独立复核；正有限值不代表物理证明",
+                "references": [
+                  "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）"
+                ]
+              },
+              "issues": []
+            }
+          ],
+          "material": {
+            "name": "S355JR",
+            "elasticModulusGPa": 210,
+            "poissonRatio": 0.3,
+            "densityKgM3": 7850,
+            "source": "user",
+            "confirmed": true
+          },
+          "joint": {
+            "kind": "rigid",
+            "status": "confirmed",
+            "source": "user"
+          },
+          "topology": {
+            "nodes": [
+              {
+                "id": "topology-node-1",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "id": "topology-node-2",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              }
+            ],
+            "members": [
+              {
+                "id": "axis-definition-159:segment-1",
+                "parentId": "axis-definition-159",
+                "instanceId": null,
+                "startNodeId": "topology-node-1",
+                "endNodeId": "topology-node-2",
+                "range": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "corrections": [
+            {
+              "sectionId": "axis-definition-159",
+              "original": {
+                "areaM2": 0.010000000000000002,
+                "secondMomentYM4": 0.000008333333333333337,
+                "secondMomentZM4": 0.000008333333333333337,
+                "torsionalConstantM4": 0.000014083333333333338
+              },
+              "replacement": {
+                "areaM2": 0.011,
+                "secondMomentYM4": 0.000008333333333333337,
+                "secondMomentZM4": 0.000008333333333333337,
+                "torsionalConstantM4": 0.000014083333333333338
+              },
+              "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+              "confirmed": true,
+              "recordedAt": "2026-10-09T15:04:14.275Z",
+              "recordedBy": "user"
+            },
+            {
+              "sectionId": "axis-definition-159",
+              "original": {
+                "areaM2": 0.011,
+                "secondMomentYM4": 0.000008333333333333337,
+                "secondMomentZM4": 0.000008333333333333337,
+                "torsionalConstantM4": 0.000014083333333333338
+              },
+              "replacement": {
+                "areaM2": 0.01,
+                "secondMomentYM4": 0.000008333333333333337,
+                "secondMomentZM4": 0.000008333333333333337,
+                "torsionalConstantM4": 0.000014083333333333338
+              },
+              "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+              "confirmed": true,
+              "recordedAt": "2026-10-09T15:04:14.449Z",
+              "recordedBy": "user"
+            }
+          ],
+          "checks": [
+            {
+              "code": "units",
+              "status": "passed",
+              "severity": "error",
+              "message": "明确长度单位及二次/四次量纲转换一致",
+              "evidence": [
+                "check:units"
+              ]
+            },
+            {
+              "code": "section:cad-section:axis-definition-159",
+              "status": "passed",
+              "severity": "error",
+              "message": "A/Iy/Iz/J 已由确定性几何计算或用户引用确认",
+              "evidence": [
+                "check:section:cad-section:axis-definition-159",
+                "STEP 实体 #159",
+                "STEP 实体 #17",
+                "STEP 实体 #13",
+                "STEP 实体 #11",
+                "STEP 实体 #15",
+                "STEP 实体 #25",
+                "STEP 实体 #21",
+                "STEP 实体 #19",
+                "STEP 实体 #23"
+              ]
+            },
+            {
+              "code": "material",
+              "status": "passed",
+              "severity": "error",
+              "message": "材料参数已由用户/目录确认",
+              "evidence": [
+                "check:material",
+                "S355JR"
+              ]
+            },
+            {
+              "code": "rigid-joints",
+              "status": "passed",
+              "severity": "error",
+              "message": "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实",
+              "evidence": [
+                "check:rigid-joints",
+                "用户刚接确认记录"
+              ]
+            },
+            {
+              "code": "topology:unconnected-endpoint:0",
+              "status": "passed",
+              "severity": "warning",
+              "message": "topology-node-1 为未连接端点",
+              "evidence": [
+                "check:topology:unconnected-endpoint:0"
+              ]
+            },
+            {
+              "code": "topology:unconnected-endpoint:1",
+              "status": "passed",
+              "severity": "warning",
+              "message": "topology-node-2 为未连接端点",
+              "evidence": [
+                "check:topology:unconnected-endpoint:1"
+              ]
+            },
+            {
+              "code": "topology:isolated-member:2",
+              "status": "passed",
+              "severity": "warning",
+              "message": "axis-definition-159 两端均未连接",
+              "evidence": [
+                "check:topology:isolated-member:2"
+              ]
+            }
+          ]
+        },
+        "origin": "online",
+        "error": "尚未配置 DeepSeek API Key"
+      }
+    }
+  },
+  "aiVerification": {
+    "status": "failed",
+    "request": {
+      "schemaVersion": 1,
+      "geometryHash": "50767c4e973e6b6c5e3b1cdc94a3597d779f7db117c5d85c76845f81634e9037",
+      "sections": [
+        {
+          "id": "cad-section:axis-definition-159",
+          "memberIds": [
+            "axis-definition-159:segment-1"
+          ],
+          "sourceEntityIds": [
+            159,
+            17,
+            13,
+            11,
+            15,
+            25,
+            21,
+            19,
+            23
+          ],
+          "status": "verified",
+          "properties": {
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.000008333333333333337,
+            "secondMomentZM4": 0.000008333333333333337,
+            "torsionalConstantM4": 0.000014083333333333338
+          },
+          "memberAxes": [
+            {
+              "memberId": "axis-definition-159:segment-1",
+              "localY": [
+                1,
+                0,
+                0
+              ],
+              "localZ": [
+                0,
+                1,
+                0
+              ],
+              "rotationDegrees": 0
+            }
+          ],
+          "basis": {
+            "method": "user-supplied-section-v1",
+            "units": {
+              "area": "m²",
+              "secondMoment": "m⁴",
+              "torsion": "m⁴"
+            },
+            "applicability": "用户明确确认 A/Iy/Iz/J 和正式求解局部轴转角",
+            "uncertainty": "人工参考的物理正确性仍须独立复核；正有限值不代表物理证明",
+            "references": [
+              "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）"
+            ]
+          },
+          "issues": []
+        }
+      ],
+      "material": {
+        "name": "S355JR",
+        "elasticModulusGPa": 210,
+        "poissonRatio": 0.3,
+        "densityKgM3": 7850,
+        "source": "user",
+        "confirmed": true
+      },
+      "joint": {
+        "kind": "rigid",
+        "status": "confirmed",
+        "source": "user"
+      },
+      "topology": {
+        "nodes": [
+          {
+            "id": "topology-node-1",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "id": "topology-node-2",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 1
+            }
+          }
+        ],
+        "members": [
+          {
+            "id": "axis-definition-159:segment-1",
+            "parentId": "axis-definition-159",
+            "instanceId": null,
+            "startNodeId": "topology-node-1",
+            "endNodeId": "topology-node-2",
+            "range": [
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "corrections": [
+        {
+          "sectionId": "axis-definition-159",
+          "original": {
+            "areaM2": 0.010000000000000002,
+            "secondMomentYM4": 0.000008333333333333337,
+            "secondMomentZM4": 0.000008333333333333337,
+            "torsionalConstantM4": 0.000014083333333333338
+          },
+          "replacement": {
+            "areaM2": 0.011,
+            "secondMomentYM4": 0.000008333333333333337,
+            "secondMomentZM4": 0.000008333333333333337,
+            "torsionalConstantM4": 0.000014083333333333338
+          },
+          "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+          "confirmed": true,
+          "recordedAt": "2026-10-09T15:04:14.275Z",
+          "recordedBy": "user"
+        },
+        {
+          "sectionId": "axis-definition-159",
+          "original": {
+            "areaM2": 0.011,
+            "secondMomentYM4": 0.000008333333333333337,
+            "secondMomentZM4": 0.000008333333333333337,
+            "torsionalConstantM4": 0.000014083333333333338
+          },
+          "replacement": {
+            "areaM2": 0.01,
+            "secondMomentYM4": 0.000008333333333333337,
+            "secondMomentZM4": 0.000008333333333333337,
+            "torsionalConstantM4": 0.000014083333333333338
+          },
+          "reference": "人工修改回归证据（仅验证修正，不作为指定 CAD 基准）",
+          "confirmed": true,
+          "recordedAt": "2026-10-09T15:04:14.449Z",
+          "recordedBy": "user"
+        }
+      ],
+      "checks": [
+        {
+          "code": "units",
+          "status": "passed",
+          "severity": "error",
+          "message": "明确长度单位及二次/四次量纲转换一致",
+          "evidence": [
+            "check:units"
+          ]
+        },
+        {
+          "code": "section:cad-section:axis-definition-159",
+          "status": "passed",
+          "severity": "error",
+          "message": "A/Iy/Iz/J 已由确定性几何计算或用户引用确认",
+          "evidence": [
+            "check:section:cad-section:axis-definition-159",
+            "STEP 实体 #159",
+            "STEP 实体 #17",
+            "STEP 实体 #13",
+            "STEP 实体 #11",
+            "STEP 实体 #15",
+            "STEP 实体 #25",
+            "STEP 实体 #21",
+            "STEP 实体 #19",
+            "STEP 实体 #23"
+          ]
+        },
+        {
+          "code": "material",
+          "status": "passed",
+          "severity": "error",
+          "message": "材料参数已由用户/目录确认",
+          "evidence": [
+            "check:material",
+            "S355JR"
+          ]
+        },
+        {
+          "code": "rigid-joints",
+          "status": "passed",
+          "severity": "error",
+          "message": "用户明确确认：导入拓扑的工程连接按刚接建模；几何接触本身不构成该事实",
+          "evidence": [
+            "check:rigid-joints",
+            "用户刚接确认记录"
+          ]
+        },
+        {
+          "code": "topology:unconnected-endpoint:0",
+          "status": "passed",
+          "severity": "warning",
+          "message": "topology-node-1 为未连接端点",
+          "evidence": [
+            "check:topology:unconnected-endpoint:0"
+          ]
+        },
+        {
+          "code": "topology:unconnected-endpoint:1",
+          "status": "passed",
+          "severity": "warning",
+          "message": "topology-node-2 为未连接端点",
+          "evidence": [
+            "check:topology:unconnected-endpoint:1"
+          ]
+        },
+        {
+          "code": "topology:isolated-member:2",
+          "status": "passed",
+          "severity": "warning",
+          "message": "axis-definition-159 两端均未连接",
+          "evidence": [
+            "check:topology:isolated-member:2"
+          ]
+        }
+      ]
+    },
+    "origin": "online",
+    "error": "尚未配置 DeepSeek API Key"
+  }
+}

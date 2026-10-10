@@ -37,18 +37,18 @@ const analysisCase = { type: "object", additionalProperties: false, required: ["
     secondOrder: { type: "object", additionalProperties: false, required: ["loadSteps", "maxIterations", "residualTolerance", "incrementTolerance", "maxDivisions", "maxEquations", "meshTolerance"], properties: {
       loadSteps: { type: "integer", minimum: 1, maximum: 100 }, maxIterations: { type: "integer", minimum: 1, maximum: 100 },
       residualTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-6 }, incrementTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-6 },
-      maxDivisions: { enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 1200 }, meshTolerance: { type: "number", exclusiveMinimum: 0, maximum: .01 },
+      maxDivisions: { enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 2147483647 }, meshTolerance: { type: "number", exclusiveMinimum: 0, maximum: .01 },
     }, description: "Initial-stress elastic second-order, small displacements, no axis/axial-force redistribution. LC or CB source. No response superposition." },
     buckling: { type: "object", additionalProperties: false, required: ["fixed", "reference", "modeCount", "maxDivisions", "maxEquations", "factorTolerance"], properties: {
       fixed: { type: "array", items: { type: "object", additionalProperties: false, required: ["loadCaseId", "factor"], properties: { loadCaseId: identity, factor: { type: "number" } } } },
       reference: { type: "array", minItems: 1, items: { type: "object", additionalProperties: false, required: ["loadCaseId", "factor"], properties: { loadCaseId: identity, factor: { type: "number" } } } },
-      modeCount: { type: "integer", minimum: 1, maximum: 20 }, maxDivisions: { enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 1200 }, factorTolerance: { type: "number", exclusiveMinimum: 0, maximum: .01 }
+      modeCount: { type: "integer", minimum: 1, maximum: 20 }, maxDivisions: { enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 2147483647 }, factorTolerance: { type: "number", exclusiveMinimum: 0, maximum: .01 }
     } },
     modal: { type: "object", additionalProperties: false, required: ["modeCount", "maxDivisions", "maxEquations", "frequencyTolerance"], properties: {
-      modeCount: { type: "integer", minimum: 1, maximum: 50 }, maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 1200 }, frequencyTolerance: { type: "number", exclusiveMinimum: 0, maximum: 0.01 },
+      modeCount: { type: "integer", minimum: 1, maximum: 50 }, maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 2147483647 }, frequencyTolerance: { type: "number", exclusiveMinimum: 0, maximum: 0.01 },
     }, description: "Modal: loadSourceId=structure, solver=native-modal, no mesh. Density forms mass independently of static loads/self-weight." },
     mesh: { type: "object", additionalProperties: false, required: ["maxDivisions", "maxEquations", "relativeTolerance", "displacementTolerance", "forceTolerance"], properties: {
-      maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 12000 },
+      maxDivisions: { type: "integer", enum: [1, 2, 4, 8, 16] }, maxEquations: { type: "integer", minimum: 1, maximum: 2147483647 },
       relativeTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-2 }, displacementTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-6 }, forceTolerance: { type: "number", exclusiveMinimum: 0, maximum: 1e-3 },
     } },
   } },

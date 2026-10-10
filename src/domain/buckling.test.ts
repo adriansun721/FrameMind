@@ -36,7 +36,7 @@ describe("T2-30 buckling engineering cases", () => {
   });
   it("rejects missing reference, duplicate sources, invalid settings and static-style inputs", () => {
     const project = bucklingColumn(), { id, ...properties } = project.analysisCases[0];
-    for (const changes of [{ reference: [] }, { reference: [{ loadCaseId: "LC1", factor: 0 }] }, { reference: [{ loadCaseId: "LC1", factor: 1 }, { loadCaseId: "LC1", factor: 2 }] }, { maxEquations: 1201 }, { modeCount: 0 }, { fixed: [{ loadCaseId: "LC99", factor: 1 }] }]) {
+    for (const changes of [{ reference: [] }, { reference: [{ loadCaseId: "LC1", factor: 0 }] }, { reference: [{ loadCaseId: "LC1", factor: 1 }, { loadCaseId: "LC1", factor: 2 }] }, { maxEquations: 2147483648 }, { modeCount: 0 }, { fixed: [{ loadCaseId: "LC99", factor: 1 }] }]) {
       expect(() => updateAnalysisCase(project, id, { ...properties, settings: { ...properties.settings, buckling: { ...properties.settings.buckling!, ...changes } } })).toThrow();
     }
     expect(() => updateAnalysisCase(project, id, { ...properties, loadSourceId: "LC1" })).toThrow(/固定／参考/);

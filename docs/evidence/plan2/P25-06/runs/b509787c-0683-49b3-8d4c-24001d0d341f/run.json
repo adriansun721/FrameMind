@@ -1,0 +1,35 @@
+{
+  "runId": "b509787c-0683-49b3-8d4c-24001d0d341f",
+  "source": "analytic-prism",
+  "recordedAt": "2026-10-10T05:19:35.575Z",
+  "status": "passed",
+  "mode": "replay-transport",
+  "onlineAcceptance": false,
+  "inputSha256": "2d7eff96a32a3d04b0a5bb2ba9aa3909685c5143e298fb03b4a27c33114b740d",
+  "artifacts": {
+    "before.framemind": "194f640da607b439f0bfc7f28efabc5a0fdde56c302c7b391211f94566b8b371",
+    "after.framemind": "acef2e988c9b636e83df246b277e10eebc6fc602152b9c52ebbbd28b643b461d",
+    "failure.json": "b30e172cf1b3ee25de0e5baffec28419854ecc14a07e8a464c72989eb03a2e74",
+    "confirmation.png": "c8177686a7b156d0fec394c4b94439837996e4fc18d751bb59fa2b4a753b3e92",
+    "history.json": "660be555a38d05f6071e3aff8e285cf94802910ae4414330112f6f3a7f591a12",
+    "history.png": "7dddc87e518856977cc022ef675dc5e05b38e9416a19e23cb8764af0620e786b",
+    "restored.json": "8b4a8422adbab7790500493aca6054a7b5738d98ad2fa91cd063d1645f13be8a",
+    "cad-draft.json": "daa0c9b92d099ef248fded793b0b110a5ea24b8ee76fede8c06f1dffb50fcbba",
+    "restore-diff.png": "6ac8e5b5853af3abcfc7f25e13d50a7be67ba42a12fd7cdcfb9d20f83ae59f9f"
+  },
+  "sourceHashes": {
+    "src/workspace/cad-import.ts": "9499e704b33e151b7f091891bd9b17d5838fdae7016c64e885d9808654dce501",
+    "src/workspace/cad-import-persistence.ts": "90084ea41b183c13ef2be27929929984d5bbc2f15c2631867e9917b0c8207958",
+    "src/workspace/project-snapshot-diff.ts": "dd6f974843e05acd79eecd9eed262a931566344fd11a8dab860cb363660abd73",
+    "src/App.tsx": "f57c3afbe8c20157c7cbe4e18c812e6ea92c6c8fff7fc00421234510c9225589",
+    "src/components/CadTopologyPreview.tsx": "c9d9de229e91a6235611e9ee128227fd3245b9513873a31f6a3095b00c847903",
+    "src/components/CadImportHistory.tsx": "8b8636f2e842aa49a553a67133d6625d6936b8e3eadb251f2b6b6f1f077b79dc",
+    "src/styles.css": "ae7a08a6621cceb04131641d6a949335e94013714a04148b8b3a90a165ffeb81",
+    "electron/project-checkpoints.ts": "2a747e872cbe5021ab75537fa0d336ca2440ab6d856bf4febf57697de08cfe5d",
+    "dist/index.html": "7d0134ae50dd65b856345d966b4d17dc1ee6707528d3c149e287636095be5f34",
+    "dist-electron/main.js": "d53f5705d19d213e90aed02e19cdc04f72b2a36537d70fb4aaa143219a94ada1",
+    "e2e/p25-06-import.spec.ts": "9039711ff8a2eb8f1980904638f151eb7c44e38c9b7e286ede53710741d3779e"
+  },
+  "specifiedAcceptance": "pending-upstream-geometry-and-independent-reference",
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-06-import.spec.ts"
+}

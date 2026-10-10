@@ -1,0 +1,2 @@
+import {readFile} from 'node:fs/promises'; import {gunzipSync} from 'node:zlib';
+const v=JSON.parse(gunzipSync(await readFile('static-target-f64.json.gz'))); console.log(Object.fromEntries(Object.entries(v).map(([k,x])=>[k,JSON.stringify(x).length]))); console.log(v.members[0]); console.log(Object.fromEntries(Object.entries(v.discretization.runs[1].result.members[0]).map(([k,x])=>[k,JSON.stringify(x).length])));

@@ -1,0 +1,27 @@
+{
+  "runId": "d70afc2e-5e57-4b3a-8627-7c95532ae757",
+  "source": "specified",
+  "recordedAt": "2026-10-10T03:01:05.348Z",
+  "status": "passed",
+  "mode": "local-no-credential",
+  "model": "deepseek-flash",
+  "inputSha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+  "sourceHashes": {
+    "src/workspace/cad-resources.ts": "e7d4e048c8599e75c29a326ba0aa2efb6d918601459b05e189960172e059668d",
+    "src/components/CadTopologyPreview.tsx": "c9d9de229e91a6235611e9ee128227fd3245b9513873a31f6a3095b00c847903",
+    "src/components/CadResourceReviewPanel.tsx": "8a7f353711e27358e1a279e67652fd8eee7881e75c0c3fac79a14c651f9d5d96",
+    "src/App.tsx": "358dade40a7a60d373c0506d4cc456a9bb8778b20aa158af1b72583fd0490aa8",
+    "e2e/p25-05-resources.spec.ts": "23f699c0c8afd760ecfbe79c85b537e39203b6e982c11dad51037bd168bf1557",
+    "dist/index.html": "c4a616aa0988d04ffc4c9b1e5a9f096ceba2936b5c19bac5733994fd5fd10b11",
+    "dist-electron/main.js": "fc2242589552d65b4efed6ee5fdd27a1f8f335386e53763e51026849aa1d8275"
+  },
+  "artifacts": {
+    "verification.json": "96f71f1379ebd2ef21f6d4d1073f048c060b82a9eb44d43e1dbf6287bc0696bf",
+    "resources-dark-1440.png": "baaba3f23eef7ba8af9333062a3d1c74255ce234e71631e5785dac9efbaeee22"
+  },
+  "formalModelUnchanged": true,
+  "aiChecked": true,
+  "specifiedGeometryAcceptance": "blocked-upstream-cad-reference-and-recognition",
+  "taskAcceptance": "pending-specified-complex-section-independent-reference",
+  "offlineReverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-05-resources.spec.ts"
+}

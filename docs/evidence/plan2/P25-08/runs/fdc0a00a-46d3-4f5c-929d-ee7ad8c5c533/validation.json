@@ -1,0 +1,124 @@
+{
+  "tasks": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "historyId": "history_d2d1b3f2-4fc7-4311-83da-1d3ace124975",
+      "taskId": "task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "candidateId": "candidate_d4b634cf-63b7-4465-ace1-58ccd8bd4ce0",
+      "sessionId": "bab22001-e2da-4682-b29c-5ba3b1f80ebd",
+      "parentCommit": "eed18bef4d165c365094e4429fea953602818b3c",
+      "parentRevision": 1,
+      "parentInputSha256": "7f49c9e601f743739cedb164c48a24571bc03f397610e47a530f3a7e7489a489",
+      "parentContentSha256": "47cb9b9122dbd90c385b20bce321073e01d8bd3d8547d1cc066809a8504d8b74",
+      "branch": "candidate/task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "commit": "2704403047ca741ae1dcf8ff0c3285ba3babb5a1",
+      "createdAt": "2026-10-10T06:19:06.284Z",
+      "state": "stale",
+      "inputSha256": "1cdc7fd743196a98f8e932737f711cd90e64a63f4e483b134ea4793706a0c30f",
+      "resultSha256": "091c5c906a49be4c85f42bebe9f701ecb8f58ea4147bf3327b828362f4d05657",
+      "evidenceIndex": [
+        "result.json"
+      ],
+      "diagnostic": "父快照、项目会话或恢复状态已变化"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "historyId": "history_d2d1b3f2-4fc7-4311-83da-1d3ace124975",
+      "taskId": "task_23ed3564-d7c2-414d-9452-3be9ac4ca9cc",
+      "candidateId": "candidate_439334c6-ee6d-4c9c-a364-d1d503a5caec",
+      "retryOf": "task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "sessionId": "bab22001-e2da-4682-b29c-5ba3b1f80ebd",
+      "parentCommit": "ba3aaedf2fdbbdfc70b52a6fdc5ead863f2b73aa",
+      "parentRevision": 2,
+      "parentInputSha256": "634bd6eefa24f147ed123f8fd705e1e2d993411d5fc0e9241c7d8886adb66d4d",
+      "parentContentSha256": "b935055a426d312ed7058642e9346e2ea15847cc77a7670040e4da4bf37e59a4",
+      "branch": "candidate/task_23ed3564-d7c2-414d-9452-3be9ac4ca9cc",
+      "commit": "c58b28067811e9d19a54771de6555cfc0072c469",
+      "createdAt": "2026-10-10T06:19:11.460Z",
+      "state": "cancelled",
+      "diagnostic": "用户已取消；迟到输出只能保留为证据"
+    }
+  ],
+  "records": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "revision": 3,
+      "kind": "save",
+      "recordedAt": "2026-10-10T06:19:13.656Z",
+      "contentSha256": "0096c4c00253e207700d285ea08965e64caad78cd946b914110e14d0ba3bd4ee",
+      "inputSha256": "f43301ec0960994c35c12e9cb6bdef7272c7eae675c6db014dfcd3840c4d235c",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "b23f79939e6f289ea1aca2f791c894776f28c31e"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "revision": 3,
+      "kind": "restore",
+      "recordedAt": "2026-10-10T06:19:12.617Z",
+      "contentSha256": "0096c4c00253e207700d285ea08965e64caad78cd946b914110e14d0ba3bd4ee",
+      "inputSha256": "f43301ec0960994c35c12e9cb6bdef7272c7eae675c6db014dfcd3840c4d235c",
+      "taskId": "task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "c961537ff71cea811651eab2e58d54a880c3c575"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "revision": 2,
+      "kind": "candidate-round",
+      "recordedAt": "2026-10-10T06:19:09.803Z",
+      "contentSha256": "b935055a426d312ed7058642e9346e2ea15847cc77a7670040e4da4bf37e59a4",
+      "inputSha256": "3c169f1a8977dae96c12dde49fa9849d7633548cb32f6f3de2b981180b799068",
+      "taskId": "task_23ed3564-d7c2-414d-9452-3be9ac4ca9cc",
+      "candidateId": "candidate_439334c6-ee6d-4c9c-a364-d1d503a5caec",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "ba3aaedf2fdbbdfc70b52a6fdc5ead863f2b73aa"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "revision": 1,
+      "kind": "candidate-round",
+      "recordedAt": "2026-10-10T06:19:04.575Z",
+      "contentSha256": "47cb9b9122dbd90c385b20bce321073e01d8bd3d8547d1cc066809a8504d8b74",
+      "inputSha256": "f43301ec0960994c35c12e9cb6bdef7272c7eae675c6db014dfcd3840c4d235c",
+      "taskId": "task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "candidateId": "candidate_d4b634cf-63b7-4465-ace1-58ccd8bd4ce0",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "eed18bef4d165c365094e4429fea953602818b3c"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_5b11eec9-98cd-4e46-a2e5-44799cd31e9e",
+      "revision": 1,
+      "kind": "save",
+      "recordedAt": "2026-10-10T06:19:03.188Z",
+      "contentSha256": "47cb9b9122dbd90c385b20bce321073e01d8bd3d8547d1cc066809a8504d8b74",
+      "inputSha256": "f43301ec0960994c35c12e9cb6bdef7272c7eae675c6db014dfcd3840c4d235c",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "ad555e4d29e426330ad543b0103e85971dbd152c"
+    }
+  ],
+  "arbitraryCommand": "Error: Error invoking remote method 'project:candidate-tool': Error: 未知候选工具或任意命令被拒绝；只允许 fork/submit/list/read/cancel",
+  "blocked": "Error: Error invoking remote method 'project:candidate-merge': Error: 候选未通过 inspect 或确认版本变化；禁止合并",
+  "branches": [
+    {
+      "taskId": "task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "branch": "candidate/task_cb8e1058-498a-4d4c-b301-00830ef5f8f8",
+      "commit": "2704403047ca741ae1dcf8ff0c3285ba3babb5a1",
+      "parent": "eed18bef4d165c365094e4429fea953602818b3c"
+    },
+    {
+      "taskId": "task_23ed3564-d7c2-414d-9452-3be9ac4ca9cc",
+      "branch": "candidate/task_23ed3564-d7c2-414d-9452-3be9ac4ca9cc",
+      "commit": "c58b28067811e9d19a54771de6555cfc0072c469",
+      "parent": "ba3aaedf2fdbbdfc70b52a6fdc5ead863f2b73aa"
+    }
+  ],
+  "sourceRepositoryUnchanged": true,
+  "numericalInspect": "P25-11 pending; production merge correctly blocked"
+}

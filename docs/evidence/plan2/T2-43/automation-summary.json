@@ -1,6 +1,6 @@
 {
   "task": "T2-43",
-  "generatedAt": "2026-10-08T12:52:51.934Z",
+  "generatedAt": "2026-10-08T13:10:59.064Z",
   "automationPassed": true,
   "passed": false,
   "checks": [
@@ -109,8 +109,8 @@
     "evidence": "docs/evidence/plan2/T2-42/acceptance.md"
   },
   "sources": {
-    "mainlineOne": "7631be37d92a2439ef4b9a24b72454d7bdb9979e40897a82972f9e015997034c",
-    "mainlineDark": "fce8356b47bf1dacf341eee52cb5ec474eb72641392deb0696d97617c5459410",
-    "mainlineLight": "431fec72146cddbc449f3be6e5484c2bb9881b172c2374c4a1f7ebbc0af9951d"
+    "mainlineOne": "af0edb936c19fe12b5ed7c9b2f55498e980f9539eb08e29f18e88f16d05c7380",
+    "mainlineDark": "9ef660c90a249333bcde2698c506202d31d942a52f914da3325fd3d6d2cc8b4a",
+    "mainlineLight": "9f63af8c3b9e9e67d0e9db165e57a7eea2498c00c73b740873ad23892fa5b0dd"
   }
 }

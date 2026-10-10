@@ -32,6 +32,26 @@ function nativeResult(project = modalCantilever()) {
 }
 afterEach(() => vi.unstubAllGlobals());
 
+it("round-trips compact eigenvectors and rejects conflicting or unknown shape encodings", () => {
+  const result = nativeResult();
+  const compact = structuredClone(result);
+  for (const mode of compact.modal!.modes) Object.assign(mode, { nodes: [], members: [], shapeEncoding: "eigenproblem-v1" });
+  const expanded = decodeAnalysisResult(compact);
+  for (const [index, mode] of expanded.modal!.modes.entries()) {
+    const expected = result.modal!.modes[index];
+    for (const [n, node] of mode.nodes.entries()) for (const axis of ["x", "y", "z"] as const) {
+      expect(node.translation[axis]).toBeCloseTo(expected.nodes[n].translation[axis], 10);
+      expect(node.rotation[axis]).toBeCloseTo(expected.nodes[n].rotation[axis], 10);
+    }
+    for (const [m, member] of mode.members.entries()) for (const [s, sample] of member.samples.entries())
+      for (const axis of ["x", "y", "z"] as const) expect(sample.translation[axis]).toBeCloseTo(expected.members[m].samples[s].translation[axis], 10);
+  }
+  const conflict = structuredClone(result); Object.assign(conflict.modal!.modes[0], { shapeEncoding: "eigenproblem-v1" });
+  expect(() => decodeAnalysisResult(conflict)).toThrow(/重复或未知/);
+  const unknown = structuredClone(result); Object.assign(unknown.modal!.modes[0], { shapeEncoding: "unknown" });
+  expect(() => decodeAnalysisResult(unknown)).toThrow(/重复或未知/);
+});
+
 it("binds effective uniform and override damping to a saved modal identity without changing eigenfrequencies", () => {
   const p = modalCantilever(), r = nativeResult(p), analyzed = attachAnalysisResult(p, r);
   const input: ModalDampingInput = { uniform: { ratio: .02, source: "user", basis: "试验输入" }, overrides: [{ modeNumber: 2, value: { ratio: .04, source: "suggestion", basis: "待核对试验建议" } }], truncation: { upperFrequencyHz: 100, modeIncrement: 2, maxModeCount: 10 } };
@@ -198,7 +218,7 @@ it("separates display scaling from saved shapes and rejects static interpretatio
 });
 
 it("rejects malformed extraction settings, foreign mappings and forged mass/frequency/shape records", () => {
-  for (const settings of [{ modeCount: 0 }, { maxEquations: 1201 }, { maxDivisions: 3 }, { frequencyTolerance: NaN }]) {
+  for (const settings of [{ modeCount: 0 }, { maxEquations: 2147483648 }, { maxDivisions: 3 }, { frequencyTolerance: NaN }]) {
     expect(() => validateModalSettings({ ...DEFAULT_MODAL_SETTINGS, ...settings })).toThrow();
   }
   const r = nativeResult();

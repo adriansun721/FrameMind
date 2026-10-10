@@ -80,8 +80,8 @@ static Json meshMappedResult(const Json& result, const Json& input, const Json& 
     // The engineering view does not contain calculation process matrices.
     // Select its fields before copying, rather than copying a full result and erasing it.
     Json mapped;
-    for (const auto& field:result.items())
-        if (field.key()!="input" && field.key()!="process" && field.key()!="members" && field.key()!="nodes") mapped[field.key()]=field.value();
+    for (const auto& key:{"id","projectId","projectRevision","createdAt","status","service"})
+        if (result.contains(key)) mapped[key]=result[key];
     mapped["input"]=input; mapped["members"]=Json::array(); mapped["nodes"]=Json::array();
     for (size_t i=0;i<input.at("nodes").size();++i) mapped["nodes"].push_back(result.at("nodes")[i]);
     size_t offset=0; const int divisions=level.at("divisions").get<int>();
@@ -92,7 +92,9 @@ static Json meshMappedResult(const Json& result, const Json& input, const Json& 
         Json samples=Json::array();
         for (int station=0;station<=16;++station) {
             const int scaled=station*divisions, element=std::min(divisions-1,scaled/16), local=scaled-element*16;
-            Json sample=result.at("members")[offset+element].at("nativeResponses")[local]; sample["position"]=length*station/16; samples.push_back(sample);
+            Json sample=result.at("members")[offset+element].at("nativeResponses")[local];
+            if (sample.is_array()) sample[0]=length*station/16; else sample["position"]=length*station/16;
+            samples.push_back(std::move(sample));
         }
         member["nativeResponses"]=std::move(samples); mapped["members"].push_back(std::move(member)); offset+=divisions;
     }
@@ -108,7 +110,7 @@ static Json meshErrors(const Json& previous, const Json& current, const Json& po
         for (const auto& key:{"reaction","reactionMoment"}) vector(previous["nodes"][i][key],current["nodes"][i][key],number(policy["forceTolerance"]),reaction);
     }
     for (size_t i=0;i<current.at("members").size();++i) for (int station=0;station<=16;++station) {
-        const auto& a=previous["members"][i]["nativeResponses"][station]; const auto& b=current["members"][i]["nativeResponses"][station];
+        const auto a=unpackResponseSample(previous["members"][i]["nativeResponses"][station]), b=unpackResponseSample(current["members"][i]["nativeResponses"][station]);
         vector(a["globalDisplacement"],b["globalDisplacement"],number(policy["displacementTolerance"]),displacement);
         for (int component=0;component<6;++component) compare(number(a["forces"][component]),number(b["forces"][component]),number(policy["forceTolerance"]),force);
     }
@@ -144,6 +146,7 @@ static Json calculateMeshStatic(const Json& request, Json& stages, std::string& 
         if (runs.empty()) stages=runStages;
         mapped=meshMappedResult(finalResult,input,level); Json run={{"divisions",level["divisions"]}}; selected=level["divisions"].get<int>();
         if (!previous.is_null()) { run["error"]=meshErrors(previous,mapped,policy); bool converged=true; for (auto e=run["error"].begin();e!=run["error"].end();++e) converged=converged && number(e.value())<=1; if (converged) { status="converged"; reason="tolerance"; } }
+        compactNativeResponseTransport(finalResult);
         run["result"]=std::move(finalResult); runs.push_back(std::move(run)); previous=std::move(mapped); if (status=="converged") break;
     }
     if (runs.empty()) throw Failure("mesh-budget-exhausted","Equation budget prevents even the initial mesh",nullptr,"meshPlan");

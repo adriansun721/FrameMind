@@ -2,16 +2,16 @@
   "passed": true,
   "installed": false,
   "compilerPath": "Windows System32 only",
-  "directory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-osYLDL",
+  "directory": "C:\\Users\\小红薯\\AppData\\Local\\Temp\\framemind-t213-YwaAEi",
   "records": [
     {
       "id": "axial",
       "passed": true,
       "result": {
-        "id": "analysis_a38cfe17-20c7-47ab-bd00-39cabd90111c",
+        "id": "analysis_2ad7bc94-da4f-4449-806f-abe77739dcb6",
         "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:51Z",
+        "createdAt": "2026-10-06T08:04:56Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -122,9 +122,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -594,8 +594,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -1211,7 +1211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_a38cfe17-20c7-47ab-bd00-39cabd90111c",
+          "analysisId": "analysis_2ad7bc94-da4f-4449-806f-abe77739dcb6",
           "dependencies": [
             {
               "factor": 1,
@@ -1223,30 +1223,30 @@
           },
           "projectId": "project_50a9b0d2-9d56-416d-8e10-19b3c03fb4f1",
           "projectRevision": 7,
-          "requestId": "request_6b572b06-98a6-42ab-b8a1-18340ccb240c",
+          "requestId": "request_dfacb825-ed57-47b2-b155-5acd9742ace9",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:56Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:56Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:56Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:56Z"
             }
           ],
           "status": "complete",
@@ -1258,10 +1258,10 @@
       "id": "bend-y",
       "passed": true,
       "result": {
-        "id": "analysis_dc67cf7d-9133-42a4-b28a-bbc22f410af2",
+        "id": "analysis_95a11bb6-f035-4698-bc69-cf04cea3ca65",
         "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:51Z",
+        "createdAt": "2026-10-06T08:04:57Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -1372,9 +1372,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -1409,20 +1409,20 @@
             },
             "reaction": {
               "x": 0,
-              "y": -5,
+              "y": -5.0000000000000036,
               "z": 0
             },
             "reactionMoment": {
               "x": 0,
               "y": 0,
-              "z": -20
+              "z": -20.000000000000007
             }
           },
           {
             "nodeId": "node_0002",
             "displacement": {
               "x": 0,
-              "y": 0.005333333333333333,
+              "y": 0.005333333333333334,
               "z": 0
             },
             "rotation": {
@@ -1432,13 +1432,13 @@
             },
             "reaction": {
               "x": 0,
-              "y": 0,
+              "y": 3.552713678800501e-15,
               "z": 0
             },
             "reactionMoment": {
               "x": 0,
               "y": 0,
-              "z": 0
+              "z": -7.105427357601002e-15
             }
           }
         ],
@@ -1466,19 +1466,19 @@
             "localEndForces": {
               "start": [
                 0,
-                -5,
+                -5.0000000000000036,
                 0,
                 0,
                 0,
-                -20
+                -20.000000000000007
               ],
               "end": [
                 0,
-                5,
+                5.0000000000000036,
                 0,
                 0,
                 0,
-                0
+                -7.105427357601002e-15
               ]
             },
             "nativeResponses": [
@@ -1486,11 +1486,11 @@
                 "position": 0,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  20
+                  20.000000000000007
                 ],
                 "localDisplacement": {
                   "x": 0,
@@ -1507,20 +1507,20 @@
                 "position": 0.25,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  18.75
+                  18.750000000000007
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.00003059895833333333,
+                  "y": 0.000030598958333333345,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.00003059895833333333,
+                  "y": 0.000030598958333333345,
                   "z": 0
                 }
               },
@@ -1528,20 +1528,20 @@
                 "position": 0.5,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  17.5
+                  17.500000000000007
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.00011979166666666666,
+                  "y": 0.00011979166666666669,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.00011979166666666666,
+                  "y": 0.00011979166666666669,
                   "z": 0
                 }
               },
@@ -1549,20 +1549,20 @@
                 "position": 0.75,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  16.25
+                  16.250000000000004
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.000263671875,
+                  "y": 0.0002636718750000001,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.000263671875,
+                  "y": 0.0002636718750000001,
                   "z": 0
                 }
               },
@@ -1570,20 +1570,20 @@
                 "position": 1,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  15
+                  15.000000000000004
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.00045833333333333327,
+                  "y": 0.0004583333333333335,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.00045833333333333327,
+                  "y": 0.0004583333333333335,
                   "z": 0
                 }
               },
@@ -1591,20 +1591,20 @@
                 "position": 1.25,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  13.75
+                  13.750000000000004
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.0006998697916666666,
+                  "y": 0.0006998697916666668,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.0006998697916666666,
+                  "y": 0.0006998697916666668,
                   "z": 0
                 }
               },
@@ -1612,20 +1612,20 @@
                 "position": 1.5,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  12.5
+                  12.500000000000002
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.000984375,
+                  "y": 0.0009843750000000002,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.000984375,
+                  "y": 0.0009843750000000002,
                   "z": 0
                 }
               },
@@ -1633,7 +1633,7 @@
                 "position": 1.75,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
@@ -1641,12 +1641,12 @@
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.0013079427083333333,
+                  "y": 0.0013079427083333337,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.0013079427083333333,
+                  "y": 0.0013079427083333337,
                   "z": 0
                 }
               },
@@ -1654,7 +1654,7 @@
                 "position": 2,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
@@ -1662,12 +1662,12 @@
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.0016666666666666666,
+                  "y": 0.001666666666666667,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.0016666666666666666,
+                  "y": 0.001666666666666667,
                   "z": 0
                 }
               },
@@ -1675,7 +1675,7 @@
                 "position": 2.25,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
@@ -1696,20 +1696,20 @@
                 "position": 2.5,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  7.5
+                  7.499999999999998
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.0024739583333333332,
+                  "y": 0.002473958333333334,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.0024739583333333332,
+                  "y": 0.002473958333333334,
                   "z": 0
                 }
               },
@@ -1717,20 +1717,20 @@
                 "position": 2.75,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  6.25
+                  6.2499999999999964
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.0029147135416666666,
+                  "y": 0.0029147135416666674,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.0029147135416666666,
+                  "y": 0.0029147135416666674,
                   "z": 0
                 }
               },
@@ -1738,20 +1738,20 @@
                 "position": 3,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  5
+                  4.9999999999999964
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.0033749999999999995,
+                  "y": 0.0033750000000000004,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.0033749999999999995,
+                  "y": 0.0033750000000000004,
                   "z": 0
                 }
               },
@@ -1759,11 +1759,11 @@
                 "position": 3.25,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  3.75
+                  3.7499999999999964
                 ],
                 "localDisplacement": {
                   "x": 0,
@@ -1780,20 +1780,20 @@
                 "position": 3.5,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  2.5
+                  2.499999999999993
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.004338541666666667,
+                  "y": 0.004338541666666668,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.004338541666666667,
+                  "y": 0.004338541666666668,
                   "z": 0
                 }
               },
@@ -1801,20 +1801,20 @@
                 "position": 3.75,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  1.25
+                  1.249999999999993
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.004833984374999999,
+                  "y": 0.004833984375,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.004833984374999999,
+                  "y": 0.004833984375,
                   "z": 0
                 }
               },
@@ -1822,20 +1822,20 @@
                 "position": 4,
                 "forces": [
                   0,
-                  5,
+                  5.0000000000000036,
                   0,
                   0,
                   0,
-                  0
+                  -7.105427357601002e-15
                 ],
                 "localDisplacement": {
                   "x": 0,
-                  "y": 0.005333333333333333,
+                  "y": 0.005333333333333334,
                   "z": 0
                 },
                 "globalDisplacement": {
                   "x": 0,
-                  "y": 0.005333333333333333,
+                  "y": 0.005333333333333334,
                   "z": 0
                 }
               }
@@ -1844,8 +1844,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -2461,7 +2461,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_dc67cf7d-9133-42a4-b28a-bbc22f410af2",
+          "analysisId": "analysis_95a11bb6-f035-4698-bc69-cf04cea3ca65",
           "dependencies": [
             {
               "factor": 1,
@@ -2473,30 +2473,30 @@
           },
           "projectId": "project_21783916-399b-4310-b9eb-b5714a40c657",
           "projectRevision": 7,
-          "requestId": "request_8b628e6b-9d61-4471-92d8-f5845027b7e6",
+          "requestId": "request_53c7458e-6f6d-4f44-b3d7-9cdace2d2db6",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:57Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:57Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:57Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:57Z"
             }
           ],
           "status": "complete",
@@ -2508,10 +2508,10 @@
       "id": "bend-z",
       "passed": true,
       "result": {
-        "id": "analysis_4b864264-33c7-4c33-ba4f-1f44addd03ea",
+        "id": "analysis_0202db58-4eeb-482e-a56d-b7aa843ec316",
         "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:51Z",
+        "createdAt": "2026-10-06T08:04:58Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -2622,9 +2622,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -2660,7 +2660,7 @@
             "reaction": {
               "x": 0,
               "y": 0,
-              "z": 2.9999999999999982
+              "z": 3
             },
             "reactionMoment": {
               "x": 0,
@@ -2673,21 +2673,21 @@
             "displacement": {
               "x": 0,
               "y": 0,
-              "z": -0.0015999999999999999
+              "z": -0.0016
             },
             "rotation": {
               "x": 0,
-              "y": 0.0006,
+              "y": 0.0006000000000000001,
               "z": 0
             },
             "reaction": {
               "x": 0,
               "y": 0,
-              "z": 1.7763568394002505e-15
+              "z": 0
             },
             "reactionMoment": {
               "x": 0,
-              "y": 0,
+              "y": 3.552713678800501e-15,
               "z": 0
             }
           }
@@ -2717,7 +2717,7 @@
               "start": [
                 0,
                 0,
-                2.9999999999999982,
+                3,
                 0,
                 -11.999999999999998,
                 0
@@ -2725,9 +2725,9 @@
               "end": [
                 0,
                 0,
-                -2.9999999999999982,
+                -3,
                 0,
-                0,
+                3.552713678800501e-15,
                 0
               ]
             },
@@ -2737,7 +2737,7 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
                   11.999999999999998,
                   0
@@ -2758,7 +2758,7 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
                   11.249999999999998,
                   0
@@ -2766,12 +2766,12 @@
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0000091796875
+                  "z": -0.000009179687499999999
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0000091796875
+                  "z": -0.000009179687499999999
                 }
               },
               {
@@ -2779,20 +2779,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  10.5,
+                  10.499999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00003593749999999999
+                  "z": -0.0000359375
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00003593749999999999
+                  "z": -0.0000359375
                 }
               },
               {
@@ -2800,20 +2800,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  9.75,
+                  9.749999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00007910156249999998
+                  "z": -0.00007910156249999999
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00007910156249999998
+                  "z": -0.00007910156249999999
                 }
               },
               {
@@ -2821,20 +2821,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  9,
+                  8.999999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0001375
+                  "z": -0.00013749999999999998
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0001375
+                  "z": -0.00013749999999999998
                 }
               },
               {
@@ -2842,20 +2842,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  8.25,
+                  8.249999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00020996093749999997
+                  "z": -0.0002099609375
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00020996093749999997
+                  "z": -0.0002099609375
                 }
               },
               {
@@ -2863,20 +2863,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  7.500000000000001,
+                  7.499999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0002953125
+                  "z": -0.00029531249999999995
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0002953125
+                  "z": -0.00029531249999999995
                 }
               },
               {
@@ -2884,9 +2884,9 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  6.750000000000002,
+                  6.749999999999998,
                   0
                 ],
                 "localDisplacement": {
@@ -2905,9 +2905,9 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  6.000000000000002,
+                  5.999999999999998,
                   0
                 ],
                 "localDisplacement": {
@@ -2926,20 +2926,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  5.250000000000002,
+                  5.249999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0006169921874999999
+                  "z": -0.0006169921875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0006169921874999999
+                  "z": -0.0006169921875
                 }
               },
               {
@@ -2947,20 +2947,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  4.500000000000003,
+                  4.499999999999998,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0007421874999999999
+                  "z": -0.0007421875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0007421874999999999
+                  "z": -0.0007421875
                 }
               },
               {
@@ -2968,9 +2968,9 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  3.7500000000000036,
+                  3.7499999999999982,
                   0
                 ],
                 "localDisplacement": {
@@ -2989,9 +2989,9 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  3.0000000000000036,
+                  2.9999999999999982,
                   0
                 ],
                 "localDisplacement": {
@@ -3010,20 +3010,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  2.2500000000000036,
+                  2.2499999999999982,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0011552734374999998
+                  "z": -0.0011552734375
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0011552734374999998
+                  "z": -0.0011552734375
                 }
               },
               {
@@ -3031,20 +3031,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  1.5000000000000053,
+                  1.4999999999999982,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0013015624999999998
+                  "z": -0.0013015625
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0013015624999999998
+                  "z": -0.0013015625
                 }
               },
               {
@@ -3052,20 +3052,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  0.7500000000000053,
+                  0.7499999999999982,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0014501953124999999
+                  "z": -0.0014501953125
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0014501953124999999
+                  "z": -0.0014501953125
                 }
               },
               {
@@ -3073,20 +3073,20 @@
                 "forces": [
                   0,
                   0,
-                  -2.9999999999999982,
+                  -3,
                   0,
-                  5.329070518200751e-15,
+                  -1.7763568394002505e-15,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0015999999999999999
+                  "z": -0.0016
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0015999999999999999
+                  "z": -0.0016
                 }
               }
             ]
@@ -3094,8 +3094,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -3711,7 +3711,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_4b864264-33c7-4c33-ba4f-1f44addd03ea",
+          "analysisId": "analysis_0202db58-4eeb-482e-a56d-b7aa843ec316",
           "dependencies": [
             {
               "factor": 1,
@@ -3723,30 +3723,30 @@
           },
           "projectId": "project_ab294664-88b9-4a35-b293-87f9f2d88bdb",
           "projectRevision": 7,
-          "requestId": "request_5efae1ee-f56d-4ff1-aa35-5cdafe599ce1",
+          "requestId": "request_07968865-f11b-4f55-bf8b-a8231da251fc",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:58Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:58Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:58Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:58Z"
             }
           ],
           "status": "complete",
@@ -3758,10 +3758,10 @@
       "id": "torsion",
       "passed": true,
       "result": {
-        "id": "analysis_4157a4b4-7c65-4fba-a252-6f57d5bef494",
+        "id": "analysis_1388e346-f639-4060-adc9-91afe4699add",
         "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:51Z",
+        "createdAt": "2026-10-06T08:04:59Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -3872,9 +3872,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -4344,8 +4344,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -4961,7 +4961,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_4157a4b4-7c65-4fba-a252-6f57d5bef494",
+          "analysisId": "analysis_1388e346-f639-4060-adc9-91afe4699add",
           "dependencies": [
             {
               "factor": 1,
@@ -4973,30 +4973,30 @@
           },
           "projectId": "project_870c3cd4-59a7-4437-be55-9cab21ae8147",
           "projectRevision": 7,
-          "requestId": "request_54001f0c-6868-4d35-8023-c835c1b69f92",
+          "requestId": "request_b6996cf5-fb15-498a-ae61-e91845b84e51",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:51Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             }
           ],
           "status": "complete",
@@ -5008,10 +5008,10 @@
       "id": "moment-y",
       "passed": true,
       "result": {
-        "id": "analysis_87f2d1c0-58ef-4705-a602-e4d46a8b7af7",
+        "id": "analysis_6cddebb0-6d17-43f6-97ac-1cdc08895422",
         "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:52Z",
+        "createdAt": "2026-10-06T08:04:59Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -5122,9 +5122,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -5160,7 +5160,7 @@
             "reaction": {
               "x": 0,
               "y": 0,
-              "z": -4.440892098500626e-16
+              "z": 0
             },
             "reactionMoment": {
               "x": 0,
@@ -5173,21 +5173,21 @@
             "displacement": {
               "x": 0,
               "y": 0,
-              "z": -0.0002999999999999999
+              "z": -0.00030000000000000003
             },
             "rotation": {
               "x": 0,
-              "y": 0.00015,
+              "y": 0.00015000000000000001,
               "z": 0
             },
             "reaction": {
               "x": 0,
               "y": 0,
-              "z": 4.440892098500626e-16
+              "z": 0
             },
             "reactionMoment": {
               "x": 0,
-              "y": 0,
+              "y": 8.881784197001252e-16,
               "z": 0
             }
           }
@@ -5217,7 +5217,7 @@
               "start": [
                 0,
                 0,
-                -4.440892098500626e-16,
+                0,
                 0,
                 -1.4999999999999996,
                 0
@@ -5225,9 +5225,9 @@
               "end": [
                 0,
                 0,
-                4.440892098500626e-16,
                 0,
-                1.5,
+                0,
+                1.5000000000000009,
                 0
               ]
             },
@@ -5237,7 +5237,7 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
+                  0,
                   0,
                   1.4999999999999996,
                   0
@@ -5258,7 +5258,7 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
+                  0,
                   0,
                   1.4999999999999996,
                   0
@@ -5266,12 +5266,12 @@
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0000011718749999999993
+                  "z": -0.0000011718750000000001
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0000011718749999999993
+                  "z": -0.0000011718750000000001
                 }
               },
               {
@@ -5279,20 +5279,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.4999999999999998,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000004687499999999997
+                  "z": -0.0000046875000000000004
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000004687499999999997
+                  "z": -0.0000046875000000000004
                 }
               },
               {
@@ -5300,20 +5300,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000010546874999999994
+                  "z": -0.000010546875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000010546874999999994
+                  "z": -0.000010546875
                 }
               },
               {
@@ -5321,20 +5321,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000018749999999999988
+                  "z": -0.00001875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000018749999999999988
+                  "z": -0.00001875
                 }
               },
               {
@@ -5342,20 +5342,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000029296874999999985
+                  "z": -0.000029296875000000006
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000029296874999999985
+                  "z": -0.000029296875000000006
                 }
               },
               {
@@ -5363,20 +5363,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000002,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00004218749999999999
+                  "z": -0.0000421875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00004218749999999999
+                  "z": -0.0000421875
                 }
               },
               {
@@ -5384,20 +5384,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000004,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000057421874999999964
+                  "z": -0.000057421875000000005
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.000057421874999999964
+                  "z": -0.000057421875000000005
                 }
               },
               {
@@ -5405,20 +5405,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000004,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00007499999999999997
+                  "z": -0.00007500000000000001
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00007499999999999997
+                  "z": -0.00007500000000000001
                 }
               },
               {
@@ -5426,20 +5426,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000004,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00009492187499999995
+                  "z": -0.00009492187500000001
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00009492187499999995
+                  "z": -0.00009492187500000001
                 }
               },
               {
@@ -5447,20 +5447,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000007,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00011718749999999994
+                  "z": -0.00011718750000000001
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00011718749999999994
+                  "z": -0.00011718750000000001
                 }
               },
               {
@@ -5468,20 +5468,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000009,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00014179687499999994
+                  "z": -0.000141796875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00014179687499999994
+                  "z": -0.000141796875
                 }
               },
               {
@@ -5489,20 +5489,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000009,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00016874999999999995
+                  "z": -0.00016875000000000004
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00016874999999999995
+                  "z": -0.00016875000000000004
                 }
               },
               {
@@ -5510,20 +5510,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000009,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00019804687499999993
+                  "z": -0.00019804687500000003
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00019804687499999993
+                  "z": -0.00019804687500000003
                 }
               },
               {
@@ -5531,20 +5531,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.500000000000001,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00022968749999999994
+                  "z": -0.00022968750000000002
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.00022968749999999994
+                  "z": -0.00022968750000000002
                 }
               },
               {
@@ -5552,20 +5552,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000013,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0002636718749999999
+                  "z": -0.000263671875
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0002636718749999999
+                  "z": -0.000263671875
                 }
               },
               {
@@ -5573,20 +5573,20 @@
                 "forces": [
                   0,
                   0,
-                  4.440892098500626e-16,
                   0,
-                  1.5000000000000013,
+                  0,
+                  1.4999999999999996,
                   0
                 ],
                 "localDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0002999999999999999
+                  "z": -0.00030000000000000003
                 },
                 "globalDisplacement": {
                   "x": 0,
                   "y": 0,
-                  "z": -0.0002999999999999999
+                  "z": -0.00030000000000000003
                 }
               }
             ]
@@ -5594,8 +5594,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -6211,7 +6211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_87f2d1c0-58ef-4705-a602-e4d46a8b7af7",
+          "analysisId": "analysis_6cddebb0-6d17-43f6-97ac-1cdc08895422",
           "dependencies": [
             {
               "factor": 1,
@@ -6223,30 +6223,30 @@
           },
           "projectId": "project_b26bb9fa-25cb-4326-bbca-03d9e9aebea3",
           "projectRevision": 7,
-          "requestId": "request_23cf5530-e69b-4e0d-bc15-1b29a10f77e8",
+          "requestId": "request_856e3262-9a64-4f62-b21c-1374fbb2e6d4",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:04:59Z"
             }
           ],
           "status": "complete",
@@ -6258,10 +6258,10 @@
       "id": "moment-z",
       "passed": true,
       "result": {
-        "id": "analysis_fffc04a1-3c7b-4290-bfae-cf2385dfffa4",
+        "id": "analysis_bb7f3ec1-023c-4c25-9649-06297307d41b",
         "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:52Z",
+        "createdAt": "2026-10-06T08:05:00Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -6372,9 +6372,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -6844,8 +6844,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -7461,7 +7461,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_fffc04a1-3c7b-4290-bfae-cf2385dfffa4",
+          "analysisId": "analysis_bb7f3ec1-023c-4c25-9649-06297307d41b",
           "dependencies": [
             {
               "factor": 1,
@@ -7473,30 +7473,30 @@
           },
           "projectId": "project_91abef65-1e10-421c-acaf-833711459f51",
           "projectRevision": 7,
-          "requestId": "request_7b2ecc5d-72f2-4726-957a-d4a09a6d455d",
+          "requestId": "request_f5bfcbda-0e9c-4edd-a649-fbdc0d5a3a75",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:00Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:00Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:00Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:00Z"
             }
           ],
           "status": "complete",
@@ -7508,10 +7508,10 @@
       "id": "six-components",
       "passed": true,
       "result": {
-        "id": "analysis_899594c5-2d46-4d6e-a2e0-f32ee7a8c18c",
+        "id": "analysis_898a2a8d-0ff7-4134-a1a6-fe540f7da40c",
         "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:52Z",
+        "createdAt": "2026-10-06T08:05:01Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -7622,9 +7622,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -8094,8 +8094,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -8711,7 +8711,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_899594c5-2d46-4d6e-a2e0-f32ee7a8c18c",
+          "analysisId": "analysis_898a2a8d-0ff7-4134-a1a6-fe540f7da40c",
           "dependencies": [
             {
               "factor": 1,
@@ -8723,30 +8723,30 @@
           },
           "projectId": "project_ee0e9bd2-fef0-41b8-ab95-8def524187d9",
           "projectRevision": 7,
-          "requestId": "request_37345262-b8a2-48b5-b9e9-db8a6973953b",
+          "requestId": "request_e37812a9-21c6-4364-b9a7-f697484beee9",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:01Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:01Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:01Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:01Z"
             }
           ],
           "status": "complete",
@@ -8758,10 +8758,10 @@
       "id": "vertical",
       "passed": true,
       "result": {
-        "id": "analysis_b21b6c06-2517-435f-8d2a-2e42ccd5951e",
+        "id": "analysis_e894c195-922e-4bb9-afed-743043a88093",
         "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:52Z",
+        "createdAt": "2026-10-06T08:05:02Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -8872,9 +8872,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -8915,7 +8915,7 @@
             "reactionMoment": {
               "x": 18,
               "y": -33.5,
-              "z": 1.25
+              "z": 1.2500000000000002
             }
           },
           {
@@ -8928,7 +8928,7 @@
             "rotation": {
               "x": -0.0008,
               "y": 0.0035,
-              "z": -0.00043333333333333337
+              "z": -0.0004333333333333334
             },
             "reaction": {
               "x": 0,
@@ -8938,7 +8938,7 @@
             "reactionMoment": {
               "x": 0,
               "y": 0,
-              "z": 0
+              "z": -2.220446049250313e-16
             }
           }
         ],
@@ -8968,7 +8968,7 @@
                 3,
                 -8,
                 -5,
-                1.25,
+                1.2500000000000002,
                 18,
                 -33.5
               ],
@@ -8976,7 +8976,7 @@
                 -3,
                 8,
                 5,
-                -1.25,
+                -1.2500000000000002,
                 2,
                 1.5
               ]
@@ -8988,7 +8988,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -18,
                   33.5
                 ],
@@ -9009,7 +9009,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -16.75,
                   31.5
                 ],
@@ -9030,7 +9030,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -15.5,
                   29.5
                 ],
@@ -9051,7 +9051,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -14.25,
                   27.5
                 ],
@@ -9072,7 +9072,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -13,
                   25.5
                 ],
@@ -9093,7 +9093,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -11.75,
                   23.5
                 ],
@@ -9114,7 +9114,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -10.5,
                   21.5
                 ],
@@ -9135,7 +9135,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -9.25,
                   19.5
                 ],
@@ -9156,7 +9156,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -8,
                   17.5
                 ],
@@ -9177,7 +9177,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -6.75,
                   15.5
                 ],
@@ -9198,7 +9198,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -5.5,
                   13.5
                 ],
@@ -9219,7 +9219,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -4.25,
                   11.5
                 ],
@@ -9240,7 +9240,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -3,
                   9.5
                 ],
@@ -9261,7 +9261,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -1.75,
                   7.5
                 ],
@@ -9282,7 +9282,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   -0.5,
                   5.5
                 ],
@@ -9303,7 +9303,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   0.75,
                   3.5
                 ],
@@ -9324,7 +9324,7 @@
                   -3,
                   8,
                   5,
-                  -1.25,
+                  -1.2500000000000002,
                   2,
                   1.5
                 ],
@@ -9344,8 +9344,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -9961,7 +9961,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_b21b6c06-2517-435f-8d2a-2e42ccd5951e",
+          "analysisId": "analysis_e894c195-922e-4bb9-afed-743043a88093",
           "dependencies": [
             {
               "factor": 1,
@@ -9973,30 +9973,30 @@
           },
           "projectId": "project_4b8a5754-a01e-4fa1-b2cc-dc43eb82209f",
           "projectRevision": 7,
-          "requestId": "request_14bc7be4-91b3-4424-9e28-ec7d2bcb157c",
+          "requestId": "request_e1afa5d1-0b60-4130-b979-d2f6eec399c8",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:52Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             }
           ],
           "status": "complete",
@@ -10008,10 +10008,10 @@
       "id": "skew-rotated-section",
       "passed": true,
       "result": {
-        "id": "analysis_7f33461c-97e5-4829-ab07-bd345d3c56bf",
+        "id": "analysis_cf19e7cb-49e0-4548-be83-79a90351c4d1",
         "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
         "projectRevision": 7,
-        "createdAt": "2026-10-05T08:20:53Z",
+        "createdAt": "2026-10-06T08:05:02Z",
         "status": "complete",
         "input": {
           "assumptions": {
@@ -10122,9 +10122,9 @@
             }
           },
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "supports": [
@@ -10158,37 +10158,37 @@
               "z": 0
             },
             "reaction": {
-              "x": -7.999999999999988,
-              "y": -4.9999999999999805,
+              "x": -7.9999999999999964,
+              "y": -4.999999999999961,
               "z": 2.9999999999999996
             },
             "reactionMoment": {
               "x": 7.6,
               "y": -8.699999999999998,
-              "z": 14.849999999999973
+              "z": 14.850000000000051
             }
           },
           {
             "nodeId": "node_0002",
             "displacement": {
-              "x": 0.0016612266666666633,
-              "y": -0.0012239199999999975,
+              "x": 0.001661226666666672,
+              "y": -0.001223920000000004,
               "z": -0.00292
             },
             "rotation": {
-              "x": -0.0003488,
+              "x": -0.0003488000000000002,
               "y": 0.0013016,
-              "z": -0.0008049999999999983
+              "z": -0.0008050000000000024
             },
             "reaction": {
-              "x": -1.2434497875801753e-14,
-              "y": -1.9539925233402755e-14,
+              "x": -3.552713678800501e-15,
+              "y": -3.907985046680551e-14,
               "z": 4.440892098500626e-16
             },
             "reactionMoment": {
-              "x": 8.881784197001252e-16,
-              "y": 1.1102230246251565e-15,
-              "z": 7.105427357601002e-15
+              "x": -2.6645352591003757e-15,
+              "y": 2.886579864025407e-15,
+              "z": 3.552713678800501e-15
             }
           }
         ],
@@ -10215,32 +10215,32 @@
             },
             "localEndForces": {
               "start": [
-                -8.799999999999955,
-                2.9999999999999987,
-                -3.3999999999999932,
+                -8.799999999999889,
+                2.9999999999999982,
+                -3.400000000000013,
                 -2.4,
-                14.84999999999997,
-                11.3
+                14.850000000000048,
+                11.299999999999997
               ],
               "end": [
-                8.799999999999955,
-                -2.9999999999999987,
-                3.3999999999999932,
+                8.799999999999889,
+                -2.9999999999999982,
+                3.400000000000013,
                 2.4,
-                -1.249999999999993,
-                0.6999999999999983
+                -1.25,
+                0.6999999999999957
               ]
             },
             "nativeResponses": [
               {
                 "position": 0,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -14.84999999999997,
-                  -11.3
+                  -14.850000000000048,
+                  -11.299999999999997
                 ],
                 "localDisplacement": {
                   "x": 0,
@@ -10256,336 +10256,336 @@
               {
                 "position": 0.25,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -13.999999999999972,
-                  -10.55
+                  -14.000000000000044,
+                  -10.549999999999997
                 ],
                 "localDisplacement": {
                   "x": 0.000001099999999999986,
-                  "y": -0.000017265624999999998,
-                  "z": 0.000011380208333333316
+                  "y": -0.000017265624999999994,
+                  "z": 0.00001138020833333337
                 },
                 "globalDisplacement": {
-                  "x": 0.000009764166666666645,
-                  "y": -0.000005948125000000002,
-                  "z": -0.000017265624999999998
+                  "x": 0.000009764166666666689,
+                  "y": -0.000005948125000000034,
+                  "z": -0.000017265624999999994
                 }
               },
               {
                 "position": 0.5,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -13.149999999999974,
-                  -9.8
+                  -13.150000000000041,
+                  -9.799999999999997
                 ],
                 "localDisplacement": {
                   "x": 0.000002199999999999972,
-                  "y": -0.00006749999999999999,
-                  "z": 0.00004463541666666659
+                  "y": -0.00006749999999999997,
+                  "z": 0.00004463541666666681
                 },
                 "globalDisplacement": {
-                  "x": 0.000037028333333333265,
-                  "y": -0.000025021249999999977,
-                  "z": -0.00006749999999999999
+                  "x": 0.000037028333333333434,
+                  "y": -0.00002502125000000011,
+                  "z": -0.00006749999999999997
                 }
               },
               {
                 "position": 0.75,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -12.299999999999974,
-                  -9.05
+                  -12.300000000000038,
+                  -9.049999999999999
                 ],
                 "localDisplacement": {
                   "x": 0.0000032999999999999582,
-                  "y": -0.00014835937499999997,
-                  "z": 0.00009843749999999984
+                  "y": -0.00014835937499999995,
+                  "z": 0.00009843750000000033
                 },
                 "globalDisplacement": {
-                  "x": 0.00008072999999999986,
-                  "y": -0.000056422499999999936,
-                  "z": -0.00014835937499999997
+                  "x": 0.00008073000000000024,
+                  "y": -0.000056422500000000234,
+                  "z": -0.00014835937499999995
                 }
               },
               {
                 "position": 1,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -11.449999999999976,
-                  -8.300000000000002
+                  -11.450000000000035,
+                  -8.299999999999999
                 ],
                 "localDisplacement": {
                   "x": 0.000004399999999999944,
-                  "y": -0.00025749999999999997,
-                  "z": 0.0001714583333333331
+                  "y": -0.0002574999999999999,
+                  "z": 0.00017145833333333393
                 },
                 "globalDisplacement": {
-                  "x": 0.00013980666666666647,
-                  "y": -0.00009935499999999989,
-                  "z": -0.00025749999999999997
+                  "x": 0.00013980666666666712,
+                  "y": -0.0000993550000000004,
+                  "z": -0.0002574999999999999
                 }
               },
               {
                 "position": 1.25,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -10.599999999999978,
-                  -7.5500000000000025
+                  -10.600000000000032,
+                  -7.549999999999999
                 ],
                 "localDisplacement": {
                   "x": 0.00000549999999999993,
-                  "y": -0.000392578125,
-                  "z": 0.0002623697916666662
+                  "y": -0.00039257812499999997,
+                  "z": 0.0002623697916666676
                 },
                 "globalDisplacement": {
-                  "x": 0.00021319583333333293,
-                  "y": -0.0001530218749999998,
-                  "z": -0.000392578125
+                  "x": 0.00021319583333333404,
+                  "y": -0.00015302187500000063,
+                  "z": -0.00039257812499999997
                 }
               },
               {
                 "position": 1.5,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -9.749999999999979,
-                  -6.8000000000000025
+                  -9.750000000000028,
+                  -6.8
                 ],
                 "localDisplacement": {
                   "x": 0.0000065999999999999165,
                   "y": -0.0005512499999999999,
-                  "z": 0.00036984374999999935
+                  "z": 0.00036984375000000125
                 },
                 "globalDisplacement": {
-                  "x": 0.00029983499999999944,
-                  "y": -0.0002166262499999997,
+                  "x": 0.00029983500000000095,
+                  "y": -0.00021662625000000083,
                   "z": -0.0005512499999999999
                 }
               },
               {
                 "position": 1.75,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -8.89999999999998,
-                  -6.050000000000003
+                  -8.900000000000025,
+                  -6.050000000000001
                 ],
                 "localDisplacement": {
                   "x": 0.000007699999999999903,
-                  "y": -0.000731171875,
-                  "z": 0.0004925520833333325
+                  "y": -0.0007311718749999999,
+                  "z": 0.000492552083333335
                 },
                 "globalDisplacement": {
-                  "x": 0.000398661666666666,
-                  "y": -0.00028937124999999956,
-                  "z": -0.000731171875
+                  "x": 0.00039866166666666797,
+                  "y": -0.0002893712500000011,
+                  "z": -0.0007311718749999999
                 }
               },
               {
                 "position": 2,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -8.049999999999983,
-                  -5.300000000000003
+                  -8.050000000000022,
+                  -5.300000000000001
                 ],
                 "localDisplacement": {
                   "x": 0.000008799999999999889,
-                  "y": -0.0009299999999999999,
-                  "z": 0.0006291666666666656
+                  "y": -0.0009299999999999998,
+                  "z": 0.0006291666666666687
                 },
                 "globalDisplacement": {
-                  "x": 0.0005086133333333325,
-                  "y": -0.00037045999999999943,
-                  "z": -0.0009299999999999999
+                  "x": 0.000508613333333335,
+                  "y": -0.00037046000000000133,
+                  "z": -0.0009299999999999998
                 }
               },
               {
                 "position": 2.25,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -7.199999999999985,
-                  -4.550000000000003
+                  -7.200000000000019,
+                  -4.550000000000001
                 ],
                 "localDisplacement": {
                   "x": 0.000009899999999999875,
                   "y": -0.0011453906249999997,
-                  "z": 0.0007783593749999987
+                  "z": 0.0007783593750000026
                 },
                 "globalDisplacement": {
-                  "x": 0.000628627499999999,
-                  "y": -0.0004590956249999993,
+                  "x": 0.0006286275000000021,
+                  "y": -0.00045909562500000164,
                   "z": -0.0011453906249999997
                 }
               },
               {
                 "position": 2.5,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -6.349999999999987,
-                  -3.8000000000000043
+                  -6.350000000000016,
+                  -3.8000000000000016
                 ],
                 "localDisplacement": {
                   "x": 0.00001099999999999986,
                   "y": -0.001375,
-                  "z": 0.0009388020833333316
+                  "z": 0.0009388020833333364
                 },
                 "globalDisplacement": {
-                  "x": 0.0007576416666666653,
-                  "y": -0.0005544812499999991,
+                  "x": 0.0007576416666666691,
+                  "y": -0.0005544812500000019,
                   "z": -0.001375
                 }
               },
               {
                 "position": 2.75,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -5.499999999999988,
-                  -3.0500000000000043
+                  -5.500000000000012,
+                  -3.0500000000000025
                 ],
                 "localDisplacement": {
                   "x": 0.000012099999999999847,
-                  "y": -0.001616484375,
-                  "z": 0.0011091666666666646
+                  "y": -0.0016164843749999999,
+                  "z": 0.0011091666666666702
                 },
                 "globalDisplacement": {
-                  "x": 0.0008945933333333317,
-                  "y": -0.0006558199999999988,
-                  "z": -0.001616484375
+                  "x": 0.0008945933333333363,
+                  "y": -0.0006558200000000023,
+                  "z": -0.0016164843749999999
                 }
               },
               {
                 "position": 3,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -4.64999999999999,
-                  -2.3000000000000043
+                  -4.650000000000009,
+                  -2.3000000000000025
                 ],
                 "localDisplacement": {
                   "x": 0.000013199999999999833,
                   "y": -0.0018674999999999998,
-                  "z": 0.0012881249999999976
+                  "z": 0.0012881250000000041
                 },
                 "globalDisplacement": {
-                  "x": 0.0010384199999999982,
-                  "y": -0.0007623149999999987,
+                  "x": 0.0010384200000000034,
+                  "y": -0.0007623150000000026,
                   "z": -0.0018674999999999998
                 }
               },
               {
                 "position": 3.25,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -3.799999999999992,
-                  -1.5500000000000043
+                  -3.800000000000006,
+                  -1.5500000000000025
                 ],
                 "localDisplacement": {
                   "x": 0.000014299999999999819,
                   "y": -0.002125703125,
-                  "z": 0.0014743489583333308
+                  "z": 0.001474348958333338
                 },
                 "globalDisplacement": {
-                  "x": 0.0011880591666666646,
-                  "y": -0.0008731693749999986,
+                  "x": 0.0011880591666666705,
+                  "y": -0.0008731693750000029,
                   "z": -0.002125703125
                 }
               },
               {
                 "position": 3.5,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -2.949999999999992,
-                  -0.800000000000006
+                  -2.950000000000003,
+                  -0.8000000000000043
                 ],
                 "localDisplacement": {
                   "x": 0.000015399999999999805,
                   "y": -0.00238875,
-                  "z": 0.0016665104166666638
+                  "z": 0.001666510416666672
                 },
                 "globalDisplacement": {
-                  "x": 0.0013424483333333312,
-                  "y": -0.0009875862499999985,
+                  "x": 0.0013424483333333377,
+                  "y": -0.0009875862500000035,
                   "z": -0.00238875
                 }
               },
               {
                 "position": 3.75,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
-                  -2.0999999999999943,
-                  -0.05000000000000604
+                  -2.0999999999999996,
+                  -0.05000000000000426
                 ],
                 "localDisplacement": {
                   "x": 0.00001649999999999979,
                   "y": -0.0026542968749999995,
-                  "z": 0.0018632812499999967
+                  "z": 0.0018632812500000056
                 },
                 "globalDisplacement": {
-                  "x": 0.0015005249999999973,
-                  "y": -0.0011047687499999982,
+                  "x": 0.0015005250000000045,
+                  "y": -0.0011047687500000036,
                   "z": -0.0026542968749999995
                 }
               },
               {
                 "position": 4,
                 "forces": [
-                  8.799999999999955,
-                  -2.9999999999999987,
-                  3.3999999999999932,
+                  8.799999999999889,
+                  -2.9999999999999982,
+                  3.400000000000013,
                   2.4,
                   -1.2499999999999964,
-                  0.699999999999994
+                  0.6999999999999957
                 ],
                 "localDisplacement": {
                   "x": 0.000017599999999999777,
                   "y": -0.00292,
-                  "z": 0.0020633333333333293
+                  "z": 0.0020633333333333398
                 },
                 "globalDisplacement": {
-                  "x": 0.0016612266666666635,
-                  "y": -0.001223919999999998,
+                  "x": 0.0016612266666666718,
+                  "y": -0.0012239200000000042,
                   "z": -0.00292
                 }
               }
@@ -10594,8 +10594,8 @@
         ],
         "process": {
           "solver": {
-            "implementation": "framemind-native/1",
-            "algorithm": "partial-pivot-gaussian",
+            "implementation": "framemind-native/2",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
             "relativePivotTolerance": 1e-12
           },
@@ -11211,7 +11211,7 @@
           "matrixLimit": 72
         },
         "service": {
-          "analysisId": "analysis_7f33461c-97e5-4829-ab07-bd345d3c56bf",
+          "analysisId": "analysis_cf19e7cb-49e0-4548-be83-79a90351c4d1",
           "dependencies": [
             {
               "factor": 1,
@@ -11223,30 +11223,30 @@
           },
           "projectId": "project_ada375cb-9ab5-465a-a021-b6dcba962fa1",
           "projectRevision": 7,
-          "requestId": "request_31e52810-3fda-4e77-9996-f2f901cf45bd",
+          "requestId": "request_785d639a-d03d-4047-a409-5def976e1c8e",
           "solver": {
-            "algorithm": "partial-pivot-gaussian",
+            "algorithm": "sparse-ldlt",
             "constraints": "free-dof-elimination",
-            "implementation": "framemind-native/1",
+            "implementation": "framemind-native/2",
             "relativePivotTolerance": 1e-12
           },
           "sourceId": "LC1",
           "stages": [
             {
               "stage": "model-check",
-              "startedAt": "2026-10-05T08:20:53Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             },
             {
               "stage": "assembly",
-              "startedAt": "2026-10-05T08:20:53Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             },
             {
               "stage": "solve",
-              "startedAt": "2026-10-05T08:20:53Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             },
             {
               "stage": "recovery",
-              "startedAt": "2026-10-05T08:20:53Z"
+              "startedAt": "2026-10-06T08:05:02Z"
             }
           ],
           "status": "complete",
@@ -11256,5 +11256,5 @@
     }
   ],
   "nativeFailureDidNotSaveResult": true,
-  "legacyFormalEntry": "passed"
+  "formalEntry": "native-static"
 }

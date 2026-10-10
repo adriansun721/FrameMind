@@ -1,0 +1,31 @@
+{
+  "runId": "b7ea9796-a48e-4333-b908-50126c630d20",
+  "source": "analytic-prism",
+  "recordedAt": "2026-10-10T03:01:22.728Z",
+  "status": "passed",
+  "mode": "replay-transport",
+  "onlineAcceptance": false,
+  "inputSha256": "2d7eff96a32a3d04b0a5bb2ba9aa3909685c5143e298fb03b4a27c33114b740d",
+  "artifacts": {
+    "before.framemind": "636c5bd8ef2e836ddfb0912276748dc4e5c64a67d00462c96d4167cfb944b2bb",
+    "after.framemind": "d0e9c9925cbde1b810c53ca3947ebb5473885931696220fb81b928d66599ba66",
+    "failure.json": "a9a90a8bf9a6900f6dfbd16378e4b1507fbcff2e831a9945e00cee2918ca4b58",
+    "confirmation.png": "fe48738dc6e558db2a78c729988af4046dd1ed7c01cf799e8873197e92c165b0",
+    "history.json": "cd5668d75a72a20d560e9b454642011090e81f41b407d9b5aef801eef3bdc82e",
+    "history.png": "3180af9c1388f3912392fe8b7bf029847350b272d5c2fe1d5445f0e333fe6923",
+    "restored.json": "8b4a8422adbab7790500493aca6054a7b5738d98ad2fa91cd063d1645f13be8a",
+    "cad-draft.json": "a93cc2f41847f04c50d1b63c29baec3670fd51ff13c63c49ac4d5130479398cf",
+    "restore-diff.png": "320a17c52427ff5346cfbbefc2b4c8b97cf4796115b0752eb27906014391af3c"
+  },
+  "sourceHashes": {
+    "src/workspace/cad-import.ts": "9499e704b33e151b7f091891bd9b17d5838fdae7016c64e885d9808654dce501",
+    "src/App.tsx": "358dade40a7a60d373c0506d4cc456a9bb8778b20aa158af1b72583fd0490aa8",
+    "src/components/CadTopologyPreview.tsx": "c9d9de229e91a6235611e9ee128227fd3245b9513873a31f6a3095b00c847903",
+    "electron/project-checkpoints.ts": "14fa4f753cb8f6e2413521a4306a670018d28616023c9e111638aba6da8e0a1b",
+    "dist/index.html": "c4a616aa0988d04ffc4c9b1e5a9f096ceba2936b5c19bac5733994fd5fd10b11",
+    "dist-electron/main.js": "fc2242589552d65b4efed6ee5fdd27a1f8f335386e53763e51026849aa1d8275",
+    "e2e/p25-06-import.spec.ts": "3b74ee98ce3fcd00940c155c7ee3c00a2b00d53fda08c21ebe04f783ca034968"
+  },
+  "specifiedAcceptance": "pending-upstream-geometry-and-independent-reference",
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-06-import.spec.ts"
+}

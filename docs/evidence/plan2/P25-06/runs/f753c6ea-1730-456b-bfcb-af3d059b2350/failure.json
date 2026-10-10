@@ -1,0 +1,20 @@
+{
+  "faults": [
+    "changed STEP bytes",
+    "Git ref lock"
+  ],
+  "formalUnchanged": true,
+  "failedHistory": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_aaf92949-8fac-4357-ac72-1f7a7e195756",
+      "revision": 1,
+      "kind": "step-before",
+      "recordedAt": "2026-10-10T04:33:02.749Z",
+      "contentSha256": "bd245a942ffba9e132584672e89a35efe34be871560284bbe72f4db5695dc37d",
+      "inputSha256": "afbc962faa35b08c013230a0aedc3a2b1a632797e7f07c1162c56d94f559dcf0",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "ea09797000966a131d76fa23459c3c526a45184e"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "initial": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_9c47956a-4b31-414f-b7f1-021bc7bf50b4",
+      "revision": 0,
+      "kind": "save",
+      "recordedAt": "2026-10-10T04:56:31.609Z",
+      "contentSha256": "ad47f64e56a596ae1003191eaad6c8e140cc68f6d29ffad1111add7ad6d93795",
+      "inputSha256": "4dce6793f7e43a1ec9b4821dccd758170c3d3702e5d62ae600645a766ffaf8c4",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "c103afd8a03da6579a2ac04a975bef48b11276ef"
+    }
+  ],
+  "copiedRecords": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_9c47956a-4b31-414f-b7f1-021bc7bf50b4",
+      "revision": 0,
+      "kind": "copied-from",
+      "recordedAt": "2026-10-10T04:56:35.118Z",
+      "contentSha256": "a3bf7c13eee010cfc350865daf6acceb57a90e6012f09bf80cd27b1444990f31",
+      "inputSha256": "4dce6793f7e43a1ec9b4821dccd758170c3d3702e5d62ae600645a766ffaf8c4",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "copiedFrom": {
+        "historyId": "history_94ebcb03-8713-462f-9192-d9424e57d477",
+        "commit": "adb57a00626b7ce32f0c4d4196c8eb5a6dcfd10e"
+      },
+      "commit": "6e601f4ebbf5096d170560791eafd386ad480982"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_9c47956a-4b31-414f-b7f1-021bc7bf50b4",
+      "revision": 0,
+      "kind": "merge-before",
+      "recordedAt": "2026-10-10T04:56:34.130Z",
+      "contentSha256": "ad47f64e56a596ae1003191eaad6c8e140cc68f6d29ffad1111add7ad6d93795",
+      "inputSha256": "4dce6793f7e43a1ec9b4821dccd758170c3d3702e5d62ae600645a766ffaf8c4",
+      "taskId": "round-1",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "adb57a00626b7ce32f0c4d4196c8eb5a6dcfd10e"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_9c47956a-4b31-414f-b7f1-021bc7bf50b4",
+      "revision": 0,
+      "kind": "candidate-round",
+      "recordedAt": "2026-10-10T04:56:33.503Z",
+      "contentSha256": "ad47f64e56a596ae1003191eaad6c8e140cc68f6d29ffad1111add7ad6d93795",
+      "inputSha256": "4dce6793f7e43a1ec9b4821dccd758170c3d3702e5d62ae600645a766ffaf8c4",
+      "taskId": "round-1",
+      "candidateId": "candidate-1",
+      "resultSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "evidenceIndex": [
+        "run-1/report.json"
+      ],
+      "commit": "9b3ed68b2f8b9eedac8cc63540723a0a636021fd"
+    },
+    {
+      "schemaVersion": 1,
+      "projectId": "project_9c47956a-4b31-414f-b7f1-021bc7bf50b4",
+      "revision": 0,
+      "kind": "save",
+      "recordedAt": "2026-10-10T04:56:31.609Z",
+      "contentSha256": "ad47f64e56a596ae1003191eaad6c8e140cc68f6d29ffad1111add7ad6d93795",
+      "inputSha256": "4dce6793f7e43a1ec9b4821dccd758170c3d3702e5d62ae600645a766ffaf8c4",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "c103afd8a03da6579a2ac04a975bef48b11276ef"
+    }
+  ],
+  "newRecords": [
+    {
+      "schemaVersion": 1,
+      "projectId": "project_9c47956a-4b31-414f-b7f1-021bc7bf50b4",
+      "revision": 0,
+      "kind": "initial",
+      "recordedAt": "2026-10-10T04:56:43.787Z",
+      "contentSha256": "2601379a207242e63f38dff52931e7e0aff6d336e793f305171fef103065fe19",
+      "inputSha256": "4dce6793f7e43a1ec9b4821dccd758170c3d3702e5d62ae600645a766ffaf8c4",
+      "resultSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "commit": "e6e9b7a02fa9388bef237bcdf97853257e9bdd7c"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "runId": "d8ba9f5c-12a9-439c-960d-b6c29819cbd8",
+  "source": "specified",
+  "recordedAt": "2026-10-10T05:19:56.080Z",
+  "status": "passed",
+  "mode": "local-blocked",
+  "onlineAcceptance": false,
+  "inputSha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+  "artifacts": {
+    "pending.framemind": "f7aff47af70a450c49b6f590d6a47a0977cdda507889e8b14f2cc31498faa292",
+    "blocked-draft.png": "b06a3208a90fc4e3401f6ad2cc747374b3bf62307d76f3a38502ff339bbbe983"
+  },
+  "sourceHashes": {
+    "src/workspace/cad-import.ts": "9499e704b33e151b7f091891bd9b17d5838fdae7016c64e885d9808654dce501",
+    "src/workspace/cad-import-persistence.ts": "90084ea41b183c13ef2be27929929984d5bbc2f15c2631867e9917b0c8207958",
+    "src/workspace/project-snapshot-diff.ts": "dd6f974843e05acd79eecd9eed262a931566344fd11a8dab860cb363660abd73",
+    "src/App.tsx": "f57c3afbe8c20157c7cbe4e18c812e6ea92c6c8fff7fc00421234510c9225589",
+    "src/components/CadTopologyPreview.tsx": "c9d9de229e91a6235611e9ee128227fd3245b9513873a31f6a3095b00c847903",
+    "src/components/CadImportHistory.tsx": "8b8636f2e842aa49a553a67133d6625d6936b8e3eadb251f2b6b6f1f077b79dc",
+    "src/styles.css": "ae7a08a6621cceb04131641d6a949335e94013714a04148b8b3a90a165ffeb81",
+    "electron/project-checkpoints.ts": "2a747e872cbe5021ab75537fa0d336ca2440ab6d856bf4febf57697de08cfe5d",
+    "dist/index.html": "7d0134ae50dd65b856345d966b4d17dc1ee6707528d3c149e287636095be5f34",
+    "dist-electron/main.js": "d53f5705d19d213e90aed02e19cdc04f72b2a36537d70fb4aaa143219a94ada1",
+    "e2e/p25-06-import.spec.ts": "9039711ff8a2eb8f1980904638f151eb7c44e38c9b7e286ede53710741d3779e"
+  },
+  "specifiedAcceptance": "pending-upstream-geometry-and-independent-reference",
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-06-import.spec.ts"
+}

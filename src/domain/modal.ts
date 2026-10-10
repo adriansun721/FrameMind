@@ -2,7 +2,7 @@ import { createMeshPlan } from "./analysis-mesh";
 import { calculateMemberGeometry } from "./member-geometry";
 import { NATIVE_MODAL_SOLVER, sameInputValue, type AnalysisInputSnapshot, type AnalysisResult } from "./analysis";
 import { decodeAnalysisRun } from "./analysis-service-contract";
-import { validateModalShapeMapping } from "./modal-shape";
+import { expandModalShapes, validateModalShapeMapping } from "./modal-shape";
 import { additionalMassSources } from "./additional-mass";
 
 export interface ModalSettings { modeCount: number; maxDivisions: number; maxEquations: number; frequencyTolerance: number }
@@ -12,7 +12,7 @@ export function validateModalSettings(value: unknown): ModalSettings {
   if (!p || Object.keys(p).sort().join() !== Object.keys(DEFAULT_MODAL_SETTINGS).sort().join()
     || !Number.isSafeInteger(p.modeCount) || p.modeCount < 1 || p.modeCount > 50
     || ![1, 2, 4, 8, 16].includes(p.maxDivisions)
-    || !Number.isSafeInteger(p.maxEquations) || p.maxEquations < 1 || p.maxEquations > 1200
+    || !Number.isSafeInteger(p.maxEquations) || p.maxEquations < 1 || p.maxEquations > 2147483647
     || !Number.isFinite(p.frequencyTolerance) || p.frequencyTolerance <= 0 || p.frequencyTolerance > 0.01) throw new Error("模态提取参数无效");
   return { ...p };
 }
@@ -63,8 +63,10 @@ export function eigenShapeDisplayResult(result: AnalysisResult, mode: Pick<Modal
 
 export function decodeModalResult(value: Record<string, unknown>, input: AnalysisInputSnapshot): AnalysisResult {
   const fail = () => { throw new Error("模态结果、质量来源或冻结映射无效"); };
-  const modal = value.modal as ModalRecord;
+  if (!value.modal || typeof value.modal !== "object") fail();
+  const modal = structuredClone(value.modal) as ModalRecord;
   const settings = validateModalSettings(input.analysisCase?.settings.modal);
+  expandModalShapes(input, modal);
   if (input.analysisCase?.method !== "modal" || !sameInputValue(input.solver, NATIVE_MODAL_SOLVER)
     || input.nodalLoads.length || input.uniformLoads?.length || input.selfWeight?.enabled || input.combination
     || !sameInputValue(input.meshPlan, createModalMesh(input)) || !modal || modal.massModel !== "consistent-eb-with-torsional-inertia"

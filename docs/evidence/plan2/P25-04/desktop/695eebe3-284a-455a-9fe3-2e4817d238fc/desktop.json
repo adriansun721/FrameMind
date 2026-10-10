@@ -1,0 +1,13 @@
+{
+  "runId": "695eebe3-284a-455a-9fe3-2e4817d238fc",
+  "source": "specified",
+  "recordedAt": "2026-10-09T11:19:14.106Z",
+  "inputSha256": "54d793bcf649d1e89d315c108e7e7faa61bd62cddf9737c1e56fda7b13c8fdca",
+  "previewSha256": "034b2dfb892b962a6997471a8584fe5a4199cf517acd944ff126b7dca8983437",
+  "parser": "framemind-step-reader/2.1.0",
+  "geometryHash": "6aef13bddc169a2cae02de596beeec4dd5b25d751e7fcea47218dd72f4257885",
+  "formalModelUnchanged": true,
+  "reopenedPosePreserved": true,
+  "editingInvalidatesDraft": true,
+  "geometryAcceptance": "blocked"
+}

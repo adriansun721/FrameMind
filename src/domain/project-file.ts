@@ -1,4 +1,5 @@
 import { decodeRandomResult } from "./random-response-result";
+import { expandNativeResponses } from "./native-response-encoding";
 import { decodeSecondOrderResult } from "./second-order-result";
 import { decodePsdSpectrum } from "./psd";
 import { decodeBucklingResult } from "./buckling";
@@ -304,6 +305,20 @@ function decodeAnalysisProcess(value: unknown, input: AnalysisInputSnapshot): An
   const loadVector = value.loadVector as number[];
   const matrixLimit = value.matrixLimit as number;
   const memberIds = new Set(input.members.map((member) => member.id));
+  if (value.encoding !== undefined) {
+    if (value.encoding !== "matrix-table-v1" || !Array.isArray(value.stiffnessTable) || !value.stiffnessTable.length) throw new Error("原生矩阵表编码无效");
+    const table = value.stiffnessTable.map((entry) => matrix(entry, "原生单元矩阵表", 12));
+    for (const item of value.members) {
+      if (!isRecord(item) || !Number.isSafeInteger(item.stiffnessIndex) || typeof item.stiffnessIndex !== "number"
+        || item.stiffnessIndex < 0 || item.stiffnessIndex >= table.length || !Array.isArray(item.globalDofIndices)
+        || item.globalDofIndices.some((i) => !Number.isSafeInteger(i) || i < 0 || i >= dofs.length)
+        || item.dofs !== undefined || item.globalStiffness !== undefined) throw new Error("原生单元矩阵表引用无效");
+      item.globalStiffness = table[item.stiffnessIndex];
+      item.dofs = item.globalDofIndices.map((i) => dofs[i]);
+      delete item.stiffnessIndex;
+    }
+    delete value.encoding; delete value.stiffnessTable;
+  }
   const members = value.members.map((item) => {
     if (!isRecord(item) || typeof item.memberId !== "string" || !Array.isArray(item.globalDofIndices) || item.globalDofIndices.length !== 12 || !item.globalDofIndices.every((index) => Number.isSafeInteger(index) && index >= 0 && index < input.nodes.length * 6) || !Array.isArray(item.dofs) || item.dofs.length !== 12 || !Array.isArray(item.equivalentGlobalForces) || item.equivalentGlobalForces.length !== 12 || !item.equivalentGlobalForces.every((entry) => typeof entry === "number" && Number.isFinite(entry))) throw new Error("分析整体过程杆件组装记录无效");
     const memberId = item.memberId as typeof input.members[number]["id"];
@@ -334,6 +349,7 @@ function decodeResult(value: unknown, internal: boolean): AnalysisResult {
   const projectRevision = requireFinite(value.projectRevision, "分析结果版本无效");
   if (!Number.isSafeInteger(projectRevision) || projectRevision < 0 || !Array.isArray(value.nodes) || !Array.isArray(value.members) || !isRecord(value.input)) throw new Error("项目包含无效分析结果");
   const input = decodeAnalysisInput(value.input, projectId, projectRevision, internal);
+  expandNativeResponses(value.members);
   if (input.solver?.implementation === "framemind-native/8" || input.analysisCase?.method === "random") return decodeRandomResult(value, input, decodeAnalysisResult);
   if (input.solver?.implementation === "framemind-native/7" || input.analysisCase?.method === "second-order") return decodeSecondOrderResult(value, input, (packet) => decodeResult(packet, true));
   if (input.solver?.implementation === "framemind-native/6" || input.analysisCase?.method === "buckling") return decodeBucklingResult(value, input, (packet) => decodeResult(packet, true));
