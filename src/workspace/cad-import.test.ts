@@ -21,6 +21,7 @@ async function fixture() {
   try {
     const messages = await host.run(1, { requestId: `cad_${crypto.randomUUID()}`, inputPath: path });
     const result = messages.at(-1); if (result?.kind !== "result") throw new Error(`Fixture parse failed: ${JSON.stringify(result)}`);
+    result.sourceFile = { name: "prism.step", importedAt: new Date().toISOString() };
     const parent = addNode(createProject(), { x: 6, y: 2, z: 1 });
     const draft = await createCadImportDraft(parent, result);
     draft.resources.material = { name: "S355JR", elasticModulusGPa: 210, poissonRatio: .3, densityKgM3: 7850, source: "user", confirmed: true };
@@ -49,6 +50,7 @@ it("confirms one frozen draft, replaces all engineering objects atomically, and 
   expect(outcome.project.selfWeight.enabled).toBe(false);
   expect(outcome.receipt.readiness).toEqual(["missing-supports", "missing-loads"]);
   expect(outcome.receipt.mappings[0].sourceEntityIds.length).toBeGreaterThan(0);
+  expect(outcome.receipt).toMatchObject({ source: { name: "prism.step", units: draft.result.intermediateState.units, counts: draft.result.diagnostics, kernel: draft.result.kernel }, evidence: { file: "cad-draft.json", sha256: confirmation.draftHash } });
   const savedPath = join(directory, "model.framemind"); await writeFile(savedPath, encodeProject(outcome.project)); await rm(path);
   const reopened = decodeProject(await readFile(savedPath, "utf8"));
   expect(reopened.cadImports?.[0]).toEqual(outcome.receipt);
@@ -77,6 +79,18 @@ it("rejects malformed persisted drafts and receipts before they can crash the pr
   const invalid = JSON.parse(encodeProject({ ...parent, cadImportDraft: draft }));
   invalid.cadImportDraft.result.intermediateState.entities = "corrupt";
   expect(() => decodeProject(JSON.stringify(invalid))).toThrow(/草稿/);
+  const malformedGeometry = JSON.parse(encodeProject({ ...parent, cadImportDraft: draft }));
+  malformedGeometry.cadImportDraft.resources.manualSections.sample = { properties: {}, reference: "", confirmed: false, geometry: { shape: "bogus" } };
+  expect(() => decodeProject(JSON.stringify(malformedGeometry))).toThrow(/草稿/);
+  for (const corrupt of [
+    (v: typeof draft) => { v.result.intermediateState.normalization.coordinateSystem = { bad: true } as never; },
+    (v: typeof draft) => { v.result.intermediateState.units.sourceLength = { bad: true } as never; },
+    (v: typeof draft) => { v.result.intermediateState.units.lengthToM = { bad: true } as never; },
+    (v: typeof draft) => { v.resources.material.name = { bad: true } as never; },
+  ]) {
+    const damaged = structuredClone(draft); corrupt(damaged);
+    expect(() => decodeProject(encodeProject({ ...parent, cadImportDraft: damaged }))).toThrow(/草稿/);
+  }
   const confirmation = await prepareCadImport(parent, draft);
   const outcome = await applyCadImport(parent, draft, confirmation);
   const malformedReceipt = JSON.parse(encodeProject(outcome.project));

@@ -34,12 +34,14 @@ export class ProjectCheckpoints {
   }
 
   async record(request: ProjectCheckpointRequest): Promise<ProjectCheckpointRecord[]> {
+    request = structuredClone(request);
     const repository = this.repository(request.projectId);
     if (!Array.isArray(request.snapshots) || request.snapshots.length < 1 || request.snapshots.length > 2) throw new Error("checkpoint 数量无效");
     for (const snapshot of request.snapshots) {
       if (!["step-before", "step-confirmed", "step-undo", "step-redo"].includes(snapshot.kind) || typeof snapshot.content !== "string" || snapshot.content.length > 64 * 1024 * 1024) throw new Error("checkpoint 内容无效");
       const project = JSON.parse(snapshot.content);
       if (project.format !== "framemind-project" || project.id !== request.projectId || !Number.isSafeInteger(project.revision) || project.revision < 0) throw new Error("checkpoint 项目身份无效");
+      if (snapshot.evidence && (typeof snapshot.evidence.content !== "string" || snapshot.evidence.content.length > 64 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(snapshot.evidence.sha256))) throw new Error("checkpoint 证据无效");
     }
     const operation = (this.queues.get(request.projectId) ?? Promise.resolve()).catch(() => undefined).then(async () => {
       await mkdir(repository, { recursive: true });
@@ -50,11 +52,18 @@ export class ProjectCheckpoints {
       for (const snapshot of request.snapshots) {
         const revision = JSON.parse(snapshot.content).revision as number;
         const metadata = { schemaVersion: 1 as const, projectId: request.projectId, revision, kind: snapshot.kind, recordedAt: new Date().toISOString(),
-          contentSha256: createHash("sha256").update(snapshot.content).digest("hex"), ...(snapshot.taskId ? { taskId: snapshot.taskId } : {}), ...(snapshot.inputSha256 ? { inputSha256: snapshot.inputSha256 } : {}) };
+          contentSha256: createHash("sha256").update(snapshot.content).digest("hex"), ...(snapshot.taskId ? { taskId: snapshot.taskId } : {}), ...(snapshot.inputSha256 ? { inputSha256: snapshot.inputSha256 } : {}), ...(snapshot.evidence ? { evidenceSha256: snapshot.evidence.sha256 } : {}) };
         const contentBlob = (await this.git(repository, ["hash-object", "-w", "--stdin"], snapshot.content)).trim();
         const metadataBlob = (await this.git(repository, ["hash-object", "-w", "--stdin"], JSON.stringify(metadata))).trim();
-        const tree = (await this.git(repository, ["mktree"], `100644 blob ${metadataBlob}\tcheckpoint.json\n100644 blob ${contentBlob}\tproject.framemind\n`)).trim();
+        const evidenceBlob = snapshot.evidence ? (await this.git(repository, ["hash-object", "-w", "--stdin"], snapshot.evidence.content)).trim() : undefined;
+        const tree = (await this.git(repository, ["mktree"], `${evidenceBlob ? `100644 blob ${evidenceBlob}\tcad-draft.json\n` : ""}100644 blob ${metadataBlob}\tcheckpoint.json\n100644 blob ${contentBlob}\tproject.framemind\n`)).trim();
         parent = (await this.git(repository, ["-c", "user.name=FrameMind", "-c", "user.email=local@framemind.invalid", "commit-tree", tree, ...(parent ? ["-p", parent] : [])], snapshot.kind)).trim();
+        // Verify candidate objects before publication: failures cannot leave a visible confirmed import.
+        if (await this.git(repository, ["show", `${parent}:project.framemind`]) !== snapshot.content) throw new Error("checkpoint 项目回读不一致");
+        if (snapshot.evidence) {
+          const persisted = await this.git(repository, ["show", `${parent}:cad-draft.json`]);
+          if (persisted !== snapshot.evidence.content || createHash("sha256").update(persisted).digest("hex") !== snapshot.evidence.sha256) throw new Error("checkpoint 证据回读哈希不一致");
+        }
         records.push({ ...metadata, commit: parent });
       }
       // A single compare-and-swap publishes the whole pair. Earlier failures leave only unreachable objects.
@@ -83,6 +92,17 @@ export class ProjectCheckpoints {
     const content = await this.git(repository, ["show", `${commit}:project.framemind`]);
     const metadata = JSON.parse(await this.git(repository, ["show", `${commit}:checkpoint.json`]));
     if (metadata.projectId !== projectId || metadata.contentSha256 !== createHash("sha256").update(content).digest("hex")) throw new Error("checkpoint 哈希或项目身份不一致");
+    return content;
+  }
+
+  async readEvidence(projectId: string, commit: string): Promise<string> {
+    if (!commitIdentity.test(commit)) throw new Error("checkpoint 提交身份无效");
+    const repository = this.repository(projectId);
+    await this.git(repository, ["merge-base", "--is-ancestor", commit, "refs/heads/main"]);
+    const metadata = JSON.parse(await this.git(repository, ["show", `${commit}:checkpoint.json`]));
+    if (metadata.projectId !== projectId || !metadata.evidenceSha256) throw new Error("checkpoint 完整中间态证据缺失");
+    const content = await this.git(repository, ["show", `${commit}:cad-draft.json`]);
+    if (createHash("sha256").update(content).digest("hex") !== metadata.evidenceSha256) throw new Error("checkpoint 证据哈希不一致");
     return content;
   }
 }

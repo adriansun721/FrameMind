@@ -46,6 +46,7 @@ export const enum DesktopChannel {
   RecordProjectCheckpoints = "project:checkpoint-record",
   ListProjectCheckpoints = "project:checkpoint-list",
   ReadProjectCheckpoint = "project:checkpoint-read",
+  ReadProjectCheckpointEvidence = "project:checkpoint-evidence-read",
   VerifyCadImportSource = "cad:source-verify",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
@@ -141,11 +142,11 @@ export interface CadImportRequest {
 
 export interface ProjectCheckpointRequest {
   projectId: string;
-  snapshots: Array<{ kind: "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; inputSha256?: string }>;
+  snapshots: Array<{ kind: "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; inputSha256?: string; evidence?: { content: string; sha256: string } }>;
 }
 export interface ProjectCheckpointRecord {
   schemaVersion: 1; projectId: string; revision: number; kind: ProjectCheckpointRequest["snapshots"][number]["kind"];
-  recordedAt: string; contentSha256: string; commit: string; taskId?: string; inputSha256?: string;
+  recordedAt: string; contentSha256: string; commit: string; taskId?: string; inputSha256?: string; evidenceSha256?: string;
 }
 
 export interface CadKernelInfo {
@@ -178,6 +179,7 @@ export interface CadParseResult {
   parserVersion: string;
   kernel: CadKernelInfo;
   input: { sha256: string; sizeBytes: number; extension: ".step" | ".stp" };
+  sourceFile?: { name: string; importedAt: string };
   diagnostics: {
     products: number;
     solidBreps: number;
@@ -255,5 +257,6 @@ export interface FrameMindDesktopApi {
   recordProjectCheckpoints(request: ProjectCheckpointRequest): Promise<ProjectCheckpointRecord[]>;
   listProjectCheckpoints(projectId: string): Promise<ProjectCheckpointRecord[]>;
   readProjectCheckpoint(request: { projectId: string; commit: string }): Promise<string>;
+  readProjectCheckpointEvidence(request: { projectId: string; commit: string }): Promise<string>;
   verifyCadImportSource(request: { requestId: string; inputSha256: string }): Promise<void>;
 }

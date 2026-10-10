@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, safeStorage, type IpcMainInvokeEvent } from "electron";
 import { join } from "node:path";
 import { stat } from "node:fs/promises";
-import { extname, resolve } from "node:path";
+import { basename, extname, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import {
@@ -53,6 +53,7 @@ function requireTrustedSender(event: IpcMainInvokeEvent): void {
 ipcMain.handle(DesktopChannel.RecordProjectCheckpoints, (event, request) => { requireTrustedSender(event); return projectCheckpoints.record(request); });
 ipcMain.handle(DesktopChannel.ListProjectCheckpoints, (event, projectId: string) => { requireTrustedSender(event); return projectCheckpoints.list(projectId); });
 ipcMain.handle(DesktopChannel.ReadProjectCheckpoint, (event, request) => { requireTrustedSender(event); return projectCheckpoints.read(request.projectId, request.commit); });
+ipcMain.handle(DesktopChannel.ReadProjectCheckpointEvidence, (event, request) => { requireTrustedSender(event); return projectCheckpoints.readEvidence(request.projectId, request.commit); });
 ipcMain.handle(DesktopChannel.VerifyCadImportSource, (event, request) => { requireTrustedSender(event); return cadImportSources.verify(event.sender.id, request); });
 ipcMain.handle(DesktopChannel.GetDeepSeekSettings, (event) => {
   requireTrustedSender(event); return deepSeek.getSettings();
@@ -110,6 +111,7 @@ ipcMain.handle(DesktopChannel.ImportStep, async (event, request: CadImportReques
   const terminal = messages.at(-1);
   if (terminal?.kind === "result") {
     cadImportSources.register(event.sender.id, taskId, targetPath, terminal.input.sha256);
+    terminal.sourceFile = { name: basename(targetPath), importedAt: new Date().toISOString() };
     return { status: "parsed", path: targetPath, checkpointed: true, phases, result: terminal };
   }
   const error = terminal?.kind === "error" ? terminal.error : { code: "cad-no-result", message: "CAD 解析未返回结果", stage: "startup" as const };

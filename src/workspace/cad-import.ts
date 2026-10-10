@@ -38,6 +38,9 @@ export interface CadImportReceipt extends CadImportConfirmation {
   mappings: Array<{ memberId: string; draftMemberId: string; centerlineId: string; instanceId: number | null; sourceEntityIds: number[]; range: [number, number] }>;
   resourceEvidence: ReturnType<typeof buildCadAiVerificationInput>;
   ignoredEntities: CadParseResult["intermediateState"]["ignoredEntities"];
+  source: { name: string; importedAt: string; sizeBytes: number; units: CadParseResult["intermediateState"]["units"]; counts: CadParseResult["diagnostics"]; kernel: CadParseResult["kernel"]; parameters: Record<string, unknown> };
+  decisions: { pose: CadPoseDecision[]; approvedContactIds: string[]; acceptedWarningCodes: string[] };
+  evidence: { file: "cad-draft.json"; sha256: string };
 }
 
 /** Missing conditions are reported continuously; clearing this list is not a solvability verdict. */
@@ -50,10 +53,14 @@ export function getCadImportReadiness(project: FrameProject): string[] {
   return missing;
 }
 
-async function hash(value: unknown): Promise<string> {
+export function encodeCadImportDraft(value: unknown): string {
   const canonical = (v: unknown): unknown => Array.isArray(v) ? v.map(canonical) : v && typeof v === "object"
     ? Object.fromEntries(Object.entries(v).filter(([, item]) => item !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, canonical(item)])) : v;
-  const bytes = new TextEncoder().encode(JSON.stringify(canonical(value)));
+  return JSON.stringify(canonical(value));
+}
+
+async function hash(value: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(encodeCadImportDraft(value));
   return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
@@ -86,6 +93,7 @@ export function reviewCadImport(draft: CadImportDraft) {
 function requireApplicable(project: FrameProject, draft: CadImportDraft) {
   if (draft.schemaVersion !== 1 || draft.restored || draft.parent.projectId !== project.id || draft.parent.revision !== project.revision) throw new Error("导入草稿已过期或已恢复，请重新核验当前项目");
   const { result } = draft, state = result.intermediateState;
+  if (!result.sourceFile?.name || !Number.isFinite(Date.parse(result.sourceFile.importedAt))) throw new Error("导入原文件名或时间缺失，请重新读取 STEP");
   if (state.schemaVersion !== 2 || !/^[a-f0-9]{64}$/.test(result.input.sha256) || state.source.inputSha256 !== result.input.sha256
     || state.source.parserVersion !== result.parserVersion || !/^[a-f0-9]{64}$/.test(state.geometryHash ?? "")) throw new Error("导入来源或中间态身份不一致");
   const reviewed = reviewCadImport(draft);
@@ -134,7 +142,9 @@ export async function applyCadImport(project: FrameProject, draft: CadImportDraf
   }
   const receipt: CadImportReceipt = { ...confirmation, inputSha256: draft.result.input.sha256, geometryHash: draft.result.intermediateState.geometryHash!,
     parserVersion: draft.result.parserVersion, appliedRevision: project.revision + 1, confirmedAt: new Date().toISOString(), rigidJointsConfirmed: true,
-    pose: structuredClone(draft.pose), readiness: getCadImportReadiness(next), mappings, resourceEvidence: buildCadAiVerificationInput(review), ignoredEntities: draft.result.intermediateState.ignoredEntities };
+    pose: structuredClone(draft.pose), readiness: getCadImportReadiness(next), mappings, resourceEvidence: buildCadAiVerificationInput(review), ignoredEntities: draft.result.intermediateState.ignoredEntities,
+    source: { ...draft.result.sourceFile!, sizeBytes: draft.result.input.sizeBytes, units: structuredClone(draft.result.intermediateState.units), counts: structuredClone(draft.result.diagnostics), kernel: structuredClone(draft.result.kernel), parameters: structuredClone(draft.result.audit?.parameters ?? {}) },
+    decisions: { pose: structuredClone(draft.poseDecisions), approvedContactIds: [...draft.approvedContactIds], acceptedWarningCodes: [...draft.resources.acceptedWarningCodes] }, evidence: { file: "cad-draft.json", sha256: confirmation.draftHash } };
   next = { ...next, revision: receipt.appliedRevision, cadImports: [...(project.cadImports ?? []), receipt] };
   // Read the actual persisted objects back through the existing format decoder.
   const readback = decodeProject(encodeProject(next));

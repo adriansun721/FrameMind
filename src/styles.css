@@ -859,6 +859,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px
 .cad-topology-dialog { width: min(1060px, calc(100vw - 32px)); max-height: min(820px, calc(100vh - 32px)); }
 .cad-topology-dialog { display: flex; flex-direction: column; overflow: hidden; }
 .cad-preview-body { overflow: auto; min-height: 0; }
+.cad-history-diff table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+.cad-history-diff th, .cad-history-diff td { text-align: left; vertical-align: top; padding: 8px 6px; overflow-wrap: anywhere; white-space: normal; border-bottom: 1px solid var(--border-subtle); }
+.cad-history-diff th:first-child { width: 27%; }
+.cad-history-diff th:nth-child(2) { width: 8%; }
 .cad-topology-dialog > header, .cad-topology-dialog > .dialog-actions { flex: none; }
 .cad-solid-box { stroke: var(--text-muted); stroke-width: 1; opacity: .45; }
 .cad-solid-box.located { stroke: var(--focus-border); stroke-width: 3; opacity: 1; }

@@ -35,6 +35,7 @@ const desktopApi: FrameMindDesktopApi = {
   recordProjectCheckpoints: (request) => ipcRenderer.invoke(DesktopChannel.RecordProjectCheckpoints, request),
   listProjectCheckpoints: (projectId) => ipcRenderer.invoke(DesktopChannel.ListProjectCheckpoints, projectId),
   readProjectCheckpoint: (request) => ipcRenderer.invoke(DesktopChannel.ReadProjectCheckpoint, request),
+  readProjectCheckpointEvidence: (request) => ipcRenderer.invoke(DesktopChannel.ReadProjectCheckpointEvidence, request),
   verifyCadImportSource: (request) => ipcRenderer.invoke(DesktopChannel.VerifyCadImportSource, request),
 };
 

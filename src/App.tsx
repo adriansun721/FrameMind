@@ -62,7 +62,7 @@ import {
 import { getMaterialCatalogEntry, getSectionCatalogEntry, MATERIAL_CATALOG, SECTION_CATALOG } from "./domain/resource-library";
 import type { CatalogSource, ResourceProvenance } from "./domain/project";
 import { ProjectHistory } from "./domain/project-history";
-import { applyCadImport, createCadImportDraft, getCadImportReadiness, type CadImportDraft, type CadImportConfirmation } from "./workspace/cad-import";
+import { applyCadImport, createCadImportDraft, encodeCadImportDraft, getCadImportReadiness, type CadImportDraft, type CadImportConfirmation } from "./workspace/cad-import";
 import { CadImportHistory } from "./components/CadImportHistory";
 import { applyProjectEdits } from "./domain/project-operations";
 import { prepareDrawnMemberEdits } from "./domain/work-plane";
@@ -420,13 +420,10 @@ export function App() {
     try {
       await window.frameMind.verifyCadImportSource({ requestId: draft.result.requestId, inputSha256: draft.result.input.sha256 });
       const outcome = await applyCadImport(source, draft, confirmation);
-      const records = await window.frameMind.recordProjectCheckpoints({ projectId: source.id, snapshots: [
+      await window.frameMind.recordProjectCheckpoints({ projectId: source.id, snapshots: [
         { kind: "step-before", content: encodeProject(source), taskId: draft.id, inputSha256: draft.result.input.sha256 },
-        { kind: "step-confirmed", content: encodeProject(outcome.project), taskId: draft.id, inputSha256: draft.result.input.sha256 },
+        { kind: "step-confirmed", content: encodeProject(outcome.project), taskId: draft.id, inputSha256: draft.result.input.sha256, evidence: { content: encodeCadImportDraft(draft), sha256: confirmation.draftHash } },
       ] });
-      if (records.length !== 2) throw new Error("导入 checkpoint 回执不完整");
-      const readback = decodeProject(await window.frameMind.readProjectCheckpoint({ projectId: source.id, commit: records[1].commit }));
-      if (!sameInputValue(readback, outcome.project)) throw new Error("导入 checkpoint 回读与正式对象不一致");
       cadCommitLockRef.current = false;
       activateProject(outcome.project, false); setSelection(null); setSelectedNodeIds(new Set()); setSelectedMemberIds(new Set());
       setStatus({ tone: "success", text: `STEP 整体导入已确认 · ${outcome.project.nodes.length} 节点 / ${outcome.project.members.length} 杆件 · 缺少支座与荷载，未具备求解条件` });

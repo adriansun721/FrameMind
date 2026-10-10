@@ -92,8 +92,16 @@ for (const source of ["analytic-prism", "specified"] as const) test(`P25-06 ${so
       const records = await page.evaluate((id) => window.frameMind.listProjectCheckpoints(id), parent.id);
       expect(records.map((r) => r.kind)).toContain("step-undo"); expect(records.map((r) => r.kind)).toContain("step-redo");
       await writeFile(join(evidence, "history.json"), JSON.stringify(records, null, 2));
+      const confirmed = records.find((r) => r.kind === "step-confirmed")!;
+      const fullEvidence = await page.evaluate((request) => window.frameMind.readProjectCheckpointEvidence(request), { projectId: parent.id, commit: confirmed.commit });
+      expect(createHash("sha256").update(fullEvidence).digest("hex")).toBe(applied.cadImports![0].draftHash);
+      expect(JSON.parse(fullEvidence).resources.verification.ai.response.decision).toBe("accept");
+      await writeFile(join(evidence, "cad-draft.json"), fullEvidence);
+      await history.locator("p").filter({ hasText: /^step-before ·/ }).first().getByRole("button", { name: "查看恢复差异" }).click();
+      await expect(history.getByRole("region", { name: "checkpoint 恢复差异" })).toContainText("nodes");
+      await page.screenshot({ path: join(evidence, "restore-diff.png") });
       page.once("dialog", (d) => d.accept());
-      await history.locator("p").filter({ hasText: /^step-before ·/ }).first().getByRole("button", { name: "恢复此 checkpoint" }).click();
+      await history.getByRole("button", { name: "确认整体恢复" }).click();
       await expect(history).toBeHidden(); await expect(page.getByTestId("viewport-node-count")).toHaveText("1 个节点");
       await writeFile(join(evidence, "restored.json"), JSON.stringify({ nodeCount: 1, checkpointRestored: true }, null, 2));
       if (!resolve(repository).startsWith(resolve(directory) + sep)) throw new Error("Invalid sidecar path");
@@ -103,9 +111,9 @@ for (const source of ["analytic-prism", "specified"] as const) test(`P25-06 ${so
       await action("STEP 导入历史"); await expect(history.getByText(/本机项目历史旁车缺失/)).toBeVisible();
     }
     const hash = (bytes: Buffer | string) => createHash("sha256").update(bytes).digest("hex");
-    const files = source === "specified" ? ["pending.framemind", "blocked-draft.png"] : ["before.framemind", "after.framemind", "failure.json", "confirmation.png", "history.json", "history.png", "restored.json"];
+    const files = source === "specified" ? ["pending.framemind", "blocked-draft.png"] : ["before.framemind", "after.framemind", "failure.json", "confirmation.png", "history.json", "history.png", "restored.json", "cad-draft.json", "restore-diff.png"];
     const artifacts = Object.fromEntries(await Promise.all(files.map(async (file) => [file, hash(await readFile(join(evidence, file)))])));
-    const sourceFiles = ["src/workspace/cad-import.ts", "src/App.tsx", "src/components/CadTopologyPreview.tsx", "electron/project-checkpoints.ts", "dist/index.html", "dist-electron/main.js", "e2e/p25-06-import.spec.ts"];
+    const sourceFiles = ["src/workspace/cad-import.ts", "src/workspace/cad-import-persistence.ts", "src/workspace/project-snapshot-diff.ts", "src/App.tsx", "src/components/CadTopologyPreview.tsx", "src/components/CadImportHistory.tsx", "src/styles.css", "electron/project-checkpoints.ts", "dist/index.html", "dist-electron/main.js", "e2e/p25-06-import.spec.ts"];
     const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async (file) => [file, hash(await readFile(file))])));
     await writeFile(join(evidence, "run.json"), JSON.stringify({ runId, source, recordedAt: new Date().toISOString(), status: "passed", mode: source === "specified" ? "local-blocked" : "replay-transport", onlineAcceptance: false,
       inputSha256: source === "specified" ? hash(await readFile(input)) : hash(prismStep()), artifacts, sourceHashes,
