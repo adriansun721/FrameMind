@@ -1,0 +1,29 @@
+{
+  "runId": "9f3cd399-453d-40d4-867d-69f91cbd29d2",
+  "source": "analytic-prism",
+  "recordedAt": "2026-10-10T02:38:17.689Z",
+  "status": "passed",
+  "mode": "replay-transport",
+  "onlineAcceptance": false,
+  "inputSha256": "2d7eff96a32a3d04b0a5bb2ba9aa3909685c5143e298fb03b4a27c33114b740d",
+  "artifacts": {
+    "before.framemind": "a12078decf20a9086e0a457ec2705f95c6a4be02774782ac6727e7d58842625d",
+    "after.framemind": "22c183f11c9a9521e00eba4828f0e6320f796dea2b8d29aa21e1b550a8b18f7d",
+    "failure.json": "56bc7146d94dea6d4d8099efa01c2c380c3ecdc94088f0f03ed448f1787c1dcb",
+    "confirmation.png": "d306fef6f78fad4ba6560c2c5d5b8ae1fead145035c6da1cc3bfa53ecd87d29b",
+    "history.json": "617dd15d9d1edbe077269bf0f14db198236a54ac987b1a3c11a9d88b0f369272",
+    "history.png": "1419790883531af6fffbaa55e105b00432755d469435753874aaf76d7007fe9f",
+    "restored.json": "8b4a8422adbab7790500493aca6054a7b5738d98ad2fa91cd063d1645f13be8a"
+  },
+  "sourceHashes": {
+    "src/workspace/cad-import.ts": "6630bbec2412e756d7c08dd6ef1a0d33e4c48b770571437b0f822f8f40022bd6",
+    "src/App.tsx": "ca7cb012c7dd323ae9e57f0a3f5dabefa435ee693ac3428ab3890fc97d24db3d",
+    "src/components/CadTopologyPreview.tsx": "c9d9de229e91a6235611e9ee128227fd3245b9513873a31f6a3095b00c847903",
+    "electron/project-checkpoints.ts": "0fb0d4efc1e87070fd8755f1a6d072bd871717e2741bbb151e3934f15ab3d017",
+    "dist/index.html": "78cc532a51ccab26bb8ba79dee3c6f677c5b454a244810510c101eeb03aab639",
+    "dist-electron/main.js": "c9587b2ccd8e85bebbec0332d7bb0f442978eb60d71ec8fdf03a738bdd2a9dad",
+    "e2e/p25-06-import.spec.ts": "d54cb122097f901bb6750797f7206dc0460fa56303666bab91c40229f1476f08"
+  },
+  "specifiedAcceptance": "pending-upstream-geometry-and-independent-reference",
+  "reverify": "npm run build && node scripts/run-e2e-isolated.cjs e2e/p25-06-import.spec.ts"
+}

@@ -4,3 +4,5 @@
 /docs/evidence/T34/**/*.framemind -text
 # Preserve exact exported JSON bytes for P25-04 artifact SHA-256 on Windows.
 /docs/evidence/plan2/P25-04/**/preview.json -text
+# Preserve P25-06 run artifacts and checkpoint snapshot hashes across checkouts.
+/docs/evidence/plan2/P25-06/** -text

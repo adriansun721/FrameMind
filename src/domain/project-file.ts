@@ -53,6 +53,7 @@ import { ANALYSIS_DOF_ORDER, NATIVE_ANALYSIS_SOLVER, NATIVE_STATIC_SOLVER, NATIV
 import { decodeMeshResult } from "./mesh-result";
 import { decodeTaskState, decodeConfirmedOperations } from "../workspace/task-persistence";
 import { redactPersistence } from "../../electron/persistence-redaction";
+import { decodeCadImportDraft, decodeCadImportReceipts } from "../workspace/cad-import-persistence";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -539,6 +540,10 @@ export function decodeProject(source: string): FrameProject {
   if (latestAnalysis && latestAnalysis.projectRevision >= project.revision) throw new Error("分析结果版本必须早于当前项目版本");
   project.confirmedOperations = decodeConfirmedOperations(value.confirmedOperations, project.id);
   project.taskState = decodeTaskState(value.taskState, project, decodeProject, decodeAnalysisInput);
+  const cadImports = decodeCadImportReceipts(value.cadImports, project.id, project.revision);
+  const cadImportDraft = decodeCadImportDraft(value.cadImportDraft, project.id);
+  if (cadImports) project.cadImports = cadImports;
+  if (cadImportDraft) project.cadImportDraft = cadImportDraft;
   if (value.formatVersion === 1) project.migration = { fromVersion: 1, missing: ["task-state", "confirmation-receipts", "section-geometry"] };
   else if (isRecord(value.migration) && value.migration.fromVersion === 1 && Array.isArray(value.migration.missing) && value.migration.missing.every((item) => typeof item === "string")) project.migration = { fromVersion: 1, missing: value.migration.missing };
   return project;

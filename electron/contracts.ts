@@ -43,6 +43,10 @@ export const enum DesktopChannel {
   ImportStep = "cad:step-import",
   CancelCadImport = "cad:step-cancel",
   ExportCadPreview = "cad:preview-export",
+  RecordProjectCheckpoints = "project:checkpoint-record",
+  ListProjectCheckpoints = "project:checkpoint-list",
+  ReadProjectCheckpoint = "project:checkpoint-read",
+  VerifyCadImportSource = "cad:source-verify",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
   ExportReportData = "report:data",
@@ -133,6 +137,15 @@ export interface CadImportRequest {
   formalSave: RecoverySaveRequest["formalSave"];
   retryOf?: string;
   parameters?: { coordinateSystem?: "global-right-handed"; lengthUnit?: "m" };
+}
+
+export interface ProjectCheckpointRequest {
+  projectId: string;
+  snapshots: Array<{ kind: "step-before" | "step-confirmed" | "step-undo" | "step-redo"; content: string; taskId?: string; inputSha256?: string }>;
+}
+export interface ProjectCheckpointRecord {
+  schemaVersion: 1; projectId: string; revision: number; kind: ProjectCheckpointRequest["snapshots"][number]["kind"];
+  recordedAt: string; contentSha256: string; commit: string; taskId?: string; inputSha256?: string;
 }
 
 export interface CadKernelInfo {
@@ -239,4 +252,8 @@ export interface FrameMindDesktopApi {
   importStep(request: CadImportRequest): Promise<CadImportResult>;
   cancelCadImport(requestId: string): Promise<void>;
   exportCadPreview(request: { suggestedName: string; content: string }): Promise<SaveProjectResult>;
+  recordProjectCheckpoints(request: ProjectCheckpointRequest): Promise<ProjectCheckpointRecord[]>;
+  listProjectCheckpoints(projectId: string): Promise<ProjectCheckpointRecord[]>;
+  readProjectCheckpoint(request: { projectId: string; commit: string }): Promise<string>;
+  verifyCadImportSource(request: { requestId: string; inputSha256: string }): Promise<void>;
 }

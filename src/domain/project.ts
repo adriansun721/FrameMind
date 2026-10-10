@@ -14,6 +14,7 @@ import { calculateMemberGeometry } from "./member-geometry";
 import type { AnalysisResult } from "./analysis";
 import { requireAnalysisCapability, type AnalysisMethod } from "./analysis-capabilities";
 import type { ConfirmedOperation, PersistedTaskState } from "../workspace/task-persistence";
+import type { CadImportDraft, CadImportReceipt } from "../workspace/cad-import";
 
 export const PROJECT_FORMAT = "framemind-project" as const;
 export const PROJECT_FORMAT_VERSION = 2 as const;
@@ -113,6 +114,8 @@ export interface FrameProject {
   latestAnalysis?: AnalysisResult;
   taskState?: PersistedTaskState;
   confirmedOperations?: ConfirmedOperation[];
+  cadImportDraft?: CadImportDraft;
+  cadImports?: CadImportReceipt[];
   migration?: { fromVersion: 1; missing: string[] };
   nextNodeNumber: number;
   nextMaterialNumber: number;

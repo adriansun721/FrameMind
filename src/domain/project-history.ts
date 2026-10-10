@@ -18,6 +18,11 @@ export class ProjectHistory {
     return preserveResults(previous, current);
   }
 
+  preview(direction: "undo" | "redo", current: FrameProject): FrameProject | null {
+    const next = (direction === "undo" ? this.past : this.future).at(-1);
+    return next ? preserveResults(next, current) : null;
+  }
+
   redo(current: FrameProject): FrameProject | null {
     const next = this.future.pop();
     if (!next) return null;

@@ -22,6 +22,8 @@ import { DeepSeekConnection } from "./deepseek";
 import { renderReportPdf } from "./report-pdf";
 import { NativeAnalysisHost } from "./native-analysis";
 import { CadParserHost } from "./cad-parser";
+import { ProjectCheckpoints } from "./project-checkpoints";
+import { CadImportSources } from "./cad-import-sources";
 
 const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
   ? join(process.resourcesPath, "native", "framemind-core.exe")
@@ -35,6 +37,8 @@ const projectFiles = new ProjectFileStore();
 if (process.env.FRAMEMIND_E2E_USER_DATA_PATH) app.setPath("userData", process.env.FRAMEMIND_E2E_USER_DATA_PATH);
 const chatHistories = new ChatHistoryStore(join(app.getPath("userData"), "chat-history"));
 const recoveries = new RecoveryStore(join(app.getPath("userData"), "recovery"));
+const projectCheckpoints = new ProjectCheckpoints(join(app.getPath("userData"), "project-history"));
+const cadImportSources = new CadImportSources();
 
 let deepSeek: DeepSeekConnection;
 const productionUrl = pathToFileURL(join(__dirname, "../dist/index.html")).href;
@@ -46,6 +50,10 @@ function requireTrustedSender(event: IpcMainInvokeEvent): void {
     throw new Error("不允许访问本机连接设置");
   }
 }
+ipcMain.handle(DesktopChannel.RecordProjectCheckpoints, (event, request) => { requireTrustedSender(event); return projectCheckpoints.record(request); });
+ipcMain.handle(DesktopChannel.ListProjectCheckpoints, (event, projectId: string) => { requireTrustedSender(event); return projectCheckpoints.list(projectId); });
+ipcMain.handle(DesktopChannel.ReadProjectCheckpoint, (event, request) => { requireTrustedSender(event); return projectCheckpoints.read(request.projectId, request.commit); });
+ipcMain.handle(DesktopChannel.VerifyCadImportSource, (event, request) => { requireTrustedSender(event); return cadImportSources.verify(event.sender.id, request); });
 ipcMain.handle(DesktopChannel.GetDeepSeekSettings, (event) => {
   requireTrustedSender(event); return deepSeek.getSettings();
 });
@@ -95,11 +103,15 @@ ipcMain.handle(DesktopChannel.ImportStep, async (event, request: CadImportReques
   // The checkpoint is the only project write in this operation. The parser can only
   // produce an intermediate result, so a crash cannot change the formal model.
   await recoveries.save({ content: request.projectContent, formalSave: request.formalSave ?? null });
+  await projectCheckpoints.record({ projectId: JSON.parse(request.projectContent).id, snapshots: [{ kind: "step-before", content: request.projectContent }] });
   const taskId = `cad_${randomUUID()}`;
   const messages = await cadParser.run(event.sender.id, { requestId: taskId, inputPath: targetPath, ...(request.retryOf ? { retryOf: request.retryOf } : {}), ...(request.parameters ? { parameters: request.parameters } : {}) });
   const phases = messages.filter((message): message is CadParsePhase => message.kind === "phase");
   const terminal = messages.at(-1);
-  if (terminal?.kind === "result") return { status: "parsed", path: targetPath, checkpointed: true, phases, result: terminal };
+  if (terminal?.kind === "result") {
+    cadImportSources.register(event.sender.id, taskId, targetPath, terminal.input.sha256);
+    return { status: "parsed", path: targetPath, checkpointed: true, phases, result: terminal };
+  }
   const error = terminal?.kind === "error" ? terminal.error : { code: "cad-no-result", message: "CAD 解析未返回结果", stage: "startup" as const };
   return { status: "failed", path: targetPath, checkpointed: true, phases, error, requestId: taskId, ...(request.retryOf ? { retryOf: request.retryOf } : {}) };
 });

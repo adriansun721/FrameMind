@@ -32,6 +32,10 @@ const desktopApi: FrameMindDesktopApi = {
   importStep: (request) => ipcRenderer.invoke(DesktopChannel.ImportStep, request),
   cancelCadImport: (requestId) => ipcRenderer.invoke(DesktopChannel.CancelCadImport, requestId),
   exportCadPreview: (request) => ipcRenderer.invoke(DesktopChannel.ExportCadPreview, request),
+  recordProjectCheckpoints: (request) => ipcRenderer.invoke(DesktopChannel.RecordProjectCheckpoints, request),
+  listProjectCheckpoints: (projectId) => ipcRenderer.invoke(DesktopChannel.ListProjectCheckpoints, projectId),
+  readProjectCheckpoint: (request) => ipcRenderer.invoke(DesktopChannel.ReadProjectCheckpoint, request),
+  verifyCadImportSource: (request) => ipcRenderer.invoke(DesktopChannel.VerifyCadImportSource, request),
 };
 
 contextBridge.exposeInMainWorld("frameMind", desktopApi);
