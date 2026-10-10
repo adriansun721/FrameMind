@@ -57,7 +57,7 @@ export function ReverseDesignDialog({ project, sessionId, onApply, onClose }: { 
             .catch(() => { if (mounted.current) setError("多 agent 编排未完成；请检查连接与父快照后重试。"); })
             .finally(() => { if (mounted.current) setRoundRunning(false); });
         }}>启动一轮三个 work 与 inspect</button>
-        {roundRunning && <><p role="status">三个 work 正在独立探索，原生求解排队执行，随后进行只读 inspect…</p><button className="button ghost" onClick={() => { void window.frameMind.cancelReverseDesignRound(); }}>取消多 agent 轮次</button></>}
+        {roundRunning && <><p role="status">main 正在读取父状态并派发独立 work；原生求解排队执行，随后进行只读 inspect…</p><button className="button ghost" onClick={() => { void window.frameMind.cancelReverseDesignRound(); }}>取消多 agent 轮次</button></>}
       </section>
       <section aria-label="受控截面变量"><h3>截面变量</h3>
         <label className="field"><span>梁组候选截面</span><select aria-label="梁组候选截面" value={beam} disabled={busy} onChange={(e) => setBeam(e.target.value)}>{draft.catalog.map((s) => <option key={s.provenance.catalogId} value={s.provenance.catalogId}>{s.name}</option>)}</select></label>
@@ -74,7 +74,7 @@ export function ReverseDesignDialog({ project, sessionId, onApply, onClose }: { 
     {error && <p role="alert">{error}</p>}
     {round && <section aria-label="多 agent 轮次记录"><h3>多 agent 轮次记录</h3>
       <p>{round.mode === "online" ? "在线" : "回放"} · 第 {round.round} 轮 · {round.status} · {((round.elapsedMs ?? 0) / 1000).toFixed(1)} 秒 · API 调用 {round.apiCalls} 次</p>
-      <p>{round.diagnostic}</p><p>候选比较与合并决策：等待 P25-11</p>
+      <p>{round.diagnostic}</p><p>候选比较与受控合并尚未开放。</p><p>main：{round.main.status} · 实际 API 调用 {round.main.apiCalls} 次</p>
       <table><thead><tr><th>策略</th><th>状态</th><th>质量 (kg)</th><th>最大水平位移 (mm)</th><th>API 调用</th></tr></thead><tbody>{round.works.map((w) => <tr key={w.agentId}><td>{({ aggressive: "激进减重", conservative: "稳健逐级缩小", independent: "独立探索" })[w.strategy]}</td><td>{w.status}</td><td>{w.massKg?.toFixed(3) ?? "未完成"}</td><td>{w.checks?.find((c) => c.name === "horizontal-displacement")?.value.toFixed(6) ?? "未完成"}</td><td>{w.apiCalls}</td></tr>)}</tbody></table>
       <p>inspect：{round.inspection?.status ?? "未完成"}</p>
       {round.inspection?.reports.map((report) => <details key={report.taskId}><summary>{report.candidateId} · 检查证据</summary>{report.checks.map((c) => <p key={c.name}>{c.name}：{c.value} / 阈值 {c.threshold} · {c.passed ? "通过" : "未通过"}</p>)}</details>)}

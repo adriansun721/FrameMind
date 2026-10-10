@@ -17,6 +17,7 @@ import type { DeepSeekChatResult } from "./contracts";
 const directories: string[] = [], hosts: NativeAnalysisHost[] = [];
 vi.setConfig({ testTimeout: 60_000 });
 afterEach(async () => {
+  vi.useRealTimers();
   for (const host of hosts.splice(0)) host.dispose();
   for (const directory of directories.splice(0)) {
     if (!resolve(directory).startsWith(resolve(tmpdir()) + sep)) throw new Error("Unsafe test directory");
@@ -31,7 +32,8 @@ function replay(): ReverseAgentTransport {
   return { mode: "replay", model: async () => "deterministic-test-replay", cancel: async () => undefined, chat: async (_id, messages) => {
     const prompt = messages[0].content!;
     const toolMessages = messages.filter((m) => m.role === "tool");
-    if (prompt.includes("read-only inspect")) {
+    if (prompt.includes("You are main")) return assistant([toolMessages.length === 0 ? "read_parent" : toolMessages.length === 1 ? "dispatch_round" : "finish_main", {}]);
+    if (prompt.includes("You are independent read-only inspect")) {
       const taskIds = JSON.parse(messages[1].content!).taskIds as string[];
       if (!toolMessages.length) return assistant(...taskIds.map((taskId): [string, unknown] => ["read_candidate_evidence", { taskId }]));
       const reports = toolMessages.map((m) => JSON.parse(m.content!)).filter((r) => r.taskId).map(({ taskId, inputSha256, resultSha256 }) => ({ taskId, inputSha256, resultSha256 }));
@@ -60,13 +62,14 @@ async function fixture(transport = replay()) {
 it("runs three isolated agents concurrently from one Git parent with serial real native solves and independent read-only inspect", async () => {
   const { rounds, candidates, history, parent, draft } = await fixture();
   const round = await rounds.run(1, draft.confirmationId);
-  expect(round.status).toBe("completed"); expect(round.mode).toBe("replay"); expect(round.apiCalls).toBe(11);
+  expect(round.status).toBe("completed"); expect(round.mode).toBe("replay"); expect(round.apiAttempts).toBe(14); expect(round.apiCalls).toBe(0);
   expect(new Set(round.works.map((w) => w.taskId)).size).toBe(3);
   expect(new Set(round.works.map((w) => w.branch)).size).toBe(3);
   expect(round.works.every((w) => w.candidate?.parentCommit === round.parentCommit && w.candidate.state === "submitted")).toBe(true);
   expect(round.works[1].massKg).toBeCloseTo(1337.012, 6); // independent rho A L reference from ADR-0080
-  const firstEnd = round.timeline.findIndex((e) => e.event === "api-end");
-  expect(round.timeline.slice(0, firstEnd).filter((e) => e.event === "api-start")).toHaveLength(3);
+  const workIds = new Set(round.works.map((w) => w.agentId));
+  const firstEnd = round.timeline.findIndex((e) => e.event === "api-end" && workIds.has(e.agentId));
+  expect(round.timeline.slice(0, firstEnd).filter((e) => e.event === "api-start" && workIds.has(e.agentId))).toHaveLength(3);
   const solves = round.timeline.filter((e) => ["solve-start", "solve-end"].includes(e.event));
   expect(solves.map((s) => s.event)).toEqual(["solve-start", "solve-end", "solve-start", "solve-end", "solve-start", "solve-end"]);
   expect(round.inspection?.reports).toHaveLength(3);
@@ -85,19 +88,20 @@ it("runs three isolated agents concurrently from one Git parent with serial real
 
 it("rejects inspect prose and forged pass reports without reading independent evidence", async () => {
   const transport = replay(), chat = transport.chat;
-  transport.chat = async (requestId, messages, tools) => messages[0].content!.includes("read-only inspect")
+  transport.chat = async (requestId, messages, tools) => messages[0].content!.includes("You are independent read-only inspect")
     ? assistant(["submit_inspection", { reports: [{ taskId: "forged", inputSha256: "x", resultSha256: "x" }, {}, {}] }]) : chat(requestId, messages, tools);
   const { rounds, draft, candidates } = await fixture(transport);
   const round = await rounds.run(1, draft.confirmationId);
   expect(round.status).toBe("failed"); expect(round.inspection?.status).toBe("failed");
-  expect(round.inspection?.apiCalls).toBe(3); expect(round.inspection?.reports).toEqual([]);
+  expect(round.inspection?.apiAttempts).toBe(3); expect(round.inspection?.reports).toEqual([]);
   expect((await candidates.list(1)).every((c) => c.state === "cancelled")).toBe(true);
 });
 
 it.each(["cancel", "edit", "restore", "switch"] as const)("invalidates %s during online requests and preserves only evidence", async (reason) => {
   let entered!: () => void; const started = new Promise<void>((resolve) => { entered = resolve; });
   const requests = new Map<string, (value: DeepSeekChatResult) => void>();
-  const transport: ReverseAgentTransport = { mode: "online", model: async () => "deepseek-flash", chat: (id) => new Promise((resolve) => { requests.set(id, resolve); if (requests.size === 3) entered(); }), cancel: async (id) => { requests.get(id)?.({ status: "cancelled", message: "cancelled" }); } };
+  const mainReplay = replay();
+  const transport: ReverseAgentTransport = { mode: "online", model: async () => "deepseek-flash", chat: (id, messages, tools) => messages[0].content!.includes("You are main") ? mainReplay.chat(id, messages, tools) : new Promise((resolve) => { requests.set(id, resolve); if (requests.size === 3) entered(); }), cancel: async (id) => { requests.get(id)?.({ status: "cancelled", message: "cancelled" }); } };
   const { rounds, draft, service, candidates, parent } = await fixture(transport);
   const running = rounds.run(1, draft.confirmationId); await started;
   await expect(rounds.run(1, draft.confirmationId)).rejects.toThrow(/已有任务/);
@@ -114,9 +118,30 @@ it.each(["cancel", "edit", "restore", "switch"] as const)("invalidates %s during
 });
 
 it("does not accept work text or arbitrary commands as a generated candidate", async () => {
-  const transport = replay(); transport.chat = async () => assistant(["exec", { command: "git push" }]);
+  const transport = replay(), chat = transport.chat; transport.chat = async (id, messages, tools) => messages[0].content!.includes("You are main") ? chat(id, messages, tools) : assistant(["exec", { command: "git push" }]);
   const { rounds, draft, candidates } = await fixture(transport);
   const round = await rounds.run(1, draft.confirmationId);
-  expect(round.status).toBe("failed"); expect(round.works.every((w) => w.apiCalls === 3 && w.status === "failed")).toBe(true);
+  expect(round.status).toBe("failed"); expect(round.works.every((w) => w.apiAttempts === 3 && w.status === "failed")).toBe(true);
   expect((await candidates.list(1)).every((c) => !c.resultSha256 && c.state === "cancelled")).toBe(true);
+});
+
+it("invalidates a pending inspect when the formal engineering parent changes", async () => {
+  const transport = replay(), chat = transport.chat;
+  let entered!: () => void; const started = new Promise<void>((resolve) => { entered = resolve; });
+  let pendingId = "", release!: (value: DeepSeekChatResult) => void;
+  transport.chat = async (requestId, messages, tools) => {
+    if (messages[0].content!.includes("You are independent read-only inspect")) {
+      pendingId = requestId; entered(); return new Promise((resolve) => { release = resolve; });
+    }
+    return chat(requestId, messages, tools);
+  };
+  transport.cancel = async (id) => { if (id === pendingId) release({ status: "cancelled", message: "cancelled" }); };
+  const { rounds, draft, service, candidates, parent } = await fixture(transport);
+  const running = rounds.run(1, draft.confirmationId); await started;
+  const p = JSON.parse(parent); p.revision++;
+  const request = { content: JSON.stringify(p), sessionId: "test-session", reason: "edit" as const };
+  service.sync(1, request); candidates.sync(1, request); rounds.contextChanged(1);
+  const round = await running;
+  expect(round.status).toBe("stale"); expect(round.inspection?.reports).toEqual([]);
+  expect((await candidates.list(1)).every((c) => c.state === "stale")).toBe(true);
 });

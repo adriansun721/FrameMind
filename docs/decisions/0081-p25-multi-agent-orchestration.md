@@ -2,11 +2,11 @@
 
 日期：2026-10-10（Asia/Taipei）
 
-P25-10 在既有已确认固定场景和候选接口上交付单轮 main/work/inspect 编排。main 是主进程受控调度器；三个 work 各自通过独立 DeepSeek 请求循环探索激进减重、稳健逐级缩小和独立策略。三个上下文只含同一真实父输入、库资源和固定规则，不含其他 work 的候选、对话、路径或凭据。主进程先创建三个不同候选分支和输出身份，共用一个 `candidate-round` 父提交，再并发派发请求。
+P25-10 在既有已确认固定场景和候选接口上交付单轮 main/work/inspect 编排。main 真实调用已配置模型，通过只读 `read_parent` 读取真实父输入，再用 `dispatch_round` 请求主进程创建分支并并发派发三个 work，最终通过 `finish_main` 接收受控回执。三个 work 各自通过独立 DeepSeek 请求循环探索激进减重、稳健逐级缩小和独立策略。三个上下文只含同一真实父输入、库资源和固定规则，不含其他 work 的候选、对话、路径或凭据。主进程先创建三个不同候选分支和输出身份，共用一个 `candidate-round` 父提交，再并发派发请求。
 
-通信 schema 为 `reverse-agents/1`，提示版本 `p25-10/1`。记录模型、完整提示版本/哈希、工具 schema/哈希、编译模块和原生核心的构建哈希，以及 temperature=0、thinking=disabled、max_tokens=2048。每个请求校验任务启动时冻结的模型标识，连接设置改变后不能混入另一个模型。已有 DeepSeek 连接负责加密凭据、有限传输、网络失败与取消；渲染层不能指定 agent 工具。
+通信 schema 为 `reverse-agents/1`，提示版本 `p25-10/2`。记录模型、完整提示版本/哈希、工具 schema/哈希、编译模块和原生核心的构建哈希，以及 temperature=0、thinking=disabled、max_tokens=2048。main/work/inspect 的请求、响应、工具参数与回执保存在逐 agent 脱敏 transcript 中；凭据和本地绝对路径被移除。每个请求校验任务启动时冻结的模型标识，连接设置改变后不能混入另一个模型。已有 DeepSeek 连接负责加密凭据、有限传输、网络失败与取消；渲染层不能指定 agent 工具。apiAttempts 记录连接尝试，apiCalls 只在连接实际发出 HTTP 请求时递增，无凭据失败计为零次真实 API 调用。
 
-work 白名单只有 `generate_candidate`、`solve_candidate`、`finish_work`；inspect 白名单只有 `read_candidate_evidence`、`submit_inspection`。未知工具、多余参数、其他轮的任务、直接通过文本和伪造来源均拒绝。每个 agent 最多 8 次 API 请求，工具失败最多重试 2 次；work 120 秒、inspect 90 秒。work 计时从独立上下文任务启动起包含 API、工具、排队、重试和证据写入；inspect 同样包含读取与结构化报告。父分支创建属于 main 准备时间，计入轮次总耗时。P25-12 再接入跨轮的 8 轮/20 分钟限制、去重和反馈，不在本任务宣称搜索收敛。
+work 白名单只有 `generate_candidate`、`solve_candidate`、`finish_work`；inspect 白名单只有 `read_candidate_evidence`、`submit_inspection`。未知工具、多余参数、其他轮的任务、直接通过文本和伪造来源均拒绝。每个 agent 最多 8 次连接尝试，工具失败最多重试 2 次；work 120 秒、inspect 90 秒。每个 agent 只有一个从任务启动起计时的取消信号；初始上下文保存、API、工具、排队、重试、报告发布均受该信号约束，不在上下文保存后重置预算。agent-stopped 表示执行终止；终止后的取消回收、脱敏 transcript 和最终 manifest 落盘属于 main 的证据收尾，不再允许 agent 继续发请求或修改候选。父分支创建与收尾计入轮次总耗时；本轮 main 上限 20 分钟，P25-12 再接入跨轮的 8 轮/20 分钟限制、去重和反馈，不在本任务宣称搜索收敛。
 
 `NativeAnalysisHost.runQueued` 与手动求解共用单原生进程资源，等待真实进程 close 后才进入下一次求解；取消不提前释放仍存活的进程。时间线分别记录 API 起止、求解排队和实际进程执行。领域协议通过构建时打包的 `reverse-native-domain.cjs` 复用现有 `captureAnalysisInput`、`createAnalysisRequest`、项目与分析结果解码器，避免复制冻结组合和结果校验规则；Windows 打包包含该模块。
 

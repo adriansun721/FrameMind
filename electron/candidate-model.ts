@@ -9,6 +9,17 @@ export function candidateInput(content: string): string {
   const project = parseCandidateProject(content);
   return canonicalJson(Object.fromEntries(["id", ...CANDIDATE_INPUT_FIELDS].map((key) => [key, project[key]])));
 }
+/** Execution bookkeeping and display choices cannot overwrite formal engineering/history state. */
+export function candidateParentState(content: string): string {
+  const { taskState: _task, displayUnitPreset: _display, updatedAt: _time, ...parent } = parseCandidateProject(content);
+  return canonicalJson(parent);
+}
+
+export function normalizeCheckpointRestore<T extends { id: unknown; projectHistory?: unknown; taskState?: unknown; cadImportDraft?: { resources: object } }>(current: T, snapshot: T): T {
+  if (snapshot.id !== current.id) throw new Error("恢复快照属于其他项目");
+  return { ...snapshot, projectHistory: current.projectHistory, taskState: undefined,
+    cadImportDraft: snapshot.cadImportDraft ? { ...snapshot.cadImportDraft, restored: true, resources: { ...snapshot.cadImportDraft.resources, verification: undefined } } : undefined };
+}
 export function parseCandidateProject(content: string): Record<string, unknown> {
   if (typeof content !== "string" || content.length > 64 * 1024 * 1024) throw new Error("候选项目内容无效");
   const p = JSON.parse(content);

@@ -3,7 +3,7 @@ import { mkdir, readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { ProjectHistoryStore } from "./project-history-store";
 import { ProjectFileStore } from "./project-files";
-import { candidateInput, canonicalJson, parseCandidateProject, CANDIDATE_INPUT_FIELDS } from "./candidate-model";
+import { candidateInput, candidateParentState, canonicalJson, normalizeCheckpointRestore, parseCandidateProject, CANDIDATE_INPUT_FIELDS } from "./candidate-model";
 import { redactPersistence } from "./persistence-redaction";
 import { reverseDesignParentState, validateReverseDesignParent } from "./reverse-design-model";
 import type { CandidateContextRequest, CandidateInspection, CandidateSnapshot, CandidateSubmitRequest, CandidateToolRequest, CandidateToolResult, ProjectCandidate } from "./contracts";
@@ -12,7 +12,7 @@ const sha256 = (content: string) => createHash("sha256").update(content).digest(
 const taskIdentity = /^task_[a-f0-9-]{36}$/;
 const digest = /^[a-f0-9]{64}$/;
 const terminal = (task: ProjectCandidate) => ["stale", "cancelled", "merged"].includes(task.state);
-interface Context { content: string; sessionId: string; projectId: string; signature: string; }
+interface Context { content: string; sessionId: string; projectId: string; signature: string; baseSignature: string; }
 export interface CandidateInspector {
   /** Trusted local checker. No caller-supplied report or natural-language approval is accepted. */
   inspect(snapshot: CandidateSnapshot, resultContent: string): Promise<CandidateInspection>;
@@ -26,17 +26,22 @@ export class ProjectCandidates {
   private readonly owners = new Map<string, number>();
   private readonly queues = new Map<number, Promise<unknown>>();
   private readonly loaded = new Set<string>();
+  private readonly repositoryTasks = new Map<string, Set<string>>();
   private readonly files = new ProjectFileStore();
   constructor(private readonly history: ProjectHistoryStore, private readonly inspector?: CandidateInspector) {}
 
   sync(owner: number, request: CandidateContextRequest): void {
     if (!request || Object.keys(request).some((k) => !["content", "sessionId", "reason"].includes(k)) || typeof request.sessionId !== "string" || request.sessionId.length > 100 || !request.sessionId || request.reason && !["edit", "restore", "switch"].includes(request.reason)) throw new Error("候选上下文请求无效");
     const p = parseCandidateProject(request.content);
-    const signature = sha256(canonicalJson({ input: candidateInput(request.content), revision: p.revision, history: p.projectHistory }));
+    const signature = sha256(candidateParentState(request.content));
     const previous = this.contexts.get(owner);
     if (previous && (previous.signature !== signature || previous.sessionId !== request.sessionId || request.reason === "restore" || request.reason === "switch")) this.invalidate(owner, "父快照、项目会话或恢复状态已变化");
     if (previous && previous.signature === signature && previous.sessionId === request.sessionId && !request.reason) previous.content = request.content;
-    else this.contexts.set(owner, { content: request.content, sessionId: request.sessionId, projectId: String(p.id), signature });
+    else {
+      const sameHistory = previous && previous.projectId === p.id && canonicalJson(parseCandidateProject(previous.content).projectHistory) === canonicalJson(p.projectHistory);
+      this.contexts.set(owner, { content: request.content, sessionId: request.sessionId, projectId: String(p.id), signature,
+        baseSignature: previous && previous.sessionId === request.sessionId && sameHistory ? previous.baseSignature : signature });
+    }
   }
   close(owner: number): void { this.invalidate(owner, "项目窗口已关闭"); this.contexts.delete(owner); }
   private invalidate(owner: number, diagnostic: string): void {
@@ -45,7 +50,7 @@ export class ProjectCandidates {
   private context(owner: number): Context { const context = this.contexts.get(owner); if (!context) throw new Error("请先同步当前项目候选上下文"); return context; }
   private current(owner: number, task: ProjectCandidate): Context {
     const c = this.context(owner), p = parseCandidateProject(c.content);
-    if (terminal(task) || this.owners.get(task.taskId) !== owner || c.sessionId !== task.sessionId || c.projectId !== task.projectId || p.revision !== task.parentRevision || sha256(candidateInput(c.content)) !== task.parentInputSha256 || (p.projectHistory as { id?: string } | undefined)?.id !== task.historyId) {
+    if (terminal(task) || this.owners.get(task.taskId) !== owner || c.sessionId !== task.sessionId || c.projectId !== task.projectId || c.signature !== task.parentStateSha256 || p.revision !== task.parentRevision || sha256(candidateInput(c.content)) !== task.parentInputSha256 || (p.projectHistory as { id?: string } | undefined)?.id !== task.historyId) {
       if (!terminal(task)) { task.state = "stale"; task.diagnostic = "父快照已变化；旧输出仅保留为证据"; }
       throw new Error(`候选 ${task.state}；禁止合并或继续写入，请使用新任务重试`);
     }
@@ -69,6 +74,7 @@ export class ProjectCandidates {
       }
       if (!this.tasks.has(id)) { if (!terminal(task)) { task.state = "stale"; task.diagnostic = "重开/复制后的旧任务不可恢复执行；请新建任务"; } this.tasks.set(id, task); }
     }
+    this.repositoryTasks.set(repository, new Set(names.filter((id) => taskIdentity.test(id))));
     this.loaded.add(repository);
   }
   private persist(repository: string, task: ProjectCandidate): Promise<void> { return this.files.save(join(repository, "candidates", task.taskId, "task.json"), JSON.stringify(task)).then(() => undefined); }
@@ -78,12 +84,12 @@ export class ProjectCandidates {
   }
   private async snapshot(task: ProjectCandidate): Promise<CandidateSnapshot> {
     const [parentContent, candidateContent] = await Promise.all([this.history.read(task.projectId, task.parentCommit), this.history.checkpoints.readCandidate(task.projectId, task.branch, task.commit)]);
-    if (sha256(parentContent) !== task.parentContentSha256 || sha256(candidateInput(parentContent)) !== task.parentInputSha256 || task.inputSha256 && sha256(candidateInput(candidateContent)) !== task.inputSha256) throw new Error("候选或父快照哈希不一致");
+    if (sha256(parentContent) !== task.parentContentSha256 || sha256(candidateParentState(parentContent)) !== task.parentStateSha256 || sha256(candidateInput(parentContent)) !== task.parentInputSha256 || task.inputSha256 && sha256(candidateInput(candidateContent)) !== task.inputSha256) throw new Error("候选或父快照哈希不一致");
     return { candidate: structuredClone(task), parentContent, candidateContent };
   }
   private async verifyMainParent(task: ProjectCandidate, commit: string): Promise<void> {
     const content = await this.history.read(task.projectId, commit), p = parseCandidateProject(content);
-    if (p.revision !== task.parentRevision || sha256(candidateInput(content)) !== task.parentInputSha256) {
+    if (p.revision !== task.parentRevision || sha256(candidateParentState(content)) !== task.parentStateSha256 || sha256(candidateInput(content)) !== task.parentInputSha256) {
       task.state = "stale"; task.diagnostic = "Git 主历史中的父工程状态已变化";
       throw new Error("父快照已变化；禁止静默三方合并");
     }
@@ -117,19 +123,32 @@ export class ProjectCandidates {
         await this.verifyMainParent(original, (await this.history.checkpoints.mainReference(c.projectId))!);
         guard();
       }
-      const [parent] = roundParent ? [{ commit: roundParent.candidate.parentCommit }] : await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate-round", content: c.content, taskId, candidateId }] }, { beforePublish: async (_records, original) => { guard(); if (inputPolicy === "reverse-design-v1" && original && reverseDesignParentState(await this.history.read(c.projectId, original)) !== reverseDesignParentState(c.content)) throw new Error("反向设计 Git 父状态已变化；请重开并重新确认"); guard(); }, validatePublished: guard, rollback: async () => undefined, committed: async () => undefined }); guard();
+      const [parent] = roundParent ? [{ commit: roundParent.candidate.parentCommit }] : await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate-round", content: c.content, taskId, candidateId }] }, {
+        beforePublish: async (_records, original) => {
+          guard();
+          if (inputPolicy === "reverse-design-v1" && original && reverseDesignParentState(await this.history.read(c.projectId, original)) !== reverseDesignParentState(c.content)) throw new Error("反向设计 Git 父状态已变化；请重开并重新确认");
+          guard();
+          if (original) {
+            const actual = sha256(candidateParentState(await this.history.read(c.projectId, original)));
+            if (actual !== c.signature && actual !== c.baseSignature) throw new Error("Git 父状态已被其他窗口修改；禁止从旧窗口创建候选，请重开或保存独立副本");
+          }
+          guard();
+        }, validatePublished: guard, rollback: async () => undefined, committed: async () => { c.baseSignature = c.signature; },
+      }); guard();
       const branch = `candidate/${taskId}`;
       const [record] = await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate", content: c.content, taskId, candidateId }] }, undefined, { name: branch, parentCommit: parent.commit, guard }); guard();
       const task: ProjectCandidate = { inputPolicy, schemaVersion: 1, projectId: c.projectId, historyId: (p.projectHistory as { id?: string } | undefined)?.id, taskId, candidateId, ...(retryOf ? { retryOf } : {}), sessionId: c.sessionId,
-        parentCommit: parent.commit, parentRevision: Number(p.revision), parentInputSha256: sha256(candidateInput(c.content)), parentContentSha256: sha256(c.content), branch, commit: record.commit, createdAt: new Date().toISOString(), state: "working" };
+        parentCommit: parent.commit, parentRevision: Number(p.revision), parentInputSha256: sha256(candidateInput(c.content)), parentContentSha256: sha256(c.content), parentStateSha256: c.signature, branch, commit: record.commit, createdAt: new Date().toISOString(), state: "working" };
       await mkdir(join(repository, "candidates", taskId), { recursive: true });
-      this.tasks.set(taskId, task); this.owners.set(taskId, owner); await this.persist(repository, task); this.current(owner, task);
+      this.tasks.set(taskId, task); this.owners.set(taskId, owner); this.repositoryTasks.get(repository)!.add(taskId); await this.persist(repository, task); this.current(owner, task);
       return this.snapshot(task);
     });
   }
   submit(owner: number, request: CandidateSubmitRequest): Promise<ProjectCandidate> {
-    return this.access(owner, async (repository) => {
+    return this.access(owner, async (repository, c) => {
+      if (request.projectId !== c.projectId) throw new Error("迟到输出属于已切换的其他项目；拒绝写入当前历史");
       const task = this.task(request.projectId, request.taskId);
+      if (task.historyId !== (parseCandidateProject(c.content).projectHistory as { id?: string } | undefined)?.id) throw new Error("迟到输出属于其他历史副本；拒绝写入当前历史");
       if (!terminal(task)) this.current(owner, task);
       if (task.state !== "working" && !["stale", "cancelled"].includes(task.state)) throw new Error("候选已提交；修改必须使用新任务重新检查");
       if (Object.keys(request).some((k) => !["projectId", "taskId", "content", "inputSha256", "resultContent", "resultSha256", "evidenceIndex"].includes(k))) throw new Error("候选工具拒绝命令、路径或未知参数");
@@ -153,19 +172,23 @@ export class ProjectCandidates {
       let record;
       try { [record] = await this.history.checkpoints.record({ projectId: task.projectId, snapshots: [{ kind: "candidate", content: request.content, taskId: task.taskId, candidateId: task.candidateId, inputSha256: request.inputSha256, resultSha256: request.resultSha256, evidenceIndex: request.evidenceIndex }] }, undefined, { name: task.branch, parentCommit: task.parentCommit, guard: () => { this.current(owner, task); } }); }
       catch (cause) { if (!terminal(task)) throw cause; await this.persist(repository, task); return structuredClone(task); }
-      // Lateness can preserve a branch as evidence, but cannot resurrect an invalidated task.
+      // Publication guards have already compensated any cancellation while Git was running.
+      if (terminal(task)) { await this.persist(repository, task); return structuredClone(task); }
       task.commit = record.commit; task.inputSha256 = request.inputSha256; task.resultSha256 = request.resultSha256; task.evidenceIndex = [...request.evidenceIndex];
       if (!terminal(task)) task.state = "submitted";
       await this.persist(repository, task); this.current(owner, task); return structuredClone(task);
     });
   }
-  list(owner: number): Promise<ProjectCandidate[]> { return this.access(owner, async (repository, c) => { const tasks = [...this.tasks.values()].filter((t) => t.projectId === c.projectId); for (const task of tasks) await this.persist(repository, task); return structuredClone(tasks); }); }
+  list(owner: number): Promise<ProjectCandidate[]> { return this.access(owner, async (repository, c) => { const tasks = [...this.tasks.values()].filter((t) => t.projectId === c.projectId && this.repositoryTasks.get(repository)?.has(t.taskId)); for (const task of tasks) await this.persist(repository, task); return structuredClone(tasks); }); }
   read(owner: number, taskId: string): Promise<CandidateSnapshot> { return this.access(owner, async (_repository, c) => this.snapshot(this.task(c.projectId, taskId))); }
   cancel(owner: number, taskId: string): Promise<ProjectCandidate> {
     // Set cancellation synchronously, even while inspect or a Git operation is awaiting output.
     const c = this.context(owner), task = this.task(c.projectId, taskId);
     if (!terminal(task)) { task.state = "cancelled"; task.diagnostic = "用户已取消；迟到输出只能保留为证据"; }
-    return this.access(owner, async (repository) => { await this.persist(repository, task); return structuredClone(task); });
+    return this.access(owner, async (repository, active) => {
+      if (active.projectId === task.projectId && (parseCandidateProject(active.content).projectHistory as { id?: string } | undefined)?.id === task.historyId) await this.persist(repository, task);
+      return structuredClone(task);
+    });
   }
   inspect(owner: number, taskId: string): Promise<ProjectCandidate> {
     return this.access(owner, async (repository, c) => {
@@ -192,7 +215,7 @@ export class ProjectCandidates {
       if (task.state !== "passed" || task.commit !== expectedCommit || !this.inspector) throw new Error("候选未通过 inspect 或确认版本变化；禁止合并");
       const snapshot = await this.snapshot(task); this.inspector.validate(snapshot.candidateContent);
       if (sha256(await readFile(join(repository, "candidates", taskId, "inspect.json"), "utf8")) !== task.inspectionSha256 || sha256(await readFile(join(repository, "candidates", taskId, "result.json"), "utf8")) !== task.resultSha256) throw new Error("inspect 或结果证据已变化；禁止合并");
-      const next = { ...parseCandidateProject(snapshot.candidateContent), taskState: undefined, cadImportDraft: undefined };
+      const next = { ...parseCandidateProject(snapshot.candidateContent), displayUnitPreset: parseCandidateProject(c.content).displayUnitPreset, taskState: undefined, cadImportDraft: undefined };
       const content = `${JSON.stringify(next)}\n`; this.inspector.validate(content);
       let mergedCommit = "";
       await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "merge-before", content: c.content, taskId, candidateId: task.candidateId }, { kind: "merge-after", content, taskId, candidateId: task.candidateId, inputSha256: task.inputSha256, resultSha256: task.resultSha256, evidenceIndex: task.evidenceIndex }] }, {
@@ -214,9 +237,8 @@ export class ProjectCandidates {
       if (Object.keys(selector).length !== 1) throw new Error("恢复必须选择一个任务、快照或提交");
       const commit = selector.taskId ? this.task(c.projectId, selector.taskId).parentCommit : selector.commit ?? selector.snapshot ?? "";
       const snapshot = parseCandidateProject(await this.history.read(c.projectId, commit)), current = parseCandidateProject(c.content);
-      const draft = snapshot.cadImportDraft as { resources: Record<string, unknown> } | undefined;
-      const content = `${JSON.stringify({ ...snapshot, revision: Math.max(Number(snapshot.revision), Number(current.revision)) + 1, projectHistory: current.projectHistory, taskState: undefined,
-        cadImportDraft: draft ? { ...draft, restored: true, resources: { ...draft.resources, verification: undefined } } : undefined })}\n`;
+      const restored = normalizeCheckpointRestore({ ...current, id: current.id }, { ...snapshot, id: snapshot.id });
+      const content = `${JSON.stringify({ ...restored, revision: Math.max(Number(snapshot.revision), Number(current.revision)) + 1 })}\n`;
       this.inspector?.validate(content);
       if (this.context(owner) !== c) throw new Error("恢复期间项目上下文已变化");
       this.invalidate(owner, "项目已执行受控恢复，旧候选失效");

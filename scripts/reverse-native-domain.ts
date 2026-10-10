@@ -28,11 +28,20 @@ export function inspectResult(content: string, request: ReturnType<typeof create
     for (let axis = 0; axis < 3; axis++) { force[axis] += f[axis]; moment[axis] += m[axis]; }
     moment[0] += y * f[2] - z * f[1]; moment[1] += z * f[0] - x * f[2]; moment[2] += x * f[1] - y * f[0];
   }
+  const frozenMassKg = result.input.members.reduce((sum, member) => {
+    const start = result.input.nodes.find((node) => node.id === member.startNodeId)?.position;
+    const end = result.input.nodes.find((node) => node.id === member.endNodeId)?.position;
+    const section = result.input.sections.find((candidate) => candidate.id === member.sectionId);
+    const material = result.input.materials.find((candidate) => candidate.id === member.materialId);
+    if (!start || !end || !section || !material) throw new Error("冻结输入缺少质量来源");
+    return sum + Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z) * section.areaM2 * material.densityKgM3;
+  }, 0);
+  const massResidualKg = Math.abs(frozenMassKg - reverseDesignMass(content));
   const observations = [
     { name: "source", value: 1, threshold: 1 }, { name: "resources", value: 1, threshold: 1 }, { name: "stiffness", value: 1, threshold: 1 },
     { name: "horizontal-displacement", value: Math.max(...result.nodes.map((n) => Math.hypot(n.displacement.x, n.displacement.y))) * 1000, threshold: 15 },
     { name: "force-balance", value: Math.hypot(...force), threshold: 1e-7 }, { name: "moment-balance", value: Math.hypot(...moment), threshold: 1e-7 },
-    { name: "mass", value: 1, threshold: 1 },
+    { name: "mass", value: massResidualKg, threshold: 1e-9 },
   ];
   if (observations.some((o) => !Number.isFinite(o.value))) throw new Error("原生检查出现非有限数值");
   return { massKg: reverseDesignMass(content), result, checks: observations.map((o) => ({ ...o, passed: o.value <= o.threshold })) };

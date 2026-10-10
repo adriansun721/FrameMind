@@ -363,9 +363,9 @@ export class DeepSeekConnection {
   async chat(input: unknown): Promise<DeepSeekChatResult> { return this.chatWithTools(input); }
 
   /** Host-only agent transport; renderer chat cannot choose its tools. */
-  async agentChat(input: DeepSeekChatRequest, tools: unknown[], expectedModel?: string): Promise<DeepSeekChatResult> { return this.chatWithTools(input, tools, expectedModel); }
+  async agentChat(input: DeepSeekChatRequest, tools: unknown[], expectedModel?: string, onDispatch?: () => void): Promise<DeepSeekChatResult> { return this.chatWithTools(input, tools, expectedModel, onDispatch); }
 
-  private async chatWithTools(input: unknown, agentTools?: unknown[], expectedModel?: string): Promise<DeepSeekChatResult> {
+  private async chatWithTools(input: unknown, agentTools?: unknown[], expectedModel?: string, onDispatch?: () => void): Promise<DeepSeekChatResult> {
     const result = (status: DeepSeekStatus): DeepSeekChatResult => ({ status, message: status === "success" ? "AI 响应已接收"
       : status === "invalid-input" ? "AI 请求格式无效或超出限制"
       : status === "cancelled" ? "AI 请求已取消" : status === "timeout" ? "AI 请求超时，请稍后重试" : messages[status] });
@@ -390,6 +390,7 @@ export class DeepSeekConnection {
         timer = setTimeout(() => { timedOut = true; controller.abort(); }, this.timeoutMs);
       });
       const performRequest = async (): Promise<DeepSeekChatResult> => {
+        onDispatch?.();
         const response = await this.fetcher("https://api.deepseek.com/chat/completions", {
           method: "POST", redirect: "error", signal: controller.signal,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${credential.apiKey}` },

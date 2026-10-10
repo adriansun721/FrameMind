@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, expect, it } from "vitest";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
@@ -144,4 +144,38 @@ it("rechecks the actual Git parent under the write lock instead of trusting the 
   const before = await history.checkpoints.head(parent.id);
   await expect(candidates.merge(1, task.taskId, task.commit)).rejects.toThrow(/父快照/);
   expect(await history.checkpoints.head(parent.id)).toBe(before); expect((await candidates.list(1))[0].state).toBe("stale");
+}, 30_000);
+
+it("rejects a fork from an old window before it can overwrite another window's main state", async () => {
+  const { candidates, history, parent } = await fixture(checker);
+  const changed = updateNode(parent, parent.nodes[0].id, { x: 9, y: 0, z: 0 });
+  await history.record({ projectId: parent.id, snapshots: [{ kind: "confirmation-after", content: encodeProject(changed) }] });
+  const head = await history.checkpoints.head(parent.id);
+  await expect(candidates.fork(1)).rejects.toThrow(/其他窗口/); expect(await history.checkpoints.head(parent.id)).toBe(head);
+  // Local unsaved editing can fork when its last observed base still matches Git.
+  candidates.sync(1, { content: encodeProject(changed), sessionId: "session-1" });
+  expect((await candidates.fork(1)).candidate.parentRevision).toBe(changed.revision);
+}, 30_000);
+
+it("binds protected same-revision state while allowing display and execution bookkeeping changes", async () => {
+  const { candidates, parent } = await fixture(checker), task = await submit(candidates, await candidates.fork(1));
+  await candidates.inspect(1, task.taskId);
+  candidates.sync(1, { content: encodeProject({ ...parent, displayUnitPreset: "mm-N", updatedAt: "2026-10-10T00:00:00.000Z" }), sessionId: "session-1" });
+  expect((await candidates.list(1))[0].state).toBe("passed");
+  candidates.sync(1, { content: encodeProject({ ...parent, name: "same-revision formal metadata changed" }), sessionId: "session-1" });
+  expect((await candidates.list(1))[0].state).toBe("stale"); await expect(candidates.merge(1, task.taskId, task.commit)).rejects.toThrow(/stale/);
+}, 30_000);
+
+it("rejects another project's late output and keeps new histories free of old candidate tasks", async () => {
+  const { candidates, history, parent, directory, root } = await fixture(checker), fork = await candidates.fork(1);
+  const target = join(directory, "other.framemind"), other = (await history.save(target, encodeProject(createProject("other")))).content;
+  candidates.sync(1, { content: other, sessionId: "other-project", reason: "switch" });
+  await expect(submit(candidates, fork)).rejects.toThrow(/其他项目/);
+  expect(await candidates.list(1)).toEqual([]);
+  const reopened = new ProjectHistoryStore(root); await reopened.open(target);
+  const restarted = new ProjectCandidates(reopened, checker); restarted.sync(2, { content: other, sessionId: "new-process" }); expect(await restarted.list(2)).toEqual([]);
+  const newPath = join(directory, "new-history.framemind"), saved = await history.save(newPath, encodeProject(parent), "new");
+  candidates.sync(1, { content: saved.content, sessionId: "new-history", reason: "switch" });
+  expect(await candidates.list(1)).toEqual([]);
+  expect(await readdir(`${newPath}.git`)).not.toContain("candidates");
 }, 30_000);

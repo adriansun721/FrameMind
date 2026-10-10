@@ -109,11 +109,11 @@ export class ProjectCheckpoints {
           throw new Error("checkpoint 发布结果无法确认；保留保存恢复日志，未回滚文件，请重新打开项目复核");
         }
       }
-      try { transaction?.validatePublished?.(); }
+      try { branch?.guard(); transaction?.validatePublished?.(); }
       catch (cause) {
         // Cancellation may arrive while update-ref is running. Compensate before reporting success.
         await this.git(repository, ["update-ref", reference, original || "0".repeat(40), parent]);
-        await transaction!.rollback(); throw cause;
+        if (transaction) await transaction.rollback(); throw cause;
       }
       published = true;
       if (transaction) await transaction.committed();

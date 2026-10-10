@@ -42,17 +42,20 @@ test("P25-10 desktop round records independent work and inspect or explicit unfi
     const tasks = await page.evaluate(() => window.frameMind.candidateTool({ tool: "list" }));
     const roundDirectory = join(`${path}.git`, "rounds", round.runId);
     for (const name of ["round.json", ...Object.keys(round.artifacts)]) await copyFile(join(roundDirectory, name), join(evidence, name));
+    await dialog.getByRole("region", { name: "多 agent 轮次记录" }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: join(evidence, "desktop.png") });
-    expect(Array.isArray(tasks) && tasks.length === 3).toBe(true);
+    expect(Array.isArray(tasks) && tasks.length === (online ? 3 : 0)).toBe(true);
     expect(round.mode).toBe("online");
     if (online) {
       expect(round.status).toBe("completed"); expect(round.works.every((w) => w.status === "completed")).toBe(true);
       expect(round.inspection?.reports).toHaveLength(3);
-      const firstEnd = round.timeline.findIndex((e) => e.event === "api-end");
-      expect(round.timeline.slice(0, firstEnd).filter((e) => e.event === "api-start")).toHaveLength(3);
+      expect(round.main.status).toBe("completed"); expect(round.main.apiCalls).toBeGreaterThan(0);
+      const workIds = new Set(round.works.map((w) => w.agentId));
+      const firstEnd = round.timeline.findIndex((e) => e.event === "api-end" && workIds.has(e.agentId));
+      expect(round.timeline.slice(0, firstEnd).filter((e) => e.event === "api-start" && workIds.has(e.agentId))).toHaveLength(3);
       expect(new Set(round.works.map((w) => w.candidate?.parentCommit))).toEqual(new Set([round.parentCommit]));
     } else {
-      expect(round.status).toBe("failed"); expect(round.works.every((w) => w.status === "failed")).toBe(true);
+      expect(round.status).toBe("failed"); expect(round.main.status).toBe("failed"); expect(round.apiCalls).toBe(0);
       await expect(dialog.getByRole("region", { name: "多 agent 轮次记录" })).toContainText("禁止合并");
     }
     expect(round.decision).toBe("awaiting-P25-11");

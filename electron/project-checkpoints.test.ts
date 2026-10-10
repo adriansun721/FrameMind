@@ -22,6 +22,19 @@ it("compensates a publication when cancellation arrives during Git update-ref", 
   expect(await store.head(projectId)).toBe(initial.commit); expect(rolledBack).toBe(true);
 }, 30_000);
 
+it("compensates a candidate branch publication when its parent guard changes during Git", async () => {
+  const root = await mkdtemp(join(tmpdir(), "project-checkpoints-")); directories.push(root);
+  const store = new ProjectCheckpoints(root), branch = "candidate/task_00000000-0000-0000-0000-000000000001";
+  const [initial] = await store.record({ projectId, snapshots: [{ kind: "initial", content: content(0) }] });
+  const [fork] = await store.record({ projectId, snapshots: [{ kind: "candidate", content: content(0) }] }, undefined, { name: branch, parentCommit: initial.commit, guard: () => undefined });
+  let checks = 0;
+  await expect(store.record({ projectId, snapshots: [{ kind: "candidate", content: content(1) }] }, undefined, {
+    name: branch, parentCommit: initial.commit, guard: () => { if (++checks === 2) throw new Error("cancelled during candidate publication"); },
+  })).rejects.toThrow(/cancelled/);
+  expect((await readFile(join(root, projectId, "refs", "heads", branch), "utf8")).trim()).toBe(fork.commit);
+  expect(await store.head(projectId)).toBe(initial.commit);
+}, 30_000);
+
 it("rejects persisted evidence with a different hash before publishing either checkpoint", async () => {
   const root = await mkdtemp(join(tmpdir(), "project-checkpoints-")); directories.push(root);
   const store = new ProjectCheckpoints(root);

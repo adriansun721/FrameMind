@@ -48,7 +48,7 @@ const cadImportSources = new CadImportSources();
 let deepSeek: DeepSeekConnection;
 const reverseDesignRounds = new ReverseDesignRounds(projectCheckpoints, projectCandidates, reverseDesign, nativeAnalysis, {
   mode: "online", model: async () => (await deepSeek.getSettings()).model,
-  chat: (requestId, messages, tools, expectedModel) => deepSeek.agentChat({ requestId, messages }, tools, expectedModel),
+  chat: (requestId, messages, tools, expectedModel, onDispatch) => deepSeek.agentChat({ requestId, messages }, tools, expectedModel, onDispatch),
   cancel: (requestId) => deepSeek.cancelChat(requestId),
 }, async () => {
   const digest = createHash("sha256");

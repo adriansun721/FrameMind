@@ -166,7 +166,7 @@ export interface CandidateContextRequest { content: string; sessionId: string; r
 export interface ProjectCandidate {
   inputPolicy?: "reverse-design-v1";
   schemaVersion: 1; projectId: string; historyId?: string; taskId: string; candidateId: string; retryOf?: string;
-  sessionId: string; parentCommit: string; parentRevision: number; parentInputSha256: string; parentContentSha256: string;
+  sessionId: string; parentCommit: string; parentRevision: number; parentInputSha256: string; parentContentSha256: string; parentStateSha256: string;
   branch: string; commit: string; createdAt: string; state: "working" | "submitted" | "blocked" | "passed" | "stale" | "cancelled" | "merged";
   inputSha256?: string; resultSha256?: string; evidenceIndex?: string[]; diagnostic?: string; mergedCommit?: string; inspectionSha256?: string;
 }

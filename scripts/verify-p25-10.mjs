@@ -20,9 +20,16 @@ assert.equal(round.status, "completed"); assert.equal(round.mode, "online"); ass
 assert.equal(round.works.length, 3); assert.equal(new Set(round.works.map((w) => w.taskId)).size, 3);
 assert.equal(new Set(round.works.map((w) => w.branch)).size, 3);
 assert.equal(round.inspection.status, "completed"); assert.equal(round.inspection.reports.length, 3);
-assert.equal(round.apiCalls, round.works.reduce((n, w) => n + w.apiCalls, 0) + round.inspection.apiCalls);
-const firstApiEnd = round.timeline.findIndex((e) => e.event === "api-end");
-assert.equal(round.timeline.slice(0, firstApiEnd).filter((e) => e.event === "api-start").length, 3, "three requests really overlap");
+assert.equal(round.main.status, "completed"); assert.ok(round.main.apiCalls > 0);
+assert.equal(round.apiCalls, round.main.apiCalls + round.works.reduce((n, w) => n + w.apiCalls, 0) + round.inspection.apiCalls);
+const workIds = new Set(round.works.map((w) => w.agentId));
+const firstApiEnd = round.timeline.findIndex((e) => e.event === "api-end" && workIds.has(e.agentId));
+assert.equal(round.timeline.slice(0, firstApiEnd).filter((e) => e.event === "api-start" && workIds.has(e.agentId)).length, 3, "three requests really overlap");
+for (const agent of [round.main, ...round.works, round.inspection]) {
+  const transcript = JSON.parse(await readFile(join(run.directory, `${agent.agentId}-calls.json`), "utf8"));
+  assert.equal(transcript.length, agent.apiAttempts);
+  assert.ok(transcript.every((c) => c.model === round.model && c.request.length && c.response));
+}
 assert.deepEqual(round.timeline.filter((e) => ["solve-start", "solve-end"].includes(e.event)).map((e) => e.event), ["solve-start", "solve-end", "solve-start", "solve-end", "solve-start", "solve-end"]);
 for (const [name, digest] of Object.entries(round.artifacts)) assert.equal(hash(await readFile(join(run.directory, name))), digest);
 for (const work of round.works) {

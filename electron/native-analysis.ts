@@ -31,8 +31,8 @@ export class NativeAnalysisHost {
       const requestId = (request as { requestId: string }).requestId;
       const abort = () => this.cancel(owner, requestId);
       signal.addEventListener("abort", abort, { once: true });
-      try { onStart?.(); return await this.run(owner, request); }
-      finally { onFinish?.(); signal.removeEventListener("abort", abort); }
+      try { onStart?.(); return await this.run(owner, request, undefined, onFinish); }
+      finally { signal.removeEventListener("abort", abort); }
     });
     this.queued = action;
     let abortWait!: () => void;
@@ -43,7 +43,7 @@ export class NativeAnalysisHost {
     return Promise.race([action, cancelled]).finally(() => signal.removeEventListener("abort", abortWait));
   }
 
-  run(owner: number, request: unknown, onPhase?: (message: PhaseMessage) => void): Promise<unknown[]> {
+  run(owner: number, request: unknown, onPhase?: (message: PhaseMessage) => void, onClose?: () => void): Promise<unknown[]> {
     const packet = request as { requestId?: unknown };
     if (!packet || typeof packet.requestId !== "string" || !/^request_[\w-]{1,100}$/.test(packet.requestId)) return Promise.reject(new Error("原生请求身份无效"));
     const requestId = packet.requestId;
@@ -107,6 +107,7 @@ export class NativeAnalysisHost {
       child.stdin.on("error", (error) => finish("native-runtime-error", `原生输入发送失败：${error.message}`));
       child.on("close", (code, signal) => {
         this.active.delete(key);
+        onClose?.();
         for (const idle of [...this.idleListeners]) idle();
         if (settled) return;
         pending += decoder.end();
