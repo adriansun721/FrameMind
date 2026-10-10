@@ -178,6 +178,23 @@ it("rejects a main merge proposal for a lighter infeasible candidate despite its
   expect((await candidates.list(1)).every((c) => c.state === "cancelled")).toBe(true);
 });
 
+it("revokes a persisted merge request when main fails after proposing a feasible candidate", async () => {
+  const transport = replay(), chat = transport.chat;
+  transport.chat = async (id, messages, tools) => {
+    const prompt = messages[0].content!;
+    if (prompt.includes("distinct") && !messages.some((m) => m.role === "tool")) return assistant(["generate_candidate", { beamCatalogId: "arcelor-hea200", columnCatalogId: "arcelor-hea200" }]);
+    if (prompt.includes("You are main") && messages.some((m) => m.role === "tool" && JSON.parse(m.content!).confirmationRequired)) return { status: "error", message: "injected final main failure" };
+    return chat(id, messages, tools);
+  };
+  const { rounds, draft, history, parent } = await fixture(transport);
+  const round = await rounds.run(1, draft.confirmationId);
+  expect(round.status).toBe("failed"); expect(round.decision).toBe("blocked"); expect(round.mergeRequest).toBeUndefined();
+  const path = join(history.checkpoints.location(decodeProject(parent).id), "rounds", round.runId, "main-decision.json");
+  const final = JSON.parse(await readFile(path, "utf8"));
+  expect(final.decision).toBe("blocked"); expect(final.mergeRequest).toBeUndefined();
+  expect(createHash("sha256").update(await readFile(path)).digest("hex")).toBe(round.artifacts["main-decision.json"]);
+});
+
 it.each(["cancel", "edit", "restore", "switch"] as const)("invalidates %s during online requests and preserves only evidence", async (reason) => {
   let entered!: () => void; const started = new Promise<void>((resolve) => { entered = resolve; });
   const requests = new Map<string, (value: DeepSeekChatResult) => void>();

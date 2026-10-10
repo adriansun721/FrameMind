@@ -158,7 +158,12 @@ export class ReverseDesignRounds {
       round.endedAt = now(); round.elapsedMs = performance.now() - started;
       round.apiCalls = round.main.apiCalls + round.works.reduce((n, w) => n + w.apiCalls, 0) + (round.inspection?.apiCalls ?? 0);
       round.apiAttempts = round.main.apiAttempts + round.works.reduce((n, w) => n + w.apiAttempts, 0) + (round.inspection?.apiAttempts ?? 0);
-      try { if (directory) await this.files.save(join(directory, "round.json"), JSON.stringify(round)); }
+      try {
+        if (directory) {
+          await save("main-decision.json", { decision: round.decision, comparison: round.comparison, mergeRequest: round.mergeRequest });
+          await this.files.save(join(directory, "round.json"), JSON.stringify(round));
+        }
+      }
       finally { this.active.delete(owner); }
     }
     return structuredClone(round);
@@ -333,7 +338,11 @@ export class ReverseDesignRounds {
             const candidate = before.state === "submitted" ? await this.candidates.inspect(owner, report.taskId) : before; check();
             const work = active.round.works.find((w) => w.taskId === report.taskId)!;
             work.candidate = candidate;
-            if (candidate.state !== "passed") { report.feasibility = report.checks.every((c) => c.passed) ? "blocked" : "infeasible"; report.severity = "error"; }
+            if (candidate.state !== "passed") {
+              if (report.feasibility !== "blocked") report.feasibility = report.checks.every((c) => c.passed) ? "blocked" : "infeasible";
+              report.severity = "error";
+            }
+            work.feasibility = report.feasibility;
           }
           return { done: true, data: { status: "completed", reports: inspection.reports } };
         }
