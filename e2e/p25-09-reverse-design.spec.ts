@@ -1,0 +1,78 @@
+import { _electron as electron, expect, test } from "@playwright/test";
+import { mkdtemp, mkdir, readFile, readdir, writeFile, rm } from "node:fs/promises";
+import { randomUUID, createHash } from "node:crypto";
+import { join, resolve, sep } from "node:path";
+import { tmpdir } from "node:os";
+import { createProject } from "../src/domain/project";
+import { decodeProject, encodeProject } from "../src/domain/project-file";
+import { enterWorkbenchWithoutRecovery } from "./electron-app";
+
+test("P25-09 confirms fixed input and generates a real isolated catalog candidate", async () => {
+  test.setTimeout(120_000);
+  const directory = await mkdtemp(join(tmpdir(), "framemind-p2509-desktop-")), runId = randomUUID();
+  const path = join(directory, "frame.framemind"), evidence = resolve("docs/evidence/plan2/P25-09/runs", runId);
+  await mkdir(evidence, { recursive: true });
+  const initialContent = encodeProject(createProject("截面减重演示"));
+  await writeFile(path, initialContent);
+  await writeFile(join(evidence, "initial.framemind"), initialContent);
+  const env = { ...process.env, FRAMEMIND_E2E_USER_DATA_PATH: directory, FRAMEMIND_E2E_PROJECT_PATH: path };
+  delete env.ELECTRON_RUN_AS_NODE; delete env.VITE_DEV_SERVER_URL;
+  const sourceHead = await readFile(".git/refs/heads/main", "utf8");
+  const app = await electron.launch({ args: ["."], env });
+  try {
+    const page = await app.firstWindow(); await enterWorkbenchWithoutRecovery(page);
+    const action = async (name: string) => { await page.getByRole("button", { name: "文件", exact: true }).click(); await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click(); };
+    await action("打开项目"); await action("保存项目");
+    await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+    await action("反向设计固定场景");
+    const dialog = page.getByRole("dialog", { name: "反向设计固定场景", exact: true });
+    await expect(dialog).toContainText("1908.492");
+    await expect(page.getByTestId("viewport-node-count")).toHaveText("0 个节点");
+    await expect(dialog.getByRole("button", { name: "确认截面并生成隔离候选", exact: true })).toBeDisabled();
+    await page.screenshot({ path: join(evidence, "fixed-input-preview.png") });
+    await dialog.getByRole("button", { name: "确认固定输入、变量、目标和预算", exact: true }).click();
+    await expect(page.getByTestId("viewport-node-count")).toHaveText("12 个节点");
+    await dialog.getByLabel("梁组候选截面").selectOption("arcelor-ipe100");
+    await dialog.getByRole("button", { name: "确认截面并生成隔离候选", exact: true }).click();
+    const summary = dialog.getByRole("region", { name: "候选生成记录" });
+    await expect(summary).toContainText("1337.012", { timeout: 30_000 });
+    await expect(summary).toContainText("尚未求解");
+    await expect(summary).toContainText("强度、屈曲或规范验算");
+    await page.screenshot({ path: join(evidence, "generated-candidate.png") });
+    const tasks = await page.evaluate(() => window.frameMind.candidateTool({ tool: "list" }));
+    if (!Array.isArray(tasks) || tasks.length !== 1) throw new Error("Expected one isolated candidate");
+    const task = tasks[0];
+    const snapshot = await page.evaluate((taskId) => window.frameMind.candidateTool({ tool: "read", taskId }), task.taskId);
+    if (Array.isArray(snapshot) || !("candidateContent" in snapshot)) throw new Error("Missing candidate snapshot");
+    expect(decodeProject(snapshot.parentContent).sections[1].name).toBe("IPE 200");
+    expect(decodeProject(snapshot.candidateContent).sections[1].name).toBe("IPE 100");
+    expect((await readFile(`${path}.git/refs/heads/main`, "utf8")).trim()).toBe(task.parentCommit);
+    expect((await readFile(`${path}.git/refs/heads/${task.branch}`, "utf8")).trim()).toBe(task.commit);
+    const blockedMerge = await page.evaluate(async ({ taskId, expectedCommit }) => { try { await window.frameMind.mergeCandidate({ taskId, expectedCommit }); return "unexpected success"; } catch (cause) { return String(cause); } }, { taskId: task.taskId, expectedCommit: task.commit });
+    expect(blockedMerge).toContain("inspect");
+    await dialog.getByRole("button", { name: "关闭反向设计", exact: true }).click();
+    await action("保存项目"); await expect(page.locator('footer[role="status"]')).toContainText("已保存");
+    const saved = await readFile(path, "utf8"); expect(decodeProject(saved).sections[1].name).toBe("IPE 200");
+    await action("打开项目"); await action("反向设计固定场景");
+    await expect(dialog.getByRole("button", { name: "确认截面并生成隔离候选", exact: true })).toBeDisabled();
+    const reopenedTasks = await page.evaluate(() => window.frameMind.candidateTool({ tool: "list" }));
+    expect(Array.isArray(reopenedTasks) && reopenedTasks[0].state).toBe("stale");
+    expect(await readFile(".git/refs/heads/main", "utf8")).toBe(sourceHead);
+    const validation = { task, blockedMerge, reopenedTasks, baselineMassKg: 1908.492, candidateMassKg: 1337.012, sourceRepositoryUnchanged: true, numericalInspect: "not-run" };
+    const result = await readFile(join(`${path}.git`, "candidates", task.taskId, "result.json"), "utf8");
+    for (const [name, content] of Object.entries({ "parent.framemind": snapshot.parentContent, "candidate.framemind": snapshot.candidateContent, "saved.framemind": saved, "result.json": result, "validation.json": JSON.stringify(validation, null, 2) })) await writeFile(join(evidence, name), content);
+    const hash = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
+    const artifacts = Object.fromEntries(await Promise.all(["initial.framemind", "parent.framemind", "candidate.framemind", "saved.framemind", "result.json", "validation.json", "fixed-input-preview.png", "generated-candidate.png"].map(async (f) => [f, hash(await readFile(join(evidence, f)))])));
+    const sourceHashes = Object.fromEntries(await Promise.all(["electron/reverse-design.ts", "electron/reverse-design-model.ts", "electron/reverse-design-fixture.ts", "electron/project-candidates.ts", "electron/main.ts", "electron/preload.ts", "electron/contracts.ts", "src/domain/resource-library.ts", "src/components/ReverseDesignDialog.tsx", "src/App.tsx", "e2e/p25-09-reverse-design.spec.ts", "dist-electron/main.js", "dist-electron/reverse-design.js", "dist/index.html", ...(await readdir("dist/assets")).filter((f) => /\.(js|css)$/.test(f)).map((f) => `dist/assets/${f}`)].map(async (f) => [f, hash(await readFile(f))])));
+    await writeFile(join(evidence, "run.json"), JSON.stringify({ task: "P25-09", runId, recordedAt: new Date().toISOString(), mode: "local-real-git-desktop", status: "passed", inputSha256: hash(initialContent), artifacts, sourceHashes, reverify: "npm run evidence:plan2:p2509" }, null, 2));
+  } catch (cause) {
+    const hash = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
+    const artifacts = Object.fromEntries(await Promise.all((await readdir(evidence)).filter((f) => f !== "run.json").map(async (f) => [f, hash(await readFile(join(evidence, f)))])));
+    await writeFile(join(evidence, "run.json"), JSON.stringify({ task: "P25-09", runId, recordedAt: new Date().toISOString(), mode: "local-real-git-desktop", status: "failed", diagnostic: "Desktop flow did not complete; inspect the local Playwright failure trace.", artifacts }, null, 2));
+    throw cause;
+  } finally {
+    await app.close();
+    if (!resolve(directory).startsWith(resolve(tmpdir()) + sep)) throw new Error("Invalid desktop profile");
+    await rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+  }
+});

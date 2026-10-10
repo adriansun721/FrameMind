@@ -1,0 +1,56 @@
+{
+  "task": {
+    "inputPolicy": "reverse-design-v1",
+    "schemaVersion": 1,
+    "projectId": "project_da10bcae-f5e5-4ac8-9a73-b593c8b9c08b",
+    "historyId": "history_e4d369fb-a524-4d12-bc0f-cd4089229bb3",
+    "taskId": "task_4f3682bc-6e8c-4e47-9cbd-c4859ca2d104",
+    "candidateId": "candidate_2f01cc16-5363-4338-acef-3fe421815e08",
+    "sessionId": "f93052f5-d3e9-43e6-b092-6a3fe2062a8d",
+    "parentCommit": "f39af62fb2769d88c585e573dd7899d95ea5bf10",
+    "parentRevision": 1,
+    "parentInputSha256": "b229e70a6c915ef3f9f513112923eeacc8ccf3e9a75b1649c6c3a26d006d9547",
+    "parentContentSha256": "ce32e046fef25507c82b1f21370c8f8b7d9d8cb5d20c8dd1a3dcf189afe99506",
+    "parentStateSha256": "599accf1788997c8d4550981a5acf02557ef3b62d6d75d1be6b30d0c01aae464",
+    "branch": "candidate/task_4f3682bc-6e8c-4e47-9cbd-c4859ca2d104",
+    "commit": "078554d7df30e70ad3736cd80c51f43b3d7e1696",
+    "createdAt": "2026-10-10T11:11:36.814Z",
+    "state": "submitted",
+    "inputSha256": "447256f752fc32247ddf80a37398db5cfa9f8c44dba4a4b38be1345ed6b48f01",
+    "resultSha256": "3b44643c53004a3c1dda53dfc3c0461b25dcad16ac777ad1be5f0e9256b9b53f",
+    "evidenceIndex": [
+      "result.json"
+    ]
+  },
+  "blockedMerge": "Error: Error invoking remote method 'project:candidate-merge': Error: 候选未通过 inspect 或确认版本变化；禁止合并",
+  "reopenedTasks": [
+    {
+      "inputPolicy": "reverse-design-v1",
+      "schemaVersion": 1,
+      "projectId": "project_da10bcae-f5e5-4ac8-9a73-b593c8b9c08b",
+      "historyId": "history_e4d369fb-a524-4d12-bc0f-cd4089229bb3",
+      "taskId": "task_4f3682bc-6e8c-4e47-9cbd-c4859ca2d104",
+      "candidateId": "candidate_2f01cc16-5363-4338-acef-3fe421815e08",
+      "sessionId": "f93052f5-d3e9-43e6-b092-6a3fe2062a8d",
+      "parentCommit": "f39af62fb2769d88c585e573dd7899d95ea5bf10",
+      "parentRevision": 1,
+      "parentInputSha256": "b229e70a6c915ef3f9f513112923eeacc8ccf3e9a75b1649c6c3a26d006d9547",
+      "parentContentSha256": "ce32e046fef25507c82b1f21370c8f8b7d9d8cb5d20c8dd1a3dcf189afe99506",
+      "parentStateSha256": "599accf1788997c8d4550981a5acf02557ef3b62d6d75d1be6b30d0c01aae464",
+      "branch": "candidate/task_4f3682bc-6e8c-4e47-9cbd-c4859ca2d104",
+      "commit": "078554d7df30e70ad3736cd80c51f43b3d7e1696",
+      "createdAt": "2026-10-10T11:11:36.814Z",
+      "state": "stale",
+      "inputSha256": "447256f752fc32247ddf80a37398db5cfa9f8c44dba4a4b38be1345ed6b48f01",
+      "resultSha256": "3b44643c53004a3c1dda53dfc3c0461b25dcad16ac777ad1be5f0e9256b9b53f",
+      "evidenceIndex": [
+        "result.json"
+      ],
+      "diagnostic": "父快照、项目会话或恢复状态已变化"
+    }
+  ],
+  "baselineMassKg": 1908.492,
+  "candidateMassKg": 1337.012,
+  "sourceRepositoryUnchanged": true,
+  "numericalInspect": "not-run"
+}

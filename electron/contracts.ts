@@ -52,6 +52,9 @@ export const enum DesktopChannel {
   InspectCandidate = "project:candidate-inspect",
   MergeCandidate = "project:candidate-merge",
   RestoreProjectCheckpoint = "project:controlled-restore",
+  PrepareReverseDesign = "reverse-design:prepare",
+  ConfirmReverseDesign = "reverse-design:confirm",
+  GenerateReverseDesign = "reverse-design:generate",
   VerifyCadImportSource = "cad:source-verify",
   ExportReportWord = "report:word",
   ExportReportPdf = "report:pdf",
@@ -159,6 +162,7 @@ export interface ProjectCheckpointRecord {
 
 export interface CandidateContextRequest { content: string; sessionId: string; reason?: "edit" | "restore" | "switch"; }
 export interface ProjectCandidate {
+  inputPolicy?: "reverse-design-v1";
   schemaVersion: 1; projectId: string; historyId?: string; taskId: string; candidateId: string; retryOf?: string;
   sessionId: string; parentCommit: string; parentRevision: number; parentInputSha256: string; parentContentSha256: string;
   branch: string; commit: string; createdAt: string; state: "working" | "submitted" | "blocked" | "passed" | "stale" | "cancelled" | "merged";
@@ -170,6 +174,13 @@ export interface CandidateSubmitRequest {
   projectId: string; taskId: string; content: string; inputSha256: string; resultContent: string; resultSha256: string; evidenceIndex: string[];
 }
 export interface CandidateSnapshot { candidate: ProjectCandidate; parentContent: string; candidateContent: string; }
+export interface ReverseDesignDraft {
+  confirmationId: string; parentInputSha256: string; baselineContent: string; initialMassKg: number;
+  rules: typeof import("./reverse-design-model").REVERSE_DESIGN_RULES;
+  catalog: ReturnType<typeof import("./reverse-design-model").reverseDesignCatalog>;
+}
+export interface ReverseDesignGenerateRequest { confirmationId: string; beamCatalogId: string; columnCatalogId: string; }
+export interface ReverseDesignGenerated { candidate: ProjectCandidate; report: import("./reverse-design-model").ReverseDesignReport; evidenceSha256: string; }
 export interface CandidateInspection {
   candidateId: string; commit: string; inputSha256: string; resultSha256: string;
   checks: Array<{ name: string; passed: boolean; value: number; threshold: number; evidenceSha256: string }>;
@@ -285,6 +296,9 @@ export interface FrameMindDesktopApi {
   readProjectCheckpoint(request: { projectId: string; commit: string }): Promise<string>;
   readProjectCheckpointEvidence(request: { projectId: string; commit: string }): Promise<string>;
   syncCandidateContext(request: CandidateContextRequest): Promise<void>;
+  prepareReverseDesign(): Promise<ReverseDesignDraft>;
+  confirmReverseDesign(confirmationId: string): Promise<string>;
+  generateReverseDesign(request: ReverseDesignGenerateRequest): Promise<ReverseDesignGenerated>;
   candidateTool(request: CandidateToolRequest): Promise<CandidateToolResult>;
   inspectCandidate(taskId: string): Promise<ProjectCandidate>;
   mergeCandidate(request: { taskId: string; expectedCommit: string }): Promise<string>;

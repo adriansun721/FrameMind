@@ -1,0 +1,28 @@
+{
+  "task": "P25-09",
+  "runId": "4fbe8987-f0ff-4b9e-914d-905a64874a40",
+  "recordedAt": "2026-10-10T11:04:00.794Z",
+  "mode": "local-real-git-desktop",
+  "status": "passed",
+  "artifacts": {
+    "parent.framemind": "634a49e06340ba2c45d21436c2cece18dee5bbcec88173aa9f2148b23262a434",
+    "candidate.framemind": "089a5ac583453810b294f5d7d3d89aa5966aacf58e88b1f31cb9e170eb871431",
+    "saved.framemind": "634a49e06340ba2c45d21436c2cece18dee5bbcec88173aa9f2148b23262a434",
+    "result.json": "5dc9be60a0d7005cb7d4ee755eb314906cb97177bc669e0982f8a8fb91d21b17",
+    "validation.json": "26d3d6148f16e537477fedad9c317241eafde728b076a1ab441bee3c546690c1",
+    "fixed-input-preview.png": "ae784490fb888e27bdf6398ed8ba5ae79c3f46a45008d8e9d616f58e200b2f57",
+    "generated-candidate.png": "a6e8c47530d1dc58076f6393698f19004c7fa4a51a7ae2655fcf4d1db32899a6"
+  },
+  "sourceHashes": {
+    "electron/reverse-design.ts": "cf8b81136f97f33a73cd9625f85a7af2bd43018c381ad3b2639b6315cce4f3f6",
+    "electron/reverse-design-model.ts": "49ed251ae329d3dbd0c2b0cb2a73972a342e4149f70b94e725f749251d562543",
+    "electron/reverse-design-fixture.ts": "17e757fc7d293444d8e6a820d1efdddff00f29b18576553e2d7dd29631bcdcf0",
+    "electron/project-candidates.ts": "ae9ee7499c390d8f689671aaa5120833988fa4c2fa78bcc23d22171e095bc6c9",
+    "src/components/ReverseDesignDialog.tsx": "fa7052946dcd826bee7b45f04eaa5198be52ac7c16abe03da059b19e475a0389",
+    "src/App.tsx": "03a2dd07c201b9c55d4322ec277485e7ec0de50767f8ed530ecd112fcadcba44",
+    "dist-electron/main.js": "c0f25ccafc1fac6111eaa71d262ded5e0cd0facadb8c3d8e1d0aa22ba9bde6fa",
+    "dist-electron/reverse-design.js": "ec49d0cadcc92173cf48de2441d97cf4e0e95d82dab8e64d14a2f7e848273afe",
+    "dist/index.html": "6eb24cf30383275c2af1e463af60361b77bcb04b87d13afc076f445f5c2591f4"
+  },
+  "reverify": "npm run evidence:plan2:p2509"
+}

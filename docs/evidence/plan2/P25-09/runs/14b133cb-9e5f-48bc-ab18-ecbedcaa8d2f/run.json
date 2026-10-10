@@ -1,0 +1,10 @@
+{
+  "task": "P25-09",
+  "runId": "14b133cb-9e5f-48bc-ab18-ecbedcaa8d2f",
+  "recordedAt": "2026-10-10T10:52:24.681235+00:00",
+  "mode": "local-real-git-desktop",
+  "status": "failed",
+  "diagnostic": "Red-phase desktop test: fixed-scenario menu had not been implemented.",
+  "manifestAddedAfterFailure": true,
+  "artifacts": {}
+}

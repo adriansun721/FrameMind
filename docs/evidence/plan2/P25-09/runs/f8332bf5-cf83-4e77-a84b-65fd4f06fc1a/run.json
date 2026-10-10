@@ -1,0 +1,12 @@
+{
+  "task": "P25-09",
+  "runId": "f8332bf5-cf83-4e77-a84b-65fd4f06fc1a",
+  "recordedAt": "2026-10-10T10:54:36.510334+00:00",
+  "mode": "local-real-git-desktop",
+  "status": "failed",
+  "diagnostic": "Desktop assertion timed out after 5 seconds while Git generation was pending; later run uses a 30-second Git-operation assertion timeout.",
+  "manifestAddedAfterFailure": true,
+  "artifacts": {
+    "fixed-input-preview.png": "453778351a6cdcc4dcd8201804a6711d161f00a3f0fb3965f147ce56ba09a5a5"
+  }
+}

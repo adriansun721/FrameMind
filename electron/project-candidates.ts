@@ -5,6 +5,7 @@ import { ProjectHistoryStore } from "./project-history-store";
 import { ProjectFileStore } from "./project-files";
 import { candidateInput, canonicalJson, parseCandidateProject, CANDIDATE_INPUT_FIELDS } from "./candidate-model";
 import { redactPersistence } from "./persistence-redaction";
+import { reverseDesignParentState, validateReverseDesignParent } from "./reverse-design-model";
 import type { CandidateContextRequest, CandidateInspection, CandidateSnapshot, CandidateSubmitRequest, CandidateToolRequest, CandidateToolResult, ProjectCandidate } from "./contracts";
 
 const sha256 = (content: string) => createHash("sha256").update(content).digest("hex");
@@ -103,15 +104,16 @@ export class ProjectCandidates {
     }
   }
 
-  fork(owner: number, retryOf?: string): Promise<CandidateSnapshot> {
+  fork(owner: number, retryOf?: string, inputPolicy?: ProjectCandidate["inputPolicy"]): Promise<CandidateSnapshot> {
     return this.access(owner, async (repository, c) => {
-      if (retryOf) { const old = this.task(c.projectId, retryOf); if (!terminal(old) && old.state !== "blocked") throw new Error("在途任务不能重复重试；请先取消"); }
+      if (retryOf) { const old = this.task(c.projectId, retryOf); if (!terminal(old) && old.state !== "blocked") throw new Error("在途任务不能重复重试；请先取消"); inputPolicy = old.inputPolicy; }
+      if (inputPolicy === "reverse-design-v1") validateReverseDesignParent(c.content);
       const taskId = `task_${randomUUID()}`, candidateId = `candidate_${randomUUID()}`, p = parseCandidateProject(c.content);
       const guard = () => { if (this.context(owner) !== c) throw new Error("创建候选期间父状态变化；请重试"); };
-      const [parent] = await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate-round", content: c.content, taskId, candidateId }] }, { beforePublish: async () => guard(), validatePublished: guard, rollback: async () => undefined, committed: async () => undefined }); guard();
+      const [parent] = await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate-round", content: c.content, taskId, candidateId }] }, { beforePublish: async (_records, original) => { guard(); if (inputPolicy === "reverse-design-v1" && original && reverseDesignParentState(await this.history.read(c.projectId, original)) !== reverseDesignParentState(c.content)) throw new Error("反向设计 Git 父状态已变化；请重开并重新确认"); guard(); }, validatePublished: guard, rollback: async () => undefined, committed: async () => undefined }); guard();
       const branch = `candidate/${taskId}`;
       const [record] = await this.history.checkpoints.record({ projectId: c.projectId, snapshots: [{ kind: "candidate", content: c.content, taskId, candidateId }] }, undefined, { name: branch, parentCommit: parent.commit, guard }); guard();
-      const task: ProjectCandidate = { schemaVersion: 1, projectId: c.projectId, historyId: (p.projectHistory as { id?: string } | undefined)?.id, taskId, candidateId, ...(retryOf ? { retryOf } : {}), sessionId: c.sessionId,
+      const task: ProjectCandidate = { inputPolicy, schemaVersion: 1, projectId: c.projectId, historyId: (p.projectHistory as { id?: string } | undefined)?.id, taskId, candidateId, ...(retryOf ? { retryOf } : {}), sessionId: c.sessionId,
         parentCommit: parent.commit, parentRevision: Number(p.revision), parentInputSha256: sha256(candidateInput(c.content)), parentContentSha256: sha256(c.content), branch, commit: record.commit, createdAt: new Date().toISOString(), state: "working" };
       await mkdir(join(repository, "candidates", taskId), { recursive: true });
       this.tasks.set(taskId, task); this.owners.set(taskId, owner); await this.persist(repository, task); this.current(owner, task);
@@ -125,6 +127,7 @@ export class ProjectCandidates {
       if (task.state !== "working" && !["stale", "cancelled"].includes(task.state)) throw new Error("候选已提交；修改必须使用新任务重新检查");
       if (Object.keys(request).some((k) => !["projectId", "taskId", "content", "inputSha256", "resultContent", "resultSha256", "evidenceIndex"].includes(k))) throw new Error("候选工具拒绝命令、路径或未知参数");
       const parent = parseCandidateProject((await this.snapshot(task)).parentContent), proposed = parseCandidateProject(request.content);
+      if (task.inputPolicy === "reverse-design-v1") { validateReverseDesignParent(JSON.stringify(parent)); validateReverseDesignParent(request.content); }
       const allowed = new Set<string>([...CANDIDATE_INPUT_FIELDS, "revision", "updatedAt", "nextNodeNumber", "nextMemberNumber", "nextMaterialNumber", "nextSectionNumber", "nextSupportNumber", "nextLoadNumber", "nextUniformLoadNumber", "nextLoadCaseNumber", "nextLoadCombinationNumber", "nextAnalysisCaseNumber", "nextPsdNumber"]);
       if (proposed.id !== task.projectId || Number(proposed.revision) <= task.parentRevision || Object.keys({ ...parent, ...proposed }).some((key) => !allowed.has(key) && canonicalJson(parent[key]) !== canonicalJson(proposed[key]))) throw new Error("候选只能修改工程输入，不能改项目身份、历史或执行状态");
       if (!digest.test(request.inputSha256) || sha256(candidateInput(request.content)) !== request.inputSha256 || typeof request.resultContent !== "string" || request.resultContent.length > 64 * 1024 * 1024 || !digest.test(request.resultSha256) || sha256(request.resultContent) !== request.resultSha256) throw new Error("候选输入/结果哈希不一致");

@@ -65,6 +65,8 @@ import { ProjectHistory } from "./domain/project-history";
 import { applyCadImport, createCadImportDraft, encodeCadImportDraft, getCadImportReadiness, type CadImportDraft, type CadImportConfirmation } from "./workspace/cad-import";
 import { CadImportHistory } from "./components/CadImportHistory";
 import { ProjectCandidatesDialog } from "./components/ProjectCandidates";
+import { ReverseDesignDialog } from "./components/ReverseDesignDialog";
+import { reverseDesignParentState } from "../electron/reverse-design-model";
 import { prepareCheckpointRestore } from "./workspace/checkpoint-restore";
 import { applyProjectEdits } from "./domain/project-operations";
 import { prepareDrawnMemberEdits } from "./domain/work-plane";
@@ -140,6 +142,7 @@ export function App() {
   const projectHistoryRef = useRef(new ProjectHistory());
   const candidateSessionRef = useRef(crypto.randomUUID());
   const [candidatesOpen, setCandidatesOpen] = useState(false);
+  const [reverseDesignOpen, setReverseDesignOpen] = useState(false);
   useEffect(() => {
     void window.frameMind.syncCandidateContext({ content: encodeProject(project), sessionId: candidateSessionRef.current }).catch((cause: unknown) => setStatus({ tone: "error", text: cause instanceof Error ? cause.message : "候选上下文同步失败" }));
   }, [project]);
@@ -844,6 +847,7 @@ export function App() {
             <MenuAction icon={<Save size={14} />} label="保存项目" shortcut="Ctrl+S" onSelect={() => { setFileMenuOpen(false); void saveProject(); }} />
             <MenuAction icon={<Box size={14} />} label="项目历史" shortcut="" onSelect={() => { setFileMenuOpen(false); setProjectHistoryOpen(true); }} />
             <MenuAction icon={<Box size={14} />} label="候选与差异" shortcut="" onSelect={() => { setFileMenuOpen(false); setCandidatesOpen(true); }} />
+            <MenuAction icon={<Box size={14} />} label="反向设计固定场景" shortcut="" onSelect={() => { setFileMenuOpen(false); setReverseDesignOpen(true); }} />
             <MenuAction icon={<Save size={14} />} label="另存为（复制历史）" shortcut="" onSelect={() => { setFileMenuOpen(false); void saveProject(true); }} />
             <MenuAction icon={<Save size={14} />} label="另存为（新历史）" shortcut="" onSelect={() => { setFileMenuOpen(false); void saveProject(true, "new"); }} />
           </div>}
@@ -1125,6 +1129,11 @@ export function App() {
     }} onClose={() => setCadPreviewOpen(false)} />}
     {(cadHistoryOpen || projectHistoryOpen) && <CadImportHistory general={projectHistoryOpen} project={project} onClose={() => { setCadHistoryOpen(false); setProjectHistoryOpen(false); }} onRestore={async (_content, commit) => restoreCheckpoint({ commit })} />}
     {candidatesOpen && <ProjectCandidatesDialog project={project} onClose={() => setCandidatesOpen(false)} onMerge={mergeCandidate} onRestore={(taskId) => restoreCheckpoint({ taskId })} />}
+    {reverseDesignOpen && <ReverseDesignDialog project={project} sessionId={candidateSessionRef.current} onClose={() => setReverseDesignOpen(false)} onApply={(content, parentContent) => {
+      if (reverseDesignParentState(encodeProject(activeProjectRef.current)) !== reverseDesignParentState(parentContent)) throw new Error("父快照已变化，请重新确认固定场景");
+      activateProject(decodeProject(content), false);
+      setStatus({ tone: "success", text: "固定两层场景已确认，候选只修改库内梁柱截面" });
+    }} />}
     {cadCommitBusy && <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label="正在提交导入"><p className="node-dialog" role="status">正在写入并核对项目 checkpoint…</p></div>}
   </main></UnitPresetContext.Provider>;
 }

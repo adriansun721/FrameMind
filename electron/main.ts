@@ -24,6 +24,7 @@ import { NativeAnalysisHost } from "./native-analysis";
 import { CadParserHost } from "./cad-parser";
 import { ProjectHistoryStore } from "./project-history-store";
 import { ProjectCandidates } from "./project-candidates";
+import { ReverseDesignService } from "./reverse-design";
 import { CadImportSources } from "./cad-import-sources";
 
 const nativeAnalysis = new NativeAnalysisHost(app.isPackaged
@@ -40,6 +41,7 @@ const chatHistories = new ChatHistoryStore(join(app.getPath("userData"), "chat-h
 const recoveries = new RecoveryStore(join(app.getPath("userData"), "recovery"));
 const projectCheckpoints = new ProjectHistoryStore(join(app.getPath("userData"), "project-history"));
 const projectCandidates = new ProjectCandidates(projectCheckpoints);
+const reverseDesign = new ReverseDesignService(projectCheckpoints, projectCandidates);
 const cadImportSources = new CadImportSources();
 
 let deepSeek: DeepSeekConnection;
@@ -56,7 +58,10 @@ ipcMain.handle(DesktopChannel.RecordProjectCheckpoints, (event, request) => { re
 ipcMain.handle(DesktopChannel.ListProjectCheckpoints, (event, projectId: string) => { requireTrustedSender(event); return projectCheckpoints.list(projectId); });
 ipcMain.handle(DesktopChannel.ReadProjectCheckpoint, (event, request) => { requireTrustedSender(event); return projectCheckpoints.read(request.projectId, request.commit); });
 ipcMain.handle(DesktopChannel.ReadProjectCheckpointEvidence, (event, request) => { requireTrustedSender(event); return projectCheckpoints.readEvidence(request.projectId, request.commit); });
-ipcMain.handle(DesktopChannel.SyncCandidateContext, (event, request) => { requireTrustedSender(event); projectCandidates.sync(event.sender.id, request); });
+ipcMain.handle(DesktopChannel.SyncCandidateContext, (event, request) => { requireTrustedSender(event); projectCandidates.sync(event.sender.id, request); reverseDesign.sync(event.sender.id, request); });
+ipcMain.handle(DesktopChannel.PrepareReverseDesign, (event) => { requireTrustedSender(event); return reverseDesign.prepare(event.sender.id); });
+ipcMain.handle(DesktopChannel.ConfirmReverseDesign, (event, confirmationId) => { requireTrustedSender(event); return reverseDesign.confirm(event.sender.id, confirmationId); });
+ipcMain.handle(DesktopChannel.GenerateReverseDesign, (event, request) => { requireTrustedSender(event); return reverseDesign.generate(event.sender.id, request); });
 ipcMain.handle(DesktopChannel.CandidateTool, (event, request) => { requireTrustedSender(event); return projectCandidates.tool(event.sender.id, request); });
 ipcMain.handle(DesktopChannel.InspectCandidate, (event, taskId) => { requireTrustedSender(event); return projectCandidates.inspect(event.sender.id, taskId); });
 ipcMain.handle(DesktopChannel.MergeCandidate, (event, request) => {
@@ -191,7 +196,7 @@ function createWindow(): void {
 
   window.once("ready-to-show", () => window.show());
   const owner = window.webContents.id;
-  window.webContents.on("destroyed", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); projectCandidates.close(owner); });
+  window.webContents.on("destroyed", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); projectCandidates.close(owner); reverseDesign.close(owner); });
   window.webContents.on("render-process-gone", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
   window.webContents.on("did-start-loading", () => { nativeAnalysis.cancelOwner(owner); cadParser.cancelOwner(owner); });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));

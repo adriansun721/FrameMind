@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFile, readdir } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { resolve, join } from "node:path";
+const require = createRequire(import.meta.url);
+const { generateReverseDesignCandidate, validateReverseDesignParent } = require("../dist-electron/reverse-design-model.js");
+const { candidateInput, canonicalJson } = require("../dist-electron/candidate-model.js");
+const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const root = resolve("docs/evidence/plan2/P25-09/runs");
+const runs = await Promise.all((await readdir(root)).map(async (name) => {
+  try { const manifest = JSON.parse(await readFile(join(root, name, "run.json"), "utf8")); return { directory: join(root, name), manifest }; } catch { return null; }
+}));
+const run = runs.filter((r) => r?.manifest.status === "passed").sort((a, b) => b.manifest.recordedAt.localeCompare(a.manifest.recordedAt))[0];
+assert.ok(run, "No passed P25-09 run; run npm run evidence:plan2:p2509 first");
+for (const [file, digest] of Object.entries(run.manifest.artifacts)) assert.equal(hash(await readFile(join(run.directory, file))), digest, `artifact hash: ${file}`);
+for (const [file, digest] of Object.entries(run.manifest.sourceHashes)) assert.equal(hash(await readFile(file)), digest, `source/build changed: ${file}; generate a new run`);
+const parentContent = await readFile(join(run.directory, "parent.framemind"), "utf8"), candidateContent = await readFile(join(run.directory, "candidate.framemind"), "utf8");
+const candidate = validateReverseDesignParent(candidateContent), parent = validateReverseDesignParent(parentContent);
+const regenerated = generateReverseDesignCandidate(parentContent, { columnCatalogId: candidate.sections[0].provenance.catalogId, beamCatalogId: candidate.sections[1].provenance.catalogId });
+assert.equal(candidateInput(regenerated.content), candidateInput(candidateContent));
+const resultContent = await readFile(join(run.directory, "result.json"), "utf8"), result = JSON.parse(resultContent);
+for (const [key, value] of Object.entries(regenerated.report)) assert.equal(canonicalJson(result[key]), canonicalJson(value), `generated evidence: ${key}`);
+assert.equal(result.inputSha256, hash(candidateInput(candidateContent)));
+assert.equal(result.parentInputSha256, hash(candidateInput(parentContent)));
+assert.equal(result.candidateContentSha256, hash(candidateContent));
+assert.equal(result.solver, "not-run");
+assert.equal(parent.sections[1].provenance.catalogId, "arcelor-ipe200");
+const validation = JSON.parse(await readFile(join(run.directory, "validation.json"), "utf8"));
+assert.equal(hash(resultContent), validation.task.resultSha256);
+assert.equal(validation.task.inputPolicy, "reverse-design-v1");
+assert.equal(validation.sourceRepositoryUnchanged, true);
+assert.equal(validation.reopenedTasks[0].state, "stale");
+assert.equal(regenerated.report.beforeMassKg.toFixed(3), "1908.492");
+assert.equal(regenerated.report.afterMassKg.toFixed(3), "1337.012");
+console.log(`P25-09 verified: ${run.manifest.runId}; fixed input, hashes, mass/self-weight and isolated candidate evidence passed; solve/inspect not run.`);
